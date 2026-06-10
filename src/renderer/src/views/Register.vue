@@ -1,12 +1,12 @@
 <template>
   <v-container fluid class="fill-height login-container pa-0">
+    <MockBanner />
     <!-- Premium Cinematic Background -->
     <div class="background-wrapper">
       <div class="background-overlay"></div>
     </div>
 
     <v-row no-gutters class="fill-height z-10" align="center" justify="center">
-      <MockBanner />
       <v-col cols="12" sm="9" md="6" lg="5" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Card -->
         <v-card class="premium-glass-card pa-10 w-100 rtl" elevation="0">

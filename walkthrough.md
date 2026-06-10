@@ -82,6 +82,13 @@ All pass `vue-tsc --noEmit` typecheck.
 - Frontend: 2606 modules, ~13s build, chunk-split (vuetify, charts, vue-vendor, vendor)
 - Backend: tsc + migration copy to dist
 
+### Phase 6: Mock OTP Mode Refactoring
+
+- **Decoupled bypass logic**: Switched from legacy token-based check (`mock-`) to environment variable `VITE_USE_MOCK_OTP`.
+- **MockBanner UI Component**: Created a sleek, top-fixed, glassmorphic banner in Arabic to alert developers and users when mock OTP mode is enabled.
+- **Improved Integration**: Placed `MockBanner` outside the main flex `v-row` in both `Register.vue` and `Login.vue` to ensure zero layout interference with the centered cards.
+- **Unit Testing**: Created `src/__tests__/mockMode.test.ts` to verify the banner's visibility toggles correctly based on `import.meta.env.VITE_USE_MOCK_OTP` using Vitest and Vue Test Utils.
+
 ---
 
 ## Key Decisions
