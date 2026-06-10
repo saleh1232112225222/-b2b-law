@@ -4,10 +4,12 @@ import { join, resolve } from 'path'
 
 const walk = (root: string): string[] => {
   const out: string[] = []
-  const entries = readdirSync(root)
+  let entries: string[]
+  try { entries = readdirSync(root) } catch { return [] }
   for (const e of entries) {
     const p = join(root, e)
-    const s = statSync(p)
+    let s
+    try { s = statSync(p) } catch { continue }
     if (s.isDirectory()) out.push(...walk(p))
     else out.push(p)
   }
