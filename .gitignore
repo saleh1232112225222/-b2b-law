@@ -1,0 +1,64 @@
+node_modules
+dist
+out
+b2b_data/
+backups/
+222/
+reports/
+tmp/
+ui_audit/
+.sandbox-home/
+testsprite_tests/tmp/
+blobs/
+manifests/
+.DS_Store
+.eslintcache
+*.log*
+binaries/
+
+# Auto-generated entries
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Sensitive files (auto-detected)
+.env
+build
+debug.log
+dist
+electron-builder.yml
+node_modules
+
+# Local Netlify folder
+.netlify
+
+# Agent/IDE metadata
+.opencode/
+.sandbox-home/

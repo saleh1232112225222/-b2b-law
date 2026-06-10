@@ -1,0 +1,6 @@
+# Netlify redirection rules
+# Redirect all API requests to the Render backend service
+/api/*  https://b2b-law-g2qr.onrender.com/api/:splat  200
+
+# Redirect all other paths to index.html for Vue Router single-page app (SPA) routing
+/*      /index.html                                           200

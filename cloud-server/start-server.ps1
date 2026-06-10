@@ -1,0 +1,5 @@
+$env:DATABASE_URL = "postgresql://postgres:1390@localhost:5432/b2b_law"
+$env:JWT_SECRET = "my-secret-key"
+$env:PORT = "8080"
+Set-Location "G:\b2b\cloud-server"
+& "C:\Program Files\nodejs\node.exe" "G:\b2b\cloud-server\node_modules\tsx\dist\cli.mjs" "src/index.ts"

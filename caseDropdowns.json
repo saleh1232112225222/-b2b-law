@@ -1,0 +1,799 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-04-03",
+  "classifications": [
+    {
+      "code": "PERSONAL_STATUS",
+      "name": "أحوال شخصية",
+      "order": 1,
+      "subClassifications": [
+        {
+          "code": "PERSONAL_GENERAL",
+          "name": "التصنيف العام",
+          "order": 1,
+          "caseTypes": [
+            { "code": "GUARDIAN_APPOINTMENT", "name": "إقامة حارس قضائي", "order": 1 },
+            { "code": "LITIGATION_DAMAGES", "name": "التعويض عن أضرار التقاضي", "order": 2 },
+            { "code": "LEGAL_FEES", "name": "أتعاب محامين أو وكالء", "order": 3 },
+            { "code": "DOCUMENTS_CLAIM", "name": "مطالبة بمستندات", "order": 4 },
+            { "code": "FINAL_JUDGMENT_OBJECTION", "name": "معارضة على صك إنهائي", "order": 5 },
+            { "code": "TRAVEL_BAN", "name": "منع من السفر", "order": 6 }
+          ]
+        },
+        {
+          "code": "WAQF_WILLS",
+          "name": "دعاوى الأوقاف والوصايا",
+          "order": 2,
+          "caseTypes": [
+            { "code": "WAQF_WILL_DELIVERY", "name": "إيصال وقف أو وصية", "order": 1 },
+            { "code": "WAQF_WILL_PROOF", "name": "إثبات وقف أو وصية", "order": 2 },
+            { "code": "WAQF_WILL_ENTITLEMENT", "name": "استحقاق في وقف أو وصية", "order": 3 },
+            { "code": "WAQF_WILL_SUPERVISOR_REMOVAL", "name": "عزل ناظر وقف أو وصية", "order": 4 },
+            {
+              "code": "WAQF_WILL_SUPERVISOR_ACCOUNTING",
+              "name": "محاسبة ناظر وقف أو وصية",
+              "order": 5
+            },
+            {
+              "code": "WAQF_WILL_INVESTMENT_DISPUTE",
+              "name": "منازعة في عقد استثمار أو تعمير",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "code": "CUSTODY_VISITATION_ALIMONY",
+          "name": "دعاوى الحضانة والزيارة والنفقة",
+          "order": 3,
+          "caseTypes": [
+            { "code": "CHILD_DELIVERY", "name": "تسليم صغير لحاضنه", "order": 1 },
+            { "code": "CUSTODY", "name": "حضانة", "order": 2 },
+            { "code": "CHILD_VISITATION", "name": "رؤية صغير", "order": 3 },
+            {
+              "code": "ALIMONY_MODIFICATION",
+              "name": "زيادة نفقة أو إنقاصها أو إلغائها",
+              "order": 4
+            },
+            { "code": "VISITATION", "name": "زيارة أولاد أو غيرهم", "order": 5 },
+            { "code": "PAST_ALIMONY", "name": "نفقة ماضية", "order": 6 },
+            { "code": "CONTINUOUS_ALIMONY", "name": "نفقة مستمرة", "order": 7 }
+          ]
+        },
+        {
+          "code": "MARRIAGE_DIVORCE",
+          "name": "دعاوى الزواج والفرقة",
+          "order": 4,
+          "caseTypes": [
+            { "code": "RECONCILIATION_PROOF", "name": "إثبات المراجعة", "order": 1 },
+            { "code": "DIVORCE_PROOF", "name": "إثبات طلاق", "order": 2 },
+            { "code": "MARRIAGE_PROOF", "name": "إثبات زواج", "order": 3 },
+            { "code": "DOWRY", "name": "مهر", "order": 4 },
+            { "code": "POST_MARITAL", "name": "عقب الزوجية", "order": 5 },
+            { "code": "MARRIAGE_ANNULMENT", "name": "فسخ عقد زواج", "order": 6 }
+          ]
+        },
+        {
+          "code": "GUARDIANSHIP",
+          "name": "دعاوى الولاية",
+          "order": 5,
+          "caseTypes": [
+            { "code": "LINEAGE_PROOF_DENIAL", "name": "إثبات نسب أو نفيه", "order": 1 },
+            { "code": "GUARDIANSHIP_RESTRICTION", "name": "حجر أو رفعه", "order": 2 },
+            { "code": "GUARDIAN_REMOVAL", "name": "عزل ولي", "order": 3 },
+            { "code": "MARRIAGE_OBSTRUCTION", "name": "عضل", "order": 4 },
+            { "code": "GUARDIAN_ACCOUNTING", "name": "محاسبة ولي", "order": 5 }
+          ]
+        },
+        {
+          "code": "INHERITANCE_DIVISION",
+          "name": "دعاوى قسمة التركات",
+          "order": 6,
+          "caseTypes": [
+            {
+              "code": "ESTATE_DIVISION_OVER_10M",
+              "name": "قسمة تركة أكثر من عشرة ملايين ريال",
+              "order": 1
+            },
+            { "code": "REAL_ESTATE_DIVISION", "name": "قسمة تركة عقارية", "order": 2 },
+            { "code": "FINANCIAL_ESTATE_DIVISION", "name": "قسمة تركة مالية", "order": 3 },
+            { "code": "ESTATE_ACCOUNTING", "name": "محاسبة في تركة", "order": 4 }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "COMMERCIAL",
+      "name": "تجاري",
+      "order": 2,
+      "subClassifications": [
+        {
+          "code": "COMMERCIAL_ARBITRATION",
+          "name": "التحكيم التجاري",
+          "order": 1,
+          "caseTypes": [
+            { "code": "ARBITRATION_ANNULMENT", "name": "بطلان حكم التحكيم", "order": 1 },
+            { "code": "ARBITRATION_ENFORCEMENT", "name": "الأمر بتنفيذ حكم التحكيم", "order": 2 },
+            {
+              "code": "INTERIM_ARBITRATION",
+              "name": "إيداع أمر التحكيم الوقتي أو التحفظي",
+              "order": 3
+            },
+            {
+              "code": "PROVISIONAL_MEASURES",
+              "name": "الأوامر الوقتية والإجراءات التحفظية",
+              "order": 4
+            },
+            { "code": "ARBITRATOR_FEES", "name": "أتعاب وتعويض المحكم", "order": 5 },
+            {
+              "code": "ARBITRATION_JUDICIAL_REQUESTS",
+              "name": "الطلبات القضائية لإجراءات التحكيم",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "code": "COMMERCIAL_REGULATIONS",
+          "name": "الأنظمة التجارية",
+          "order": 2,
+          "caseTypes": [
+            { "code": "FOREIGN_INVESTMENT", "name": "الاستثمار الأجنبي", "order": 1 },
+            { "code": "COMMERCIAL_DATA", "name": "البيانات التجارية", "order": 2 },
+            { "code": "MARITIME_COMMERCE", "name": "التجارة البحرية", "order": 3 },
+            { "code": "COMMERCIAL_MORTGAGE", "name": "الرهن التجاري", "order": 4 },
+            { "code": "COMMERCIAL_REGISTER", "name": "السجل التجاري", "order": 5 },
+            { "code": "ANTI_FRAUD", "name": "مكافحة الغش التجاري", "order": 6 },
+            { "code": "NEGOTIABLE_INSTRUMENTS", "name": "الأوراق التجارية", "order": 7 },
+            { "code": "UNFAIR_COMPETITION", "name": "المنافسة غير المشروعة", "order": 8 },
+            { "code": "COMMERCIAL_AGENCIES", "name": "الوكالات التجارية", "order": 9 },
+            { "code": "TRADE_NAMES", "name": "الأسماء التجارية", "order": 10 },
+            { "code": "TRADE_SECRETS", "name": "حماية الأسرار التجارية", "order": 11 }
+          ]
+        },
+        {
+          "code": "COMPANIES",
+          "name": "الشركات",
+          "order": 3,
+          "caseTypes": [
+            { "code": "MUDARABA_COMPANIES", "name": "شركات المضاربة", "order": 1 },
+            { "code": "REGULATED_COMPANIES", "name": "الشركات النظامية", "order": 2 },
+            { "code": "COMPANY_CONTRACT", "name": "عقد الشركة", "order": 3 }
+          ]
+        },
+        {
+          "code": "COMMERCIAL_JUDICIAL_REQUESTS",
+          "name": "الطلبات القضائية",
+          "order": 4,
+          "caseTypes": [
+            { "code": "LEGAL_FEES_COMMERCIAL", "name": "أتعاب محاماة أو وكالة", "order": 1 },
+            {
+              "code": "TORT_DAMAGES_COMMERCIAL",
+              "name": "الضرر بين التجار بسبب المسؤولية التقصيرية",
+              "order": 2
+            },
+            { "code": "COMMERCIAL_APPOINTEES", "name": "المعينين في القضايا التجارية", "order": 3 },
+            { "code": "PAYMENT_ORDERS", "name": "أوامر الأداء", "order": 4 },
+            { "code": "LITIGATION_COSTS", "name": "التعويض عن مصاريف التقاضي", "order": 5 },
+            { "code": "PAYMENT_ORDER_OBJECTION", "name": "التظلم على أمر الأداء", "order": 6 },
+            { "code": "INDICATIONS", "name": "التلميحات", "order": 7 }
+          ]
+        },
+        {
+          "code": "COMMERCIAL_CONTRACTS",
+          "name": "العقود التجارية",
+          "order": 5,
+          "caseTypes": [
+            { "code": "FRANCHISE", "name": "إجازة", "order": 1 },
+            { "code": "COMMERCIAL_ASSIGNMENT", "name": "الحوالة التجارية", "order": 2 },
+            { "code": "ADVERTISING_MARKETING", "name": "الدعاية والإعلان والتسويق", "order": 3 },
+            { "code": "COMMERCIAL_GUARANTEE", "name": "الكفالة التجارية", "order": 4 },
+            { "code": "CONTRACTING", "name": "المقاولات", "order": 5 },
+            { "code": "COMMERCIAL_ESTABLISHMENTS", "name": "المكاتب والمحلات التجارية", "order": 6 }
+          ]
+        },
+        {
+          "code": "INTELLECTUAL_PROPERTY",
+          "name": "الملكية الفكرية",
+          "order": 6,
+          "caseTypes": [
+            { "code": "COPYRIGHT_PROTECTION", "name": "حماية حقوق المؤلف", "order": 1 },
+            { "code": "PATENTS", "name": "براءات الاختراع", "order": 2 },
+            { "code": "TRADEMARKS", "name": "العلامات التجارية", "order": 3 }
+          ]
+        },
+        {
+          "code": "COMMERCIAL_URGENT_CLAIMS",
+          "name": "الدعاوى المستعجلة",
+          "order": 7,
+          "caseTypes": [
+            { "code": "URGENT_SEIZURE", "name": "حجر بدهشي", "order": 1 },
+            { "code": "JUDICIAL_GUARDIAN", "name": "حراسة قضائية", "order": 2 },
+            { "code": "TRAVEL_BAN_COMMERCIAL", "name": "منع من السفر", "order": 3 },
+            { "code": "STOP_NEW_WORK", "name": "وقف الأعمال الجديدة", "order": 4 },
+            { "code": "INSPECTION", "name": "معاينة لإثبات الحالة", "order": 5 },
+            { "code": "STOP_EXECUTION", "name": "وقف تنفيذ", "order": 6 },
+            { "code": "PRODUCT_SAMPLE", "name": "الحصول على عينة من منتج", "order": 7 },
+            { "code": "DOCUMENT_INTERVENTION", "name": "التدخل على مستندات معينة", "order": 8 },
+            { "code": "DISPOSAL_BAN", "name": "المنع من التصرف", "order": 9 },
+            { "code": "DISPOSAL_PERMISSION", "name": "الإذن في التصرف", "order": 10 },
+            { "code": "OTHER_URGENT_REQUESTS", "name": "طلبات عاجلة أخرى", "order": 11 },
+            { "code": "TESTIMONY_PROOF", "name": "إثبات شهادة", "order": 12 }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ENFORCEMENT",
+      "name": "تنفيذ",
+      "order": 3,
+      "subClassifications": [
+        {
+          "code": "DOCUMENT_ACCEPTANCE",
+          "name": "الامتحان عن قبول السند",
+          "order": 1,
+          "caseTypes": [
+            { "code": "ACCEPTANCE_OBJECTION", "name": "الاعتراض على الامتحان", "order": 1 }
+          ]
+        },
+        {
+          "code": "INSOLVENCY",
+          "name": "الإعسار أو الملاءمة",
+          "order": 2,
+          "caseTypes": [
+            { "code": "INSOLVENCY", "name": "الإعسار", "order": 1 },
+            { "code": "SOLVENCY", "name": "الملاءمة", "order": 2 }
+          ]
+        },
+        {
+          "code": "FORMAL_DISPUTES",
+          "name": "منازعات شكلية",
+          "order": 3,
+          "caseTypes": [
+            {
+              "code": "DOCUMENT_FORMALITY",
+              "name": "عدم توفر شرط شكلي للسند أو توريره أو إنكار التوقيع",
+              "order": 1
+            },
+            { "code": "LACK_CAPACITY", "name": "عدم الصفة", "order": 2 }
+          ]
+        },
+        {
+          "code": "INFORMAL_DISPUTES",
+          "name": "منازعات غير شكلية",
+          "order": 4,
+          "caseTypes": [
+            {
+              "code": "POST_EXECUTION_PROCEDURE",
+              "name": "الإجراء بعد صدور السند التنفيذي",
+              "order": 1
+            },
+            {
+              "code": "POST_EXECUTION_POSTPONEMENT",
+              "name": "التأجيل بعد صدور السند التنفيذي",
+              "order": 2
+            },
+            {
+              "code": "POST_EXECUTION_STATUS",
+              "name": "الحالة بعد صدور السند التنفيذي",
+              "order": 3
+            },
+            {
+              "code": "POST_EXECUTION_SETTLEMENT",
+              "name": "الصلح بعد صدور السند التنفيذي",
+              "order": 4
+            },
+            {
+              "code": "SEIZED_ASSETS_EXCEED",
+              "name": "المال المحجوز يفوق مقدار الدين المطالب به",
+              "order": 5
+            },
+            { "code": "SETOFF", "name": "المقاصة بموجب سند تنفيذي", "order": 6 },
+            {
+              "code": "POST_EXECUTION_PAYMENT",
+              "name": "الوفاء بعد صدور السند التنفيذي",
+              "order": 7
+            },
+            {
+              "code": "PROPERTY_OCCUPANT_REFUSAL",
+              "name": "امتناع شاغل العقار عن الخداع لحملة سند تنفيذي",
+              "order": 8
+            },
+            {
+              "code": "AUCTION_INTERFERENCE",
+              "name": "توافق أثناء المزاد أو التأثير على سعر المزاد",
+              "order": 9
+            },
+            { "code": "WRONGFUL_RECOVERY", "name": "رد ما استوفي خطأ", "order": 10 },
+            {
+              "code": "THIRD_PARTY_REPORT",
+              "name": "صحة تقرير المحجوز لديه بما في ذمته",
+              "order": 11
+            },
+            { "code": "DEFECTIVE_ASSET", "name": "عيب في العين المباعة", "order": 12 },
+            { "code": "DAMAGES", "name": "التعويض", "order": 13 },
+            {
+              "code": "JUDICIAL_GUARDIAN_DISPUTE",
+              "name": "المنازعة في أجرة الحارس القضائي أو محاسبته أو استبداله",
+              "order": 14
+            },
+            { "code": "SETOFF_OBJECTION", "name": "الاعتراض على المحاصة", "order": 15 },
+            { "code": "LEGAL_FEES_ENFORCEMENT", "name": "أتعاب المحاماة أو الوكالء", "order": 16 },
+            {
+              "code": "LITIGATION_DAMAGES_ENFORCEMENT",
+              "name": "التعويض عن أضرار التقاضي",
+              "order": 17
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "CRIMINAL",
+      "name": "جزائية",
+      "order": 4,
+      "subClassifications": [
+        {
+          "code": "PRIVATE_RIGHT",
+          "name": "الحق الخاص",
+          "order": 1,
+          "caseTypes": [
+            { "code": "PRIVATE_RIGHT_CLAIM", "name": "المطالبة بالحق الخاص", "order": 1 }
+          ]
+        },
+        {
+          "code": "CRIMINAL_JUDICIAL_REQUESTS",
+          "name": "الطلبات القضائية",
+          "order": 2,
+          "caseTypes": [
+            { "code": "TRAVEL_BAN_CRIMINAL", "name": "منع من السفر", "order": 1 },
+            { "code": "WAIVER_PROOF", "name": "إثبات تنازل", "order": 2 },
+            { "code": "SEIZED_ITEMS_DELIVERY", "name": "تسليم مضبوطات", "order": 3 },
+            { "code": "INSPECTION_CRIMINAL", "name": "المعاينة لإثبات الحالة", "order": 4 },
+            { "code": "TESTIMONY_PROOF_CRIMINAL", "name": "إثبات شهادة", "order": 5 },
+            { "code": "DETENTION_ORDER_OBJECTION", "name": "التظلم من أمر توقيف", "order": 6 }
+          ]
+        },
+        {
+          "code": "HUDUD",
+          "name": "حدود",
+          "order": 3,
+          "caseTypes": [{ "code": "DEFAMATION", "name": "قذف", "order": 1 }]
+        },
+        {
+          "code": "QISAS",
+          "name": "قصاص",
+          "order": 4,
+          "caseTypes": [
+            { "code": "LESS_THAN_SOUL", "name": "ما دون النفس", "order": 1 },
+            { "code": "SOUL", "name": "نفس", "order": 2 }
+          ]
+        },
+        {
+          "code": "FINANCIAL_CLAIM",
+          "name": "مطالبة مالية",
+          "order": 5,
+          "caseTypes": [
+            { "code": "LEGAL_FEES_CRIMINAL", "name": "أتعاب محاماة أو وكالة", "order": 1 },
+            { "code": "ARSH", "name": "أرش", "order": 2 },
+            { "code": "IMPRISONMENT_DAMAGES", "name": "التعويض عن السجن", "order": 3 },
+            { "code": "DIYA", "name": "دية", "order": 4 },
+            { "code": "ASSET_RETURN", "name": "رد العين", "order": 5 },
+            {
+              "code": "LITIGATION_DAMAGES_CRIMINAL",
+              "name": "التعويض عن أضرار التقاضي",
+              "order": 6
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "GENERAL",
+      "name": "عامة",
+      "order": 5,
+      "subClassifications": [
+        {
+          "code": "GENERAL_OTHER",
+          "name": "أخرى",
+          "order": 1,
+          "caseTypes": [
+            { "code": "CONTRACT_PROOF", "name": "إثبات عقد", "order": 1 },
+            { "code": "TORT_LIABILITY", "name": "المسؤولية الناشئة عن الفعل الضار", "order": 2 },
+            { "code": "ASSET_RETURN_GENERAL", "name": "رد العين", "order": 3 },
+            { "code": "COMMON_BENEFITS_DIVISION", "name": "قسمة منافع معايه", "order": 4 },
+            { "code": "DOCUMENTS_CLAIM_GENERAL", "name": "مطالبة بمستندات", "order": 5 },
+            { "code": "DEBTOR_ACTIONS", "name": "عدم نفاذ تصرفات المدين في حق دائنه", "order": 6 }
+          ]
+        },
+        {
+          "code": "GENERAL_URGENT_CLAIMS",
+          "name": "الدعاوى المستعجلة",
+          "order": 2,
+          "caseTypes": [
+            { "code": "JUDICIAL_GUARDIAN_GENERAL", "name": "حراسة قضائية", "order": 1 },
+            { "code": "TRAVEL_BAN_GENERAL", "name": "منع من السفر", "order": 2 },
+            { "code": "STOP_NEW_WORK_GENERAL", "name": "وقف الأعمال الجديدة", "order": 3 },
+            { "code": "DAILY_WEEKLY_RENT", "name": "أجرة الأخير اليومية أو الأسبوعية", "order": 4 },
+            { "code": "LIVING_RECOVERY", "name": "استرداد حياة عمار", "order": 5 },
+            { "code": "INSPECTION_GENERAL", "name": "المعاينة لإثبات الحالة", "order": 6 },
+            { "code": "LIFE_INTERFERENCE", "name": "منع التعرض للحياة", "order": 7 },
+            { "code": "PREVENTIVE_SEIZURE", "name": "حجز تحفظي", "order": 8 },
+            { "code": "TESTIMONY_PROOF_GENERAL", "name": "إثبات شهادة", "order": 9 }
+          ]
+        },
+        {
+          "code": "REAL_ESTATE",
+          "name": "عقارية",
+          "order": 3,
+          "caseTypes": [
+            { "code": "EVICTION", "name": "إخلاء عقار", "order": 1 },
+            { "code": "USUFRUCT", "name": "استطراف", "order": 2 },
+            { "code": "PROPERTY_OVERLAP", "name": "تداخل عقارات", "order": 3 },
+            { "code": "PREEMPTION_RIGHT", "name": "حق الشفعة", "order": 4 },
+            { "code": "PROPERTY_OWNERSHIP", "name": "ملكية عقار", "order": 5 },
+            { "code": "COMMON_PROPERTY_DIVISION", "name": "قسمة عقارات مشتركة", "order": 6 },
+            { "code": "REAL_ESTATE_CONTRIBUTION", "name": "مساهمة عقارية", "order": 7 },
+            { "code": "WATER_RIGHTS", "name": "مساييل أو حمي", "order": 8 },
+            {
+              "code": "REAL_ESTATE_REGISTRATION_OBJECTION",
+              "name": "التظلم والاعتراض على قرارات التسجيل العيني للعقار",
+              "order": 9
+            }
+          ]
+        },
+        {
+          "code": "FINANCIAL",
+          "name": "مالية",
+          "order": 4,
+          "caseTypes": [
+            {
+              "code": "LITIGATION_DAMAGES_FINANCIAL",
+              "name": "التعويض عن أضرار التقاضي",
+              "order": 1
+            },
+            {
+              "code": "NON_REAL_ESTATE_PARTNERSHIP",
+              "name": "شراكة في أملاك غير عقارية",
+              "order": 2
+            }
+          ]
+        },
+        {
+          "code": "TRAFFIC",
+          "name": "مروري",
+          "order": 5,
+          "caseTypes": [
+            { "code": "TRAFFIC_ACCIDENT_RIGHT", "name": "حق خاص ناشئ عن حادث مروري", "order": 1 }
+          ]
+        },
+        {
+          "code": "GENERAL_ARBITRATION",
+          "name": "التحكيم العام",
+          "order": 6,
+          "caseTypes": [
+            { "code": "ARBITRATOR_FEES_GENERAL", "name": "أتعاب وتعويض المحكم", "order": 1 },
+            {
+              "code": "ARBITRATION_JUDICIAL_REQUESTS_GENERAL",
+              "name": "الطلبات القضائية لإجراءات التحكيم",
+              "order": 2
+            },
+            { "code": "ARBITRATION_AWARD_DEPOSIT", "name": "إيداع حكم تحكيم", "order": 3 },
+            {
+              "code": "PROVISIONAL_MEASURES_GENERAL",
+              "name": "الأوامر الوقائية والإجراءات التحفظية",
+              "order": 4
+            },
+            {
+              "code": "INTERIM_ARBITRATION_GENERAL",
+              "name": "إيداع أمر التحكيم الوقتي أو التحفظي",
+              "order": 5
+            },
+            {
+              "code": "ARBITRATION_ENFORCEMENT_GENERAL",
+              "name": "الأمر بتنفيذ حكم التحكيم",
+              "order": 6
+            },
+            { "code": "ARBITRATION_ANNULMENT_GENERAL", "name": "بطلان حكم التحكيم", "order": 7 }
+          ]
+        },
+        {
+          "code": "GENERAL_CONTRACTS",
+          "name": "العقود",
+          "order": 7,
+          "caseTypes": [
+            { "code": "MANAGEMENT_CONTRACT", "name": "عقد الإدارة", "order": 1 },
+            { "code": "LOAN_CONTRACT", "name": "عقد القرض", "order": 2 },
+            { "code": "GIFT_CONTRACT", "name": "عقد الهبة", "order": 3 },
+            { "code": "REAL_ESTATE_LEASE", "name": "عقد إيجار عقار", "order": 4 },
+            { "code": "MOVABLE_LEASE", "name": "عقد إيجار منقول", "order": 5 },
+            { "code": "SALE_CONTRACT", "name": "عقد البيع", "order": 6 },
+            { "code": "ASSIGNMENT_CONTRACT", "name": "عقد الحوالة", "order": 7 },
+            { "code": "GUARANTEE_CONTRACT", "name": "عقد الكفالة", "order": 8 },
+            { "code": "AGENCY_CONTRACT", "name": "عقد الوكالة", "order": 9 },
+            { "code": "UNNAMED_CONTRACTS", "name": "العقود غير المسماة", "order": 10 },
+            { "code": "CONTRACTING_CONTRACT", "name": "عقد المقاولة", "order": 11 },
+            { "code": "DEPOSIT_CONTRACT", "name": "عقد الإيداع", "order": 12 },
+            { "code": "COMPETITION_CONTRACT", "name": "عقد المسابقة", "order": 13 },
+            { "code": "CUSTODY_CONTRACT", "name": "عقد الحراسة", "order": 14 },
+            { "code": "BARTER_CONTRACT", "name": "عقد المقايضة", "order": 15 }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "LABOR",
+      "name": "عمالية",
+      "order": 6,
+      "subClassifications": [
+        {
+          "code": "DOMESTIC_LABOR",
+          "name": "العمالة المنزلية",
+          "order": 1,
+          "caseTypes": [
+            {
+              "code": "DOMESTIC_COMMITTEE_OBJECTION",
+              "name": "اعتراض على قرارات لجان الخدمة المنزلية",
+              "order": 1
+            },
+            { "code": "DOMESTIC_WORKER_CLAIMS", "name": "مطالبات العامل المنزلي", "order": 2 },
+            { "code": "DOMESTIC_EMPLOYER_CLAIMS", "name": "مطالبات صاحب العمل المنزلي", "order": 3 }
+          ]
+        },
+        {
+          "code": "LEGAL_FEES_DAMAGES",
+          "name": "أتعاب محاماة وأضرار التقاضي",
+          "order": 2,
+          "caseTypes": [
+            { "code": "LEGAL_FEES_LABOR", "name": "أتعاب محاماة أو وكالء", "order": 1 },
+            { "code": "LITIGATION_DAMAGES_LABOR", "name": "التعويض عن أضرار التقاضي", "order": 2 }
+          ]
+        },
+        {
+          "code": "LABOR_URGENT_CLAIMS",
+          "name": "الدعاوى المستعجلة",
+          "order": 3,
+          "caseTypes": [
+            { "code": "TRAVEL_BAN_LABOR", "name": "منع من السفر", "order": 1 },
+            {
+              "code": "DAILY_WEEKLY_RENT_LABOR",
+              "name": "أجرة الأخير اليومية أو الأسبوعية",
+              "order": 2
+            },
+            { "code": "STOP_EXECUTION_LABOR", "name": "إيقاف التنفيذ", "order": 3 },
+            { "code": "INSPECTION_LABOR", "name": "المعاينة لإثبات الحالة", "order": 4 },
+            { "code": "PREVENTIVE_SEIZURE_LABOR", "name": "حجز تحفظي", "order": 5 },
+            { "code": "TESTIMONY_PROOF_LABOR", "name": "إثبات شهادة", "order": 6 }
+          ]
+        },
+        {
+          "code": "SOCIAL_INSURANCE",
+          "name": "تأمينات اجتماعية",
+          "order": 4,
+          "caseTypes": [
+            {
+              "code": "SOCIAL_INSURANCE_DECISION_ANNULMENT",
+              "name": "إلغاء القرار الصادر عن التأمينات الاجتماعية",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "code": "REGULATORY_PENALTIES",
+          "name": "إيقاع العقوبات النظامية",
+          "order": 5,
+          "caseTypes": [
+            {
+              "code": "LABOR_OFFICE_PENALTIES",
+              "name": "إيقاع العقوبات النظامية من مكتب العمل",
+              "order": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "FINALIZATION",
+      "name": "إنهاءات",
+      "order": 7,
+      "subClassifications": [
+        {
+          "code": "HEIRS",
+          "name": "الورثة",
+          "order": 1,
+          "caseTypes": [
+            {
+              "code": "ESTATE_DIVISION_CONSENT",
+              "name": "قسمة تركة بالتراضي مع وجود قاصر أو غائب أو مفقود أو وقف أو وصية",
+              "order": 1
+            },
+            {
+              "code": "HEIRS_SHARES_DECLARATION",
+              "name": "بيان أنصاب الورثة مع وجود قاصر أو غائب أو مفقود أو وقف أو وصية",
+              "order": 2
+            },
+            {
+              "code": "DEATH_PROOF_SPECIAL",
+              "name": "إثبات وفاة أو حصر ورثة متوفى بحالات خاصة",
+              "order": 3
+            }
+          ]
+        },
+        {
+          "code": "GUARDIANSHIPS",
+          "name": "الواليات",
+          "order": 2,
+          "caseTypes": [
+            { "code": "MINOR_AGE_GUARDIANSHIP", "name": "إقامة ولاية على قاصر سناً", "order": 1 },
+            {
+              "code": "MINOR_MENTAL_GUARDIANSHIP",
+              "name": "إقامة ولاية على قاصر عقلاً",
+              "order": 2
+            },
+            { "code": "CAPACITY_RESTORATION", "name": "إثبات رشد من كان قاصراً عقلاً", "order": 3 },
+            { "code": "GUARDIANSHIP_TERMINATION", "name": "فسخ ولاية بطلب من الولي", "order": 4 },
+            { "code": "MINOR_ALIMONY", "name": "تقدير نفقة قاصر", "order": 5 },
+            { "code": "GUARDIAN_DEATH_TERMINATION", "name": "فسخ الولاية لموت الولي", "order": 6 },
+            {
+              "code": "MISSING_PERSON_GUARDIANSHIP",
+              "name": "إقامة ولاية على مال مفقود",
+              "order": 7
+            },
+            {
+              "code": "MISSING_PERSON_GUARDIANSHIP_TERMINATION",
+              "name": "فسخ ولاية على مال مفقود",
+              "order": 8
+            },
+            { "code": "ORPHAN_CARE", "name": "ولاية ورعاية وحضانة يتيم", "order": 9 }
+          ]
+        },
+        {
+          "code": "SOCIAL_PROOFS",
+          "name": "إثباتات اجتماعية",
+          "order": 3,
+          "caseTypes": [
+            {
+              "code": "INJURY_DIYA",
+              "name": "تتأثر عن أرش إصابة أو دية غير العمد وشبه العمد",
+              "order": 1
+            },
+            { "code": "EARLY_MARRIAGE_CONSENT", "name": "الموافقة على الزواج المبكر", "order": 2 },
+            {
+              "code": "GUARDIAN_ABSENCE",
+              "name": "إثبات انقطاع الأولياء عن المرأة لغرض الزواج",
+              "order": 3
+            },
+            { "code": "JUDGE_MARRIAGE", "name": "عقد زواج بوالدة القاضي", "order": 4 },
+            { "code": "NEAREST_GUARDIAN", "name": "إثبات أقرب ولي للتزويج", "order": 5 },
+            { "code": "LOSS_ABSENCE", "name": "إثبات فقد وغنية", "order": 6 }
+          ]
+        },
+        {
+          "code": "WAQF_WILLS_FINALIZATION",
+          "name": "الأوقاف والوصايا",
+          "order": 4,
+          "caseTypes": [
+            { "code": "WAQF_WILL_DISPOSAL", "name": "إذن تصرف بالمالك وقف أو وصية", "order": 1 },
+            {
+              "code": "WAQF_WILL_AMENDMENT",
+              "name": "تعديل وإضافة لصك الوقف أو الوصية",
+              "order": 2
+            },
+            {
+              "code": "INVESTMENT_CONTRACT_MODIFICATION",
+              "name": "طلب المستثمر فسخ أو تعديل على عقد الاستثمار المأذون به من المحكمة",
+              "order": 3
+            },
+            {
+              "code": "WAQF_FUNDS_DELIVERY",
+              "name": "تسليم أموال الوقف أو الوصية المودعة لدى الهيئة",
+              "order": 4
+            },
+            {
+              "code": "WAQF_SUPERVISOR_APPOINTMENT",
+              "name": "إقامة مشرف على وقف أو وصية",
+              "order": 5
+            },
+            {
+              "code": "WAQF_SUPERVISOR_RESIGNATION",
+              "name": "استقالة ناظر على وقف أو وصية",
+              "order": 6
+            }
+          ]
+        },
+        {
+          "code": "PERMISSIONS",
+          "name": "الأذونات",
+          "order": 5,
+          "caseTypes": [
+            {
+              "code": "MINOR_ASSET_DISPOSAL",
+              "name": "إذن التصرف بأملاك القاصر أو المفقود أو الغائب",
+              "order": 1
+            }
+          ]
+        },
+        {
+          "code": "DOCUMENT_AMENDMENTS",
+          "name": "تعديلات الصكوك",
+          "order": 6,
+          "caseTypes": [
+            { "code": "FINAL_DOCUMENT_AMENDMENT", "name": "تعديل وتهميش على صك إنهائي", "order": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "ADMINISTRATIVE_CASES",
+      "name": "القضايا الإدارية",
+      "order": 90,
+      "subClassifications": [
+        {
+          "code": "ADMIN_DECISION_CANCELLATION",
+          "name": "إلغاء قرار",
+          "order": 1,
+          "caseTypes": [
+            { "code": "NEGATIVE_ADMIN_DECISION", "name": "قرار إداري سلبي", "order": 1 },
+            { "code": "POSITIVE_ADMIN_DECISION", "name": "قرار إداري إيجابي", "order": 2 }
+          ]
+        },
+        {
+          "code": "ADMIN_COMPENSATION",
+          "name": "تعويض",
+          "order": 2,
+          "caseTypes": [
+            { "code": "ADMIN_FINANCIAL_COMPENSATION", "name": "تعويض مالي", "order": 1 }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "JUDICIAL_COMMITTEES",
+      "name": "اللجان القضائية",
+      "order": 91,
+      "subClassifications": [
+        {
+          "code": "BANKING_FINANCE_DISPUTES",
+          "name": "لجان الفصل في المنازعات المصرفية والتمويلية",
+          "order": 1,
+          "caseTypes": [
+            { "code": "BANKING_DISPUTES", "name": "منازعات مصرفية", "order": 1 },
+            {
+              "code": "FINANCE_DISPUTES_REAL_ESTATE",
+              "name": "منازعات تمويلية محلها عقار",
+              "order": 2
+            },
+            { "code": "FINANCE_DISPUTES_CAR", "name": "منازعات تمويلية محلها سيارة", "order": 3 }
+          ]
+        },
+        {
+          "code": "INSURANCE_DISPUTES_COMMITTEE",
+          "name": "لجنة الفصل في منازعات التأمين",
+          "order": 2,
+          "caseTypes": [{ "code": "INSURANCE_DISPUTES", "name": "منازعات تأمينية", "order": 1 }]
+        },
+        {
+          "code": "FINANCE_VIOLATIONS_DISPUTES",
+          "name": "لجنة الفصل في المخالفات والمنازعات التمويلية",
+          "order": 3,
+          "caseTypes": [
+            { "code": "FINANCE_VIOLATIONS", "name": "مخالفات تمويلية", "order": 1 },
+            { "code": "FINANCE_DISPUTES", "name": "منازعات تمويلية", "order": 2 }
+          ]
+        },
+        {
+          "code": "MEDIA_COMMITTEES",
+          "name": "اللجان الإعلامية",
+          "order": 4,
+          "caseTypes": [
+            { "code": "PRESS_VIOLATIONS", "name": "مخالفات صحفية", "order": 1 },
+            {
+              "code": "SHOPS_INDIVIDUALS_VIOLATIONS",
+              "name": "مخالفات المحلات والأفراد",
+              "order": 2
+            },
+            { "code": "E_PUBLISHING_VIOLATIONS", "name": "مخالفات النشر الإلكتروني", "order": 3 }
+          ]
+        }
+      ]
+    }
+  ]
+}
