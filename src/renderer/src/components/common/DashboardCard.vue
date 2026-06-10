@@ -113,24 +113,27 @@ const getHexColor = (colorName: string): string => {
 
 /* Premium KPI card enhancements */
 .glass-card.premium-lift {
-  border: 1px solid var(--gold-alpha) !important;
+  border: 1px solid var(--glass-border) !important;
   background: var(--glass-bg-soft) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border-radius: 14px !important;
   transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .glass-card.premium-lift:hover {
-  border-color: var(--gold-royal) !important;
-  box-shadow: 0 8px 24px -4px var(--gold-alpha), 0 0 0 1px var(--gold-alpha) !important;
-  transform: translateY(-4px) scale(1.01);
+  border-color: var(--accent) !important;
+  box-shadow: 0 8px 24px -4px var(--accent-glow), 0 0 0 1px var(--accent-alpha) !important;
+  transform: translateY(-3px) scale(1.01);
 }
 
 [data-theme='dark'] .glass-card.premium-lift {
   background: rgba(13, 21, 38, 0.7) !important;
-  border-color: rgba(233, 195, 73, 0.12) !important;
+  border-color: rgba(233, 195, 73, 0.10) !important;
 }
 
 [data-theme='dark'] .glass-card.premium-lift:hover {
-  border-color: rgba(233, 195, 73, 0.4) !important;
-  box-shadow: 0 8px 32px -4px rgba(233, 195, 73, 0.15), 0 0 0 1px rgba(233, 195, 73, 0.1) !important;
+  border-color: rgba(233, 195, 73, 0.35) !important;
+  box-shadow: 0 8px 32px -4px rgba(233, 195, 73, 0.12), 0 0 0 1px rgba(233, 195, 73, 0.08) !important;
 }
 </style>

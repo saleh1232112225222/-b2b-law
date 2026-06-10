@@ -1,11 +1,14 @@
 <template>
-  <v-col cols="12" md="3" class="d-flex flex-column gap-1" :class="{ 'overflow-hidden h-100': !isMobile }">
-    <v-card elevation="0" class="glass-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
-      <v-card-title class="pa-2 px-3 text-body-2 font-weight-black dashboard-title"
-        >إجراءات سريعة</v-card-title
-      >
-      <v-divider opacity="0.1"></v-divider>
-      <v-card-text class="pa-2 overflow-y-auto">
+  <v-col cols="12" md="3" class="d-flex flex-column" style="gap: 12px" :class="{ 'overflow-hidden h-100': !isMobile }">
+    <v-card flat class="quick-actions-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
+      <div class="d-flex align-center pa-3 px-4">
+        <div class="quick-actions-icon-wrapper me-3">
+          <LucideIcon name="zap" :size="18" class="quick-actions-icon" />
+        </div>
+        <span class="quick-actions-title">إجراءات سريعة</span>
+      </div>
+      <v-divider opacity="0.06"></v-divider>
+      <v-card-text class="pa-3 overflow-y-auto">
         <v-row dense>
           <v-col v-for="action in quickActions" :key="action.title" cols="12" class="pa-1">
             <v-btn
@@ -13,7 +16,7 @@
               variant="tonal"
               color="accent"
               size="small"
-              class="rounded-lg text-tiny font-weight-black justify-start"
+              class="quick-action-btn"
               :to="action.to"
               @click="action.to ? $emit('navigate', action.to) : action.onClick && $emit('action', action.onClick)"
             >
@@ -25,9 +28,8 @@
       </v-card-text>
     </v-card>
 
-    <!-- Refresh Indicator / Last Updated -->
-    <v-card elevation="0" class="glass-card pa-2 shrink-0 text-center">
-      <div class="text-tiny opacity-60 font-weight-bold">آخر تحديث: {{ lastRefreshTime }}</div>
+    <v-card flat class="quick-actions-card pa-3 shrink-0 text-center">
+      <div class="text-caption opacity-50 font-weight-bold">آخر تحديث: {{ lastRefreshTime }}</div>
     </v-card>
   </v-col>
 </template>
@@ -56,3 +58,48 @@ const quickActions = [
   { title: 'تصدير قاعدة بيانات', icon: 'file-down', onClick: 'backup' }
 ]
 </script>
+
+<style scoped>
+.quick-actions-card {
+  background: var(--glass-bg-soft) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition-smooth);
+}
+
+.quick-actions-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-alpha);
+}
+
+.quick-actions-icon {
+  color: var(--accent);
+}
+
+.quick-actions-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-primary);
+}
+
+.quick-action-btn {
+  justify-content: flex-start !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  border-radius: 10px !important;
+  min-height: 40px !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.quick-action-btn:hover {
+  transform: translateX(-2px);
+}
+</style>

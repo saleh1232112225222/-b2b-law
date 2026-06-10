@@ -937,6 +937,12 @@ onMounted(async () => {
   background: transparent;
 }
 
+/* ============================================================
+   APP SHELL — SIDEBAR, HEADER, FOOTER
+   Premium Enterprise Law SaaS Styling
+   ============================================================ */
+
+/* ---- Sidebar Drawer ---- */
 .premium-sidebar-modern {
   background: transparent !important;
   border-left: none !important;
@@ -962,108 +968,142 @@ onMounted(async () => {
   min-width: 300px !important;
 }
 
+/* ---- Sidebar Inner Wrapper ---- */
 .sidebar-wrapper {
-  margin: 12px;
-  height: calc(100vh - 24px) !important;
-  border-radius: var(--radius-lg) !important;
-  background: var(--sidebar-bg, linear-gradient(180deg, #0F2A55 0%, #1A437D 50%, #1E4D8C 100%)) !important;
-  border: 1px solid rgba(233, 195, 73, 0.15) !important;
-  box-shadow: 0 28px 80px -40px rgba(0, 0, 0, 0.9), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
-  backdrop-filter: blur(24px) !important;
-  -webkit-backdrop-filter: blur(24px) !important;
+  margin: 10px;
+  height: calc(100vh - 20px) !important;
+  border-radius: 16px !important;
+  background: var(--sidebar-bg) !important;
+  border: 1px solid rgba(233, 195, 73, 0.12) !important;
+  box-shadow: 0 24px 80px -32px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
   overflow: hidden;
 }
 
+/* ---- Sidebar Identity Section ---- */
 .sidebar-identity {
-  margin-bottom: 24px;
-  padding: 24px;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.2);
+  margin-bottom: 20px;
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.12);
 }
 
+.sidebar-identity .v-avatar {
+  border: 2px solid rgba(233, 195, 73, 0.3);
+  box-shadow: 0 0 20px rgba(233, 195, 73, 0.15);
+  transition: var(--transition-smooth);
+}
+
+.sidebar-identity .v-avatar:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 30px rgba(233, 195, 73, 0.25);
+}
+
+/* ---- Sidebar Navigation List ---- */
 .sidebar-nav-list {
   overflow-y: auto;
   scrollbar-width: none;
+  padding: 0 8px !important;
 }
 .sidebar-nav-list::-webkit-scrollbar {
   display: none;
 }
 
+/* ---- Sidebar Menu Items (Top-level / Standalone) ---- */
 .menu-item-modern {
-  color: #ffffff !important;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1.5px solid rgba(255, 255, 255, 0.6) !important; /* بارزة ومحاطة بإطار */
-  background: rgba(255, 255, 255, 0.05) !important;
+  color: var(--sidebar-text) !important;
+  transition: var(--transition-smooth);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-radius: 10px !important;
+  margin-bottom: 4px !important;
+  min-height: 44px !important;
 }
 
 .menu-item-modern .v-list-item-title {
   color: inherit !important;
+  font-size: 0.85rem !important;
 }
 
 .menu-item-modern :deep(.lucide-icon) {
-  stroke: #ffffff !important;
+  stroke: var(--sidebar-text) !important;
+  transition: var(--transition-fast);
 }
 
 .menu-item-modern:hover {
-  background: #e9c349 !important; /* ذهبي */
-  border-color: #e9c349 !important; /* إطار ذهبي رفيع */
-  color: #1a4b84 !important; /* نص كحلي للتباين مع الذهبي */
-  transform: translateX(-4px) scale(1.02);
+  background: rgba(233, 195, 73, 0.12) !important;
+  border-color: rgba(233, 195, 73, 0.3) !important;
+  color: #FFFFFF !important;
+  transform: translateX(-2px);
 }
 
 .menu-item-modern:hover :deep(.lucide-icon) {
-  stroke: #1a4b84 !important;
+  stroke: var(--accent) !important;
 }
 
 .v-list-item--active.menu-item-modern {
-  background: rgba(233, 195, 73, 0.15) !important;
-  color: #e9c349 !important;
-  border-color: #e9c349 !important;
-  box-shadow: 0 0 20px rgba(233, 195, 73, 0.2) !important;
+  background: rgba(233, 195, 73, 0.14) !important;
+  color: var(--accent) !important;
+  border-color: rgba(233, 195, 73, 0.4) !important;
+  box-shadow: 0 0 16px rgba(233, 195, 73, 0.10) !important;
 }
 
 .v-list-item--active.menu-item-modern :deep(.lucide-icon) {
-  stroke: #e9c349 !important;
+  stroke: var(--accent) !important;
 }
 
+/* ---- Sidebar Sub-menu Items (Children) ---- */
 .menu-item-child {
-  color: rgba(255, 255, 255, 0.7) !important;
-  padding-right: 36px !important; /* تقليص إضافي للمساحة */
-  transition: all 0.3s ease;
-  border: 0.5px solid rgba(255, 255, 255, 0.1) !important; /* تقليص حجم الإطار (السمك) */
-  background: rgba(255, 255, 255, 0.01) !important;
-  margin-bottom: 3px !important;
-  margin-left: 24px !important; /* تضييق المساحة المشغولة أكثر */
-  min-height: 28px !important;
+  color: var(--sidebar-text) !important;
+  padding-right: 32px !important;
+  transition: var(--transition-smooth);
+  border: none !important;
+  background: transparent !important;
+  margin-bottom: 2px !important;
+  margin-left: 16px !important;
+  margin-right: 8px !important;
+  min-height: 34px !important;
+  border-radius: 8px !important;
 }
 
 .menu-item-child .v-list-item-title {
   color: inherit !important;
-  font-weight: 700 !important;
-  font-size: 0.75rem !important; /* تكبير الخط بنسبة 10% تقريباً عن السابق لزيادة الوضوح */
+  font-weight: 600 !important;
+  font-size: 0.78rem !important;
 }
 
 .menu-item-child :deep(.lucide-icon) {
-  stroke: rgba(255, 255, 255, 0.7) !important;
-  width: 14px !important; /* تكبير الأيقونة قليلاً لتناسب الخط */
-  height: 14px !important;
+  stroke: var(--sidebar-text) !important;
+  width: 16px !important;
+  height: 16px !important;
+  opacity: 0.7;
 }
 
 .menu-item-child:hover {
-  background: #e9c349 !important;
-  color: #1a4b84 !important;
-  border-color: #e9c349 !important;
+  background: rgba(233, 195, 73, 0.08) !important;
+  color: #FFFFFF !important;
 }
 
 .menu-item-child:hover :deep(.lucide-icon) {
-  stroke: #1a4b84 !important;
+  stroke: var(--accent) !important;
+  opacity: 1;
 }
 
 .menu-item-child.v-list-item--active {
-  color: #e9c349 !important;
-  background: rgba(233, 195, 73, 0.1) !important;
-  border-color: #e9c349 !important;
+  color: var(--accent) !important;
+  background: rgba(233, 195, 73, 0.10) !important;
 }
 
+.menu-item-child.v-list-item--active :deep(.lucide-icon) {
+  stroke: var(--accent) !important;
+  opacity: 1;
+}
+
+/* ---- v-list-group activator caret ---- */
+.v-list-group :deep(.v-list-group__header .v-list-item__append .v-icon) {
+  color: var(--sidebar-text) !important;
+  opacity: 0.6;
+}
+
+/* ---- Glass Header (Top App Bar) ---- */
 .glass-header {
   z-index: 1100 !important;
   top: 0 !important;
@@ -1071,67 +1111,70 @@ onMounted(async () => {
   background: var(--glass-bg) !important;
   border-bottom: 1px solid var(--divider) !important;
   border-radius: 0 !important;
-  box-shadow: 0 4px 24px -8px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 0 var(--divider), 0 4px 20px -8px rgba(0, 0, 0, 0.06) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   transition: var(--transition-premium);
 }
 
 [data-theme='dark'] .glass-header {
-  border-bottom: 1px solid rgba(233, 195, 73, 0.1) !important;
-  box-shadow: 0 4px 32px -8px rgba(0, 0, 0, 0.3), 0 1px 0 rgba(233, 195, 73, 0.06) !important;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.08) !important;
+  box-shadow: 0 1px 0 rgba(233, 195, 73, 0.06), 0 4px 24px -8px rgba(0, 0, 0, 0.3) !important;
 }
 
 .header-action-btn {
   background: var(--glass-bg) !important;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-premium);
+  border-radius: 8px;
+  transition: var(--transition-smooth);
 }
 
 .header-action-btn:hover {
-  border-color: rgba(26, 75, 132, 0.35);
+  border-color: var(--accent);
   color: var(--accent);
+  background: var(--accent-alpha) !important;
 }
 
-/* Status Indicators */
+/* ---- Status Indicators ---- */
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 0 12px;
+  gap: 6px;
+  padding: 0 10px;
 }
 
 .dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
 }
 .dot.green {
   background: var(--success);
-  box-shadow: 0 0 8px var(--success);
+  box-shadow: 0 0 6px var(--success);
 }
 
+.status-chip {
+  font-size: 0.7rem !important;
+  height: 24px !important;
+}
+
+/* ---- User Profile ---- */
 .user-profile-modern {
   cursor: pointer;
-  transition: var(--transition-premium);
+  transition: var(--transition-smooth);
 }
 .user-profile-modern:hover {
   background: var(--surface-hover) !important;
   border-color: var(--accent) !important;
 }
 
+/* ---- Accent Glow Border ---- */
 .border-accent-glow {
   border: 2px solid var(--accent);
   box-shadow: 0 0 15px var(--accent-glow);
 }
 
-.glass-card-noir {
-  background: var(--glass-noir-bg);
-  backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-noir-border);
-}
-
+/* ---- Glass Footer ---- */
 .glass-footer {
   background: var(--glass-bg) !important;
   border-top: 1px solid var(--divider) !important;
@@ -1139,19 +1182,21 @@ onMounted(async () => {
   -webkit-backdrop-filter: var(--glass-blur) !important;
 }
 
+/* ---- Logout Button ---- */
 .logout-btn-modern {
-  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
-  color: white !important;
-  transition: all 0.3s ease !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  color: var(--sidebar-text) !important;
+  transition: var(--transition-smooth) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
 }
 
 .logout-btn-modern:hover {
-  background: #e9c349 !important;
-  color: #1a4b84 !important;
-  border-color: #e9c349 !important;
+  background: rgba(233, 195, 73, 0.12) !important;
+  color: var(--accent) !important;
+  border-color: rgba(233, 195, 73, 0.3) !important;
 }
 
-/* Logo Shine Animation */
+/* ---- Logo Shine Animation ---- */
 .logo-shine-container {
   position: relative;
   width: fit-content;
@@ -1166,8 +1211,8 @@ onMounted(async () => {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.4),
-    rgba(233, 195, 73, 0.3),
+    rgba(255, 255, 255, 0.3),
+    rgba(233, 195, 73, 0.2),
     transparent
   );
   transform: skewX(-25deg);
@@ -1176,34 +1221,23 @@ onMounted(async () => {
 }
 
 @keyframes shimmer-swipe {
-  0% {
-    left: -150%;
-  }
-  20% {
-    left: 150%;
-  }
-  100% {
-    left: 150%;
-  }
+  0% { left: -150%; }
+  20% { left: 150%; }
+  100% { left: 150%; }
 }
 
-.border-accent-glow {
-  border: 2.5px solid #e9c349 !important;
-  box-shadow: 0 0 20px rgba(233, 195, 73, 0.25) !important;
-}
-
-/* Global Animations */
+/* ---- Page Transitions ---- */
 .premium-fade-enter-active,
 .premium-fade-leave-active {
-  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .premium-fade-enter-from,
 .premium-fade-leave-to {
   opacity: 0;
-  transform: translateY(15px) scale(0.98);
+  transform: translateY(12px) scale(0.98);
 }
 
-/* ---- Mobile responsive tweaks for App shell ---- */
+/* ---- Mobile Responsive ---- */
 @media (max-width: 768px) {
   .glass-header :deep(.v-toolbar-title) {
     font-size: 1rem !important;
@@ -1239,10 +1273,6 @@ onMounted(async () => {
     min-width: 40px;
     min-height: 40px;
     margin-right: 4px !important;
-  }
-
-  .glass-header :deep(.v-toolbar-title) {
-    font-size: 0.95rem !important;
   }
 
   .glass-footer {

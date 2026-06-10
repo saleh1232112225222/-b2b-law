@@ -1,52 +1,39 @@
 <template>
-  <v-container fluid class="main-viewport dashboard-compact" :class="{ 'mobile-viewport-scroll': isMobile }">
+  <v-container fluid class="dashboard-viewport" :class="{ 'dashboard-viewport--mobile': isMobile }">
     <DashboardKpiCards :stats="stats" :is-mobile="isMobile" @navigate="$router.push($event)" />
 
-    <!-- Main Interactive Grid: Two-Column Layout -->
-    <v-row v-if="loading" class="dashboard-row dashboard-row--loading">
+    <v-row v-if="loading" class="mt-3">
       <v-col cols="12" lg="8">
-        <v-skeleton-loader
-          type="list-item-avatar-two-line@3, table@2"
-          class="rounded-lg mb-4"
-        ></v-skeleton-loader>
+        <v-skeleton-loader type="list-item-avatar-two-line@3, table@2" class="rounded-xl mb-4" />
       </v-col>
       <v-col cols="12" lg="4">
-        <v-skeleton-loader
-          type="list-item-two-line@3, list-item-three-line@4"
-          class="rounded-lg"
-        ></v-skeleton-loader>
+        <v-skeleton-loader type="list-item-two-line@3, list-item-three-line@4" class="rounded-xl" />
       </v-col>
     </v-row>
 
     <v-row
       v-else
-      class="dashboard-grid mt-1"
+      class="dashboard-grid mt-2"
       :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
       dense
       :style="{ '--dashboard-bottom-h': bottomStripHeight + 'px' }"
     >
-      <!-- Column 1: Analysis & Calendar (75%) -->
-      <v-col cols="12" md="9" class="d-flex flex-column gap-1" :class="{ 'overflow-hidden h-100': !isMobile }">
-        <v-card elevation="0" class="glass-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
-          <v-card-title class="pa-2 px-3 d-flex align-center justify-space-between shrink-0">
+      <v-col cols="12" md="9" class="d-flex flex-column" style="gap: 12px" :class="{ 'overflow-hidden h-100': !isMobile }">
+        <v-card flat class="dashboard-panel-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
+          <div class="dashboard-panel-header d-flex align-center justify-space-between shrink-0 pa-3 px-4">
             <div class="d-flex align-center">
-              <div class="bg-accent-alpha pa-2 rounded-xl me-3">
-                <LucideIcon name="sliders-horizontal" :size="16" class="text-gold" />
+              <div class="panel-icon-wrapper me-3">
+                <LucideIcon name="sliders-horizontal" :size="18" class="panel-icon" />
               </div>
-              <div class="font-weight-black text-body-2 dashboard-title">لوحة التحليل والتقويم</div>
+              <span class="panel-title">لوحة التحليل والتقويم</span>
             </div>
-            <v-tabs
-              v-model="topPanelTab"
-              density="compact"
-              color="primary"
-              class="tabs-mini dashboard-top-tabs"
-            >
-              <v-tab value="calendar" class="font-weight-black px-2 text-tiny">التقويم</v-tab>
-              <v-tab value="charts" class="font-weight-black px-2 text-tiny">الرسوم</v-tab>
-              <v-tab value="metrics" class="font-weight-black px-2 text-tiny">المؤشرات</v-tab>
+            <v-tabs v-model="topPanelTab" density="compact" color="primary" class="panel-tabs">
+              <v-tab value="calendar" class="font-weight-bold px-3 panel-tab">التقويم</v-tab>
+              <v-tab value="charts" class="font-weight-bold px-3 panel-tab">الرسوم البيانية</v-tab>
+              <v-tab value="metrics" class="font-weight-bold px-3 panel-tab">المؤشرات</v-tab>
             </v-tabs>
-          </v-card-title>
-          <v-divider opacity="0.1"></v-divider>
+          </div>
+          <v-divider opacity="0.06"></v-divider>
           <v-card-text class="pa-2 flex-grow-1 overflow-y-auto">
             <v-window v-model="topPanelTab" class="mb-1" style="min-height: 150px">
               <DashboardCalendarPanel
@@ -650,15 +637,15 @@ const fetchData = async () => {
 </script>
 
 <style scoped>
-.main-viewport {
-  padding: 8px 12px !important;
+.dashboard-viewport {
+  padding: 12px 16px !important;
   height: calc(100vh - 64px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-.mobile-viewport-scroll {
+.dashboard-viewport--mobile {
   height: auto !important;
   overflow: visible !important;
 }
@@ -668,150 +655,47 @@ const fetchData = async () => {
   min-height: 0;
 }
 
-.kpi-card-compact {
-  height: 78px !important;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  box-shadow: 0 4px 12px rgba(197, 160, 40, 0.15) !important;
-  border: 1px solid rgba(197, 160, 40, 0.1) !important;
-  transition: all 0.3s ease;
+.dashboard-panel-card {
+  background: var(--glass-bg-soft) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 14px !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition-smooth);
 }
 
-.kpi-card-compact:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 18px rgba(197, 160, 40, 0.2) !important;
+.dashboard-panel-header {
+  min-height: 52px;
 }
 
-.kpi-card-compact :deep(.pa-5) {
-  padding: 10px 14px !important;
-}
-
-.kpi-card-compact :deep(.mb-4) {
-  margin-bottom: 4px !important;
-}
-
-.kpi-card-compact :deep(.icon-container) {
-  padding: 5px !important;
-  border-radius: 6px !important;
-}
-
-.kpi-card-compact :deep(.text-h4) {
-  font-size: 1.15rem !important;
-  margin-bottom: 2px !important;
-  line-height: 1.1 !important;
-}
-
-.kpi-card-compact :deep(.text-tiny) {
-  font-size: 0.65rem !important;
-  opacity: 0.9;
-}
-
-.calendar-grid-mini {
-  display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
-  padding: 6px;
-  background: rgba(197, 160, 40, 0.03);
-  border-radius: 12px;
-  box-shadow: inset 0 0 10px rgba(197, 160, 40, 0.05);
-}
-
-.calendar-cell-mini {
-  border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(197, 160, 40, 0.05) 100%);
-  min-height: 30px;
+.panel-icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem !important;
-  border: 1px solid rgba(197, 160, 40, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #000 !important;
-  font-weight: 900;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--accent-alpha);
 }
 
-.calendar-cell-mini:hover {
-  background: rgba(220, 38, 38, 0.1) !important;
-  border-color: rgba(220, 38, 38, 0.5) !important;
-  color: #dc2626 !important;
-  transform: scale(1.08);
-  z-index: 2;
+.panel-icon {
+  color: var(--accent);
 }
 
-.calendar-day__dot {
-  position: absolute;
-  bottom: 4px;
-  width: 5px;
-  height: 5px;
-  background: #3b82f6 !important;
-  border-radius: 50%;
-  box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+.panel-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-primary);
 }
 
-.calendar-day {
-  position: relative;
+.panel-tabs .v-tab {
+  font-size: 0.78rem !important;
+  letter-spacing: 0.01em;
 }
 
-.calendar-day--selected {
-  background: linear-gradient(135deg, var(--v-primary-base) 0%, #d4af37 100%) !important;
-  color: white !important;
-  font-weight: 900 !important;
-  box-shadow: 0 4px 12px rgba(197, 160, 40, 0.3) !important;
-  border: none !important;
-}
-
-.calendar-day--has {
-  /* Dot handled via absolute element */
-}
-
-.text-tiny-v {
-  font-size: 0.6rem !important;
-  height: 18px !important;
-}
-
-.calendar-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem !important;
-  color: #000 !important;
-  padding: 4px 0;
-  text-align: center;
-  min-height: 24px;
-}
-
-.max-h-120 {
-  max-height: 120px;
-}
-
-.table-mini :deep(.v-data-table__td) {
-  font-size: 0.65rem !important;
-  padding: 4px 8px !important;
-  height: 28px !important;
-}
-
-.dashboard-list-mini :deep(.v-list-item) {
-  min-height: 24px !important;
-  padding: 2px 8px !important;
-}
-
-.tabs-mini :deep(.v-tab) {
-  height: 28px !important;
-  min-width: 50px !important;
-}
-
-.dashboard-title {
-  color: #000000 !important;
-}
-
-.dashboard-top-tabs :deep(.v-tab) {
-  color: #000000 !important;
-}
-
-[data-theme='dark'] .dashboard-title,
-[data-theme='dark'] .dashboard-top-tabs :deep(.v-tab) {
-  color: #ffffff !important;
+.panel-tab {
+  min-width: auto !important;
 }
 
 .dashboard-bottom-inner-card {
@@ -865,14 +749,18 @@ const fetchData = async () => {
   color: #000 !important;
 }
 
-.border-gold-glow {
-  box-shadow: 0 0 15px rgba(197, 160, 40, 0.1);
-  border: 1px solid rgba(197, 160, 40, 0.15) !important;
+[data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__td),
+[data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__td) {
+  color: #F1F5F9 !important;
 }
 
-.text-tiny-vv {
-  font-size: 0.55rem !important;
-  line-height: 1 !important;
+[data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__th),
+[data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
+  color: #F1F5F9 !important;
+}
+
+[data-theme='dark'] .dashboard-list-mini :deep(.v-list-item-title) {
+  color: #F1F5F9 !important;
 }
 
 @media (min-width: 1280px) {
@@ -880,98 +768,30 @@ const fetchData = async () => {
     margin-top: -76px;
   }
 }
-.max-h-140 {
-  max-height: 140px;
-}
-.max-h-150 {
-  max-height: 150px;
-}
-.max-h-90 {
-  max-height: 90px;
-}
 
-.text-tiny {
-  font-size: 0.75rem !important;
-}
-
-/* ---- Mobile responsive ---- */
 @media (max-width: 768px) {
-  .main-viewport {
+  .dashboard-viewport {
     height: auto !important;
     overflow: visible !important;
+    padding: 8px 10px !important;
   }
 
-  .dashboard-compact :deep(.v-row.dashboard-row .v-col) {
+  .dashboard-viewport :deep(.dashboard-grid .v-col) {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
 
-  .dashboard-compact :deep(.dashboard-grid .v-col) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.dashboard-grid .v-col[class*="md-"]) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.dashboard-top-tabs .v-tab) {
+  .dashboard-viewport :deep(.panel-tabs .v-tab) {
     font-size: 0.7rem !important;
-    padding: 0 8px !important;
+    padding: 0 6px !important;
     min-width: auto !important;
   }
 
-  .dashboard-compact :deep(.calendar-grid-mini) {
-    font-size: 0.75rem !important;
-  }
-
-  .dashboard-compact :deep(.calendar-cell-mini) {
-    min-height: 36px !important;
-    min-width: 36px !important;
-  }
-
-  .dashboard-compact :deep(.v-card-title) {
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .dashboard-compact :deep(.dashboard-sessions-today .v-data-table) {
-    height: auto !important;
-    max-height: 200px !important;
-  }
-
-  .dashboard-compact :deep(.text-hero) {
-    font-size: 1.8rem !important;
-  }
-
-  .dashboard-compact :deep(.v-window-item .v-row .v-col) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.dashboard-title) {
+  .dashboard-viewport :deep(.panel-title) {
     font-size: 0.8rem !important;
   }
 
-  /* Metrics tab columns */
-  .dashboard-compact :deep(.v-col-sm-6) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.v-col-sm-7),
-  .dashboard-compact :deep(.v-col-sm-5) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.v-col-4) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-  }
-
-  .dashboard-compact :deep(.dashboard-bottom-inner-card) {
+  .dashboard-viewport :deep(.dashboard-bottom-inner-card) {
     margin-bottom: 12px;
   }
 }
