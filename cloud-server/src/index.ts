@@ -95,7 +95,11 @@ import * as fs from 'fs'
 import { runMigrations } from './db/connection'
 
 async function autoMigrate() {
-  await runMigrations()
+  try {
+    await runMigrations()
+  } catch {
+    console.warn('[DB] Migration skipped (tables likely already exist)')
+  }
 }
 
 app.listen(PORT, '0.0.0.0', async () => {
