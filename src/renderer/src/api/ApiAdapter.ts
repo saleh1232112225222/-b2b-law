@@ -27,6 +27,11 @@ export function setCloudBaseUrl(url: string) {
     (res) => res,
     async (error) => {
       if (error.response?.status === 401 && mode === 'cloud') {
+        const token = localStorage.getItem('b2b_cloud_token')
+        // Don't redirect for mock/dev bypass tokens — just reject silently
+        if (!token || token.startsWith('mock-')) {
+          return Promise.reject(error)
+        }
         localStorage.removeItem('b2b_cloud_token')
         window.location.href = '/login'
       }
@@ -39,9 +44,182 @@ export function getApiMode(): ApiMode {
   return mode
 }
 
+function isMockMode(): boolean {
+  const token = localStorage.getItem('b2b_cloud_token')
+  return !!(token && token.startsWith('mock-'))
+}
+
+function mockCrudResponse(entity: string, method: string, params?: any): any {
+  switch (method) {
+    case 'list':
+    case 'getAll':
+      return { data: [] }
+    case 'count':
+      return { count: 0 }
+    case 'getById':
+      return null
+    case 'create':
+      return { ...params, id: crypto.randomUUID?.() || Date.now().toString() }
+    case 'update':
+    case 'delete':
+      return { success: true }
+    case 'search':
+      return { data: [] }
+    default:
+      return null
+  }
+}
+
+function mockDashboardData(): any {
+  return {
+    totalCases: 24,
+    activeCases: 15,
+    pendingSessions: 8,
+    totalClients: 12,
+    totalEmployees: 6,
+    openTasks: 11,
+    overdueTasks: 3,
+    recentCases: [
+      { id: '1', case_number: '1446/1', case_type: 'مدني', status: 'نشط', client_name: 'شركة الأمل', next_session: null },
+      { id: '2', case_number: '1446/2', case_type: 'تجاري', status: 'نشط', client_name: 'مؤسسة النور', next_session: new Date(Date.now() + 86400000).toISOString() },
+    ],
+    upcomingSessions: [
+      { id: '1', case_number: '1446/1', session_date: new Date(Date.now() + 86400000).toISOString(), session_type: 'جلسة مرافعة', court: 'المحكمة العامة', client_name: 'شركة الأمل' },
+      { id: '2', case_number: '1446/3', session_date: new Date(Date.now() + 172800000).toISOString(), session_type: 'جلسة تحضيرية', court: 'المحكمة التجارية', client_name: 'شركة البركة' },
+    ]
+  }
+}
+
+function mockSession(date: Date, id: string): any {
+  const caseNum = Math.floor(Math.random() * 50) + 1
+  const clients = ['شركة الأمل', 'مؤسسة النور', 'شركة البركة', 'مكتب المحامي']
+  const types = ['جلسة مرافعة', 'جلسة تحضيرية', 'حكم', 'مذاكرة']
+  const statuses = ['مجدول', 'منعقد', 'مؤجل', 'منتهي']
+  return {
+    id,
+    case_id: `case-${caseNum}`,
+    case_number: `1446/${caseNum}`,
+    client_name: clients[Math.floor(Math.random() * clients.length)],
+    date: date.toISOString(),
+    time: `${8 + Math.floor(Math.random() * 10)}:00`,
+    type: types[Math.floor(Math.random() * types.length)],
+    status: statuses[Math.floor(Math.random() * statuses.length)],
+    court_room: ['القاعة الأولى', 'القاعة الثانية', 'القاعة الثالثة'][Math.floor(Math.random() * 3)],
+    notes: null,
+    result: null,
+  }
+}
+
+function mockOperationsSummary(): any {
+  return {
+    thisMonthCases: 3,
+    thisMonthSessions: 7,
+    thisMonthTasks: 12,
+    thisMonthContracts: 2,
+    pendingEnforcements: 1,
+  }
+}
+
 function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   if (!cloudClient) throw new Error('Cloud base URL not configured')
+  if (isMockMode()) {
+    const url = config.url || ''
+    return Promise.resolve(mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T)
+  }
   return cloudClient(config).then((r) => r.data)
+}
+
+function mockCloudRequest(url: string, method: string, data?: any, params?: any): any {
+  if (url.startsWith('/auth/login')) return { token: localStorage.getItem('b2b_cloud_token'), user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true } }
+  if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true, isLocked: false } }
+  if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
+  if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary')) return mockOperationsSummary()
+  if (url.startsWith('/briefing/summary')) return mockOperationsSummary()
+  if (url.startsWith('/cases/analytics/dashboard')) return {
+    total: 24,
+    buckets: [
+      { key: 'نشط', doc_count: 15 },
+      { key: 'معلق', doc_count: 5 },
+      { key: 'منتهي', doc_count: 4 },
+    ],
+    trend: { '2024': 10, '2025': 18, '2026': 24 },
+    recentCases: [
+      { id: '1', case_number: '1446/1', case_type: 'مدني', status: 'نشط', client_name: 'شركة الأمل' },
+      { id: '2', case_number: '1446/2', case_type: 'تجاري', status: 'نشط', client_name: 'مؤسسة النور' },
+    ],
+    upcomingSessions: [
+      { id: '1', case_number: '1446/1', date: new Date(Date.now() + 86400000).toISOString(), type: 'جلسة مرافعة', client_name: 'شركة الأمل' },
+    ]
+  }
+  if (url.startsWith('/sessions/today') || (url.startsWith('/sessions') && method === 'GET' && params?.from)) {
+    const sessions = []
+    for (let i = 0; i < 3; i++) {
+      sessions.push(mockSession(new Date(), `mock-session-t-${i}`))
+    }
+    return { data: sessions }
+  }
+  if (url.startsWith('/sessions/tomorrow')) {
+    const sessions = []
+    const tomorrow = new Date(Date.now() + 86400000)
+    for (let i = 0; i < 2; i++) {
+      sessions.push(mockSession(tomorrow, `mock-session-tm-${i}`))
+    }
+    return { data: sessions }
+  }
+  if (url.startsWith('/sessions') && method === 'GET' && params?.from && params?.to) {
+    const sessions = []
+    for (let i = 0; i < 5; i++) {
+      const d = new Date(params.from)
+      d.setDate(d.getDate() + i)
+      sessions.push(mockSession(d, `mock-session-m-${i}`))
+    }
+    return { data: sessions }
+  }
+  if (url.startsWith('/tasks/pending')) return { data: [] }
+  if (url.startsWith('/employees') && url.endsWith('/performance')) return { data: [] }
+  if (url.startsWith('/agencies/expiry-alerts')) return { data: [] }
+  if (url.startsWith('/system/settings')) return { data: {} }
+  if (url.startsWith('/firm')) return { data: { name: 'مكتب المحاماة', logo: null } }
+  if (url.startsWith('/permissions')) return { data: [] }
+  if (url.startsWith('/users/active-staff') || url.startsWith('/users/assignable')) return { data: [] }
+  if (url.startsWith('/enforcement/count')) return { count: 0 }
+  if (url.startsWith('/enforcement/requests')) return { data: [], total: 0 }
+  if (url.startsWith('/enforcement')) return { data: [], total: 0 }
+  if (url.startsWith('/archive')) return { data: [] }
+  if (url.startsWith('/search')) return { data: [] }
+  if (url.startsWith('/collections')) return { data: [], count: 0 }
+
+  // Generic entity CRUD
+  const entityMatch = url.match(/^\/(\w+)(?:\/(\w+))?(?:\/(\w+))?/)
+  if (entityMatch) {
+    const entity = entityMatch[1]
+    const action = entityMatch[2]
+    const subId = entityMatch[3]
+    // count
+    if (action === 'count') return { count: 0 }
+    // all
+    if (action === 'all') return { data: [] }
+    // search
+    if (action === 'search') return { data: [] }
+    // analytics/dashboard or similar sub-entity
+    if (action && subId) return { data: [], success: true, total: 0 }
+    // get by id: GET /entity/:id
+    if (action && method === 'GET') return { data: null, id: action }
+    // update: PUT /entity/:id
+    if (action && method === 'PUT') return { success: true }
+    // delete: DELETE /entity/:id
+    if (action && method === 'DELETE') return { success: true }
+    // list with params: GET /entity
+    if (method === 'GET' && params) return { data: [] }
+    // create: POST /entity
+    if (method === 'POST') return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
+    // create sub-entity: POST /entity/:action
+    if (method === 'POST' && action) return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
+    // default
+    return { data: [] }
+  }
+
+  return { data: [] }
 }
 
 function buildCrudApi(entity: string) {
@@ -60,6 +238,10 @@ function buildCrudApi(entity: string) {
         : cloudRequest<any>({ method: 'GET', url: `/${entity}/count`, params }).then(
             (r) => r.count
           ),
+    getById: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke(`${entity}:getById`, id)
+        : cloudRequest({ method: 'GET', url: `/${entity}/${id}` }),
     create: (data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke(`${entity}:create`, data)

@@ -41,23 +41,31 @@
             </v-btn>
           </div>
 
-          <!-- OTP Verification Form (Web Mode) -->
-          <v-form
-            v-else-if="isVerifying"
-            v-model="verifyFormValid"
-            class="login-form"
-            @submit.prevent="handleVerify"
-          >
-            <div class="branding-header text-center mb-6">
-              <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
-              <p
-                class="text-white text-caption mt-2"
-                style="font-size: 0.9rem !important; line-height: 1.6"
-              >
-                تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
-                لتفعيل الفترة التجريبية.
-              </p>
-            </div>
+            <!-- OTP Verification Form (Web Mode) -->
+            <v-form
+              v-else-if="isVerifying"
+              v-model="verifyFormValid"
+              class="login-form"
+              @submit.prevent="handleVerify"
+            >
+              <div class="branding-header text-center mb-6">
+                <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
+                <p
+                  v-if="!isMock"
+                  class="text-white text-caption mt-2"
+                  style="font-size: 0.9rem !important; line-height: 1.6"
+                >
+                  تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
+                  لتفعيل الفترة التجريبية.
+                </p>
+                <p
+                  v-else
+                  class="text-white text-caption mt-2"
+                  style="font-size: 0.9rem !important; line-height: 1.6"
+                >
+                  وضع التطوير: رمز التحقق هو <strong class="text-gold">123456</strong>
+                </p>
+              </div>
 
             <!-- OTP Code Field -->
             <div class="input-group mb-6">
@@ -319,6 +327,11 @@ const isDesktop = computed(() => {
   return getApiMode() === 'desktop'
 })
 
+const isMock = computed(() => {
+  const token = localStorage.getItem('b2b_cloud_token')
+  return !!(token && token.startsWith('mock-'))
+})
+
 const handleRegister = async () => {
   if (!formValid.value) return
 
@@ -327,18 +340,22 @@ const handleRegister = async () => {
   success.value = false
 
   try {
-    const api = (window as any).api
-    if (!api?.auth?.register) {
-      throw new Error('خدمة التسجيل غير متوفرة')
-    }
+    if (isMock.value) {
+      await new Promise((r) => setTimeout(r, 1000))
+    } else {
+      const api = (window as any).api
+      if (!api?.auth?.register) {
+        throw new Error('خدمة التسجيل غير متوفرة')
+      }
 
-    await api.auth.register(
-      companyName.value,
-      username.value,
-      email.value,
-      phone.value,
-      password.value
-    )
+      await api.auth.register(
+        companyName.value,
+        username.value,
+        email.value,
+        phone.value,
+        password.value
+      )
+    }
 
     success.value = true
     setTimeout(() => {
@@ -370,12 +387,19 @@ const handleVerify = async () => {
   success.value = false
 
   try {
-    const api = (window as any).api
-    if (!api?.auth?.verifyAccount) {
-      throw new Error('خدمة التفعيل غير متوفرة')
-    }
+    if (isMock.value) {
+      if (otpCode.value !== '123456') {
+        throw new Error('InvalidCode')
+      }
+      await new Promise((r) => setTimeout(r, 1000))
+    } else {
+      const api = (window as any).api
+      if (!api?.auth?.verifyAccount) {
+        throw new Error('خدمة التفعيل غير متوفرة')
+      }
 
-    await api.auth.verifyAccount(username.value, otpCode.value)
+      await api.auth.verifyAccount(username.value, otpCode.value)
+    }
 
     success.value = true
     setTimeout(() => {

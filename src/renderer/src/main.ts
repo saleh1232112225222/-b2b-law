@@ -121,6 +121,13 @@ const bootstrapAuth = async (): Promise<void> => {
   try {
     if (localStorage.getItem('web_isLoggedIn') !== 'true') return
     await router.isReady()
+
+    // Skip backend session verification for mock/dev bypass tokens
+    const token = localStorage.getItem('b2b_cloud_token')
+    if (token && token.startsWith('mock-')) {
+      return
+    }
+
     const session: any = await withTimeout(window.api.auth.getSession(), 5000, 'التحقق من الجلسة')
     if (!session) {
       clearLocalAuth()

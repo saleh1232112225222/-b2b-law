@@ -1273,6 +1273,27 @@ onMounted(async () => {
     min-width: 40px;
     min-height: 40px;
     margin-right: 4px !important;
+    flex-shrink: 0;
+    border: 1px solid var(--border) !important;
+    background: var(--glass-bg) !important;
+    border-radius: 10px !important;
+  }
+
+  .glass-header :deep(.theme-toggle-btn:hover) {
+    border-color: var(--accent) !important;
+    background: var(--accent-alpha) !important;
+  }
+
+  .glass-header :deep(.theme-toggle-btn .lucide-icon) {
+    stroke: var(--gold, #E9C349) !important;
+  }
+
+  .dark-mode .glass-header :deep(.theme-toggle-btn .lucide-icon) {
+    stroke: var(--gold, #E9C349) !important;
+  }
+
+  .the-jurist-canvas .glass-header :deep(.theme-toggle-btn .lucide-icon) {
+    stroke: var(--primary-dark, #1A437D) !important;
   }
 
   .glass-footer {
