@@ -51,7 +51,7 @@
               <div class="branding-header text-center mb-6">
                 <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
                 <p
-                  v-if="!isMock"
+                  v-if="!isMockMode"
                   class="text-white text-caption mt-2"
                   style="font-size: 0.9rem !important; line-height: 1.6"
                 >
@@ -327,10 +327,7 @@ const isDesktop = computed(() => {
   return getApiMode() === 'desktop'
 })
 
-const isMock = computed(() => {
-  const token = localStorage.getItem('b2b_cloud_token')
-  return !!(token && token.startsWith('mock-'))
-})
+const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
 
 const handleRegister = async () => {
   if (!formValid.value) return
@@ -340,7 +337,7 @@ const handleRegister = async () => {
   success.value = false
 
   try {
-    if (isMock.value) {
+    if (isMockMode.value) {
       await new Promise((r) => setTimeout(r, 1000))
     } else {
       const api = (window as any).api
@@ -387,7 +384,7 @@ const handleVerify = async () => {
   success.value = false
 
   try {
-    if (isMock.value) {
+    if (isMockMode.value) {
       if (otpCode.value !== '123456') {
         throw new Error('InvalidCode')
       }
