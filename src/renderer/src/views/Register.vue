@@ -6,6 +6,7 @@
     </div>
 
     <v-row no-gutters class="fill-height z-10" align="center" justify="center">
+      <MockBanner />
       <v-col cols="12" sm="9" md="6" lg="5" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Card -->
         <v-card class="premium-glass-card pa-10 w-100 rtl" elevation="0">
@@ -294,6 +295,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import MockBanner from '../components/MockBanner.vue'
 import { getApiMode } from '../api/ApiAdapter'
 
 const router = useRouter()
