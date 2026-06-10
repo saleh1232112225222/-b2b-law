@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
 import { generateToken, authMiddleware } from '../middleware/auth'
-import { sendOTP } from '../services/notification'
+import { sendOTP, sendEmail } from '../services/notification'
 
 export const authRouter = Router()
 
@@ -242,6 +242,18 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
          VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE, $7, NOW())`,
         [userId, companyId, username, googleName, passwordHash, 'admin', googleEmail]
       )
+
+      // Notify the admin of Google signup completion
+      try {
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: '🎉 مشترك جديد عبر Google في B2B Lawyer',
+          text: `مرحباً أستاذ صالح،\n\nقام مشترك جديد بالتسجيل عبر Google بنجاح:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n\nشكراً لك.`
+        })
+      } catch (e) {
+        console.error('Failed to notify admin of Google signup:', e)
+      }
+
       userResult = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
     }
     const user = userResult.rows[0]
@@ -389,6 +401,21 @@ authRouter.post('/verify', async (req: Request, res: Response) => {
 
     // Activate/Verify the company
     await query('UPDATE companies SET is_verified = TRUE, verification_code = NULL WHERE id = $1', [companyId])
+
+    // Notify the admin of manual signup verification completion
+    try {
+      const infoRes = await query('SELECT name, email, phone FROM companies WHERE id = $1', [companyId])
+      if (infoRes.rows.length > 0) {
+        const { name, email, phone } = infoRes.rows[0]
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: '🎉 مشترك جديد تفعيل يدوي في B2B Lawyer',
+          text: `مرحباً أستاذ صالح،\n\nقام مشترك جديد بتفعيل حسابه بنجاح:\n\n- اسم المكتب: ${name}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n\nشكراً لك.`
+        })
+      }
+    } catch (e) {
+      console.error('Failed to notify admin of manual signup verification:', e)
+    }
 
     res.json({ success: true, message: 'Account verified successfully' })
   } catch (err) {
