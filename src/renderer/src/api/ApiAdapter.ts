@@ -18,7 +18,8 @@ export function setCloudBaseUrl(url: string) {
   })
   cloudClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('b2b_cloud_token')
-    if (token) {
+    const isMock = import.meta.env.VITE_USE_MOCK_OTP === 'true'
+    if (token && !isMock) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -27,9 +28,7 @@ export function setCloudBaseUrl(url: string) {
     (res) => res,
     async (error) => {
       if (error.response?.status === 401 && mode === 'cloud') {
-        const token = localStorage.getItem('b2b_cloud_token')
-        // Don't redirect for mock/dev bypass tokens — just reject silently
-        if (!token || token.startsWith('mock-')) {
+        if (import.meta.env.VITE_USE_MOCK_OTP === 'true') {
           return Promise.reject(error)
         }
         localStorage.removeItem('b2b_cloud_token')
@@ -45,8 +44,7 @@ export function getApiMode(): ApiMode {
 }
 
 function isMockMode(): boolean {
-  const token = localStorage.getItem('b2b_cloud_token')
-  return !!(token && token.startsWith('mock-'))
+  return import.meta.env.VITE_USE_MOCK_OTP === 'true'
 }
 
 function mockCrudResponse(entity: string, method: string, params?: any): any {
@@ -130,7 +128,10 @@ function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
 }
 
 function mockCloudRequest(url: string, method: string, data?: any, params?: any): any {
-  if (url.startsWith('/auth/login')) return { token: localStorage.getItem('b2b_cloud_token'), user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true } }
+  if (url.startsWith('/auth/login')) {
+  const token = import.meta.env.VITE_USE_MOCK_OTP === 'true' ? 'mock-token' : localStorage.getItem('b2b_cloud_token')
+  return { token, user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true } }
+}
   if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true, isLocked: false } }
   if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
   if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary')) return mockOperationsSummary()
@@ -271,7 +272,6 @@ const api = {
             url: '/auth/login',
             data: { username, password }
           }).then((r) => {
-            localStorage.setItem('b2b_cloud_token', r.token)
             return { ...r.user, isLocked: false }
           }),
     logout: () =>

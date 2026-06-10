@@ -401,8 +401,8 @@ const handleLogin = async () => {
         roleKey: 'admin',
         mustChangePassword: false
       }
-      // Set a dummy token so 401 interceptor knows it's a mock session
-      localStorage.setItem('b2b_cloud_token', 'mock-dev-bypass')
+
+
     } else {
       session = await (window as any).api.auth.login(username.value, password.value)
     }

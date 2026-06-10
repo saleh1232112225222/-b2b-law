@@ -123,8 +123,7 @@ const bootstrapAuth = async (): Promise<void> => {
     await router.isReady()
 
     // Skip backend session verification for mock/dev bypass tokens
-    const token = localStorage.getItem('b2b_cloud_token')
-    if (token && token.startsWith('mock-')) {
+    if (import.meta.env.VITE_USE_MOCK_OTP === 'true') {
       return
     }
 
