@@ -13,43 +13,7 @@
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: file: blob: https://ui-avatars.com; connect-src 'self' ws: http://localhost:5173 http://localhost:54226 https://b2b-law-g2qr.onrender.com;"
     />
-    <script>
-      if (typeof window.api === 'undefined') {
-        const genericMock = {
-          auth: {
-            login: (u, p) =>
-              Promise.resolve({ username: u || 'admin', roleKey: 'admin', permissions: [] }),
-            getSession: () =>
-              Promise.resolve(JSON.parse(localStorage.getItem('web_currentUserSession') || 'null')),
-            logout: () => Promise.resolve(true)
-          },
-          vault: {
-            needsSetup: () => Promise.resolve({ needsSetup: false })
-          }
-        }
 
-        window.api = new Proxy(genericMock, {
-          get(target, prop) {
-            if (prop in target) return target[prop]
-            return new Proxy(
-              {},
-              {
-                get(_, subProp) {
-                  return (...args) => {
-                    console.log(
-                      `[Mock API Call] ${String(prop)}.${String(subProp)} called with:`,
-                      args
-                    )
-                    return Promise.resolve([])
-                  }
-                }
-              }
-            )
-          }
-        })
-        console.warn('Electron API (Head Proxy Mock) enabled for browser/testing environment')
-      }
-    </script>
   </head>
 
   <body>

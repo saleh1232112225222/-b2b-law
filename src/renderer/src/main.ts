@@ -25,16 +25,22 @@ app.mount('#app')
  * Prevent any unauthorized call to `location.reload()`.
  * Only allow reloads that originate from internal functions such as `runAutoRefresh`.
  */
-const originalReload = window.location.reload.bind(window);
-window.location.reload = function () {
-  const stack = new Error().stack || '';
-  const allowed = stack.includes('runAutoRefresh') || stack.includes('refreshTimer');
-  if (allowed) {
-    originalReload();
-  } else {
-    console.warn('[Protection] Blocked unauthorized location.reload call');
-  }
-};
+try {
+  const originalReload = window.location.reload.bind(window);
+  Object.defineProperty(window.location, 'reload', {
+    writable: false,
+    configurable: false,
+    value: function () {
+      const stack = new Error().stack || '';
+      const allowed = stack.includes('runAutoRefresh') || stack.includes('refreshTimer');
+      if (allowed) {
+        originalReload();
+      } else {
+        console.warn('[Protection] Blocked unauthorized location.reload call');
+      }
+    }
+  });
+} catch { /* location.reload is read-only in some environments */ }
 // -----------------------------------------------------------
 
 // Setup responsive data-label attributes for tables
