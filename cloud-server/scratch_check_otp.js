@@ -7,12 +7,14 @@ async function run() {
   try {
     await client.connect();
     const res = await client.query(`
-      SELECT username, role_key, recovery_email, created_at
-      FROM users 
-      ORDER BY created_at DESC
-      LIMIT 5;
+      SELECT u.username, c.verification_code, c.email, c.phone
+      FROM users u 
+      JOIN companies c ON u.company_id = c.id 
+      WHERE u.username = 'antigravity_test' 
+      ORDER BY u.created_at DESC 
+      LIMIT 1;
     `);
-    console.log("USERS:", res.rows);
+    console.log(JSON.stringify(res.rows[0] || { error: 'No user found' }));
   } catch (err) {
     console.error(err);
   } finally {
