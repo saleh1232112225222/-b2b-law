@@ -251,7 +251,7 @@
         <div class="main-body-wrapper" :class="mainBodyPaddingClass">
           <!-- Premium Read-Only Banner when Trial is Expired -->
           <v-alert
-            v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated"
+            v-if="trialInfo && !trialInfo.isValid"
             type="warning"
             variant="flat"
             density="comfortable"
@@ -263,9 +263,8 @@
               <div class="d-flex align-center">
                 <LucideIcon name="shield-alert" :size="20" class="me-2" />
                 <span
-                  >انتهت الفترة التجريبية للبرنامج (30 يومًا). تم تفعيل
-                  <strong>وضع القراءة فقط</strong> للحفاظ على سلامة بياناتك وتصفحها. يرجى التنشيط
-                  بمفتاح تفعيل صالح لتتمكن من إضافة أو تعديل البيانات.</span
+                  >انتهت الفترة التجريبية للبرنامج. تم تفعيل
+                  <strong>وضع القراءة فقط</strong> للحفاظ على سلامة بياناتك وتصفحها. يرجى التواصل معنا للتفعيل لتتمكن من إضافة أو تعديل البيانات.</span
                 >
               </div>
               <v-btn

@@ -43,6 +43,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     }
 
     // Check trial verification & expiration
+    let trialExpired = false
+    let trialExpiresAt = null
     const companyResult = await query('SELECT is_verified, trial_expires_at FROM companies WHERE id = $1', [user.company_id])
     if (companyResult.rows.length > 0) {
       const company = companyResult.rows[0]
@@ -50,18 +52,16 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         res.status(403).json({ error: 'AccountNotVerified' })
         return
       }
-      const trialExpiresAt = new Date(company.trial_expires_at)
-      if (trialExpiresAt < new Date()) {
-        res.status(403).json({ error: 'TrialExpired' })
-        return
-      }
+      trialExpiresAt = company.trial_expires_at
+      trialExpired = new Date(trialExpiresAt) < new Date()
     }
 
     const token = generateToken({
       userId: user.id,
       companyId: user.company_id,
       username: user.username,
-      roleKey: user.role_key
+      roleKey: user.role_key,
+      trialExpired
     })
 
     res.json({
@@ -73,7 +73,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         roleKey: user.role_key,
         companyId: user.company_id,
         employeeId: user.employee_id,
-        mustChangePassword: user.must_change_password
+        mustChangePassword: user.must_change_password,
+        trialExpired,
+        trialExpiresAt
       }
     })
   } catch (err) {
@@ -86,14 +88,28 @@ authRouter.post('/logout', (_req: Request, res: Response) => {
   res.json({ success: true })
 })
 
-authRouter.get('/session', authMiddleware, (req: Request, res: Response) => {
-  res.json({
-    id: req.auth!.userId,
-    username: req.auth!.username,
-    roleKey: req.auth!.roleKey,
-    companyId: req.auth!.companyId,
-    isLocked: false
-  })
+authRouter.get('/session', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [req.auth!.companyId])
+    let trialExpired = false
+    let trialExpiresAt = null
+    if (companyResult.rows.length > 0) {
+      trialExpiresAt = companyResult.rows[0].trial_expires_at
+      trialExpired = new Date(trialExpiresAt) < new Date()
+    }
+    res.json({
+      id: req.auth!.userId,
+      username: req.auth!.username,
+      roleKey: req.auth!.roleKey,
+      companyId: req.auth!.companyId,
+      trialExpired,
+      trialExpiresAt,
+      isLocked: false
+    })
+  } catch (err) {
+    console.error('[AUTH] Session error:', err)
+    res.status(500).json({ error: 'Failed to fetch session' })
+  }
 })
 
 authRouter.put('/password', authMiddleware, async (req: Request, res: Response) => {
@@ -257,11 +273,17 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       userResult = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
     }
     const user = userResult.rows[0]
+    const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
+    let trialExpired = false
+    if (companyRes.rows.length > 0) {
+      trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
+    }
     const token = generateToken({
       userId: user.id,
       companyId,
       username: user.username,
-      roleKey: user.role_key
+      roleKey: user.role_key,
+      trialExpired
     })
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/#/login?google_token=${token}`)

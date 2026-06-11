@@ -26,7 +26,9 @@ export const useLicensingStore = defineStore('licensing', () => {
   const isReadOnly = computed(() => {
     if (!trialInfo.value) return false
     // In dev, if not activated, we might be trial
-    if (trialInfo.value.message && trialInfo.value.message.includes('Cloud mode')) return false
+    if (trialInfo.value.message && trialInfo.value.message.includes('Cloud mode')) {
+      return !trialInfo.value.isValid
+    }
     return !trialInfo.value.isValid && !trialInfo.value.isActivated
   })
 

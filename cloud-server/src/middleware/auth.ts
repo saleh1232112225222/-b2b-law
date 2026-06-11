@@ -10,6 +10,7 @@ export interface AuthPayload {
   companyId: string
   username: string
   roleKey: string
+  trialExpired?: boolean
 }
 
 declare global {
@@ -40,15 +41,26 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
     
     // Check trial expiration
     const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [payload.companyId])
+    let trialExpired = false
     if (companyResult.rows.length > 0) {
       const trialExpiresAt = new Date(companyResult.rows[0].trial_expires_at)
       if (trialExpiresAt < new Date()) {
-        res.status(403).json({ error: 'TrialExpired', message: 'انتهت الفترة التجريبية.' })
-        return
+        trialExpired = true
       }
     }
 
-    req.auth = payload
+    if (trialExpired && req.method !== 'GET') {
+      res.status(403).json({
+        error: 'TrialExpiredWriteForbidden',
+        message: 'انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط ولا يمكنك الإضافة أو التعديل.'
+      })
+      return
+    }
+
+    req.auth = {
+      ...payload,
+      trialExpired
+    }
     next()
   } catch (err) {
     res.status(401).json({ error: 'Unauthorized: Invalid or expired token' })
