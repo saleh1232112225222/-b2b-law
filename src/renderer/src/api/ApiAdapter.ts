@@ -18,8 +18,9 @@ export function setCloudBaseUrl(url: string) {
   })
   cloudClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('b2b_cloud_token')
+    const hasRealToken = token && !token.startsWith('mock-')
     const isMock = import.meta.env.VITE_USE_MOCK_OTP === 'true'
-    if (token && !isMock) {
+    if (token && !(isMock && !hasRealToken)) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -120,7 +121,10 @@ function mockOperationsSummary(): any {
 
 function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   if (!cloudClient) throw new Error('Cloud base URL not configured')
-  if (isMockMode()) {
+  // Only use mock when there's no real JWT token (Google login provides a real token)
+  const token = localStorage.getItem('b2b_cloud_token')
+  const hasRealToken = token && !token.startsWith('mock-')
+  if (isMockMode() && !hasRealToken) {
     const url = config.url || ''
     return Promise.resolve(mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T)
   }
