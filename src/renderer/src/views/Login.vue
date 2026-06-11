@@ -378,12 +378,32 @@ const handleGoogleLogin = () => {
   window.location.href = `${baseUrl}/auth/google`
 }
 
-onMounted(() => {
+onMounted(async () => {
   const googleToken = route.query.google_token as string
   if (googleToken) {
     localStorage.setItem('b2b_cloud_token', googleToken)
     localStorage.setItem('web_isLoggedIn', 'true')
-    localStorage.setItem('web_currentUser', JSON.stringify({}))
+    
+    // Clear legacy desktop storage keys to avoid conflicts
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('currentUser')
+    localStorage.removeItem('currentUserSession')
+
+    try {
+      const session = await (window as any).api.auth.getSession()
+      if (session) {
+        localStorage.setItem(
+          'web_currentUser',
+          JSON.stringify({ username: session.username, roleKey: session.roleKey })
+        )
+        localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+      }
+    } catch (e) {
+      console.error('[AUTH] Failed to fetch session after Google login:', e)
+      localStorage.setItem('web_currentUser', JSON.stringify({}))
+    }
+
+    window.dispatchEvent(new Event('auth-changed'))
     router.push('/dashboard')
   }
 })
