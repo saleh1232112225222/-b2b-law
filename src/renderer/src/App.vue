@@ -672,6 +672,8 @@ const currentRouteName = computed(() => {
 })
 
 const categorizedMenu = computed(() => {
+  // Explicitly depend on session so this re-computes on auth changes
+  const _s = session.value
   const baseStructure = [
     { title: 'لوحة التحكم', icon: 'layout-dashboard', to: '/dashboard' },
     {
@@ -763,19 +765,27 @@ const categorizedMenu = computed(() => {
     }
   ]
 
+  // Helper: check permission using current session
+  const hasPermission = (perm?: string): boolean => {
+    if (!perm) return true
+    if (!_s) return false
+    if (_s.roleKey === 'admin') return true
+    return Array.isArray((_s as any).permissions) && ((_s as any).permissions as string[]).includes(perm)
+  }
+
   return baseStructure
-    .map((item) => {
+    .map((item: any) => {
       const newItem = { ...item }
       if (newItem.children) {
         newItem.children = newItem.children.filter(
-          (c) => !c.perm || (typeof can === 'function' && can(c.perm))
+          (c: any) => hasPermission(c.perm)
         )
       }
       return newItem
     })
-    .filter((item) => {
+    .filter((item: any) => {
       if (item.children) return item.children.length > 0
-      return !item.perm || (typeof can === 'function' && can(item.perm))
+      return hasPermission(item.perm)
     })
 })
 

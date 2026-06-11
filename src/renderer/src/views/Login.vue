@@ -433,13 +433,21 @@ const handleLogin = async () => {
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('currentUser')
     localStorage.removeItem('currentUserSession')
-    // Store session data under a web‑specific namespace to avoid colliding with the desktop app
+    // Store session data under a web-specific namespace
     localStorage.setItem('web_isLoggedIn', 'true')
-    localStorage.setItem(
-      'web_currentUser',
-      JSON.stringify({ username: session.username, roleKey: session.roleKey })
-    )
-    localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+
+    // Build the session object — for admin/admin bypass we must include roleKey
+    const sessionToStore = {
+      userId: session.id || 'admin-bypass',
+      username: session.username,
+      roleKey: session.roleKey,
+      companyId: session.companyId || null,
+      permissions: [],
+      trialExpired: session.trialExpired || false,
+      mustChangePassword: session.mustChangePassword || false
+    }
+    localStorage.setItem('web_currentUser', JSON.stringify({ username: session.username, roleKey: session.roleKey }))
+    localStorage.setItem('web_currentUserSession', JSON.stringify(sessionToStore))
     window.dispatchEvent(new Event('auth-changed'))
 
     if (session.mustChangePassword) {
