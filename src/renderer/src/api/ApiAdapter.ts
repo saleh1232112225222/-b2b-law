@@ -130,9 +130,9 @@ function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
 function mockCloudRequest(url: string, method: string, data?: any, params?: any): any {
   if (url.startsWith('/auth/login')) {
   const token = import.meta.env.VITE_USE_MOCK_OTP === 'true' ? 'mock-token' : localStorage.getItem('b2b_cloud_token')
-  return { token, user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true } }
+  return { token, user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, permissions: [] } }
 }
-  if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', role_key: 'admin', is_active: true, isLocked: false } }
+  if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, isLocked: false, permissions: [] } }
   if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
   if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary')) return mockOperationsSummary()
   if (url.startsWith('/briefing/summary')) return mockOperationsSummary()
