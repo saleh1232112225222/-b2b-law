@@ -872,6 +872,24 @@ onMounted(async () => {
   // Attach global read-only click capture gate
   window.addEventListener('click', handleGlobalClickGate, { capture: true })
 
+  // Restore session if logged in to guarantee permissions are loaded
+  const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
+  if (isLoggedIn) {
+    try {
+      const s = await (window as any).api.auth.getSession()
+      if (s) {
+        localStorage.setItem('web_currentUserSession', JSON.stringify(s))
+        localStorage.setItem(
+          'web_currentUser',
+          JSON.stringify({ username: s.username, roleKey: s.roleKey })
+        )
+        window.dispatchEvent(new Event('auth-changed'))
+      }
+    } catch (e) {
+      console.error('[AUTH] Failed to restore session on mount:', e)
+    }
+  }
+
   // Fetch Trial Info via Store
   licensingStore.refreshStatus()
 
