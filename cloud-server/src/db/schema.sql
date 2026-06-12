@@ -25,6 +25,20 @@ CREATE TABLE IF NOT EXISTS companies (
 -- 1. الجداول الأساسية (Core Tables)
 -- ============================================================
 
+CREATE TABLE agencies (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    agency_number TEXT NOT NULL,
+    date DATE,
+    expiry_date DATE,
+    notes TEXT,
+    created_by UUID,
+    updated_by UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID NOT NULL,
@@ -594,4 +608,7 @@ CREATE INDEX idx_file_assets_entity ON file_assets(company_id, linked_entity_typ
 CREATE INDEX idx_activity_logs_company ON activity_logs(company_id);
 CREATE INDEX idx_documents_v2_case ON documents_v2(company_id, case_id);
 CREATE INDEX idx_firm_data_company ON firm_data(company_id);
+CREATE INDEX idx_agencies_company ON agencies(company_id);
+CREATE INDEX idx_agencies_client ON agencies(company_id, client_id);
+CREATE INDEX idx_agencies_expiry ON agencies(company_id, expiry_date);
 CREATE INDEX idx_employees_company ON employees(company_id);
