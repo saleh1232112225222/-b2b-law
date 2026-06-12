@@ -443,19 +443,117 @@
           class="mt-4"
         >
           <div class="text-subtitle-2 font-weight-black text-primary mb-3">
-            بيانات الحكم القضائي
+            <LucideIcon name="file-text" :size="18" class="me-1" /> بيانات الحكم القضائي
           </div>
-          <v-text-field
-            v-model="outcomeModal.judgmentNumber"
-            label="رقم الحكم"
-            variant="outlined"
-            density="comfortable"
-            class="rounded-xl"
-          >
-            <template #prepend-inner>
-              <LucideIcon :name="ICONS.ENTITY.DOCUMENT" :size="20" class="text-primary me-2" />
-            </template>
-          </v-text-field>
+          <v-row dense>
+            <v-col cols="6">
+              <v-text-field
+                v-model="outcomeModal.judgmentNumber"
+                label="رقم الحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl"
+                hide-details
+              >
+                <template #prepend-inner>
+                  <LucideIcon :name="ICONS.ENTITY.DOCUMENT" :size="20" class="text-primary me-2" />
+                </template>
+              </v-text-field>
+            </v-col>
+            <v-col cols="6">
+              <v-text-field
+                v-model="outcomeModal.judgmentDate"
+                type="date"
+                label="تاريخ الحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
+          <!-- سؤال ذكي: درجة الحكم -->
+          <v-row v-if="outcomeModal.result === 'صدور حكم قطعي'" dense class="mt-3">
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-black text-warning mb-2 d-flex align-center">
+                <LucideIcon name="help-circle" :size="16" class="me-1" /> درجة الحكم:
+              </div>
+              <v-btn-toggle v-model="outcomeModal.judgmentDegree" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable" class="flex-wrap">
+                <v-btn value="استئنافي" class="px-4">استئنافي</v-btn>
+                <v-btn value="قطعي" class="px-4">قطعي</v-btn>
+                <v-btn value="نهائي" class="px-4">نهائي</v-btn>
+              </v-btn-toggle>
+            </v-col>
+          </v-row>
+
+          <!-- سؤال ذكي: لصالح من؟ -->
+          <v-row dense class="mt-3">
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
+                <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
+              </div>
+              <v-btn-toggle v-model="outcomeModal.judgmentFavors" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+                <v-btn value="الموكل" class="px-5">الموكل</v-btn>
+                <v-btn value="الخصم" class="px-5">الخصم</v-btn>
+              </v-btn-toggle>
+            </v-col>
+          </v-row>
+
+          <!-- سؤال ذكي: هل يحتاج تنفيذ؟ (لصالح الموكل) -->
+          <v-row v-if="outcomeModal.judgmentFavors === 'الموكل'" dense class="mt-3">
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
+                <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
+              </div>
+              <v-btn-toggle v-model="outcomeModal.judgmentNeedsExecution" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+                <v-btn value="نعم" class="px-5">نعم، يحتاج تنفيذ</v-btn>
+                <v-btn value="لا" class="px-5">لا، براءة أو منتهي</v-btn>
+              </v-btn-toggle>
+            </v-col>
+          </v-row>
+
+          <!-- سؤال ذكي: هل يوجد أسباب اعتراض؟ (لصالح الخصم) -->
+          <v-row v-if="outcomeModal.judgmentFavors === 'الخصم'" dense class="mt-3">
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-black text-warning mb-2 d-flex align-center">
+                <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع للاعتراض على الحكم؟
+              </div>
+              <v-btn-toggle v-model="outcomeModal.judgmentHasAppealGrounds" mandatory color="warning" variant="outlined" rounded="xl" density="comfortable">
+                <v-btn value="نعم" class="px-5">نعم، يوجد أسباب</v-btn>
+                <v-btn value="لا" class="px-5">لا، الحكم صحيح</v-btn>
+              </v-btn-toggle>
+            </v-col>
+            <v-col v-if="outcomeModal.judgmentHasAppealGrounds === 'نعم'" cols="12" class="mt-2">
+              <v-text-field
+                v-model="outcomeModal.serviceDate"
+                type="date"
+                label="تاريخ التبليغ بالحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl"
+                hide-details
+              />
+            </v-col>
+          </v-row>
+
+          <!-- سؤال ذكي: نوع القضية -->
+          <v-row dense class="mt-3">
+            <v-col cols="12">
+              <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
+                <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة النظامية)
+              </div>
+              <v-select
+                v-model="outcomeModal.caseType"
+                :items="['مدنية','تجارية','عمالية','جنائية','إدارية','أحوال شخصية']"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl"
+                hide-details
+                placeholder="اختر نوع القضية..."
+              />
+            </v-col>
+          </v-row>
         </v-col>
 
         <v-col cols="12" class="mt-4">
@@ -614,7 +712,12 @@ const outcomeModal = ref({
   isExecutable: false,
   judgmentNumber: '',
   judgmentDate: new Date().toLocaleDateString('en-CA'),
-  objectionDays: 30
+  objectionDays: 30,
+  judgmentFavors: '',
+  judgmentNeedsExecution: '',
+  judgmentHasAppealGrounds: '',
+  judgmentDegree: '',
+  caseType: ''
 })
 
 const translatePlanItem = (k: string): string => {
@@ -702,7 +805,12 @@ function openOutcomeModal(session: Record<string, any>): void {
     isExecutable: false,
     judgmentNumber: '',
     judgmentDate: new Date().toLocaleDateString('en-CA'),
-    objectionDays: 30
+    objectionDays: 30,
+    judgmentFavors: '',
+    judgmentNeedsExecution: '',
+    judgmentHasAppealGrounds: '',
+    judgmentDegree: '',
+    caseType: ''
   }
 }
 
@@ -723,16 +831,19 @@ async function submitOutcome(): Promise<void> {
     const payload: Record<string, any> = {
       session_id: outcomeModal.value.session.id,
       result,
-      notes: outcomeModal.value.notes
+      notes: outcomeModal.value.notes,
+      caseType: outcomeModal.value.caseType || undefined
     }
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
       const isFinal = result === 'صدور حكم قطعي'
       payload.judgmentData = {
         judgment_number: outcomeModal.value.judgmentNumber,
-        judgment_type: isFinal ? 'قطعي' : 'ابتدائي',
-        is_executable: outcomeModal.value.isExecutable || isFinal,
-        objection_period_days: outcomeModal.value.objectionDays,
-        judgment_date: outcomeModal.value.judgmentDate
+        judgment_type: outcomeModal.value.judgmentDegree || (isFinal ? 'قطعي' : 'ابتدائي'),
+        judgment_date: outcomeModal.value.judgmentDate,
+        service_date: outcomeModal.value.serviceDate || outcomeModal.value.judgmentDate,
+        is_for_client: outcomeModal.value.judgmentFavors === 'الموكل',
+        has_appeal_grounds: outcomeModal.value.judgmentHasAppealGrounds === 'نعم',
+        needs_execution: outcomeModal.value.judgmentNeedsExecution === 'نعم'
       }
     }
     if (result === 'شطب الدعوى / انقطاع') {
@@ -753,25 +864,64 @@ async function submitOutcome(): Promise<void> {
         result,
         judgmentData: payload.judgmentData,
         notes: outcomeModal.value.notes,
-        caseType: ''
+        caseType: outcomeModal.value.caseType || undefined
       })
       const analysis = previewRes?.analysis
       const taskList = safeArray(analysis?.tasks)
       const priorityLabel = (p: string) => p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
-      const lines: string[] = ['══════════════════════════════', '  التحليل الذكي للنتيجة', '══════════════════════════════', '']
-      lines.push(`• نوع النتيجة: ${analysis?.outcomeType || '—'}`)
-      if (analysis?.degree) lines.push(`• درجة الحكم: ${analysis.degree}`)
-      if (analysis?.favors) lines.push(`• لصالح: ${analysis.favors}`)
-      if (analysis?.needsExecution) lines.push('• يحتاج تنفيذ: نعم')
-      if (analysis?.hasAppealGrounds) lines.push('• يوجد أسباب اعتراض: نعم')
-      if (analysis?.deadlines?.appealEndDate) {
-        lines.push(`• مدة الاعتراض: ${analysis.deadlines.appealDeadlineDays} يوم`)
-        lines.push(`• آخر موعد للاعتراض: ${analysis.deadlines.appealEndDate}`)
+
+      // بناء رسالة تأكيد مخصصة حسب السيناريو
+      const lines: string[] = []
+      if (analysis?.outcomeType === 'حكم') {
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        lines.push('  تحليل الحكم القضائي')
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        lines.push(`• نوع النتيجة: ${analysis.outcomeType}`)
+        if (analysis.degree) lines.push(`• درجة الحكم: ${analysis.degree}`)
+        if (analysis.favors === 'موكل') {
+          lines.push(`• الحكم: لصالح الموكل`)
+          if (analysis.needsExecution) {
+            lines.push('• الإجراء: يحتاج تنفيذ')
+            lines.push('• المسار: إنشاء مهام تنفيذ الحكم')
+          } else {
+            lines.push('• الإجراء: لا يحتاج تنفيذ (براءة/انتهاء)')
+            lines.push('• المسار: أرشفة القضية')
+          }
+        } else if (analysis.favors === 'خصم') {
+          lines.push(`• الحكم: ضد الموكل (لصالح الخصم)`)
+          if (analysis.hasAppealGrounds) {
+            lines.push('• الإجراء: يوجد أسباب اعتراض')
+            lines.push(`• المسار: ${analysis.appealType === 'نقض' ? 'الطعن بالنقض' : 'تقديم الاعتراض'}`)
+          } else {
+            lines.push('• الإجراء: لا يوجد أسباب اعتراض')
+            lines.push('• المسار: تبليغ العميل')
+          }
+        }
+        if (analysis?.deadlines?.appealEndDate) {
+          lines.push(`• مدة الاعتراض: ${analysis.deadlines.appealDeadlineDays} يوم`)
+          lines.push(`• آخر موعد: ${analysis.deadlines.appealEndDate}`)
+        }
+      } else {
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        lines.push('  تحليل نتيجة الجلسة')
+        lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+        lines.push(`• نوع النتيجة: ${analysis?.outcomeType || '—'}`)
+        if (analysis?.outcomeType === 'حجز للحكم') {
+          lines.push('• الإجراء: متابعة تاريخ النطق بالحكم')
+        } else if (analysis?.outcomeType === 'تأجيل') {
+          lines.push('• الإجراء: متابعة تاريخ الجلسة الجديدة')
+        } else if (analysis?.outcomeType === 'تبليغ / إجراء إداري') {
+          lines.push('• الإجراء: متابعة إجراءات التبليغ')
+        } else if (analysis?.outcomeType === 'قرار') {
+          lines.push('• الإجراء: تحليل القرار وتبليغ العميل')
+        } else {
+          lines.push('• الإجراء: مراجعة النتيجة وتحليلها')
+        }
       }
       lines.push('')
       if (taskList.length) {
         lines.push('──────────────────────────────')
-        lines.push('  المهام التي سيتم إنشاؤها:')
+        lines.push('  المهام الذكية التي ستُنشأ:')
         lines.push('──────────────────────────────')
         taskList.forEach((t: any, i: number) => {
           const pri = priorityLabel(t.priority || 'عادية')
@@ -781,8 +931,9 @@ async function submitOutcome(): Promise<void> {
           lines.push('')
         })
       }
-      lines.push('══════════════════════════════')
-      lines.push('هل تريد المتابعة في تسجيل النتيجة؟')
+      lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
+      lines.push('هل أنت متأكد من تسجيل النتيجة؟')
+      lines.push('سيتم إغلاق الجلسة وإنشاء المهام أعلاه.')
       const msg = lines.join('\n')
 
       openConfirm({
@@ -800,7 +951,8 @@ async function submitOutcome(): Promise<void> {
               session_id: outcomeModal.value.session.id,
               result,
               notes: outcomeModal.value.notes,
-              judgmentData: payload.judgmentData
+              judgmentData: payload.judgmentData,
+              caseType: outcomeModal.value.caseType || undefined
             })
             outcomeModal.value.show = false
             await loadSummary()
