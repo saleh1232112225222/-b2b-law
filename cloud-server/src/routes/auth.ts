@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
 import { generateToken, authMiddleware } from '../middleware/auth'
-import { sendOTP, sendEmail, getTransporter } from '../services/notification'
+import { sendOTP, sendEmail, getTransporter, notifyAdminOfNewRegistration } from '../services/notification'
 
 export const authRouter = Router()
 
@@ -232,12 +232,16 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     const existing = await query('SELECT id, name FROM companies WHERE email = $1', [googleEmail])
     let companyId: string
     let username: string
+    let trialExpiresAt = new Date()
     if (existing.rows.length > 0) {
       companyId = existing.rows[0].id
+      const compRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
+      if (compRes.rows.length > 0) {
+        trialExpiresAt = new Date(compRes.rows[0].trial_expires_at)
+      }
     } else {
       // Create a new company for this Google user
       companyId = uuidv4()
-      const trialExpiresAt = new Date()
       trialExpiresAt.setDate(trialExpiresAt.getDate() + 7)
       await query(
         'INSERT INTO companies (id, name, email, is_verified, trial_expires_at) VALUES ($1, $2, $3, TRUE, $4)',
@@ -284,10 +288,11 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
 
       // Notify the admin of Google signup completion
       try {
-        await sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: '🎉 مشترك جديد عبر Google في B2B Lawyer',
-          text: `مرحباً أستاذ صالح،\n\nقام مشترك جديد بالتسجيل عبر Google بنجاح:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n\nشكراً لك.`
+        await notifyAdminOfNewRegistration({
+          name: googleName,
+          email: googleEmail,
+          method: 'Google',
+          trialExpiresAt
         })
       } catch (e) {
         console.error('Failed to notify admin of Google signup:', e)
@@ -413,6 +418,17 @@ authRouter.post('/register', async (req: Request, res: Response) => {
       companyId
     }, companyId)
 
+    // Notify the admin of new registration attempt (before OTP verification)
+    try {
+      await sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `⏳ محاولة تسجيل جديدة في B2B Lawyer - ${companyName}`,
+        text: `مرحباً أستاذ صالح،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n- رمز التفعيل (OTP): ${otpCode}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
+      })
+    } catch (e) {
+      console.error('Failed to notify admin of registration attempt:', e)
+    }
+
     // If SMTP is not available, return OTP in response so the frontend can show it
     // This enables registration when email is not configured
     res.status(201).json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
@@ -464,13 +480,15 @@ authRouter.post('/verify', async (req: Request, res: Response) => {
 
     // Notify the admin of manual signup verification completion
     try {
-      const infoRes = await query('SELECT name, email, phone FROM companies WHERE id = $1', [companyId])
+      const infoRes = await query('SELECT name, email, phone, trial_expires_at FROM companies WHERE id = $1', [companyId])
       if (infoRes.rows.length > 0) {
-        const { name, email, phone } = infoRes.rows[0]
-        await sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: '🎉 مشترك جديد تفعيل يدوي في B2B Lawyer',
-          text: `مرحباً أستاذ صالح،\n\nقام مشترك جديد بتفعيل حسابه بنجاح:\n\n- اسم المكتب: ${name}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n\nشكراً لك.`
+        const { name, email, phone, trial_expires_at } = infoRes.rows[0]
+        await notifyAdminOfNewRegistration({
+          name,
+          email,
+          phone,
+          method: 'Manual',
+          trialExpiresAt: new Date(trial_expires_at)
         })
       }
     } catch (e) {

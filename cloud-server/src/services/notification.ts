@@ -91,3 +91,61 @@ export async function sendEmail(options: { to: string; subject: string; text: st
   }
   console.log(`[EMAIL] ⚠ Email not sent (SMTP not configured): "${options.subject}" -> ${options.to}`)
 }
+
+export async function notifyAdminOfNewRegistration(details: {
+  name: string
+  email: string
+  phone?: string
+  method: 'Google' | 'Manual'
+  trialExpiresAt: Date
+}): Promise<void> {
+  const formattedDate = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
+  const formattedExpiry = details.trialExpiresAt.toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
+
+  const html = `
+    <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 550px; margin: 0 auto; padding: 32px; background: #0c0e14; border-radius: 16px; border: 1px solid #e9c349;">
+      <div style="text-align: center; margin-bottom: 24px;">
+        <h1 style="color: #e9c349; font-size: 24px; margin: 0;">🎉 مشترك جديد في B2B Lawyer</h1>
+        <p style="color: rgba(255, 255, 255, 0.6); font-size: 14px; margin-top: 8px;">تم تسجيل حساب جديد في النظام بنجاح</p>
+      </div>
+      <div style="background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 24px; color: #fff;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 15px; line-height: 1.8;">
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; width: 140px; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">الاسم / المكتب:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">${details.name}</td>
+          </tr>
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">البريد الإلكتروني:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);"><a href="mailto:${details.email}" style="color: #fff; text-decoration: none;">${details.email}</a></td>
+          </tr>
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">رقم الهاتف:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">${details.phone || 'غير متوفر (تسجيل Google)'}</td>
+          </tr>
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">طريقة التسجيل:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">${details.method === 'Google' ? 'تسجيل دخول عبر Google' : 'تسجيل يدوي (مع تفعيل)'}</td>
+          </tr>
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">تاريخ التسجيل:</td>
+            <td style="padding: 8px 0; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">${formattedDate}</td>
+          </tr>
+          <tr>
+            <td style="color: #e9c349; font-weight: bold; padding: 8px 0;">نهاية الفترة التجريبية:</td>
+            <td style="padding: 8px 0;">${formattedExpiry}</td>
+          </tr>
+        </table>
+      </div>
+      <p style="color: rgba(255, 255, 255, 0.4); font-size: 12px; text-align: center; margin-top: 24px;">
+        هذا التنبيه مرسل تلقائياً من خادم B2B Lawyer.
+      </p>
+    </div>
+  `
+
+  await sendEmail({
+    to: 'slaehmap@gmail.com',
+    subject: `🎉 مشترك جديد (${details.method === 'Google' ? 'Google' : 'يدوي'}): ${details.name}`,
+    text: `مرحباً أستاذ صالح،\n\nتم تسجيل مشترك جديد بنجاح:\n- الاسم: ${details.name}\n- البريد الإلكتروني: ${details.email}\n- الهاتف: ${details.phone || 'غير متوفر'}\n- طريقة التسجيل: ${details.method}\n- التاريخ: ${formattedDate}\n\nشكراً لك.`,
+    html
+  })
+}
