@@ -38,12 +38,13 @@ const CASE_TYPE_DEADLINES: Record<string, number> = {
 const APPEAL_TYPE_MAP: Record<string, { type: 'اعتراض' | 'استئناف' | 'نقض'; label: string }> = {
   ابتدائي: { type: 'استئناف', label: 'استئناف الحكم الابتدائي' },
   استئنافي: { type: 'نقض', label: 'الطعن بالنقض' },
+  قطعي: { type: 'نقض', label: 'الطعن بالنقض (حالات استثنائية)' },
   نهائي: { type: 'نقض', label: 'الطعن بالنقض (حالات استثنائية)' },
 }
 
 export function classifyOutcome(result: string): JudgmentAnalysis['outcomeType'] {
-  if (result.includes('حكم') || result.includes('صدور حكم')) return 'حكم'
   if (result.includes('حجز') || result.includes('الحكم')) return 'حجز للحكم'
+  if (result.includes('حكم') || result.includes('صدور حكم') || result.includes('براءة')) return 'حكم'
   if (result.includes('تأجيل')) return 'تأجيل'
   if (result.includes('تبليغ') || result.includes('إجراء')) return 'تبليغ / إجراء إداري'
   if (result.includes('قرار') || result.includes('شطب') || result.includes('قطع')) return 'قرار'
@@ -51,7 +52,7 @@ export function classifyOutcome(result: string): JudgmentAnalysis['outcomeType']
 }
 
 export function determineDegree(result: string): 'ابتدائي' | 'استئنافي' | 'نهائي' | 'قطعي' {
-  if (result.includes('قطعي') || result.includes('نهائي')) return 'قطعي'
+  if (result.includes('قطعي') || result.includes('نهائي') || result.includes('قطع')) return 'قطعي'
   if (result.includes('استئناف')) return 'استئنافي'
   if (result.includes('ابتدائي')) return 'ابتدائي'
   return 'ابتدائي'
