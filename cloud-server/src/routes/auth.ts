@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
 import { generateToken, authMiddleware } from '../middleware/auth'
-import { sendOTP, sendEmail } from '../services/notification'
+import { sendOTP, sendEmail, getTransporter } from '../services/notification'
 
 export const authRouter = Router()
 
@@ -403,6 +403,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     ])
 
     // 7. Send OTP code (fire-and-forget — don't block registration)
+    const smtpAvailable = getTransporter() !== null
     sendOTP(email, phone, otpCode)
 
     await logActivity(username, 'REGISTER_SUCCESS', 'auth', 'تسجيل شركة جديدة', {
@@ -412,7 +413,9 @@ authRouter.post('/register', async (req: Request, res: Response) => {
       companyId
     }, companyId)
 
-    res.status(201).json({ success: true, companyId, username })
+    // If SMTP is not available, return OTP in response so the frontend can show it
+    // This enables registration when email is not configured
+    res.status(201).json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)
     res.status(500).json({ error: 'Registration failed' })

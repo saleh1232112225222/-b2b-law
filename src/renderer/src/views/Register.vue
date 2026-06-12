@@ -52,19 +52,19 @@
               <div class="branding-header text-center mb-6">
                 <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
                 <p
-                  v-if="!isMockMode"
+                  v-if="isMockMode || devOtp"
                   class="text-white text-caption mt-2"
                   style="font-size: 0.9rem !important; line-height: 1.6"
                 >
-                  تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
-                  لتفعيل الفترة التجريبية.
+                  وضع التطوير: رمز التحقق هو <strong class="text-gold">{{ devOtp || '123456' }}</strong>
                 </p>
                 <p
                   v-else
                   class="text-white text-caption mt-2"
                   style="font-size: 0.9rem !important; line-height: 1.6"
                 >
-                  وضع التطوير: رمز التحقق هو <strong class="text-gold">123456</strong>
+                  تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
+                  لتفعيل الفترة التجريبية.
                 </p>
               </div>
 
@@ -330,6 +330,7 @@ const isDesktop = computed(() => {
 })
 
 const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
+const devOtp = ref('')
 
 const handleRegister = async () => {
   if (!formValid.value) return
@@ -337,9 +338,11 @@ const handleRegister = async () => {
   loading.value = true
   error.value = ''
   success.value = false
+  devOtp.value = ''
 
   try {
     if (isMockMode.value) {
+      devOtp.value = '123456'
       await new Promise((r) => setTimeout(r, 1000))
     } else {
       const api = (window as any).api
@@ -347,13 +350,16 @@ const handleRegister = async () => {
         throw new Error('خدمة التسجيل غير متوفرة')
       }
 
-      await api.auth.register(
+      const result = await api.auth.register(
         companyName.value,
         username.value,
         email.value,
         phone.value,
         password.value
       )
+      if (result?.devOtp) {
+        devOtp.value = result.devOtp
+      }
     }
 
     success.value = true
@@ -386,8 +392,8 @@ const handleVerify = async () => {
   success.value = false
 
   try {
-    if (isMockMode.value) {
-      if (otpCode.value !== '123456') {
+    if (isMockMode.value || devOtp.value) {
+      if (otpCode.value !== (devOtp.value || '123456')) {
         throw new Error('InvalidCode')
       }
       await new Promise((r) => setTimeout(r, 1000))
