@@ -1037,7 +1037,15 @@ const api = {
     getBySession: (sessionId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sessionOutcome:getBySession', sessionId)
-        : cloudRequest({ method: 'GET', url: `/session-outcomes/by-session/${sessionId}` })
+        : cloudRequest({ method: 'GET', url: `/session-outcomes/by-session/${sessionId}` }),
+    apply: (payload: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:apply', payload)
+        : cloudRequest({ method: 'POST', url: '/session-outcomes/apply', data: payload }),
+    preview: (payload: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:preview', payload)
+        : cloudRequest({ method: 'POST', url: '/session-outcomes/preview', data: payload })
   },
   analytics: {
     getDashboard: () =>

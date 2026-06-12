@@ -301,35 +301,71 @@ const submitOutcome = async () => {
   if (!result || !activeSession.value) return
   outcomeModal.value.loading = true
   try {
+    const api = (window as any).api
     const payload: Record<string, any> = { session_id: activeSession.value.id, result, notes: outcomeModal.value.notes }
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
-      payload.judgmentData = { judgment_number: outcomeModal.value.judgmentNumber, judgment_type: result === 'صدور حكم قطعي' ? 'قطعي' : 'ابتدائي', is_executable: result === 'صدور حكم قطعي', objection_period_days: outcomeModal.value.objectionDays, judgment_date: outcomeModal.value.judgmentDate }
+      payload.judgmentData = {
+        judgment_number: outcomeModal.value.judgmentNumber,
+        judgment_type: result === 'صدور حكم قطعي' ? 'قطعي' : 'ابتدائي',
+        is_executable: result === 'صدور حكم قطعي',
+        objection_period_days: outcomeModal.value.objectionDays,
+        judgment_date: outcomeModal.value.judgmentDate,
+        service_date: outcomeModal.value.serviceDate,
+        is_for_client: true,
+        has_appeal_grounds: false,
+        needs_execution: result === 'صدور حكم قطعي'
+      }
     }
     if (result === 'شطب الدعوى / انقطاع') payload.dismissalDecision = outcomeModal.value.dismissalDecision
     if (result === 'تبليغ / إجراء إداري') payload.serviceData = { date: outcomeModal.value.serviceDate, notes: outcomeModal.value.notes }
-    const previewRes = await (window as any).api.workflow.previewDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
-    const missing = safeArray(previewRes?.missing)
-    if (missing.length > 0) { showToast('بيانات مطلوبة: ' + missing.map((m: any) => m?.label).join('، '), 'error'); return }
-    const p = previewRes?.preview?.preview || {}
-    const closeList = safeArray(p.closes).map((x: any) => translateOutcomeItem(String(x)))
-    const createList = safeArray(p.creates).map((x: any) => translateOutcomeItem(String(x)))
-    const msg = `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n${closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : ''}${createList.length ? `- إنشاء: ${createList.join('، ')}\n` : ''}\nهل تريد المتابعة؟`
-    openConfirm({
-      title: 'تأكيد مسار الإجراء', message: msg, color: 'primary', icon: 'git-branch',
-      confirmText: 'نعم، ثبت النتيجة', cancelText: 'إلغاء',
-      action: async () => {
-        confirmDialog.value.loading = true
-        try {
-          const applied = await (window as any).api.workflow.applyDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
-          outcomeModal.value.show = false
-          showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح', 'success')
-          const next = applied?.next
-          if (next?.type === 'ui' && next?.route) router.push({ path: next.route, query: next.query || {} })
-          else router.push('/sessions')
-        } catch (e: unknown) { showToast('فشل تثبيت النتيجة: ' + (e as Error).message, 'error') }
-        finally { confirmDialog.value.loading = false; closeConfirm() }
-      }
-    })
+
+    // Preview analysis via smart engine (cloud) or workflow (desktop)
+    if (api.sessionOutcome?.preview) {
+      const previewRes = await api.sessionOutcome.preview({ result, judgmentData: payload.judgmentData, notes: outcomeModal.value.notes })
+      const analysis = previewRes?.analysis
+      const taskList = safeArray(analysis?.tasks).map((t: any) => t.title)
+      const msg = `التحليل الذكي:\n${analysis?.summary || ''}\n\nسيتم إنشاء المهام التالية:\n${taskList.length ? taskList.map((t: string) => `• ${t}`).join('\n') : '(لا توجد مهام)'}\n\nهل تريد المتابعة؟`
+
+      openConfirm({
+        title: 'تأكيد تسجيل النتيجة', message: msg, color: 'primary', icon: 'brain',
+        confirmText: 'نعم، سجل النتيجة', cancelText: 'إلغاء',
+        action: async () => {
+          confirmDialog.value.loading = true
+          try {
+            const applied = await api.sessionOutcome.apply({ session_id: activeSession.value.id, result, notes: outcomeModal.value.notes, judgmentData: payload.judgmentData })
+            outcomeModal.value.show = false
+            showToast('تم تسجيل النتيجة بنجاح مع التحليل الذكي', 'success')
+            router.push('/sessions')
+          } catch (e: unknown) { showToast('فشل تسجيل النتيجة: ' + (e as Error).message, 'error') }
+          finally { confirmDialog.value.loading = false; closeConfirm() }
+        }
+      })
+    } else {
+      // Fallback to desktop workflow
+      const previewRes = await api.workflow.previewDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
+      const missing = safeArray(previewRes?.missing)
+      if (missing.length > 0) { showToast('بيانات مطلوبة: ' + missing.map((m: any) => m?.label).join('، '), 'error'); return }
+      const p = previewRes?.preview?.preview || {}
+      const closeList = safeArray(p.closes).map((x: any) => translateOutcomeItem(String(x)))
+      const createList = safeArray(p.creates).map((x: any) => translateOutcomeItem(String(x)))
+      const msg = `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n${closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : ''}${createList.length ? `- إنشاء: ${createList.join('، ')}\n` : ''}\nهل تريد المتابعة؟`
+      openConfirm({
+        title: 'تأكيد مسار الإجراء', message: msg, color: 'primary', icon: 'git-branch',
+        confirmText: 'نعم، ثبت النتيجة', cancelText: 'إلغاء',
+        action: async () => {
+          confirmDialog.value.loading = true
+          try {
+            const applied = await api.workflow.applyDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
+            outcomeModal.value.show = false
+            showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح', 'success')
+            const next = applied?.next
+            if (next?.type === 'ui' && next?.route) router.push({ path: next.route, query: next.query || {} })
+            else router.push('/sessions')
+          } catch (e: unknown) { showToast('فشل تثبيت النتيجة: ' + (e as Error).message, 'error') }
+          finally { confirmDialog.value.loading = false; closeConfirm() }
+        }
+      })
+    }
   } finally { outcomeModal.value.loading = false }
 }
 

@@ -1,0 +1,275 @@
+import { query } from '../db/connection'
+
+export interface GeneratedTask {
+  title: string
+  description: string
+  priority: 'عاجلة' | 'مهمة' | 'عادية'
+  dueDate?: string
+  scheduledFor?: string
+}
+
+export interface JudgmentAnalysis {
+  outcomeType: 'حكم' | 'قرار' | 'حجز للحكم' | 'تأجيل' | 'تبليغ / إجراء إداري' | 'أخرى'
+  degree?: 'ابتدائي' | 'استئنافي' | 'نهائي' | 'قطعي'
+  favors?: 'موكل' | 'خصم'
+  needsExecution?: boolean
+  hasAppealGrounds?: boolean
+  appealType?: 'اعتراض' | 'استئناف' | 'نقض'
+  deadlines?: {
+    appealDeadlineDays: number
+    appealStartDate: string | null
+    appealEndDate: string | null
+    executionStartDate?: string | null
+  }
+  tasks: GeneratedTask[]
+  summary: string
+}
+
+const CASE_TYPE_DEADLINES: Record<string, number> = {
+  مدنية: 30,
+  تجارية: 30,
+  جنائية: 30,
+  إدارية: 60,
+  عمالية: 30,
+  أحوال_شخصية: 30,
+  default: 30,
+}
+
+const APPEAL_TYPE_MAP: Record<string, { type: 'اعتراض' | 'استئناف' | 'نقض'; label: string }> = {
+  ابتدائي: { type: 'استئناف', label: 'استئناف الحكم الابتدائي' },
+  استئنافي: { type: 'نقض', label: 'الطعن بالنقض' },
+  نهائي: { type: 'نقض', label: 'الطعن بالنقض (حالات استثنائية)' },
+}
+
+export function classifyOutcome(result: string): JudgmentAnalysis['outcomeType'] {
+  if (result.includes('حكم') || result.includes('صدور حكم')) return 'حكم'
+  if (result.includes('حجز') || result.includes('الحكم')) return 'حجز للحكم'
+  if (result.includes('تأجيل')) return 'تأجيل'
+  if (result.includes('تبليغ') || result.includes('إجراء')) return 'تبليغ / إجراء إداري'
+  if (result.includes('قرار') || result.includes('شطب') || result.includes('قطع')) return 'قرار'
+  return 'أخرى'
+}
+
+export function determineDegree(result: string): 'ابتدائي' | 'استئنافي' | 'نهائي' | 'قطعي' {
+  if (result.includes('قطعي') || result.includes('نهائي')) return 'قطعي'
+  if (result.includes('استئناف')) return 'استئنافي'
+  if (result.includes('ابتدائي')) return 'ابتدائي'
+  return 'ابتدائي'
+}
+
+function todayStr(): string {
+  return new Date().toISOString().split('T')[0]
+}
+
+function daysFromNow(days: number): string {
+  const d = new Date()
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
+export interface AnalyzeJudgmentInput {
+  result: string
+  judgmentType?: string
+  judgmentNumber?: string
+  judgmentDate?: string
+  serviceDate?: string
+  caseType?: string
+  courtType?: string
+  isForClient?: boolean
+  hasAppealGrounds?: boolean
+  needsExecution?: boolean
+  notes?: string
+}
+
+export function analyzeJudgment(input: AnalyzeJudgmentInput): JudgmentAnalysis {
+  const outcomeType = classifyOutcome(input.result)
+  const degree = input.judgmentType
+    ? (input.judgmentType.includes('قطعي') || input.judgmentType.includes('نهائي') ? 'قطعي' as const : 'ابتدائي' as const)
+    : determineDegree(input.result)
+
+  const isFinal = degree === 'قطعي' || degree === 'نهائي'
+  const caseType = input.caseType || 'default'
+  const appealDays = CASE_TYPE_DEADLINES[caseType] || CASE_TYPE_DEADLINES.default
+  const serviceDate = input.serviceDate || todayStr()
+  const judgmentDate = input.judgmentDate || todayStr()
+
+  const favors = input.isForClient === undefined ? undefined : input.isForClient ? 'موكل' : 'خصم'
+  const needsExecution = input.needsExecution === undefined ? (favors === 'موكل' ? true : false) : input.needsExecution
+  const hasAppealGrounds = input.hasAppealGrounds === undefined ? (favors === 'خصم' && !isFinal ? true : false) : input.hasAppealGrounds
+
+  const appealType = hasAppealGrounds
+    ? (APPEAL_TYPE_MAP[degree] || APPEAL_TYPE_MAP.ابتدائي)
+    : undefined
+
+  const tasks: GeneratedTask[] = []
+
+  const deadlines: {
+    appealDeadlineDays?: number
+    appealStartDate?: string | null
+    appealEndDate?: string | null
+    executionStartDate?: string | null
+  } = {}
+
+  if (hasAppealGrounds && appealType) {
+    deadlines.appealDeadlineDays = appealDays
+    deadlines.appealStartDate = serviceDate
+    const appealEnd = new Date(serviceDate)
+    appealEnd.setDate(appealEnd.getDate() + appealDays)
+    deadlines.appealEndDate = appealEnd.toISOString().split('T')[0]
+
+    tasks.push({
+      title: `تقديم ${appealType.label}`,
+      description: `مطلوب تقديم ${appealType.label} قبل ${deadlines.appealEndDate} (خلال ${appealDays} يوماً من تاريخ التبليغ ${serviceDate}).`,
+      priority: 'عاجلة',
+      dueDate: deadlines.appealEndDate,
+      scheduledFor: todayStr(),
+    })
+
+    tasks.push({
+      title: 'دراسة أسباب الاعتراض',
+      description: 'تحليل الأسباب القانونية للاعتراض على الحكم وإعداد مذكرة الاعتراض.',
+      priority: 'مهمة',
+      dueDate: daysFromNow(appealDays > 30 ? 10 : 5),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (needsExecution && favors === 'موكل') {
+    deadlines.executionStartDate = todayStr()
+    tasks.push({
+      title: 'تنفيذ الحكم',
+      description: 'بدء إجراءات تنفيذ الحكم (حجز، إخلاء، تحصيل المبلغ، إلخ).',
+      priority: 'عاجلة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+    tasks.push({
+      title: 'متابعة إجراءات التنفيذ',
+      description: 'متابعة سير إجراءات التنفيذ بعد 7 أيام من تاريخ البدء.',
+      priority: 'مهمة',
+      dueDate: daysFromNow(7),
+      scheduledFor: daysFromNow(7),
+    })
+  }
+
+  if (needsExecution && favors === 'خصم' && isFinal) {
+    tasks.push({
+      title: 'تنفيذ الحكم (لصالح الخصم)',
+      description: 'الحكم نهائي لصالح الخصم - يجب اتخاذ الإجراءات اللازمة.',
+      priority: 'عاجلة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (outcomeType === 'أخرى' || (favors === 'موكل' && !needsExecution)) {
+    tasks.push({
+      title: 'أرشفة القضية',
+      description: 'أرشفة القضية بعد الانتهاء منها.',
+      priority: 'عادية',
+      dueDate: daysFromNow(3),
+      scheduledFor: daysFromNow(3),
+    })
+  }
+
+  if (outcomeType === 'حجز للحكم') {
+    tasks.push({
+      title: 'متابعة تاريخ النطق بالحكم',
+      description: 'متابعة الجلسة المحددة للنطق بالحكم.',
+      priority: 'مهمة',
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (outcomeType === 'تأجيل') {
+    tasks.push({
+      title: 'متابعة تاريخ الجلسة الجديدة',
+      description: 'متابعة الجلسة الجديدة المحددة من المحكمة.',
+      priority: 'مهمة',
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (favors === 'خصم' && outcomeType === 'حكم') {
+    tasks.push({
+      title: 'تبليغ العميل بالنتيجة والمخاطر',
+      description: 'إبلاغ العميل بالحكم الصادر ضد مصلحته والخطوات القادمة.',
+      priority: 'عاجلة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (favors === 'موكل' && outcomeType === 'حكم') {
+    tasks.push({
+      title: 'تبليغ العميل بالنتيجة',
+      description: 'إبلاغ العميل بالحكم الصادر لصالحه.',
+      priority: 'مهمة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  if (favors === 'موكل' && !needsExecution && !hasAppealGrounds) {
+    const hasNotifyTask = tasks.some(t => t.title.includes('تبليغ العميل'))
+    if (!hasNotifyTask) {
+      tasks.push({
+        title: 'تبليغ العميل بالنتيجة',
+        description: 'إبلاغ العميل بنتيجة الجلسة.',
+        priority: 'مهمة',
+        dueDate: todayStr(),
+        scheduledFor: todayStr(),
+      })
+    }
+  }
+
+  let summary = `نوع النتيجة: ${outcomeType}`
+  if (degree) summary += ` | درجة الحكم: ${degree}`
+  if (favors) summary += ` | لصالح: ${favors}`
+  if (deadlines.appealEndDate) summary += ` | موعد الاعتراض: ${deadlines.appealEndDate}`
+  summary += ` | عدد المهام: ${tasks.length}`
+
+  const hasDeadlines = deadlines.appealDeadlineDays !== undefined
+  return {
+    outcomeType,
+    degree,
+    favors,
+    needsExecution,
+    hasAppealGrounds,
+    appealType: appealType?.type,
+    deadlines: hasDeadlines ? deadlines as JudgmentAnalysis['deadlines'] : undefined,
+    tasks,
+    summary,
+  }
+}
+
+export function detectCaseType(notes?: string): string {
+  if (!notes) return 'default'
+  const noteLower = notes
+  if (noteLower.includes('عمال') || noteLower.includes('موظف')) return 'عمالية'
+  if (noteLower.includes('تجاري') || noteLower.includes('شركة')) return 'تجارية'
+  if (noteLower.includes('جنائي') || noteLower.includes('جزائي')) return 'جنائية'
+  if (noteLower.includes('إداري') || noteLower.includes('ديوان')) return 'إدارية'
+  if (noteLower.includes('أحوال') || noteLower.includes('زواج') || noteLower.includes('طلاق')) return 'أحوال_شخصية'
+  if (noteLower.includes('مدني')) return 'مدنية'
+  return 'default'
+}
+
+export async function saveGeneratedTasks(
+  companyId: string,
+  caseId: string | undefined,
+  tasks: GeneratedTask[],
+  createdBy: string,
+): Promise<string[]> {
+  const ids: string[] = []
+  for (const t of tasks) {
+    const id = crypto.randomUUID()
+    await query(
+      `INSERT INTO tasks_v2 (id, company_id, case_id, title, description, priority, status, due_date, scheduled_for, created_by, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7::date, $8::timestamptz, $9, NOW())`,
+      [id, companyId, caseId || null, t.title, t.description, t.priority === 'عاجلة' ? 'high' : t.priority === 'مهمة' ? 'medium' : 'low', t.dueDate || null, t.scheduledFor ? `${t.scheduledFor}T00:00:00Z` : null, createdBy]
+    )
+    ids.push(id)
+  }
+  return ids
+}

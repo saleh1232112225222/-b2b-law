@@ -745,87 +745,93 @@ async function submitOutcome(): Promise<void> {
       }
     }
 
-    const previewRes = await (window as any).api.workflow.previewDecision({
-      sessionId: outcomeModal.value.session.id,
-      resultLabel: result,
-      inputs: payload
-    })
-    const missing = safeArray(previewRes?.missing)
-    if (missing.length > 0) {
-      cleanSnackbar.value = {
-        show: true,
-        text:
-          'بيانات مطلوبة: ' +
-          missing
-            .map((m: any) => m?.label)
-            .filter(Boolean)
-            .join('، '),
-        color: 'error'
-      }
-      return
-    }
+    const api = (window as any).api
 
-    const p = previewRes?.preview || null
-    const closeList = safeArray(p?.preview?.closes).map((x: any) => translatePlanItem(String(x)))
-    const createList = safeArray(p?.preview?.creates).map((x: any) => translatePlanItem(String(x)))
-    const msg =
-      `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n` +
-      (closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : '') +
-      (createList.length ? `- إنشاء: ${createList.join('، ')}\n` : '') +
-      `\nهل تريد المتابعة؟`
+    // Use smart analysis engine (cloud) or desktop workflow
+    if (api.sessionOutcome?.preview) {
+      const previewRes = await api.sessionOutcome.preview({
+        result,
+        judgmentData: payload.judgmentData,
+        notes: outcomeModal.value.notes,
+        caseType: ''
+      })
+      const analysis = previewRes?.analysis
+      const taskList = safeArray(analysis?.tasks).map((t: any) => t.title)
+      const msg = `التحليل الذكي:\n${analysis?.summary || ''}\n\nسيتم إنشاء المهام التالية:\n${taskList.length ? taskList.map((t: string) => `• ${t}`).join('\n') : '(لا توجد مهام)'}\n\nهل تريد المتابعة؟`
 
-    openConfirm({
-      title: 'تأكيد مسار الإجراء',
-      message: msg,
-      color: 'primary',
-      confirmButtonColor: 'primary',
-      icon: ICONS.SYSTEM.TIMELINE,
-      confirmText: 'موافق',
-      cancelText: 'إلغاء',
-      action: async () => {
-        confirmDialog.value.loading = true
-        try {
-          const applied = await (window as any).api.workflow.applyDecision({
-            sessionId: outcomeModal.value.session.id,
-            resultLabel: result,
-            inputs: payload
-          })
-          outcomeModal.value.show = false
-          await loadSummary()
-
-          const next = applied?.next
-          if (next?.type === 'ui' && next?.route) {
-            router.push({ path: next.route, query: next.query || {} })
-          }
-
-          if (outcomeModal.value.judgmentType === 'قطعي' && result.includes('حكم')) {
-            enforcementConfirmDialog.value = {
-              show: true,
-              caseId: outcomeModal.value.session.case_id
-            }
-          } else {
-            const createdCount = Number(applied?.createdTaskIds?.length || 0)
+      openConfirm({
+        title: 'تأكيد مسار الإجراء',
+        message: msg,
+        color: 'primary',
+        confirmButtonColor: 'primary',
+        icon: ICONS.SYSTEM.BRAIN,
+        confirmText: 'موافق',
+        cancelText: 'إلغاء',
+        action: async () => {
+          confirmDialog.value.loading = true
+          try {
+            const applied = await api.sessionOutcome.apply({
+              session_id: outcomeModal.value.session.id,
+              result,
+              notes: outcomeModal.value.notes,
+              judgmentData: payload.judgmentData
+            })
+            outcomeModal.value.show = false
+            await loadSummary()
+            const tasks = applied?.analysis?.tasks || []
+            const taskCount = tasks.length
             cleanSnackbar.value = {
               show: true,
-              text:
-                createdCount > 0
-                  ? `تم تحديث ملف القضية وإنشاء ${createdCount} مهام.`
-                  : 'تم تحديث ملف القضية بنجاح.',
+              text: taskCount > 0 ? `تم تسجيل النتيجة وإنشاء ${taskCount} مهام ذكية.` : 'تم تسجيل النتيجة بنجاح.',
               color: 'success'
             }
+            closeConfirm()
+          } catch (e: unknown) {
+            cleanSnackbar.value = { show: true, text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message), color: 'error' }
+          } finally {
+            confirmDialog.value.loading = false
           }
-          closeConfirm()
-        } catch (e: unknown) {
-          cleanSnackbar.value = {
-            show: true,
-            text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message),
-            color: 'error'
-          }
-        } finally {
-          confirmDialog.value.loading = false
         }
+      })
+    } else {
+      // Desktop workflow fallback
+      const previewRes = await api.workflow.previewDecision({ sessionId: outcomeModal.value.session.id, resultLabel: result, inputs: payload })
+      const missing = safeArray(previewRes?.missing)
+      if (missing.length > 0) {
+        cleanSnackbar.value = { show: true, text: 'بيانات مطلوبة: ' + missing.map((m: any) => m?.label).filter(Boolean).join('، '), color: 'error' }
+        return
       }
-    })
+      const p = previewRes?.preview || null
+      const closeList = safeArray(p?.preview?.closes).map((x: any) => translatePlanItem(String(x)))
+      const createList = safeArray(p?.preview?.creates).map((x: any) => translatePlanItem(String(x)))
+      const msg = `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n${closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : ''}${createList.length ? `- إنشاء: ${createList.join('، ')}\n` : ''}\nهل تريد المتابعة?`
+
+      openConfirm({
+        title: 'تأكيد مسار الإجراء',
+        message: msg,
+        color: 'primary',
+        confirmButtonColor: 'primary',
+        icon: ICONS.SYSTEM.TIMELINE,
+        confirmText: 'موافق',
+        cancelText: 'إلغاء',
+        action: async () => {
+          confirmDialog.value.loading = true
+          try {
+            const applied = await api.workflow.applyDecision({ sessionId: outcomeModal.value.session.id, resultLabel: result, inputs: payload })
+            outcomeModal.value.show = false
+            await loadSummary()
+            const next = applied?.next
+            if (next?.type === 'ui' && next?.route) router.push({ path: next.route, query: next.query || {} })
+            cleanSnackbar.value = { show: true, text: 'تم تحديث ملف القضية بنجاح.', color: 'success' }
+            closeConfirm()
+          } catch (e: unknown) {
+            cleanSnackbar.value = { show: true, text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message), color: 'error' }
+          } finally {
+            confirmDialog.value.loading = false
+          }
+        }
+      })
+    }
   } finally {
     loading.value = false
   }

@@ -27,6 +27,8 @@ import { enforcementRequestsRouter } from './routes/enforcement_requests'
 import { usersRouter } from './routes/users'
 import { casesRouter } from './routes/cases'
 import { contractsRouter } from './routes/contracts'
+import { sessionOutcomesRouter } from './routes/session-outcomes'
+import { tasksRouter } from './routes/tasks'
 import { runExtraMigrations } from './db/migrate_extra'
 
 const app = express()
@@ -67,13 +69,14 @@ app.use('/api/agencies', agenciesRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/cases', casesRouter)
 app.use('/api/contracts', contractsRouter)
+app.use('/api/session-outcomes', sessionOutcomesRouter)
+app.use('/api/tasks', tasksRouter)
 
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },
   { name: 'defendants', table: 'defendants', searchFields: ['name', 'id_number', 'phone'] },
   { name: 'cases', table: 'cases', searchFields: ['case_number', 'subject', 'court'] },
   { name: 'sessions', table: 'sessions' },
-  { name: 'tasks', table: 'tasks_v2' },
   { name: 'evidence', table: 'evidence' },
   { name: 'judgments', table: 'judgments' },
   { name: 'memoranda', table: 'memoranda' },
@@ -95,7 +98,7 @@ const entityTables = [
   { name: 'permissions', table: 'permissions' },
   { name: 'enforcement', table: 'enforcement_files' },
   { name: 'collections', table: 'collections_claims' },
-  { name: 'session-outcomes', table: 'session_outcomes' },
+
   { name: 'analytics', table: '' }
 ]
 
