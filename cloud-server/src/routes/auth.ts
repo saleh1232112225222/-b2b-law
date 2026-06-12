@@ -87,6 +87,19 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       roleKey: user.role_key
     })
 
+    // Notify the admin of successful login
+    try {
+      const emailResult = await query('SELECT email FROM companies WHERE id = $1', [user.company_id])
+      const companyEmail = emailResult.rows[0]?.email || 'غير متوفر'
+      await sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `🔑 تسجيل دخول جديد: ${user.full_name || username}`,
+        text: `مرحباً أستاذ صالح،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- البريد الإلكتروني للاسترداد: ${user.recovery_email || 'غير متوفر'}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+      })
+    } catch (e) {
+      console.error('Failed to notify admin of manual login:', e)
+    }
+
     res.json({
       token,
       user: {
@@ -299,6 +312,17 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       }
 
       userResult = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
+    } else {
+      // Existing user logging in via Google
+      try {
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
+          text: `مرحباً أستاذ صالح،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+        })
+      } catch (e) {
+        console.error('Failed to notify admin of Google login:', e)
+      }
     }
     const user = userResult.rows[0]
     const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
@@ -333,6 +357,13 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
     if (checkUser.rows.length > 0) {
       await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - اسم المستخدم موجود مسبقاً')
+      try {
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
+          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
+        })
+      } catch (e) {}
       res.status(400).json({ error: 'UsernameAlreadyExists' })
       return
     }
@@ -341,6 +372,13 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
     if (checkEmail.rows.length > 0) {
       await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - البريد الإلكتروني موجود مسبقاً')
+      try {
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
+          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
+        })
+      } catch (e) {}
       res.status(400).json({ error: 'EmailAlreadyExists' })
       return
     }
@@ -349,6 +387,13 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
     if (checkPhone.rows.length > 0) {
       await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - رقم الهاتف موجود مسبقاً')
+      try {
+        await sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
+          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
+        })
+      } catch (e) {}
       res.status(400).json({ error: 'PhoneAlreadyExists' })
       return
     }
