@@ -142,7 +142,8 @@ export const ICONS = {
     PRINTER: 'printer',
     DELETE_ALERT: 'trash-2',
     SAVE_CHECK: 'check-circle',
-    SYNC: 'refresh-cw'
+    SYNC: 'refresh-cw',
+    BRAIN: 'brain'
   }
 } as const
 
