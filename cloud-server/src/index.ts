@@ -4,16 +4,20 @@ import { healthCheck } from './db/connection'
 import { authRouter } from './routes/auth'
 
 // Patch Express 4 to catch async errors — acts like express-async-errors
-import { Layer } from 'express/lib/router'
-const originalHandle = (Layer as any).prototype.handle_request
-if (originalHandle) {
-  ;(Layer as any).prototype.handle_request = function (this: any, req: any, res: any, next: any) {
-    const result = originalHandle.call(this, req, res, next)
-    if (result && typeof result.catch === 'function') {
-      result.catch(next)
+try {
+  const Layer = require('express/lib/router').Layer
+  const originalHandle = Layer.prototype.handle_request
+  if (originalHandle) {
+    Layer.prototype.handle_request = function (this: any, req: any, res: any, next: any) {
+      const result = originalHandle.call(this, req, res, next)
+      if (result && typeof result.catch === 'function') {
+        result.catch(next)
+      }
+      return result
     }
-    return result
   }
+} catch (e) {
+  console.warn('[Express async error patch] Failed to apply:', e)
 }
 import { createEntityRouter } from './routes/entity'
 import { reportsRouter } from './routes/reports'

@@ -2,7 +2,7 @@ import nodemailer from 'nodemailer'
 
 let transporter: nodemailer.Transporter | null = null
 
-function getTransporter(): nodemailer.Transporter | null {
+export function getTransporter(): nodemailer.Transporter | null {
   if (transporter) return transporter
   const host = process.env.SMTP_HOST
   if (!host) {
