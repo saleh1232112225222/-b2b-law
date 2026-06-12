@@ -376,7 +376,7 @@ const submitOutcome = async () => {
   outcomeModal.value.loading = true
   try {
     const api = (window as any).api
-    const payload: Record<string, any> = { session_id: activeSession.value.id, result, notes: outcomeModal.value.notes, caseType: outcomeModal.value.caseType || undefined }
+    const payload: Record<string, any> = { sessionId: activeSession.value.id, result, notes: outcomeModal.value.notes, caseType: outcomeModal.value.caseType || undefined }
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
       const jt = outcomeModal.value.result === 'صدور حكم قطعي' ? 'قطعي' : 'ابتدائي'
       payload.judgmentData = {
@@ -472,7 +472,7 @@ const submitOutcome = async () => {
         action: async () => {
           confirmDialog.value.loading = true
           try {
-            const applied = await api.sessionOutcome.apply({ session_id: activeSession.value.id, result, notes: outcomeModal.value.notes, judgmentData: payload.judgmentData, caseType: outcomeModal.value.caseType || undefined })
+            const applied = await api.sessionOutcome.apply({ sessionId: activeSession.value.id, result, notes: outcomeModal.value.notes, judgmentData: payload.judgmentData, caseType: outcomeModal.value.caseType || undefined })
             outcomeModal.value.show = false
             showToast('تم تسجيل النتيجة بنجاح مع التحليل الذكي', 'success')
             router.push('/sessions')

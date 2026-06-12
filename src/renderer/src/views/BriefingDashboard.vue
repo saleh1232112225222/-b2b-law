@@ -948,7 +948,7 @@ async function submitOutcome(): Promise<void> {
           confirmDialog.value.loading = true
           try {
             const applied = await api.sessionOutcome.apply({
-              session_id: outcomeModal.value.session.id,
+              sessionId: outcomeModal.value.session.id,
               result,
               notes: outcomeModal.value.notes,
               judgmentData: payload.judgmentData,
