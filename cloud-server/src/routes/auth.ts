@@ -8,6 +8,19 @@ import { sendOTP, sendEmail } from '../services/notification'
 
 export const authRouter = Router()
 
+async function logActivity(actor: string, actionKey: string, moduleKey: string, details: string, metadata?: any, companyId?: string): Promise<void> {
+  try {
+    const cid = companyId || '00000000-0000-0000-0000-000000000000'
+    await query(
+      `INSERT INTO activity_logs (id, company_id, action_key, module_key, details, actor, metadata_json, timestamp)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW())`,
+      [cid, actionKey, moduleKey, details, actor, metadata ? JSON.stringify(metadata) : null]
+    )
+  } catch (e) {
+    console.error('[AUDIT] Log error:', e)
+  }
+}
+
 authRouter.post('/login', async (req: Request, res: Response) => {
   try {
     const { username, password, companyId } = req.body
@@ -26,18 +39,21 @@ authRouter.post('/login', async (req: Request, res: Response) => {
 
     const result = await query(userQuery, params)
     if (result.rows.length === 0) {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - مستخدم غير موجود')
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }
 
     const user = result.rows[0]
     if (!user.is_active) {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معطل')
       res.status(403).json({ error: 'Account is disabled' })
       return
     }
 
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - كلمة مرور خاطئة')
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }
@@ -49,6 +65,7 @@ authRouter.post('/login', async (req: Request, res: Response) => {
     if (companyResult.rows.length > 0) {
       const company = companyResult.rows[0]
       if (!company.is_verified) {
+        await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب غير مفعل')
         res.status(403).json({ error: 'AccountNotVerified' })
         return
       }
@@ -62,6 +79,12 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       username: user.username,
       roleKey: user.role_key,
       trialExpired
+    })
+
+    await logActivity(username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول ناجح', {
+      userId: user.id,
+      companyId: user.company_id,
+      roleKey: user.role_key
     })
 
     res.json({
@@ -304,6 +327,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     // 1. Verify username uniqueness globally
     const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
     if (checkUser.rows.length > 0) {
+      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - اسم المستخدم موجود مسبقاً')
       res.status(400).json({ error: 'UsernameAlreadyExists' })
       return
     }
@@ -311,6 +335,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     // 2. Verify email uniqueness globally across companies
     const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
     if (checkEmail.rows.length > 0) {
+      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - البريد الإلكتروني موجود مسبقاً')
       res.status(400).json({ error: 'EmailAlreadyExists' })
       return
     }
@@ -318,6 +343,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     // 3. Verify phone uniqueness globally across companies
     const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
     if (checkPhone.rows.length > 0) {
+      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - رقم الهاتف موجود مسبقاً')
       res.status(400).json({ error: 'PhoneAlreadyExists' })
       return
     }
@@ -379,6 +405,13 @@ authRouter.post('/register', async (req: Request, res: Response) => {
     // 7. Send OTP code (fire-and-forget — don't block registration)
     sendOTP(email, phone, otpCode)
 
+    await logActivity(username, 'REGISTER_SUCCESS', 'auth', 'تسجيل شركة جديدة', {
+      companyName,
+      email,
+      phone,
+      companyId
+    }, companyId)
+
     res.status(201).json({ success: true, companyId, username })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)
@@ -423,6 +456,8 @@ authRouter.post('/verify', async (req: Request, res: Response) => {
 
     // Activate/Verify the company
     await query('UPDATE companies SET is_verified = TRUE, verification_code = NULL WHERE id = $1', [companyId])
+
+    await logActivity(username, 'VERIFY_SUCCESS', 'auth', 'تم تفعيل الحساب', { companyId }, companyId)
 
     // Notify the admin of manual signup verification completion
     try {

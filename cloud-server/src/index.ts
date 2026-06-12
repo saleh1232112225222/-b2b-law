@@ -2,6 +2,19 @@ import express from 'express'
 import cors from 'cors'
 import { healthCheck } from './db/connection'
 import { authRouter } from './routes/auth'
+
+// Patch Express 4 to catch async errors — acts like express-async-errors
+import { Layer } from 'express/lib/router'
+const originalHandle = (Layer as any).prototype.handle_request
+if (originalHandle) {
+  ;(Layer as any).prototype.handle_request = function (this: any, req: any, res: any, next: any) {
+    const result = originalHandle.call(this, req, res, next)
+    if (result && typeof result.catch === 'function') {
+      result.catch(next)
+    }
+    return result
+  }
+}
 import { createEntityRouter } from './routes/entity'
 import { reportsRouter } from './routes/reports'
 import { systemRouter } from './routes/system'
@@ -17,6 +30,15 @@ const PORT = parseInt(process.env.PORT || '8080', 10)
 
 app.use(cors({ origin: '*', credentials: true }))
 app.use(express.json({ limit: '10mb' }))
+// Catch JSON parse errors so they don't bubble to the generic handler
+app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+  if (err instanceof SyntaxError && 'body' in err) {
+    console.error('[JSON_PARSE_ERROR]', err.message)
+    res.status(400).json({ error: 'Invalid JSON in request body' })
+    return
+  }
+  next(err)
+})
 
 app.use((req, res, next) => {
   const start = Date.now()

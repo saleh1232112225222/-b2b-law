@@ -114,6 +114,7 @@ const clearLocalAuth = (): void => {
   localStorage.removeItem('web_isLoggedIn')
   localStorage.removeItem('web_currentUser')
   localStorage.removeItem('web_currentUserSession')
+  localStorage.removeItem('mock_active')
   window.dispatchEvent(new Event('auth-changed'))
 }
 
@@ -122,8 +123,8 @@ const bootstrapAuth = async (): Promise<void> => {
     if (localStorage.getItem('web_isLoggedIn') !== 'true') return
     await router.isReady()
 
-    // Skip backend session verification for mock/dev bypass tokens
-    if (import.meta.env.VITE_USE_MOCK_OTP === 'true') {
+    // Skip backend session verification when mock mode is active (set by admin/admin login)
+    if (localStorage.getItem('mock_active') === 'true') {
       return
     }
 

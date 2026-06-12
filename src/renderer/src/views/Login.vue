@@ -423,7 +423,8 @@ const handleLogin = async () => {
         roleKey: 'admin',
         mustChangePassword: false
       }
-
+      // Enable mock mode so all API calls return mock data
+      localStorage.setItem('mock_active', 'true')
 
     } else {
       session = await (window as any).api.auth.login(username.value, password.value)

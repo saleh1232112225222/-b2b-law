@@ -18,9 +18,7 @@ export function setCloudBaseUrl(url: string) {
   })
   cloudClient.interceptors.request.use((config) => {
     const token = localStorage.getItem('b2b_cloud_token')
-    const hasRealToken = token && !token.startsWith('mock-')
-    const isMock = import.meta.env.VITE_USE_MOCK_OTP === 'true'
-    if (token && !(isMock && !hasRealToken)) {
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
     return config
@@ -29,7 +27,7 @@ export function setCloudBaseUrl(url: string) {
     (res) => res,
     async (error) => {
       if (error.response?.status === 401 && mode === 'cloud') {
-        if (import.meta.env.VITE_USE_MOCK_OTP === 'true') {
+        if (isMockMode()) {
           return Promise.reject(error)
         }
         localStorage.removeItem('b2b_cloud_token')
@@ -44,8 +42,10 @@ export function getApiMode(): ApiMode {
   return mode
 }
 
-function isMockMode(): boolean {
-  return import.meta.env.VITE_USE_MOCK_OTP === 'true'
+export function isMockMode(): boolean {
+  // Mock mode activates ONLY when explicitly enabled via admin/admin login
+  // This prevents unauthenticated users from accessing admin features
+  return localStorage.getItem('mock_active') === 'true'
 }
 
 function mockCrudResponse(entity: string, method: string, params?: any): any {
