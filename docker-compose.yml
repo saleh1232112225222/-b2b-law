@@ -38,6 +38,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: /api
     container_name: b2b-law-frontend
     restart: unless-stopped
     ports:
