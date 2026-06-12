@@ -81,6 +81,9 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL || '' }}
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY || '' }}
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -98,12 +101,12 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Deploy backend to Render (deploy hook)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
         run: |
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
 
       - name: Deploy backend to Render (API fallback)
-        if: ${{ secrets.RENDER_API_KEY != '' && secrets.RENDER_DEPLOY_HOOK_URL == '' }}
+        if: env.RENDER_API_KEY != '' && env.RENDER_DEPLOY_HOOK_URL == ''
         run: |
           curl -X POST "https://api.render.com/v1/services/srv-d8hja5ldt1ts73ae0k70/deploys" \
             -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
