@@ -9,7 +9,7 @@ export default defineConfig({
   base: '/',
   build: {
     outDir: resolve('dist/web'),
-    emptyOutDir: false,
+    emptyOutDir: true,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
