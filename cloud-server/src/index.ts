@@ -29,6 +29,8 @@ import { casesRouter } from './routes/cases'
 import { contractsRouter } from './routes/contracts'
 import { sessionOutcomesRouter } from './routes/session-outcomes'
 import { tasksRouter } from './routes/tasks'
+import { marketingRouter } from './routes/marketing'
+import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
 const app = express()
@@ -71,6 +73,7 @@ app.use('/api/cases', casesRouter)
 app.use('/api/contracts', contractsRouter)
 app.use('/api/session-outcomes', sessionOutcomesRouter)
 app.use('/api/tasks', tasksRouter)
+app.use('/api', marketingRouter)
 
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },
@@ -135,6 +138,16 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(`B2B-LAW Cloud Server running on port ${PORT}`)
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
   await autoMigrate()
+
+  // Marketing report every 6 hours
+  const MARKETING_INTERVAL = 6 * 60 * 60 * 1000
+  setInterval(() => {
+    sendMarketingReport().catch(e => console.error('[MARKETING] Timer error:', e))
+  }, MARKETING_INTERVAL)
+  // Also send one on startup
+  setTimeout(() => {
+    sendMarketingReport().catch(e => console.error('[MARKETING] Startup error:', e))
+  }, 60_000) // 1 minute delay after server starts
 })
 
 export default app
