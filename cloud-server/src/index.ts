@@ -139,15 +139,21 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
   await autoMigrate()
 
-  // Marketing report every 6 hours
-  const MARKETING_INTERVAL = 6 * 60 * 60 * 1000
+  // Marketing report once daily at 7 AM Saudi time
+  let lastReportDate = ''
   setInterval(() => {
-    sendMarketingReport().catch(e => console.error('[MARKETING] Timer error:', e))
-  }, MARKETING_INTERVAL)
-  // Also send one on startup
+    const saudiHour = new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh', hour: 'numeric', hour12: false })
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
+    if (saudiHour === '7' && lastReportDate !== today) {
+      lastReportDate = today
+      sendMarketingReport().catch(e => console.error('[MARKETING] Daily report error:', e))
+    }
+  }, 60_000) // check every minute
+  // Also send one on startup (after 30s delay)
   setTimeout(() => {
-    sendMarketingReport().catch(e => console.error('[MARKETING] Startup error:', e))
-  }, 60_000) // 1 minute delay after server starts
+    lastReportDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
+    sendMarketingReport().catch(e => console.error('[MARKETING] Startup report error:', e))
+  }, 30_000)
 })
 
 export default app
