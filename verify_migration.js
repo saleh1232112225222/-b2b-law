@@ -45,10 +45,11 @@ test('درجة الحكم = ابتدائي', () => assert(s1.degree === 'ابت�
 test('لصالح الموكل', () => assert(s1.favors === 'موكل'));
 test('يحتاج تنفيذ', () => assert(s1.needsExecution === true));
 test('ليس لديه أسباب اعتراض', () => assert(s1.hasAppealGrounds === false || s1.hasAppealGrounds === undefined));
-test('تم إنشاء مهام', () => assert(s1.tasks.length >= 2, `Expected >=2 tasks, got ${s1.tasks.length}`));
+test('تم إنشاء مهام', () => assert(s1.tasks.length >= 3, `Expected >=3 tasks, got ${s1.tasks.length}`));
 
 const s1Titles = s1.tasks.map(t => t.title);
 test('مهمة: تنفيذ الحكم', () => assert(s1Titles.some(t => t.includes('تنفيذ الحكم')), JSON.stringify(s1Titles)));
+test('مهمة: تحديد آلية التنفيذ', () => assert(s1Titles.some(t => t.includes('تحديد آلية')), JSON.stringify(s1Titles)));
 test('مهمة: تبليغ العميل بالنتيجة', () => assert(s1Titles.some(t => t.includes('تبليغ العميل')), JSON.stringify(s1Titles)));
 test('مهمة: متابعة إجراءات التنفيذ', () => assert(s1Titles.some(t => t.includes('متابعة')), JSON.stringify(s1Titles)));
 test('مدة الاعتراض غير موجودة (لصالح الموكل)', () => assert(s1.deadlines === undefined));

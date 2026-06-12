@@ -756,8 +756,34 @@ async function submitOutcome(): Promise<void> {
         caseType: ''
       })
       const analysis = previewRes?.analysis
-      const taskList = safeArray(analysis?.tasks).map((t: any) => t.title)
-      const msg = `التحليل الذكي:\n${analysis?.summary || ''}\n\nسيتم إنشاء المهام التالية:\n${taskList.length ? taskList.map((t: string) => `• ${t}`).join('\n') : '(لا توجد مهام)'}\n\nهل تريد المتابعة؟`
+      const taskList = safeArray(analysis?.tasks)
+      const priorityLabel = (p: string) => p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
+      const lines: string[] = ['══════════════════════════════', '  التحليل الذكي للنتيجة', '══════════════════════════════', '']
+      lines.push(`• نوع النتيجة: ${analysis?.outcomeType || '—'}`)
+      if (analysis?.degree) lines.push(`• درجة الحكم: ${analysis.degree}`)
+      if (analysis?.favors) lines.push(`• لصالح: ${analysis.favors}`)
+      if (analysis?.needsExecution) lines.push('• يحتاج تنفيذ: نعم')
+      if (analysis?.hasAppealGrounds) lines.push('• يوجد أسباب اعتراض: نعم')
+      if (analysis?.deadlines?.appealEndDate) {
+        lines.push(`• مدة الاعتراض: ${analysis.deadlines.appealDeadlineDays} يوم`)
+        lines.push(`• آخر موعد للاعتراض: ${analysis.deadlines.appealEndDate}`)
+      }
+      lines.push('')
+      if (taskList.length) {
+        lines.push('──────────────────────────────')
+        lines.push('  المهام التي سيتم إنشاؤها:')
+        lines.push('──────────────────────────────')
+        taskList.forEach((t: any, i: number) => {
+          const pri = priorityLabel(t.priority || 'عادية')
+          lines.push(`${i + 1}. ${pri} ${t.title}`)
+          if (t.description) lines.push(`   ${t.description}`)
+          if (t.dueDate) lines.push(`   تاريخ الاستحقاق: ${t.dueDate}`)
+          lines.push('')
+        })
+      }
+      lines.push('══════════════════════════════')
+      lines.push('هل تريد المتابعة في تسجيل النتيجة؟')
+      const msg = lines.join('\n')
 
       openConfirm({
         title: 'تأكيد مسار الإجراء',

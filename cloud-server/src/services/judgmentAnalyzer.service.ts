@@ -68,6 +68,12 @@ function daysFromNow(days: number): string {
   return d.toISOString().split('T')[0]
 }
 
+function addDaysToDate(dateStr: string, days: number): string {
+  const d = new Date(dateStr)
+  d.setDate(d.getDate() + days)
+  return d.toISOString().split('T')[0]
+}
+
 export interface AnalyzeJudgmentInput {
   result: string
   judgmentType?: string
@@ -84,26 +90,33 @@ export interface AnalyzeJudgmentInput {
 
 export function analyzeJudgment(input: AnalyzeJudgmentInput): JudgmentAnalysis {
   const outcomeType = classifyOutcome(input.result)
-  const degree = input.judgmentType
-    ? (input.judgmentType.includes('قطعي') || input.judgmentType.includes('نهائي') ? 'قطعي' as const : 'ابتدائي' as const)
-    : determineDegree(input.result)
+
+  const degree = input.judgmentType && (input.judgmentType.includes('قطعي') || input.judgmentType.includes('نهائي'))
+    ? 'قطعي' as const
+    : input.judgmentType?.includes('استئناف')
+      ? 'استئنافي' as const
+      : input.judgmentType?.includes('ابتدائي')
+        ? 'ابتدائي' as const
+        : determineDegree(input.result)
 
   const isFinal = degree === 'قطعي' || degree === 'نهائي'
   const caseType = input.caseType || 'default'
   const appealDays = CASE_TYPE_DEADLINES[caseType] || CASE_TYPE_DEADLINES.default
   const serviceDate = input.serviceDate || todayStr()
   const judgmentDate = input.judgmentDate || todayStr()
-
   const favors = input.isForClient === undefined ? undefined : input.isForClient ? 'موكل' : 'خصم'
-  const needsExecution = input.needsExecution === undefined ? (favors === 'موكل' ? true : false) : input.needsExecution
-  const hasAppealGrounds = input.hasAppealGrounds === undefined ? (favors === 'خصم' && !isFinal ? true : false) : input.hasAppealGrounds
+  const needsExecution = input.needsExecution === undefined
+    ? (favors === 'موكل' ? false : false)
+    : input.needsExecution
+  const hasAppealGrounds = input.hasAppealGrounds === undefined
+    ? (favors === 'خصم' && !isFinal)
+    : input.hasAppealGrounds
 
-  const appealType = hasAppealGrounds
+  const appealType = hasAppealGrounds && outcomeType === 'حكم'
     ? (APPEAL_TYPE_MAP[degree] || APPEAL_TYPE_MAP.ابتدائي)
     : undefined
 
   const tasks: GeneratedTask[] = []
-
   const deadlines: {
     appealDeadlineDays?: number
     appealStartDate?: string | null
@@ -111,126 +124,188 @@ export function analyzeJudgment(input: AnalyzeJudgmentInput): JudgmentAnalysis {
     executionStartDate?: string | null
   } = {}
 
-  if (hasAppealGrounds && appealType) {
-    deadlines.appealDeadlineDays = appealDays
-    deadlines.appealStartDate = serviceDate
-    const appealEnd = new Date(serviceDate)
-    appealEnd.setDate(appealEnd.getDate() + appealDays)
-    deadlines.appealEndDate = appealEnd.toISOString().split('T')[0]
+  // ──────────────────────────────────────────────
+  //  المنطق الهرمي لتحليل النتائج
+  // ──────────────────────────────────────────────
 
-    tasks.push({
-      title: `تقديم ${appealType.label}`,
-      description: `مطلوب تقديم ${appealType.label} قبل ${deadlines.appealEndDate} (خلال ${appealDays} يوماً من تاريخ التبليغ ${serviceDate}).`,
-      priority: 'عاجلة',
-      dueDate: deadlines.appealEndDate,
-      scheduledFor: todayStr(),
-    })
-
-    tasks.push({
-      title: 'دراسة أسباب الاعتراض',
-      description: 'تحليل الأسباب القانونية للاعتراض على الحكم وإعداد مذكرة الاعتراض.',
-      priority: 'مهمة',
-      dueDate: daysFromNow(appealDays > 30 ? 10 : 5),
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (needsExecution && favors === 'موكل') {
-    deadlines.executionStartDate = todayStr()
-    tasks.push({
-      title: 'تنفيذ الحكم',
-      description: 'بدء إجراءات تنفيذ الحكم (حجز، إخلاء، تحصيل المبلغ، إلخ).',
-      priority: 'عاجلة',
-      dueDate: todayStr(),
-      scheduledFor: todayStr(),
-    })
-    tasks.push({
-      title: 'متابعة إجراءات التنفيذ',
-      description: 'متابعة سير إجراءات التنفيذ بعد 7 أيام من تاريخ البدء.',
-      priority: 'مهمة',
-      dueDate: daysFromNow(7),
-      scheduledFor: daysFromNow(7),
-    })
-  }
-
-  if (needsExecution && favors === 'خصم' && isFinal) {
-    tasks.push({
-      title: 'تنفيذ الحكم (لصالح الخصم)',
-      description: 'الحكم نهائي لصالح الخصم - يجب اتخاذ الإجراءات اللازمة.',
-      priority: 'عاجلة',
-      dueDate: todayStr(),
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (outcomeType === 'أخرى' || (favors === 'موكل' && !needsExecution)) {
-    tasks.push({
-      title: 'أرشفة القضية',
-      description: 'أرشفة القضية بعد الانتهاء منها.',
-      priority: 'عادية',
-      dueDate: daysFromNow(3),
-      scheduledFor: daysFromNow(3),
-    })
-  }
-
-  if (outcomeType === 'حجز للحكم') {
-    tasks.push({
-      title: 'متابعة تاريخ النطق بالحكم',
-      description: 'متابعة الجلسة المحددة للنطق بالحكم.',
-      priority: 'مهمة',
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (outcomeType === 'تأجيل') {
-    tasks.push({
-      title: 'متابعة تاريخ الجلسة الجديدة',
-      description: 'متابعة الجلسة الجديدة المحددة من المحكمة.',
-      priority: 'مهمة',
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (favors === 'خصم' && outcomeType === 'حكم') {
-    tasks.push({
-      title: 'تبليغ العميل بالنتيجة والمخاطر',
-      description: 'إبلاغ العميل بالحكم الصادر ضد مصلحته والخطوات القادمة.',
-      priority: 'عاجلة',
-      dueDate: todayStr(),
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (favors === 'موكل' && outcomeType === 'حكم') {
-    tasks.push({
-      title: 'تبليغ العميل بالنتيجة',
-      description: 'إبلاغ العميل بالحكم الصادر لصالحه.',
-      priority: 'مهمة',
-      dueDate: todayStr(),
-      scheduledFor: todayStr(),
-    })
-  }
-
-  if (favors === 'موكل' && !needsExecution && !hasAppealGrounds) {
-    const hasNotifyTask = tasks.some(t => t.title.includes('تبليغ العميل'))
-    if (!hasNotifyTask) {
+  // ── المسار: نتيجة من نوع حكم ──
+  if (outcomeType === 'حكم') {
+    // ── [الممر أ] الحكم لصالح الموكل ──
+    if (favors === 'موكل') {
+      // تبليغ العميل بالنتيجة
       tasks.push({
         title: 'تبليغ العميل بالنتيجة',
-        description: 'إبلاغ العميل بنتيجة الجلسة.',
+        description: 'إبلاغ العميل بالحكم الصادر لصالحه.',
         priority: 'مهمة',
+        dueDate: todayStr(),
+        scheduledFor: todayStr(),
+      })
+
+      if (needsExecution) {
+        // مهمة عاجلة: تنفيذ الحكم
+        deadlines.executionStartDate = todayStr()
+        tasks.push({
+          title: 'تنفيذ الحكم',
+          description: `بدء إجراءات تنفيذ الحكم (حجز أموال الخصم، تحصيل المبلغ، إخلاء، إلخ). تاريخ بداية التنفيذ: ${todayStr()}.`,
+          priority: 'عاجلة',
+          dueDate: todayStr(),
+          scheduledFor: todayStr(),
+        })
+        tasks.push({
+          title: 'تحديد آلية التنفيذ',
+          description: 'تحديد آلية التنفيذ المناسبة (حجز، إخلاء، تحصيل، إلخ) ومتابعة الإجراءات القانونية.',
+          priority: 'مهمة',
+          dueDate: daysFromNow(3),
+          scheduledFor: daysFromNow(1),
+        })
+        tasks.push({
+          title: 'متابعة إجراءات التنفيذ',
+          description: 'متابعة سير إجراءات التنفيذ وتحديث حالة القضية بعد 7 أيام من تاريخ البدء.',
+          priority: 'عادية',
+          dueDate: daysFromNow(7),
+          scheduledFor: daysFromNow(7),
+        })
+      } else {
+        // الحكم لا يحتاج تنفيذ (براءة، حكم لصالح بدون تنفيذ)
+        tasks.push({
+          title: 'أرشفة القضية',
+          description: 'أرشفة القضية بعد الانتهاء منها.',
+          priority: 'عادية',
+          dueDate: daysFromNow(3),
+          scheduledFor: daysFromNow(3),
+        })
+      }
+    }
+
+    // ── [الممر ب] الحكم ضد الموكل (لصالح الخصم) ──
+    if (favors === 'خصم') {
+      if (hasAppealGrounds) {
+        deadlines.appealDeadlineDays = appealDays
+        deadlines.appealStartDate = serviceDate
+        deadlines.appealEndDate = addDaysToDate(serviceDate, appealDays)
+
+        // المدة المتبقية المقترحة (5 أيام قبل انتهاء المهلة)
+        const bufferEndDate = addDaysToDate(serviceDate, appealDays - 5)
+
+        tasks.push({
+          title: `تقديم ${appealType!.label}`,
+          description: `مطلوب تقديم ${appealType!.label} قبل ${deadlines.appealEndDate} (خلال ${appealDays} يوماً من تاريخ التبليغ ${serviceDate}).`,
+          priority: 'عاجلة',
+          dueDate: bufferEndDate,
+          scheduledFor: todayStr(),
+        })
+        tasks.push({
+          title: 'دراسة أسباب الاعتراض',
+          description: 'تحليل الأسباب القانونية للاعتراض على الحكم وإعداد مذكرة الاعتراض.',
+          priority: 'مهمة',
+          dueDate: daysFromNow(appealDays > 30 ? 10 : 5),
+          scheduledFor: todayStr(),
+        })
+      } else {
+        // لا يوجد سبب للاعتراض
+        if (isFinal) {
+          tasks.push({
+            title: 'تنفيذ الحكم (لصالح الخصم)',
+            description: 'الحكم نهائي لصالح الخصم - يجب اتخاذ الإجراءات اللازمة.',
+            priority: 'عاجلة',
+            dueDate: todayStr(),
+            scheduledFor: todayStr(),
+          })
+        }
+      }
+
+      // تبليغ العميل - في جميع حالات الحكم ضد الموكل
+      tasks.push({
+        title: 'تبليغ العميل بالنتيجة والمخاطر',
+        description: `إبلاغ العميل بالحكم الصادر ضد مصلحته${hasAppealGrounds ? ' وإبلاغه بخيارات الاعتراض المتاحة' : ''} والخطوات القادمة.`,
+        priority: 'عاجلة',
         dueDate: todayStr(),
         scheduledFor: todayStr(),
       })
     }
   }
 
+  // ── المسار: نتيجة من نوع قرار ──
+  if (outcomeType === 'قرار') {
+    tasks.push({
+      title: 'تحليل القرار الصادر',
+      description: 'مراجعة القرار الصادر من المحكمة وتحليل آثاره على القضية.',
+      priority: 'مهمة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+    tasks.push({
+      title: 'تبليغ العميل بالقرار',
+      description: 'إبلاغ العميل بالقرار الصادر وتوضيح الخطوات التالية.',
+      priority: 'مهمة',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  // ── المسار: نتيجة من نوع حجز للحكم ──
+  if (outcomeType === 'حجز للحكم') {
+    tasks.push({
+      title: 'متابعة تاريخ النطق بالحكم',
+      description: 'متابعة الجلسة المحددة للنطق بالحكم وتذكير المحكمة عند الحاجة.',
+      priority: 'عاجلة',
+      scheduledFor: todayStr(),
+    })
+  }
+
+  // ── المسار: نتيجة من نوع تأجيل ──
+  if (outcomeType === 'تأجيل') {
+    tasks.push({
+      title: 'متابعة تاريخ الجلسة الجديدة',
+      description: 'متابعة الجلسة الجديدة المحددة من المحكمة والتحضير لها.',
+      priority: 'مهمة',
+      scheduledFor: todayStr(),
+    })
+  }
+
+  // ── المسار: نتيجة من نوع تبليغ / إجراء إداري ──
+  if (outcomeType === 'تبليغ / إجراء إداري') {
+    tasks.push({
+      title: 'متابعة إجراءات التبليغ',
+      description: 'متابعة إجراءات التبليغ والتأكد من اكتمالها.',
+      priority: 'مهمة',
+      scheduledFor: todayStr(),
+    })
+  }
+
+  // ── المسار: نتيجة أخرى ──
+  if (outcomeType === 'أخرى') {
+    tasks.push({
+      title: 'مراجعة النتيجة وتحليلها',
+      description: 'مراجعة النتيجة غير المصنفة وتحليل آثارها على القضية.',
+      priority: 'مهمة',
+      dueDate: daysFromNow(1),
+      scheduledFor: todayStr(),
+    })
+    tasks.push({
+      title: 'تبليغ العميل بنتيجة الجلسة',
+      description: 'إبلاغ العميل بنتيجة الجلسة.',
+      priority: 'عادية',
+      dueDate: todayStr(),
+      scheduledFor: todayStr(),
+    })
+  }
+
+  // summary
   let summary = `نوع النتيجة: ${outcomeType}`
   if (degree) summary += ` | درجة الحكم: ${degree}`
   if (favors) summary += ` | لصالح: ${favors}`
+  if (outcomeType === 'حكم' && favors === 'موكل') {
+    summary += needsExecution ? ' | يحتاج تنفيذ' : ' | لا يحتاج تنفيذ'
+  }
+  if (outcomeType === 'حكم' && favors === 'خصم') {
+    summary += hasAppealGrounds ? ' | يوجد سبب اعتراض' : ' | لا يوجد سبب اعتراض'
+  }
   if (deadlines.appealEndDate) summary += ` | موعد الاعتراض: ${deadlines.appealEndDate}`
   summary += ` | عدد المهام: ${tasks.length}`
 
   const hasDeadlines = deadlines.appealDeadlineDays !== undefined
+
   return {
     outcomeType,
     degree,
