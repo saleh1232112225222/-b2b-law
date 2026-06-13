@@ -55,7 +55,7 @@
     </template>
     <template #[`item.registration_date`]="{ item }">
       <div class="d-flex flex-column align-start">
-        <v-chip size="small" color="accent" variant="tonal" class="font-weight-black rounded-xl bg-accent-alpha">{{ item.registration_date }} م</v-chip>
+        <v-chip size="small" color="accent" variant="tonal" class="font-weight-black rounded-xl bg-accent-alpha">{{ formatGregorianDate(item.registration_date) }} م</v-chip>
         <v-chip size="x-small" color="accent" variant="outlined" class="mt-1 font-weight-black rounded-lg border-accent" density="compact">{{ item.registration_date_hijri }} هـ</v-chip>
       </div>
     </template>
@@ -131,6 +131,11 @@ const getCaseClientName = (item: any): string => getCaseParties(item).find((x: a
 const getCaseOpponentName = (item: any): string => getCaseParties(item).find((x: any) => x?.party_type && x?.party_type !== 'client')?.name || item?.opponent_name || ''
 const getCaseOpponentsCount = (item: any): number => getCaseParties(item).filter((x: any) => x?.party_type && x?.party_type !== 'client').length
 const getCaseExtraPartiesCount = (item: any): number => Math.max(0, getCaseParties(item).length - 2)
+
+const formatGregorianDate = (dateStr?: string): string => {
+  if (!dateStr) return '—'
+  return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr
+}
 
 const getStatusColor = (status: string): string => {
   const map: Record<string, string> = {

@@ -67,6 +67,11 @@
             <span class="text-white font-weight-bold">{{ item.court }}</span>
           </div>
           <div class="d-flex align-center ga-1 text-caption">
+            <LucideIcon name="tag" :size="14" class="text-gold" />
+            <span class="text-text-muted">التصنيف الرئيسي:</span>
+            <span class="text-white font-weight-bold">{{ item.main_classification || 'غير محدد' }}</span>
+          </div>
+          <div class="d-flex align-center ga-1 text-caption">
             <LucideIcon name="file-text" :size="14" class="text-gold" />
             <span class="text-text-muted">نوع الدعوى:</span>
             <span class="text-white font-weight-bold">{{ item.case_type }}</span>
@@ -74,7 +79,10 @@
           <div class="d-flex align-center ga-1 text-caption">
             <LucideIcon name="calendar" :size="14" class="text-gold" />
             <span class="text-text-muted">التسجيل:</span>
-            <span class="text-white font-weight-bold">{{ item.registration_date }} م</span>
+            <span class="text-white font-weight-bold">
+              {{ formatGregorianDate(item.registration_date) }} م
+              <span v-if="item.registration_date_hijri" class="text-accent opacity-90 ms-1">({{ item.registration_date_hijri }} هـ)</span>
+            </span>
           </div>
         </div>
       </v-card>
@@ -114,6 +122,11 @@ const getCaseClientId = (item: any): string => getCaseParties(item).find((x: any
 const getCaseClientName = (item: any): string => getCaseParties(item).find((x: any) => x?.party_type === 'client')?.name || item?.client_name || ''
 const getCaseOpponentName = (item: any): string => getCaseParties(item).find((x: any) => x?.party_type && x?.party_type !== 'client')?.name || item?.opponent_name || ''
 const getCaseExtraPartiesCount = (item: any): number => Math.max(0, getCaseParties(item).length - 2)
+
+const formatGregorianDate = (dateStr?: string): string => {
+  if (!dateStr) return '—'
+  return dateStr.includes('T') ? dateStr.split('T')[0] : dateStr
+}
 
 const getStatusColor = (status: string): string => {
   const map: Record<string, string> = {
