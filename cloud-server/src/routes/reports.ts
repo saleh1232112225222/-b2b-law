@@ -17,6 +17,12 @@ reportsRouter.get('/case', authMiddleware, async (req: Request, res: Response) =
       caseId,
       companyId
     ])
+    if (caseData.rows.length === 0) {
+      res.status(404).json({ error: 'Case not found' })
+      return
+    }
+    const caseRow = caseData.rows[0]
+
     const sessions = await query(
       'SELECT * FROM sessions WHERE case_id = $1 AND company_id = $2 ORDER BY date DESC',
       [caseId, companyId]
@@ -33,12 +39,84 @@ reportsRouter.get('/case', authMiddleware, async (req: Request, res: Response) =
       'SELECT * FROM documents_v2 WHERE case_id = $1 AND company_id = $2',
       [caseId, companyId]
     )
+    const activityLogs = await query(
+      `SELECT * FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 50`,
+      [companyId]
+    )
+
+    // Build timeline combining sessions, tasks, documents
+    const timelineRows: any[] = []
+    for (const s of sessions.rows) {
+      timelineRows.push({ at: s.date, type: 'جلسة', title: s.type || s.session_type || 'جلسة', id: s.id })
+    }
+    for (const t of tasks.rows) {
+      timelineRows.push({ at: t.created_at, type: 'مهمة', title: t.title || t.task_title || 'مهمة', id: t.id })
+    }
+    for (const d of documents.rows) {
+      timelineRows.push({ at: d.created_at, type: 'مستند', title: d.title || d.file_name || 'مستند', id: d.id })
+    }
+    timelineRows.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+
+    // Calculate KPIs
+    const totalIn = finances.rows.reduce((sum: number, f: any) => sum + (parseFloat(f.amount_in || f.amount || 0)), 0)
+    const totalOut = finances.rows.reduce((sum: number, f: any) => sum + (parseFloat(f.amount_out || 0)), 0)
+
+    // Build parties from clients
+    const clientData = await query(
+      'SELECT cl.* FROM clients cl WHERE cl.id = $1',
+      [caseRow.client_id]
+    ).catch(() => ({ rows: [] }))
+
     res.json({
-      case: caseData.rows[0] || null,
-      sessions: sessions.rows,
-      tasks: tasks.rows,
-      finances: finances.rows,
-      documents: documents.rows
+      case: {
+        ...caseRow,
+        client_name: clientData.rows[0]?.name || caseRow.client_name || '',
+        parties: clientData.rows.length > 0 ? [{
+          id: clientData.rows[0].id,
+          name: clientData.rows[0].name,
+          party_type: 'client'
+        }] : []
+      },
+      kpis: {
+        sessionsTotal: sessions.rows.length,
+        totalIn,
+        balance: totalIn - totalOut
+      },
+      timeline: {
+        rows: timelineRows.slice(0, 20),
+        pageInfo: { page: 1, pageSize: 20, totalRows: timelineRows.length }
+      },
+      sessions: {
+        rows: sessions.rows.map((s: any) => ({
+          id: s.id,
+          date: s.date,
+          status: s.status || 'مجدول',
+          notes: s.notes || s.result || ''
+        }))
+      },
+      activity: {
+        rows: activityLogs.rows.slice(0, 10).map((a: any) => ({
+          id: a.id,
+          timestamp: a.timestamp,
+          actor: a.actor || '',
+          details: a.details || ''
+        }))
+      },
+      executive: {
+        lastAction: timelineRows[0]?.title || null,
+        nextAction: sessions.rows.find((s: any) => new Date(s.date) > new Date())?.type || null,
+        alerts: [],
+        recommendations: [],
+        counts: {
+          sessionsNext7: sessions.rows.filter((s: any) => {
+            const d = new Date(s.date); const n = new Date(); const w = new Date(); w.setDate(w.getDate()+7);
+            return d >= n && d <= w
+          }).length,
+          tasksOverdue: tasks.rows.filter((t: any) => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'completed').length,
+          tasksNext7: tasks.rows.filter((t: any) => { const d = new Date(t.due_date); const n = new Date(); const w = new Date(); w.setDate(w.getDate()+7); return d >= n && d <= w }).length,
+          unclosedPastSessions: sessions.rows.filter((s: any) => new Date(s.date) < new Date() && s.status !== 'منتهية').length
+        }
+      }
     })
   } catch (err) {
     console.error('[REPORTS] Case report error:', err)

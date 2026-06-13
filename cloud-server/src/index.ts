@@ -116,6 +116,102 @@ for (const entity of entityTables) {
 app.use('/api/reports', reportsRouter)
 app.use('/api', systemRouter)
 
+// Briefing summary endpoint for BriefingDashboard
+app.get('/api/briefing/summary', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
+  try {
+    const { getCompanyId } = require('./middleware/tenant')
+    const { query: dbQuery } = require('./db/connection')
+    const companyId = getCompanyId(req)
+    const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+
+    // Today sessions: sessions scheduled for today (regardless of status)
+    const todaySessionsRes = await dbQuery(
+      `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+       FROM sessions s
+       LEFT JOIN cases c ON c.id = s.case_id
+       LEFT JOIN clients cl ON cl.id = c.client_id
+       WHERE s.company_id = $1 AND s.date = $2
+       ORDER BY s.time ASC`,
+      [companyId, today]
+    )
+
+    // Action required: past sessions that are not closed (overdue)
+    const actionRequiredRes = await dbQuery(
+      `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+       FROM sessions s
+       LEFT JOIN cases c ON c.id = s.case_id
+       LEFT JOIN clients cl ON cl.id = c.client_id
+       WHERE s.company_id = $1 AND s.date < $2 AND s.status NOT IN ('منتهية', 'ملغية', 'مؤجلة')
+       ORDER BY s.date DESC LIMIT 30`,
+      [companyId, today]
+    )
+
+    // Urgent tasks: tasks due today or overdue
+    const urgentTasksRes = await dbQuery(
+      `SELECT t.*, c.case_number
+       FROM tasks_v2 t
+       LEFT JOIN cases c ON c.id = t.case_id
+       WHERE t.company_id = $1 AND t.status NOT IN ('completed', 'closed', 'cancelled')
+         AND (t.due_date <= $2 OR t.due_date IS NULL)
+       ORDER BY t.due_date ASC LIMIT 20`,
+      [companyId, today]
+    )
+
+    // Active objections: judgments with appeal deadlines
+    const objectionsRes = await dbQuery(
+      `SELECT j.*, c.case_number, c.id as case_id
+       FROM judgments j
+       LEFT JOIN cases c ON c.id = j.case_id
+       WHERE j.company_id = $1 AND j.objection_deadline IS NOT NULL AND j.objection_deadline >= $2
+       ORDER BY j.objection_deadline ASC LIMIT 20`,
+      [companyId, today]
+    )
+
+    // Awaiting enforcement: enforcement files with pending status
+    const enforcementRes = await dbQuery(
+      `SELECT ef.*, c.case_number
+       FROM enforcement_files ef
+       LEFT JOIN cases c ON c.id = ef.case_id
+       WHERE ef.company_id = $1 AND ef.status NOT IN ('completed', 'closed', 'cancelled')
+       ORDER BY ef.created_at DESC LIMIT 20`,
+      [companyId]
+    ).catch(() => ({ rows: [] }))
+
+    res.json({
+      todaySessions: todaySessionsRes.rows,
+      actionRequired: actionRequiredRes.rows,
+      urgentTasks: urgentTasksRes.rows,
+      activeObjections: objectionsRes.rows,
+      awaitingEnforcement: enforcementRes.rows
+    })
+  } catch (err) {
+    console.error('[BRIEFING] Summary error:', err)
+    res.status(500).json({ error: 'Failed to get briefing summary' })
+  }
+})
+
+// Activity logs DELETE endpoint
+app.delete('/api/activity-logs', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
+  try {
+    const { getCompanyId } = require('./middleware/tenant')
+    const { query: dbQuery } = require('./db/connection')
+    const companyId = getCompanyId(req)
+    const { before } = req.query
+    if (!before) {
+      res.status(400).json({ error: 'before date required' })
+      return
+    }
+    await dbQuery(
+      'DELETE FROM activity_logs WHERE company_id = $1 AND timestamp < $2',
+      [companyId, before]
+    )
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[ACTIVITY_LOGS] Delete error:', err)
+    res.status(500).json({ error: 'Failed to delete activity logs' })
+  }
+})
+
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[ERROR]', err)
   res

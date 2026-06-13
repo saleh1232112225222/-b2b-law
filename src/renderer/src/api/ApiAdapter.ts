@@ -288,7 +288,11 @@ const api = {
             url: '/auth/login',
             data: { username, password }
           }).then((r) => {
-            return { ...r.user, isLocked: false }
+            // r is the full response: { token, user: {...} }
+            if (r.token) {
+              localStorage.setItem('b2b_cloud_token', r.token)
+            }
+            return { ...(r.user || r), isLocked: false }
           }),
     logout: () =>
       mode === 'desktop'
@@ -796,15 +800,19 @@ const api = {
     getAll: (filters?: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:getAll', filters)
-        : cloudRequest({ method: 'GET', url: '/activity-logs', params: filters }),
+        : cloudRequest<any>({ method: 'GET', url: '/activity-logs/all', params: filters }),
     count: (filters?: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:count', filters)
-        : cloudRequest({ method: 'GET', url: '/activity-logs/count', params: filters }),
+        : cloudRequest<any>({ method: 'GET', url: '/activity-logs/count', params: filters }).then((r) => r?.count ?? 0),
     list: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:list', params)
-        : cloudRequest({ method: 'GET', url: '/activity-logs/list', params }),
+        : cloudRequest<any>({ method: 'GET', url: '/activity-logs', params: {
+            page: params?.page || 1,
+            pageSize: params?.pageSize || 25,
+            ...(params?.filters || {})
+          }}).then((r) => r?.data ?? r ?? []),
     clearBeforeDate: (date: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:clearBeforeDate', date)
