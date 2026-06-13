@@ -1,6 +1,6 @@
 <template>
   <v-row dense class="ma-0 border-t border-gold border-opacity-10 pt-2 mt-1">
-    <v-col cols="4">
+    <v-col cols="12" md="4">
       <v-card
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-sessions-today dashboard-bottom-inner-card"
@@ -31,7 +31,7 @@
         </div>
       </v-card>
     </v-col>
-    <v-col cols="4">
+    <v-col cols="12" md="4">
       <v-card
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-sessions-tomorrow dashboard-bottom-inner-card"
@@ -59,7 +59,7 @@
         </div>
       </v-card>
     </v-col>
-    <v-col cols="4">
+    <v-col cols="12" md="4">
       <v-card
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-agency-alerts dashboard-bottom-inner-card border-warning-alpha"

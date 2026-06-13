@@ -26,10 +26,11 @@
   }
 }
 
-/* ---- Horizontal Scroll Prevention ---- */
-html, body, #app {
-  overflow-x: hidden;
-  max-width: 100vw;
+/* ---- Horizontal Scroll Prevention (GLOBAL) ---- */
+html, body, #app, .v-application {
+  overflow-x: hidden !important;
+  max-width: 100vw !important;
+  width: 100% !important;
 }
 
 /* ---- RTL Text Alignment Helper ---- */
@@ -332,10 +333,18 @@ html, body, #app {
   }
 }
 
-/* ---- Main body wrapper: avoid overflow ---- */
+/* ---- Main body wrapper: avoid overflow and fix height on mobile ---- */
 @media (max-width: 768px) {
   .main-body-wrapper {
     overflow-x: hidden;
+    overflow-y: auto;
+    min-height: 0;
+    height: auto;
+  }
+
+  .main-content-scroll {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
   }
 }
 
@@ -347,7 +356,7 @@ html, body, #app {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
-  
+
   .v-dialog > .v-overlay__content {
     width: 96vw !important;
     max-width: 96vw !important;
@@ -363,5 +372,21 @@ html, body, #app {
   }
   .stats-grid .v-card {
     padding: 8px !important;
+  }
+}
+
+/* ---- Fix for any absolute/fixed elements overlapping on mobile ---- */
+@media (max-width: 768px) {
+  /* Ensure all flex children stack properly */
+  .v-layout > .v-main {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  /* Prevent fixed height containers from cutting off content on mobile */
+  .h-100,
+  .fill-height {
+    height: auto !important;
+    min-height: 100% !important;
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div ref="bottomStripRef" class="shrink-0 dashboard-bottom-info-panel d-flex flex-column gap-1">
     <v-row dense class="ma-0">
-      <v-col cols="6">
+      <v-col cols="12" md="6">
         <v-card
           elevation="0"
           class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card"
@@ -49,7 +49,7 @@
           </div>
         </v-card>
       </v-col>
-      <v-col cols="6">
+      <v-col cols="12" md="6">
         <v-card
           elevation="0"
           class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card border-error-alpha"
