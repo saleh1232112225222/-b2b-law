@@ -166,7 +166,7 @@ const generateProfessionalReport = async (): Promise<void> => {
   finally { generatingReport.value = false }
 }
 
-const openEditDialog = (): void => { router.push('/cases??edit=' + caseId.value) }
+const openEditDialog = (): void => { router.push('/cases?edit=' + caseId.value) }
 
 onMounted(() => { loadCase() })
 onUnmounted(() => { caseStore.q = '' })

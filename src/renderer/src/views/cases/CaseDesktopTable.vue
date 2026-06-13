@@ -53,6 +53,15 @@
         <LucideIcon name="flag" :size="14" class="me-2" />{{ item.priority }}
       </v-chip>
     </template>
+    <template #[`item.subject`]="{ item }">
+      <div class="text-body-2 text-visible-high text-truncate" style="max-width: 300px;">{{ item.subject || '—' }}</div>
+    </template>
+    <template #[`item.sub_classification`]="{ item }">
+      <v-chip size="small" variant="tonal" color="primary" class="font-weight-black rounded-lg">{{ item.sub_classification || '—' }}</v-chip>
+    </template>
+    <template #[`item.phase`]="{ item }">
+      <v-chip size="small" variant="tonal" color="indigo" class="font-weight-black rounded-lg">{{ item.phase || '—' }}</v-chip>
+    </template>
     <template #[`item.registration_date`]="{ item }">
       <div class="d-flex flex-column align-start">
         <v-chip size="small" color="accent" variant="tonal" class="font-weight-black rounded-xl bg-accent-alpha">{{ formatGregorianDate(item.registration_date) }} م</v-chip>
@@ -114,15 +123,17 @@ watch(localPageSize, (v) => { emit('updateOptions', { page: 1, itemsPerPage: v }
 
 const headers = [
   { title: 'رقم ملف القضية', key: 'case_number', align: 'start' as const, width: 130, minWidth: 130 },
-  { title: 'الأولوية', key: 'priority', align: 'center' as const, width: 90, minWidth: 90 },
-  { title: 'أطراف القضية', key: 'client_name', align: 'start' as const, minWidth: 360 },
-  { title: 'مسؤول القضية', key: 'responsible_name', align: 'start' as const, width: 140, minWidth: 140 },
-  { title: 'التصنيف الرئيسي', key: 'main_classification', align: 'start' as const, width: 130, minWidth: 130 },
-  { title: 'نوع الدعوى', key: 'case_type', align: 'start' as const, width: 130, minWidth: 130 },
+  { title: 'الأولوية', key: 'priority', align: 'center' as const, width: 80, minWidth: 80 },
+  { title: 'الموضوع', key: 'subject', align: 'start' as const, minWidth: 200 },
+  { title: 'أطراف القضية', key: 'client_name', align: 'start' as const, minWidth: 280 },
+  { title: 'مسؤول القضية', key: 'responsible_name', align: 'start' as const, width: 130, minWidth: 130 },
+  { title: 'التصنيف', key: 'sub_classification', align: 'start' as const, width: 130, minWidth: 130 },
+  { title: 'نوع الدعوى', key: 'case_type', align: 'start' as const, width: 120, minWidth: 120 },
   { title: 'المحكمة', key: 'court', align: 'start' as const, width: 130, minWidth: 130 },
-  { title: 'حالة القضية', key: 'status', align: 'center' as const, width: 130, minWidth: 130 },
-  { title: 'تاريخ التسجيل', key: 'registration_date', align: 'start' as const, width: 150, minWidth: 150 },
-  { title: 'إجراءات', key: 'actions', sortable: false, align: 'end' as const, width: 120, minWidth: 120 }
+  { title: 'المرحلة', key: 'phase', align: 'center' as const, width: 110, minWidth: 110 },
+  { title: 'حالة القضية', key: 'status', align: 'center' as const, width: 110, minWidth: 110 },
+  { title: 'تاريخ التسجيل', key: 'registration_date', align: 'start' as const, width: 140, minWidth: 140 },
+  { title: 'إجراءات', key: 'actions', sortable: false, align: 'end' as const, width: 100, minWidth: 100 }
 ]
 
 const getCaseParties = (item: any): any[] => Array.isArray(item?.parties) ? item.parties : []

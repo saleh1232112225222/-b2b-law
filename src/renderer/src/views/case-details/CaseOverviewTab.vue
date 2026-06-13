@@ -51,9 +51,17 @@
           <div class="text-caption font-weight-bold primary--text mb-1">التقييم الفني لحالة القضية</div>
           <div class="text-body-2 bg-white pa-2 rounded border-s-lg border-primary">{{ caseItem.assessment }}</div>
         </div>
+        <div v-if="caseItem.plaintiff_requests" class="mb-3">
+          <div class="text-caption font-weight-bold blue--text mb-1">طلب المدعي</div>
+          <div class="text-body-2 bg-blue-lighten-5 pa-2 rounded border-s-lg border-blue">{{ caseItem.plaintiff_requests }}</div>
+        </div>
         <div v-if="caseItem.client_requirement">
           <div class="text-caption font-weight-bold orange--text mb-1">المطلوب من الموكل</div>
           <div class="text-body-2 bg-orange-lighten-5 pa-2 rounded border-s-lg border-orange">{{ caseItem.client_requirement }}</div>
+        </div>
+        <div v-if="caseItem.notes" class="mt-3">
+          <div class="text-caption font-weight-bold grey--text mb-1">ملاحظات عامة</div>
+          <div class="text-body-2 bg-grey-lighten-4 pa-2 rounded border-s-lg border-grey">{{ caseItem.notes }}</div>
         </div>
       </v-card>
     </v-col>

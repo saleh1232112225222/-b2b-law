@@ -100,6 +100,12 @@
                 <template #prepend-inner><LucideIcon name="landmark" :size="20" class="text-primary me-2" /></template>
               </v-combobox>
             </v-col>
+            <v-col cols="12" md="4">
+              <v-label class="mb-2 font-weight-bold text-primary">الدائرة القضائية</v-label>
+              <v-text-field v-model="item.circuit" variant="outlined" class="premium-select" placeholder="مثال: الدائرة الأولى">
+                <template #prepend-inner><LucideIcon name="git-merge" :size="20" class="text-primary me-2" /></template>
+              </v-text-field>
+            </v-col>
 
             <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
 
@@ -140,6 +146,31 @@
             <v-col cols="12" md="4">
               <v-label class="mb-2 font-weight-bold text-primary">تاريخ القيد*</v-label>
               <DualDatePicker v-model="item.registration_date" />
+            </v-col>
+
+            <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
+            <v-col cols="12">
+              <div class="text-h6 font-weight-black text-primary">
+                <LucideIcon name="clipboard-list" :size="24" class="text-primary me-2" /> تفاصيل إضافية
+              </div>
+            </v-col>
+            <v-col cols="12" md="4">
+              <v-label class="mb-2 font-weight-bold text-primary">صفة الموكل</v-label>
+              <v-text-field v-model="item.client_role" variant="outlined" class="premium-select" placeholder="مثال: مدعي">
+                <template #prepend-inner><LucideIcon name="badge-info" :size="20" class="text-primary me-2" /></template>
+              </v-text-field>
+            </v-col>
+            <v-col cols="12" md="8">
+              <v-label class="mb-2 font-weight-bold text-primary">التقييم الفني</v-label>
+              <v-textarea v-model="item.assessment" variant="outlined" rows="2" class="premium-select" placeholder="تقييم فني لحالة القضية...">
+                <template #prepend-inner><LucideIcon name="bar-chart-3" :size="20" class="text-primary me-2" /></template>
+              </v-textarea>
+            </v-col>
+            <v-col cols="12">
+              <v-label class="mb-2 font-weight-bold text-primary">ملاحظات عامة</v-label>
+              <v-textarea v-model="item.notes" variant="outlined" rows="2" class="premium-select" placeholder="أي ملاحظات إضافية...">
+                <template #prepend-inner><LucideIcon name="sticky-note" :size="20" class="text-primary me-2" /></template>
+              </v-textarea>
             </v-col>
 
             <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>

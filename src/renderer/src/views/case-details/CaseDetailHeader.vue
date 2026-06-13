@@ -24,6 +24,12 @@
         </div>
       </v-col>
       <v-col cols="auto" class="d-flex ga-3">
+        <v-btn v-if="caseItem.folder_link" :href="caseItem.folder_link" target="_blank" variant="tonal" color="primary" class="rounded-lg font-weight-black" size="small">
+          <LucideIcon name="folder" :size="16" class="me-1" /> مجلد القضية
+        </v-btn>
+        <v-btn v-if="caseItem.najiz_url" :href="caseItem.najiz_url" target="_blank" variant="tonal" color="primary" class="rounded-lg font-weight-black" size="small">
+          <LucideIcon name="external-link" :size="16" class="me-1" /> ناجز
+        </v-btn>
         <v-btn color="gold" variant="tonal" class="rounded-lg font-weight-black" :loading="generatingReport" @click="$emit('generateReport')">
           <LucideIcon name="file-text" :size="18" class="me-2" /> تقرير العميل
         </v-btn>

@@ -182,7 +182,8 @@ const defaultItem: Case = {
   opponent_nationality: 'سعودي', opponent_city: 'الرياض', phase: 'ابتدائية',
   status: 'قيد النظر', priority: 'متوسطة', registration_date: new Date().toISOString().split('T')[0],
   registration_date_hijri: '', main_classification: '', sub_classification: '',
-  folder_link: '', najiz_url: '', parties: []
+  folder_link: '', najiz_url: '', parties: [],
+  notes: '', client_role: '', assessment: ''
 }
 
 const editItem = ref<Case>({ ...defaultItem })
@@ -396,6 +397,11 @@ onMounted((): void => {
   loadAssignableUsers()
   refreshCompletionRate()
   if (route.query.new === '1') { openAddDialog(); router.replace({ path: route.path, query: {} }) }
+  if (route.query.edit) {
+    window.api.cases.getById(route.query.edit).then((data: any) => {
+      if (data) { openEditDialog(data); router.replace({ path: route.path, query: {} }) }
+    }).catch(() => { router.replace({ path: route.path, query: {} }) })
+  }
 })
 
 onUnmounted(() => { store.q = ''; if (search) search.value = '' })
