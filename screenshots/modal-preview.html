@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head><meta charset="utf-8"><title>معاينة المودال - الأسئلة الذكية</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Tajawal', sans-serif; background: #111318; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+.container { max-width: 800px; width: 100%; }
+h1 { color: #89b4fa; font-size: 22px; margin-bottom: 8px; text-align: center; }
+.subtitle { color: #6c7086; font-size: 14px; margin-bottom: 30px; text-align: center; }
+.modal { background: #1e1e2e; border: 1px solid #313244; border-radius: 12px; padding: 28px; margin-bottom: 20px; }
+.modal h2 { color: #cdd6f4; font-size: 18px; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+.modal h2 .badge { background: #313244; color: #89b4fa; font-size: 11px; padding: 2px 8px; border-radius: 4px; }
+.field { margin-bottom: 18px; }
+.field label { display: block; color: #a6adc8; font-size: 13px; margin-bottom: 6px; font-weight: 700; }
+.field select, .field .radio-group { width: 100%; }
+.field select { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 6px; padding: 10px 14px; font-size: 14px; font-family: 'Tajawal'; width: 100%; }
+.radio-group { display: flex; gap: 20px; padding: 6px 0; }
+.radio-group label { display: flex; align-items: center; gap: 6px; color: #cdd6f4; font-size: 14px; cursor: pointer; font-weight: 400; }
+.radio-group input[type="radio"] { accent-color: #89b4fa; width: 16px; height: 16px; }
+.date-input { background: #313244; color: #cdd6f4; border: 1px solid #45475a; border-radius: 6px; padding: 10px 14px; font-size: 14px; width: 100%; font-family: 'Tajawal'; }
+.sub-field { background: #181825; border-right: 3px solid #89b4fa; padding: 16px; border-radius: 6px; margin-top: 12px; }
+.divider { border: none; border-top: 1px solid #313244; margin: 22px 0; }
+.actions { display: flex; gap: 12px; justify-content: flex-start; margin-top: 22px; }
+.btn { padding: 10px 28px; border-radius: 6px; font-size: 14px; cursor: pointer; font-family: 'Tajawal'; border: none; font-weight: 700; }
+.btn-primary { background: #89b4fa; color: #111318; }
+.btn-secondary { background: #313244; color: #cdd6f4; }
+.legend { display: flex; gap: 24px; margin-bottom: 20px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #6c7086; }
+.legend-item .dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.red { background: #f38ba8; } .dot.green { background: #a6e3a1; } .dot.blue { background: #89b4fa; } .dot.yellow { background: #f9e2af; }
+.app-label { position: fixed; top: 12px; left: 12px; background: #1e1e2e; border: 1px solid #313244; border-radius: 8px; padding: 8px 16px; color: #6c7086; font-size: 12px; }
+.footer { text-align: center; margin-top: 30px; color: #585b70; font-size: 12px; }
+</style></head>
+<body>
+<div class="app-label">تطبيق إدارة المكاتب القانونية — معاينة المودال</div>
+<div class="container">
+  <h1>🧾 نظام تحليل نتائج الجلسات</h1>
+  <p class="subtitle">النموذج الجديد للأسئلة الذكية — قرار شجري هرمي حسب مخطط التدفق</p>
+
+  <!-- Legend -->
+  <div class="legend">
+    <span class="legend-item"><span class="dot red"></span> قطعي/استئنافي (قابل للنقض)</span>
+    <span class="legend-item"><span class="dot green"></span> نهائي (لا طعن)</span>
+    <span class="legend-item"><span class="dot blue"></span> لصالح الموكل</span>
+    <span class="legend-item"><span class="dot yellow"></span> لصالح الخصم</span>
+  </div>
+
+  <!-- Modal Scenario 1: قطعي + موكل + يحتاج تنفيذ -->
+  <div class="modal">
+    <h2>📋 السيناريو 1: <span class="badge">صدور حكم قطعي</span></h2>
+    <div class="field">
+      <label>درجة الحكم</label>
+      <select><option>ابتدائي</option><option>استئنافي</option><option selected>قطعي</option><option>نهائي</option></select>
+    </div>
+    <div class="field">
+      <label>الحكم لصالح من؟</label>
+      <div class="radio-group">
+        <label><input type="radio" name="favors1" checked> الموكل</label>
+        <label><input type="radio" name="favors1"> الخصم</label>
+      </div>
+    </div>
+    <div class="sub-field">
+      <div class="field" style="margin-bottom:0">
+        <label>هل الحكم يحتاج تنفيذ؟</label>
+        <div class="radio-group">
+          <label><input type="radio" name="exec1" checked> نعم</label>
+          <label><input type="radio" name="exec1"> لا</label>
+        </div>
+      </div>
+    </div>
+    <div class="field">
+      <label>نوع القضية</label>
+      <select><option>مدنية</option><option>تجارية</option><option>عمالية</option><option selected>جنائية</option><option>إدارية</option><option>أحوال شخصية</option></select>
+    </div>
+    <div class="divider"></div>
+    <div class="actions">
+      <button class="btn btn-primary">تأكيد النتيجة</button>
+      <button class="btn btn-secondary">إلغاء</button>
+    </div>
+    <div style="color:#a6adc8;font-size:12px;margin-top:12px">
+      ✅ سيتم إنشاء المهام: متابعة التنفيذ، جدولة التنفيذ، تسجيل الحكم، أرشفة القضية | مهلة التنفيذ: 30 يوم
+    </div>
+  </div>
+
+  <!-- Modal Scenario 2: قطعي + خصم + يوجد أسباب اعتراض -->
+  <div class="modal">
+    <h2>📋 السيناريو 2: <span class="badge">صدور حكم قطعي</span></h2>
+    <div class="field">
+      <label>درجة الحكم</label>
+      <select><option>ابتدائي</option><option>استئنافي</option><option selected>قطعي</option><option>نهائي</option></select>
+    </div>
+    <div class="field">
+      <label>الحكم لصالح من؟</label>
+      <div class="radio-group">
+        <label><input type="radio" name="favors2"> الموكل</label>
+        <label><input type="radio" name="favors2" checked> الخصم</label>
+      </div>
+    </div>
+    <div class="sub-field">
+      <div class="field" style="margin-bottom:10px">
+        <label>هل يوجد سبب مشروع للاعتراض؟</label>
+        <div class="radio-group">
+          <label><input type="radio" name="obj2" checked> نعم</label>
+          <label><input type="radio" name="obj2"> لا</label>
+        </div>
+      </div>
+      <div class="field" style="margin-bottom:0">
+        <label>تاريخ التبليغ</label>
+        <input type="date" class="date-input" value="2026-06-01">
+      </div>
+    </div>
+    <div class="field">
+      <label>نوع القضية</label>
+      <select><option selected>مدنية</option><option>تجارية</option><option>عمالية</option><option>جنائية</option><option>إدارية</option><option>أحوال شخصية</option></select>
+    </div>
+    <div class="divider"></div>
+    <div class="actions">
+      <button class="btn btn-primary">تأكيد النتيجة</button>
+      <button class="btn btn-secondary">إلغاء</button>
+    </div>
+    <div style="color:#a6adc8;font-size:12px;margin-top:12px">
+      ✅ سيتم إنشاء المهام: إعداد طلب النقض، تسجيل الحكم، أرشفة القضية | المهلة: 30 يوم من 2026-06-01 (تنتهي 2026-07-01)
+    </div>
+  </div>
+
+  <!-- Scenario 3: نهائي + موكل + براءة (لا يحتاج تنفيذ) -->
+  <div class="modal">
+    <h2>📋 السيناريو 3: <span class="badge">صدور حكم نهائي</span></h2>
+    <div class="field">
+      <label>درجة الحكم</label>
+      <select><option>ابتدائي</option><option>استئنافي</option><option>قطعي</option><option selected>نهائي</option></select>
+    </div>
+    <div class="field">
+      <label>الحكم لصالح من؟</label>
+      <div class="radio-group">
+        <label><input type="radio" name="favors3" checked> الموكل</label>
+        <label><input type="radio" name="favors3"> الخصم</label>
+      </div>
+    </div>
+    <div class="sub-field">
+      <div class="field" style="margin-bottom:0">
+        <label>هل الحكم يحتاج تنفيذ؟</label>
+        <div class="radio-group">
+          <label><input type="radio" name="exec3"> نعم</label>
+          <label><input type="radio" name="exec3" checked> لا (براءة)</label>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="actions">
+      <button class="btn btn-primary">تأكيد النتيجة</button>
+      <button class="btn btn-secondary">إلغاء</button>
+    </div>
+    <div style="color:#a6adc8;font-size:12px;margin-top:12px;direction:rtl">
+      ✅ سيتم إنشاء المهام: أرشفة القضية | لا يحتاج تنفيذ — براءة
+    </div>
+  </div>
+
+  <!-- Scenario 4: نهائي + خصم (لا طعن) -->
+  <div class="modal">
+    <h2>📋 السيناريو 4: <span class="badge">صدور حكم نهائي</span></h2>
+    <div class="field">
+      <label>درجة الحكم</label>
+      <select><option>ابتدائي</option><option>استئنافي</option><option>قطعي</option><option selected>نهائي</option></select>
+    </div>
+    <div class="field">
+      <label>الحكم لصالح من؟</label>
+      <div class="radio-group">
+        <label><input type="radio" name="favors4"> الموكل</label>
+        <label><input type="radio" name="favors4" checked> الخصم</label>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="actions">
+      <button class="btn btn-primary">تأكيد النتيجة</button>
+      <button class="btn btn-secondary">إلغاء</button>
+    </div>
+    <div style="color:#a6adc8;font-size:12px;margin-top:12px;direction:rtl">
+      ✅ سيتم إنشاء المهام: تسجيل الحكم، أرشفة القضية | نهائي — لا طعن
+    </div>
+  </div>
+
+  <!-- Commit info -->
+  <div style="margin-top:30px;padding:16px;background:#1e1e2e;border:1px solid #313244;border-radius:8px;text-align:center">
+    <div style="color:#a6e3a1;font-size:14px">✅ آخر تحديث</div>
+    <div style="color:#585b70;font-size:12px;margin-top:4px">
+      Commits: <span style="color:#89b4fa">3752fbd</span> (الأسئلة الذكية) · <span style="color:#89b4fa">ac2273c</span> (emptyOutDir: true)<br>
+      جميع السيناريوهات السبعة verified · 52/52 tests passing
+    </div>
+  </div>
+
+  <div class="footer">— w2w Law Firm Management · تقرير مصور للتغييرات —</div>
+</div>
+</body>
+</html>

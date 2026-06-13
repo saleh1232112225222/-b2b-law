@@ -192,7 +192,19 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/enforcement')) return { data: [], total: 0 }
   if (url.startsWith('/archive')) return { data: [] }
   if (url.startsWith('/search')) return { data: [] }
-  if (url.startsWith('/collections')) return { data: [], count: 0 }
+  // Mock report endpoints
+  if (url.startsWith('/reports/users-permissions')) return { data: [] }
+  if (url.startsWith('/reports/user-activity')) return { data: [] }
+  if (url.startsWith('/reports/sessions')) return { data: [] }
+  if (url.startsWith('/reports/case')) return { data: {} }
+  if (url.startsWith('/reports/financial-summary')) return { data: {} }
+  if (url.startsWith('/reports/activity')) return { data: [] }
+  if (url.startsWith('/reports/evidence')) return { data: [] }
+  if (url.startsWith('/reports/memoranda')) return { data: [] }
+  if (url.startsWith('/reports/documents')) return { data: [] }
+  if (url.startsWith('/reports/operations-summary')) return { data: {} }
+  if (url.startsWith('/reports/export/pdf')) return { success: true, url: 'data:application/pdf;base64,JVBERi0xLjQK...' }
+  if (url.startsWith('/reports/export/csv')) return { success: true }
 
   // Generic entity CRUD
   const entityMatch = url.match(/^\/(\w+)(?:\/(\w+))?(?:\/(\w+))?/)
