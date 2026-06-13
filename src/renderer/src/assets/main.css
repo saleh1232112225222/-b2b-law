@@ -1114,7 +1114,7 @@ body,
     height: 100dvh !important;
   }
   .v-navigation-drawer--temporary {
-    z-index: 1004 !important;
+    z-index: 2500 !important;
   }
 }
 

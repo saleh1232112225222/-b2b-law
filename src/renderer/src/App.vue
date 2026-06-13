@@ -132,7 +132,7 @@
           </v-list>
 
           <!-- Sidebar Footer -->
-          <div class="sidebar-footer-action mt-auto">
+          <div class="sidebar-footer-action mt-auto d-flex flex-column gap-2">
             <v-btn
               block
               color="white"
@@ -143,6 +143,20 @@
             >
               <LucideIcon name="log-out" :size="18" :class="rail ? '' : 'me-2'" />
               <span v-if="!rail">تسجيل الخروج</span>
+            </v-btn>
+
+            <!-- Technical Support Button for Mobile / Rail -->
+            <v-btn
+              v-if="isMobile || rail"
+              block
+              color="accent"
+              variant="text"
+              size="small"
+              class="rounded-xl font-weight-bold"
+              @click="showSupportDialog = true"
+            >
+              <LucideIcon name="info" :size="16" class="me-1" />
+              <span>الدعم الفني</span>
             </v-btn>
           </div>
         </div>
@@ -288,7 +302,7 @@
 
       <!-- Clean Minimal Footer -->
       <v-footer
-        v-if="!hideLayout"
+        v-if="!hideLayout && !isMobile"
         app
         flat
         border
@@ -993,6 +1007,7 @@ onMounted(async () => {
   width: 300px !important;
   max-width: 300px !important;
   min-width: 300px !important;
+  z-index: 2500 !important;
 }
 
 /* ---- Sidebar Inner Wrapper ---- */
@@ -1256,12 +1271,15 @@ onMounted(async () => {
 /* ---- Page Transitions ---- */
 .premium-fade-enter-active,
 .premium-fade-leave-active {
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.premium-fade-enter-from,
+.premium-fade-enter-from {
+  opacity: 0;
+  transform: translateY(8px);
+}
 .premium-fade-leave-to {
   opacity: 0;
-  transform: translateY(12px) scale(0.98);
+  transform: translateY(-8px);
 }
 
 /* ---- Mobile Responsive ---- */
