@@ -1041,9 +1041,12 @@ onMounted(async () => {
 
 /* ---- Sidebar Navigation List ---- */
 .sidebar-nav-list {
-  overflow-y: auto;
+  overflow-y: auto !important;
   scrollbar-width: none;
   padding: 0 8px !important;
+  min-height: 0 !important;
+  flex: 1 1 0% !important;
+  margin-bottom: 12px !important;
 }
 .sidebar-nav-list::-webkit-scrollbar {
   display: none;
