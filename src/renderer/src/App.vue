@@ -605,7 +605,7 @@ const hideLayout = computed(() => isLoginPage.value || route.query.window === 'n
 const mainBodyPaddingClass = computed(() => {
   if (hideLayout.value) return 'pa-0'
   if (route.name === 'Dashboard') return 'pa-0'
-  return isMobile.value ? 'pa-4' : 'pa-8'
+  return isMobile.value ? 'pa-0' : 'pa-8'
 })
 
 const appRightInset = computed(() => {

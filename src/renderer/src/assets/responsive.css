@@ -40,20 +40,20 @@ html, body, #app {
 /* ---- Mobile Padding / Spacing Reset ---- */
 @media (max-width: 768px) {
   .page-container {
-    padding: 16px !important;
+    padding: 8px !important;
+    margin: 0 !important;
   }
 
+  .v-container.pa-4,
   .v-container.pa-6,
-  .v-container.pa-8 {
-    padding: 16px !important;
-  }
-
-  .v-container.pa-4.pt-1 {
-    padding: 12px !important;
+  .v-container.pa-8,
+  .v-container.pa-10,
+  .v-container {
+    padding: 8px !important;
   }
 
   .main-viewport {
-    padding: 12px !important;
+    padding: 8px !important;
   }
 }
 
@@ -245,7 +245,7 @@ html, body, #app {
 @media (max-width: 768px) {
   .v-data-table,
   .v-table {
-    overflow-x: hidden !important;
+    overflow-x: auto !important;
   }
 }
 
@@ -336,5 +336,32 @@ html, body, #app {
 @media (max-width: 768px) {
   .main-body-wrapper {
     overflow-x: hidden;
+  }
+}
+
+/* ---- Global column stacking for desktop layouts on mobile ---- */
+@media (max-width: 768px) {
+  .v-col[class*="v-col-md-"],
+  .v-col[class*="v-col-lg-"],
+  .v-col[class*="v-col-sm-"] {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  
+  .v-dialog > .v-overlay__content {
+    width: 96vw !important;
+    max-width: 96vw !important;
+    margin: 4px !important;
+  }
+}
+
+/* ---- Compact 2-column stats cards grid on small screens ---- */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .stats-grid .v-card {
+    padding: 8px !important;
   }
 }
