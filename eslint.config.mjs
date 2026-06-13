@@ -26,6 +26,8 @@ export default defineConfig(
       'launch.js',
       '**/*.js',
       '**/*.mjs',
+      '**/*.cjs',
+      'cloud-server/**',
       'live_sync_test.ts'
     ]
   },
