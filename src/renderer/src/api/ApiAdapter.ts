@@ -137,6 +137,8 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   return { token, user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, permissions: [] } }
 }
   if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, isLocked: false, permissions: [] } }
+  if (url.startsWith('/auth/recovery/question')) return 'ما هو اسم أول حيوان أليف لديك؟'
+  if (url.startsWith('/auth/recovery/reset')) return { success: true }
   if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
   if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary')) return mockOperationsSummary()
   if (url.startsWith('/briefing/summary')) return mockOperationsSummary()
@@ -336,6 +338,22 @@ const api = {
             method: 'POST',
             url: '/auth/verify',
             data: { username, code }
+          }),
+    getRecoveryQuestion: (username: string, email: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('auth:getRecoveryQuestion', username, email)
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/recovery/question',
+            data: { username, email }
+          }),
+    verifyAndReset: (username: string, answer: string, newPassword: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('auth:verifyAndReset', username, answer, newPassword)
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/recovery/reset',
+            data: { username, answer, newPassword }
           }),
     onLockTriggered: (_cb: () => void) => () => {} // handled differently in cloud
   },

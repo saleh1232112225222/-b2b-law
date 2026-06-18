@@ -1,11 +1,12 @@
 <template>
   <v-row class="dashboard-row mb-1" dense>
-    <v-col v-for="stat in stats" :key="stat.title" cols="12" sm="6" md="4" lg="2">
+    <v-col v-for="stat in stats" :key="stat.title" cols="12" xs="6" sm="6" md="4" lg="2">
       <DashboardCard
         :title="stat.title"
         :value="stat.value"
         :icon="stat.icon"
         :color="stat.color"
+        :is-mobile="isMobile"
         class="kpi-card-compact"
         @click="$emit('navigate', stat.to)"
       />

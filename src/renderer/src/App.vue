@@ -823,13 +823,21 @@ const handleLogout = async (force: boolean | any = false): Promise<void> => {
 const handleSmartLogout = async () => {
   isSavingSnapshot.value = true
   try {
-    const res = await (window as any).api.system.exportAutoSnapshotToVault()
-    if (res.success) {
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+      // Web mode: just clear changes and logout
       appStore.clearChanges()
       showLogoutConfirm.value = false
       handleLogout(true)
     } else {
-      alert('فشل حفظ النسخة الاحتياطية: ' + res.message)
+      // Desktop mode: use vault API
+      const res = await (window as any).api.system.exportAutoSnapshotToVault()
+      if (res.success) {
+        appStore.clearChanges()
+        showLogoutConfirm.value = false
+        handleLogout(true)
+      } else {
+        alert('فشل حفظ النسخة الاحتياطية: ' + res.message)
+      }
     }
   } catch (e: any) {
     console.error(e)
@@ -900,14 +908,28 @@ onMounted(async () => {
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
   if (isLoggedIn) {
     try {
-      const s = await (window as any).api.auth.getSession()
-      if (s) {
-        localStorage.setItem('web_currentUserSession', JSON.stringify(s))
-        localStorage.setItem(
-          'web_currentUser',
-          JSON.stringify({ username: s.username, roleKey: s.roleKey })
-        )
-        window.dispatchEvent(new Event('auth-changed'))
+      if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+        // Web mode: use cloud session
+        const s = await (window as any).api.auth.getSession()
+        if (s) {
+          localStorage.setItem('web_currentUserSession', JSON.stringify(s))
+          localStorage.setItem(
+            'web_currentUser',
+            JSON.stringify({ username: s.username, roleKey: s.roleKey })
+          )
+          window.dispatchEvent(new Event('auth-changed'))
+        }
+      } else {
+        // Desktop mode: use desktop API
+        const s = await (window as any).api.auth.getSession()
+        if (s) {
+          localStorage.setItem('web_currentUserSession', JSON.stringify(s))
+          localStorage.setItem(
+            'web_currentUser',
+            JSON.stringify({ username: s.username, roleKey: s.roleKey })
+          )
+          window.dispatchEvent(new Event('auth-changed'))
+        }
       }
     } catch (e) {
       console.error('[AUTH] Failed to restore session on mount:', e)
@@ -919,57 +941,80 @@ onMounted(async () => {
 
   // Fetch Developer Info
   try {
-    const info = await (window as any).api.system.getDeveloperInfo()
-    developerInfo.value = info
+    if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
+      const info = await (window as any).api.system.getDeveloperInfo()
+      developerInfo.value = info
+    } else {
+      // Mock developer info for web mode
+      developerInfo.value = {
+        name: 'B2B Legal System',
+        logo: appLogo,
+        phone: '0567905696',
+        email: 'info@saleh-lawyer.com',
+        disclaimer: {
+          title: 'تنبيه قانوني',
+          development: 'تم تطوير هذا البرنامج لمساعدة المحامين في إدارة مكتباتهم والمحافظة على بياناتهم.',
+          legal: 'هذا البرنامج يعتبر أداة مساعدة فقط ولا يعتبر بديلاً عن الاستشارة القانونية المتخصصة.'
+        }
+      }
+    }
   } catch (e) {
     console.error('Failed to fetch dev info', e)
   }
 
   // --- Inactivity Tracking (Auto-Lock) ---
-  let lastTouchTime = 0
-  const TOUCH_THROTTLE_MS = 30000 // 30 seconds
+  if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
+    let lastTouchTime = 0
+    const TOUCH_THROTTLE_MS = 30000 // 30 seconds
 
-  const handleUserActivity = (): void => {
-    if (isLoginPage.value || route.path === '/lock') return
+    const handleUserActivity = (): void => {
+      if (isLoginPage.value || route.path === '/lock') return
 
-    const now = Date.now()
-    if (now - lastTouchTime > TOUCH_THROTTLE_MS) {
-      lastTouchTime = now
-      ;(window as any).api?.auth?.touch?.()
+      const now = Date.now()
+      if (now - lastTouchTime > TOUCH_THROTTLE_MS) {
+        lastTouchTime = now
+        ;(window as any).api?.auth?.touch?.()
+      }
     }
+
+    // Handle sudden lock triggers from main process (idle timeout)
+    const unbindLockListener =
+      typeof (window as any).api?.auth?.onLockTriggered === 'function'
+        ? (window as any).api.auth.onLockTriggered(() => {
+            if (route.path !== '/lock') {
+              router.replace('/lock')
+            }
+          })
+        : () => {}
+
+    // Listeners for user activity
+    const activityEvents = ['mousemove', 'keydown', 'mousedown', 'wheel', 'touchstart']
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, handleUserActivity, { passive: true })
+    })
+
+    // Cleanup on unmount
+    onUnmounted(() => {
+      unbindLockListener()
+      window.removeEventListener('click', handleGlobalClickGate, { capture: true })
+      window.removeEventListener('theme-changed', handleThemeChange)
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, handleUserActivity)
+      })
+    })
+  } else {
+    // Cleanup on unmount for web mode
+    onUnmounted(() => {
+      window.removeEventListener('click', handleGlobalClickGate, { capture: true })
+      window.removeEventListener('theme-changed', handleThemeChange)
+    })
   }
-
-  // Handle sudden lock triggers from main process (idle timeout)
-  const unbindLockListener =
-    typeof (window as any).api?.auth?.onLockTriggered === 'function'
-      ? (window as any).api.auth.onLockTriggered(() => {
-          if (route.path !== '/lock') {
-            router.replace('/lock')
-          }
-        })
-      : () => {}
-
-  // Listeners for user activity
-  const activityEvents = ['mousemove', 'keydown', 'mousedown', 'wheel', 'touchstart']
-  activityEvents.forEach((event) => {
-    window.addEventListener(event, handleUserActivity, { passive: true })
-  })
 
   // Listen for theme changes from settings
   const handleThemeChange = (e: any) => {
     isDark.value = e.detail === 'dark'
   }
   window.addEventListener('theme-changed', handleThemeChange)
-
-  // Cleanup on unmount
-  onUnmounted(() => {
-    unbindLockListener()
-    window.removeEventListener('click', handleGlobalClickGate, { capture: true })
-    window.removeEventListener('theme-changed', handleThemeChange)
-    activityEvents.forEach((event) => {
-      window.removeEventListener(event, handleUserActivity)
-    })
-  })
 })
 </script>
 

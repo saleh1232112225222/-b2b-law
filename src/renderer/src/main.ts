@@ -71,22 +71,24 @@ if (typeof window !== 'undefined') {
   observer.observe(document.body, { childList: true, subtree: true })
 }
 
-if (import.meta.env.DEV) {
+if (import.meta.env.DEV && typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
   setTimeout(() => {
     // @ts-ignore
-    window.api.system.runDiagnostics().then((data) => {
-      console.log(
-        '%c 🛡️ B2B LAWYER PRO - DIAGNOSTICS REPORT',
-        'color: #2ecc71; font-weight: bold; font-size: 14px;'
-      )
-      console.table(data)
+    if (window.api?.system?.runDiagnostics) {
+      window.api.system.runDiagnostics().then((data) => {
+        console.log(
+          '%c 🛡️ B2B LAWYER PRO - DIAGNOSTICS REPORT',
+          'color: #2ecc71; font-weight: bold; font-size: 14px;'
+        )
+        console.table(data)
 
-      if (data.mode === 'INSTALLED (AppData/UAC)' && data.activePath.includes('Program Files')) {
-        console.error('❌ CRITICAL ERROR: App is writing to Program Files! Path override failed.')
-      } else {
-        console.log('✅ PATH SYSTEM: Healthy and Secure.')
-      }
-    })
+        if (data.mode === 'INSTALLED (AppData/UAC)' && data.activePath.includes('Program Files')) {
+          console.error('❌ CRITICAL ERROR: App is writing to Program Files! Path override failed.')
+        } else {
+          console.log('✅ PATH SYSTEM: Healthy and Secure.')
+        }
+      })
+    }
   }, 250)
 }
 
@@ -94,7 +96,9 @@ window.addEventListener('keydown', (e: KeyboardEvent) => {
   if (e.altKey && e.shiftKey && e.code === 'KeyS') {
     e.preventDefault()
     // @ts-ignore
-    window.api.system.captureScreenshot()
+    if (window.api?.system?.captureScreenshot) {
+      window.api.system.captureScreenshot()
+    }
   }
 })
 
@@ -147,15 +151,18 @@ const bootstrapAuth = async (): Promise<void> => {
       return
     }
 
-    if (router.currentRoute.value.path !== '/vault-setup') {
+    if (router.currentRoute.value.path !== '/vault-setup' && (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__)) {
       try {
-        const r = (await withTimeout(
-          (window as any).api.vault.needsSetup(),
-          4000,
-          'فحص خزانة المكتب'
-        )) as any
-        if (r?.needsSetup) {
-          await router.replace('/vault-setup')
+        // @ts-ignore
+        if ((window as any).api?.vault?.needsSetup) {
+          const r = (await withTimeout(
+            (window as any).api.vault.needsSetup(),
+            4000,
+            'فحص خزانة المكتب'
+          )) as any
+          if (r?.needsSetup) {
+            await router.replace('/vault-setup')
+          }
         }
       } catch {}
     }

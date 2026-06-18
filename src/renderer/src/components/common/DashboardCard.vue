@@ -1,12 +1,13 @@
 <template>
-  <v-card class="glass-card premium-lift" :class="{ 'cursor-pointer': hoverable }" :elevation="0">
-    <div class="pa-5">
-      <div class="d-flex align-center justify-space-between mb-4">
+  <v-card class="glass-card premium-lift" :class="{ 'cursor-pointer': hoverable, 'dashboard-card-mobile': isMobile }" :elevation="0">
+    <div class="pa-5" :class="{ 'pa-3': isMobile }">
+      <div class="d-flex align-center justify-space-between mb-4" :class="{ 'mb-2': isMobile }">
         <div
           class="icon-container pa-3 rounded-lg"
+          :class="{ 'pa-2': isMobile }"
           :style="{ backgroundColor: `var(--${color}-alpha)` }"
         >
-          <LucideIcon :name="icon" :size="22" :style="{ color: `var(--${color})` }" />
+          <LucideIcon :name="icon" :size="isMobile ? 18 : 22" :style="{ color: `var(--${color})` }" />
         </div>
         <div
           v-if="trend !== undefined"
@@ -23,10 +24,10 @@
       </div>
 
       <div class="card-content">
-        <div class="text-h4 font-weight-black text-pure-black mb-1">
+        <div class="text-h4 font-weight-black text-pure-black mb-1" :class="{ 'text-h5': isMobile }">
           <slot name="value">{{ value }}</slot>
         </div>
-        <div class="text-tiny text-pure-black font-weight-black">
+        <div class="text-tiny text-pure-black font-weight-black" :class="{ 'text-tiny-v': isMobile }">
           {{ title }}
         </div>
       </div>
@@ -58,11 +59,13 @@ interface Props {
   trend?: number
   hoverable?: boolean
   sparkline?: number[]
+  isMobile?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   color: 'gold',
-  hoverable: true
+  hoverable: true,
+  isMobile: false
 })
 
 const getHexColor = (colorName: string): string => {
