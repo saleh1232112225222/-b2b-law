@@ -15,6 +15,7 @@ manifests/
 .eslintcache
 *.log*
 binaries/
+B2B-LAW-Website/
 
 # Auto-generated entries
 # Dependencies
