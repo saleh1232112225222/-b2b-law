@@ -74,7 +74,8 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       }
     }
 
-    if (isExpired && req.method !== 'GET') {
+    const isSystemAction = req.path.startsWith('/system/') || req.originalUrl.includes('/system/')
+    if (isExpired && req.method !== 'GET' && !isSystemAction) {
       res.status(403).json({
         error: 'TrialExpiredWriteForbidden',
         message: 'انتهت الفترة التجريبية. يرجى الاشتراك للاستمرار في الإضافة والتعديل.',

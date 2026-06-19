@@ -14,6 +14,11 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
   const auth = req.auth as AuthPayload
   
   try {
+    // Only allow admin of the main company (00000000-0000-0000-0000-000000000000)
+    if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
+      return res.status(403).json({ error: 'Admin access required' })
+    }
+
     const userResult = await query(
       'SELECT role_key FROM users WHERE id = $1 AND company_id = $2',
       [auth.userId, auth.companyId]

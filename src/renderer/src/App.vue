@@ -822,6 +822,9 @@ const categorizedMenu = computed(() => {
       title: 'الإعدادات والأدوات',
       icon: 'settings-2',
       children: [
+        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000' ? [
+          { title: 'إدارة الاشتراكات', icon: 'crown', to: '/admin/subscriptions' }
+        ] : []),
         { title: 'إدارة المستخدمين', icon: 'users-2', to: '/users', perm: 'manage_users' },
         { title: 'الإعدادات', icon: 'settings', to: '/settings', perm: 'manage_settings' },
         { title: 'مركز التقارير', icon: 'clipboard-check', to: '/reports', perm: 'export_reports' },

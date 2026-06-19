@@ -6,6 +6,7 @@ interface SessionData {
   userId: string
   username: string
   roleKey: RoleKey
+  companyId?: string | null
   permissions: string[]
 }
 

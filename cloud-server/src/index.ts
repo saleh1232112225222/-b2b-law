@@ -224,7 +224,40 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 })
 
 import * as fs from 'fs'
-import { runMigrations } from './db/connection'
+import { runMigrations, query as dbQuery } from './db/connection'
+
+async function seedSuperAdmin() {
+  try {
+    // 1. Ensure the Super Admin company exists
+    await dbQuery(
+      `INSERT INTO companies (id, name, email, is_verified, trial_expires_at)
+       VALUES ('00000000-0000-0000-0000-000000000000', 'الشركة المالكة للنظام', 'owner@b2blaw.local', TRUE, '2099-12-31 23:59:59+03')
+       ON CONFLICT (id) DO NOTHING`,
+      []
+    )
+
+    // 2. Check if admin user exists in the Super Admin company
+    const adminCheck = await dbQuery(
+      `SELECT id FROM users WHERE username = $1 AND company_id = $2`,
+      ['admin', '00000000-0000-0000-0000-000000000000']
+    )
+
+    if (adminCheck.rows.length === 0) {
+      // Create the seeded owner admin with the configured bootstrap hash.
+      // Password hash: '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK'
+      await dbQuery(
+        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK', 'admin', TRUE, FALSE, 'slaehmap@gmail.com', NOW())`,
+        []
+      )
+      console.log('[SEED] Super Admin user created')
+    } else {
+      console.log('[SEED] Super Admin user already exists')
+    }
+  } catch (err) {
+    console.error('[SEED] Failed to seed super admin:', err)
+  }
+}
 
 async function autoMigrate() {
   try {
@@ -238,6 +271,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   console.log(`B2B-LAW Cloud Server running on port ${PORT}`)
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
   await autoMigrate()
+  await seedSuperAdmin()
 
   // Marketing report once daily at 7 AM Saudi time
   let lastReportDate = ''

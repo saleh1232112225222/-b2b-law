@@ -371,6 +371,7 @@ const handleVerifyAndReset = async () => {
 }
 
 const handleGoogleLogin = () => {
+  localStorage.removeItem('mock_active')
   const baseUrl =
     typeof (window as any).__API_BASE_URL__ !== 'undefined'
       ? (window as any).__API_BASE_URL__

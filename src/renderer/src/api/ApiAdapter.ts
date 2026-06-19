@@ -193,6 +193,14 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/employees') && url.endsWith('/performance')) return { data: [] }
   if (url.startsWith('/agencies/expiry-alerts')) return { data: [] }
   if (url.startsWith('/system/settings')) return { data: {} }
+  if (url.startsWith('/system/database-inventory')) return [
+    { name: 'clients', count: 12 },
+    { name: 'cases', count: 24 },
+    { name: 'sessions', count: 8 }
+  ]
+  if (url.startsWith('/system/export-snapshot')) return { success: true, companyId: 'mock-company', tables: {} }
+  if (url.startsWith('/system/import-snapshot')) return { success: true, counts: { clients: { received: 10, imported: 10 } } }
+  if (url.startsWith('/system/clear-all-data')) return { success: true }
   if (url.startsWith('/firm')) return { data: { name: 'مكتب المحاماة', logo: null } }
   if (url.startsWith('/permissions')) return { data: [] }
   if (url.startsWith('/users/active-staff') || url.startsWith('/users/assignable')) return { data: [] }

@@ -58,6 +58,7 @@ export const useLicensingStore = defineStore('licensing', () => {
             }
           }
             
+          if (data) {
             subscriptionStatus.value = {
               status: data.status || (data.isActive ? 'active' : 'expired'),
               trialEnd: data.trialEnd,
