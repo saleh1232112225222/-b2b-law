@@ -1376,36 +1376,24 @@ const api = {
   },
   licensing: {
     getRequestCode: () => {
-      throw new Error('Not available in cloud mode')
+      if (mode !== 'desktop') return Promise.resolve('')
+      return window.ipcRenderer?.invoke('licensing:get-request-code')
     },
     activate: (_key: string) => {
-      throw new Error('Not available in cloud mode')
+      if (mode !== 'desktop') return Promise.resolve({ success: true, message: 'نشط في وضع السحابة' })
+      return window.ipcRenderer?.invoke('licensing:activate', _key)
     },
     checkTrial: async () => {
+      if (mode !== 'desktop') return { isValid: true, daysLeft: 999, message: 'Cloud mode', isActivated: true }
       try {
-        const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
-        if (!isLoggedIn) {
-          return { isValid: true, daysLeft: 7, message: 'Cloud mode', isActivated: true }
-        }
-        const session = await api.auth.getSession()
-        if (session) {
-          const trialExpired = session.trialExpired || false
-          const expiresAt = session.trialExpiresAt
-          const daysLeft = expiresAt ? Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24))) : 0
-          return {
-            isValid: !trialExpired,
-            daysLeft: daysLeft,
-            message: 'Cloud mode',
-            isActivated: !trialExpired
-          }
-        }
-      } catch (e) {
-        console.error('Failed to check cloud trial:', e)
+        return await window.ipcRenderer?.invoke('licensing:check-trial')
+      } catch {
+        return { isValid: true, daysLeft: 999, isActivated: true }
       }
-      return { isValid: true, daysLeft: 7, message: 'Cloud mode', isActivated: true }
     },
     resetActivation: () => {
-      throw new Error('Not available in cloud mode')
+      if (mode !== 'desktop') return Promise.resolve({ success: true, requiresRestart: false })
+      return window.ipcRenderer?.invoke('licensing:reset-activation')
     }
   },
   najiz: {
