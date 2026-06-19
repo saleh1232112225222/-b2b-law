@@ -247,10 +247,40 @@
       </v-app-bar>
 
       <!-- Main View - Vuetify Layout Aware -->
-      <!-- Read-Only Banner - Shows when trial expired -->
+      <!-- Countdown Banner - Shows in last 3 days of trial -->
+      <v-banner
+        v-if="isApproachingExpiration && !isLoginPage && daysRemaining > 0"
+        color="warning"
+        icon="mdi-clock-alert-outline"
+        class="countdown-banner"
+        stacked
+        dense
+      >
+        <template #text>
+          <div class="d-flex align-center justify-space-between w-100">
+            <div>
+              <strong v-if="daysRemaining > 1">فترة تجربتك تنتهي خلال {{ countdownDetail.days }} أيام</strong>
+              <strong v-else-if="countdownDetail.hours > 0">فترة تجربتك تنتهي خلال {{ countdownDetail.hours }} ساعة و {{ countdownDetail.minutes }} دقيقة</strong>
+              <strong v-else>فترة تجربتك تنتهي خلال {{ countdownDetail.minutes }} دقيقة</strong>
+              <span class="ms-2">— اشترك الآن لضمان عدم توقف الخدمة</span>
+            </div>
+            <v-btn
+              color="warning"
+              variant="flat"
+              size="small"
+              class="ms-3 font-weight-bold"
+              @click="router.push('/subscription')"
+            >
+              اشترك الآن
+            </v-btn>
+          </div>
+        </template>
+      </v-banner>
+
+      <!-- Expired Banner - Shows when trial is fully expired -->
       <v-banner
         v-if="isTrialExpired && !isLoginPage"
-        color="warning"
+        color="error"
         icon="mdi-lock-alert"
         class="readonly-banner"
         stacked
@@ -264,7 +294,7 @@
               <router-link to="/subscription" class="text-white text-decoration-underline font-weight-bold">
                 اشترك الآن
               </router-link>
-              <span> للاستمرار.</span>
+              <span> للاستمرار في إضافة وتعديل البيانات.</span>
             </div>
           </div>
         </template>
@@ -272,33 +302,31 @@
 
       <v-main class="main-content-scroll">
         <div class="main-body-wrapper" :class="mainBodyPaddingClass">
-          <!-- Premium Read-Only Banner when Trial is Expired -->
-          <v-alert
-            v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated"
-            type="warning"
-            variant="flat"
-            density="comfortable"
-            icon="shield-alert"
-            class="mb-6 rounded-xl border-warning-glow premium-shadow-sm font-weight-black text-caption"
-            prominent
+      <!-- Premium Read-Only Banner - kept for desktop mode compatibility -->
+      <v-alert
+        v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated && !isTrialExpired"
+        type="warning"
+        variant="flat"
+        density="comfortable"
+        icon="shield-alert"
+        class="mb-6 rounded-xl border-warning-glow premium-shadow-sm font-weight-black text-caption"
+        prominent
+      >
+        <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
+          <div class="d-flex align-center">
+            <LucideIcon name="shield-alert" :size="20" class="me-2" />
+            <span>انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط.</span>
+          </div>
+          <v-btn
+            color="amber-darken-3"
+            size="small"
+            class="rounded-lg text-white font-weight-bold"
+            @click="router.push('/subscription')"
           >
-            <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
-              <div class="d-flex align-center">
-                <LucideIcon name="shield-alert" :size="20" class="me-2" />
-                <span
-                  >انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط. اشترك الآن للاستمرار في إضافة وتعديل البيانات.</span
-                >
-              </div>
-              <v-btn
-                color="amber-darken-3"
-                size="small"
-                class="rounded-lg text-white font-weight-bold"
-                @click="router.push('/subscription')"
-              >
-                اشترك الآن
-              </v-btn>
-            </div>
-          </v-alert>
+            اشترك الآن
+          </v-btn>
+        </div>
+      </v-alert>
 
           <router-view v-slot="{ Component }">
             <transition name="premium-fade" mode="out-in">
@@ -633,6 +661,24 @@ const currentTime = ref(new Date().toLocaleTimeString('ar-SA'))
 const licensingStore = useLicensingStore()
 const trialInfo = computed(() => licensingStore.trialInfo)
 const isTrialExpired = computed(() => licensingStore.isTrialExpired)
+const isApproachingExpiration = computed(() => licensingStore.isApproachingExpiration)
+const daysRemaining = computed(() => licensingStore.daysRemaining)
+
+// Real-time countdown
+const trialEnd = computed(() => licensingStore.trialEnd)
+const now = ref(Date.now())
+let countdownInterval: ReturnType<typeof setInterval> | null = null
+const countdownDetail = computed(() => {
+  if (!trialEnd.value) return { days: 0, hours: 0, minutes: 0 }
+  const endMs = new Date(trialEnd.value).getTime()
+  const diff = Math.max(0, endMs - now.value)
+  const totalMinutes = Math.floor(diff / 60000)
+  return {
+    days: Math.floor(totalMinutes / 1440),
+    hours: Math.floor((totalMinutes % 1440) / 60),
+    minutes: totalMinutes % 60
+  }
+})
 const developerInfo = ref<any>(null)
 const showSupportDialog = ref(false)
 const showLogoutConfirm = ref(false)
@@ -918,6 +964,12 @@ onMounted(async () => {
     }
   }, { immediate: true })
 
+  // Real-time countdown tick every 60 seconds
+  countdownInterval = setInterval(() => {
+    now.value = Date.now()
+  }, 60000)
+  now.value = Date.now()
+
   // Fetch Developer Info
   try {
     if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
@@ -986,11 +1038,13 @@ onMounted(async () => {
       activityEvents.forEach((event) => {
         window.removeEventListener(event, handleUserActivity)
       })
+      if (countdownInterval) clearInterval(countdownInterval)
     })
   } else {
     // Cleanup on unmount for web mode
     onUnmounted(() => {
       window.removeEventListener('click', handleGlobalClickGate, { capture: true })
+      if (countdownInterval) clearInterval(countdownInterval)
     })
   }
 })

@@ -164,12 +164,6 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
-    path: '/admin/subscriptions',
-    name: 'AdminSubscriptions',
-    component: () => import('../views/AdminSubscriptions.vue'),
-    meta: { requiresAuth: true, permissions: ['manage_settings'] }
-  },
-  {
     path: '/search',
     name: 'Search',
     component: () => import('../views/Search.vue'),

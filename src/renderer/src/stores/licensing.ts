@@ -126,6 +126,34 @@ export const useLicensingStore = defineStore('licensing', () => {
     return trialInfo.value ? (!trialInfo.value.isValid && !trialInfo.value.isActivated) : false
   })
 
+  // عد تنازلي قبل انتهاء التجربة (يظهر في آخر 3 أيام)
+  const isApproachingExpiration = computed(() => {
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+      const s = subscriptionStatus.value
+      if (!s) return false
+      if (s.status === 'active') return false
+      return s.daysLeft > 0 && s.daysLeft <= 3
+    }
+    const t = trialInfo.value
+    return t ? (t.daysLeft > 0 && t.daysLeft <= 3 && !t.isActivated) : false
+  })
+
+  // أيام متبقية بالضبط (للعداد التنازلي)
+  const daysRemaining = computed(() => {
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+      return subscriptionStatus.value?.daysLeft ?? 0
+    }
+    return trialInfo.value?.daysLeft ?? 0
+  })
+
+  // تاريخ انتهاء التجربة (للعد التنازلي اللحظي)
+  const trialEnd = computed<string | undefined>(() => {
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+      return subscriptionStatus.value?.trialEnd
+    }
+    return undefined
+  })
+
   const triggerReadOnlyWarning = () => {
     showWarningDialog.value = true
   }
@@ -142,6 +170,9 @@ export const useLicensingStore = defineStore('licensing', () => {
     showExpiredDialog,
     isReadOnly,
     isTrialExpired,
+    isApproachingExpiration,
+    daysRemaining,
+    trialEnd,
     refreshStatus,
     triggerReadOnlyWarning,
     hideExpiredDialog
