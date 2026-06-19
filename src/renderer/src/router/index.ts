@@ -158,6 +158,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/subscription',
+    name: 'Subscription',
+    component: () => import('../views/SubscriptionPlans.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/search',
     name: 'Search',
     component: () => import('../views/Search.vue'),

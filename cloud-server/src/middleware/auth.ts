@@ -11,6 +11,7 @@ export interface AuthPayload {
   username: string
   roleKey: string
   trialExpired?: boolean
+  subscriptionStatus?: string
 }
 
 declare global {
@@ -39,27 +40,53 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   try {
     const payload = verifyToken(header.substring(7))
     
-    // Check trial expiration
-    const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [payload.companyId])
-    let trialExpired = false
-    if (companyResult.rows.length > 0) {
-      const trialExpiresAt = new Date(companyResult.rows[0].trial_expires_at)
-      if (trialExpiresAt < new Date()) {
-        trialExpired = true
+    // Check subscription status from subscriptions table
+    const subResult = await query(
+      `SELECT status, current_period_end, trial_end FROM subscriptions
+       WHERE company_id = $1
+       ORDER BY created_at DESC LIMIT 1`,
+      [payload.companyId]
+    )
+
+    let isExpired = false
+    let subscriptionStatus = 'trial'
+    let fallbackEnd: Date | null = null
+
+    if (subResult.rows.length > 0) {
+      const sub = subResult.rows[0]
+      subscriptionStatus = sub.status
+      const endDate = sub.current_period_end || sub.trial_end
+      if (endDate) fallbackEnd = new Date(endDate)
+      if (fallbackEnd && fallbackEnd < new Date() && sub.status !== 'lifetime') {
+        isExpired = true
+      }
+    } else {
+      // Fallback to companies.trial_expires_at for backward compatibility
+      const companyResult = await query(
+        'SELECT trial_expires_at FROM companies WHERE id = $1',
+        [payload.companyId]
+      )
+      if (companyResult.rows.length > 0 && companyResult.rows[0].trial_expires_at) {
+        fallbackEnd = new Date(companyResult.rows[0].trial_expires_at)
+        if (fallbackEnd < new Date()) {
+          isExpired = true
+        }
       }
     }
 
-    if (trialExpired && req.method !== 'GET') {
+    if (isExpired && req.method !== 'GET') {
       res.status(403).json({
         error: 'TrialExpiredWriteForbidden',
-        message: 'انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط ولا يمكنك الإضافة أو التعديل.'
+        message: 'انتهت الفترة التجريبية. يرجى الاشتراك للاستمرار في الإضافة والتعديل.',
+        subscriptionUrl: '/subscription'
       })
       return
     }
 
     req.auth = {
       ...payload,
-      trialExpired
+      trialExpired: isExpired,
+      subscriptionStatus
     }
     next()
   } catch (err) {

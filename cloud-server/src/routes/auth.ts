@@ -73,12 +73,23 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       trialExpired = new Date(trialExpiresAt) < new Date()
     }
 
+    // Check subscription status
+    let subscriptionStatus = 'trial'
+    const subCheck = await query(
+      `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [user.company_id]
+    )
+    if (subCheck.rows.length > 0) {
+      subscriptionStatus = subCheck.rows[0].status
+    }
+
     const token = generateToken({
       userId: user.id,
       companyId: user.company_id,
       username: user.username,
       roleKey: user.role_key,
-      trialExpired
+      trialExpired,
+      subscriptionStatus
     })
 
     await logActivity(username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول ناجح', {
@@ -111,7 +122,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         employeeId: user.employee_id,
         mustChangePassword: user.must_change_password,
         trialExpired,
-        trialExpiresAt
+        trialExpiresAt,
+        subscriptionStatus
       }
     })
   } catch (err) {
@@ -129,9 +141,18 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
     const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [req.auth!.companyId])
     let trialExpired = false
     let trialExpiresAt = null
+    let subscriptionStatus = 'trial'
     if (companyResult.rows.length > 0) {
       trialExpiresAt = companyResult.rows[0].trial_expires_at
       trialExpired = new Date(trialExpiresAt) < new Date()
+    }
+    // Check real subscription
+    const subCheck = await query(
+      `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [req.auth!.companyId]
+    )
+    if (subCheck.rows.length > 0) {
+      subscriptionStatus = subCheck.rows[0].status
     }
     res.json({
       id: req.auth!.userId,
@@ -140,6 +161,7 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
       companyId: req.auth!.companyId,
       trialExpired,
       trialExpiresAt,
+      subscriptionStatus,
       isLocked: false
     })
   } catch (err) {

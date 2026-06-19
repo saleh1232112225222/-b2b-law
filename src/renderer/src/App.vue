@@ -263,18 +263,16 @@
               <div class="d-flex align-center">
                 <LucideIcon name="shield-alert" :size="20" class="me-2" />
                 <span
-                  >انتهت الفترة التجريبية للبرنامج (30 يومًا). تم تفعيل
-                  <strong>وضع القراءة فقط</strong> للحفاظ على سلامة بياناتك وتصفحها. يرجى التنشيط
-                  بمفتاح تفعيل صالح لتتمكن من إضافة أو تعديل البيانات.</span
+                  >انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط. اشترك الآن للاستمرار في إضافة وتعديل البيانات.</span
                 >
               </div>
               <v-btn
                 color="amber-darken-3"
                 size="small"
                 class="rounded-lg text-white font-weight-bold"
-                @click="router.push('/settings')"
+                @click="router.push('/subscription')"
               >
-                تنشيط البرنامج الآن
+                اشترك الآن
               </v-btn>
             </div>
           </v-alert>

@@ -7,7 +7,6 @@ import { initApiAdapter } from './api/initApi'
 
 import './assets/main.css'
 import './assets/responsive.css'
-import './assets/tailwind.css'
 
 // Initialize API mode: Cloud (Web) or Desktop (Electron IPC)
 initApiAdapter()
@@ -19,29 +18,6 @@ app.use(router)
 app.use(vuetify)
 
 app.mount('#app')
-
-// ---------- Protection against unwanted reloads ----------
-/**
- * Prevent any unauthorized call to `location.reload()`.
- * Only allow reloads that originate from internal functions such as `runAutoRefresh`.
- */
-try {
-  const originalReload = window.location.reload.bind(window);
-  Object.defineProperty(window.location, 'reload', {
-    writable: false,
-    configurable: false,
-    value: function () {
-      const stack = new Error().stack || '';
-      const allowed = stack.includes('runAutoRefresh') || stack.includes('refreshTimer');
-      if (allowed) {
-        originalReload();
-      } else {
-        console.warn('[Protection] Blocked unauthorized location.reload call');
-      }
-    }
-  });
-} catch { /* location.reload is read-only in some environments */ }
-// -----------------------------------------------------------
 
 // Setup responsive data-label attributes for tables
 function setupResponsiveTables(): void {
@@ -71,32 +47,30 @@ if (typeof window !== 'undefined') {
   observer.observe(document.body, { childList: true, subtree: true })
 }
 
-if (import.meta.env.DEV && typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
+if (import.meta.env.DEV && (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__)) {
   setTimeout(() => {
     // @ts-ignore
-    if (window.api?.system?.runDiagnostics) {
-      window.api.system.runDiagnostics().then((data) => {
-        console.log(
-          '%c 🛡️ B2B LAWYER PRO - DIAGNOSTICS REPORT',
-          'color: #2ecc71; font-weight: bold; font-size: 14px;'
-        )
-        console.table(data)
+    window.api.system.runDiagnostics().then((data) => {
+      console.log(
+        '%c 🛡️ B2B LAWYER PRO - DIAGNOSTICS REPORT',
+        'color: #2ecc71; font-weight: bold; font-size: 14px;'
+      )
+      console.table(data)
 
-        if (data.mode === 'INSTALLED (AppData/UAC)' && data.activePath.includes('Program Files')) {
-          console.error('❌ CRITICAL ERROR: App is writing to Program Files! Path override failed.')
-        } else {
-          console.log('✅ PATH SYSTEM: Healthy and Secure.')
-        }
-      })
-    }
+      if (data.mode === 'INSTALLED (AppData/UAC)' && data.activePath.includes('Program Files')) {
+        console.error('❌ CRITICAL ERROR: App is writing to Program Files! Path override failed.')
+      } else {
+        console.log('✅ PATH SYSTEM: Healthy and Secure.')
+      }
+    })
   }, 250)
 }
 
 window.addEventListener('keydown', (e: KeyboardEvent) => {
-  if (e.altKey && e.shiftKey && e.code === 'KeyS') {
-    e.preventDefault()
-    // @ts-ignore
-    if (window.api?.system?.captureScreenshot) {
+  if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
+    if (e.altKey && e.shiftKey && e.code === 'KeyS') {
+      e.preventDefault()
+      // @ts-ignore
       window.api.system.captureScreenshot()
     }
   }
@@ -115,15 +89,22 @@ const withTimeout = async <T>(p: Promise<T>, ms: number, label: string): Promise
 }
 
 const clearLocalAuth = (): void => {
+  // Never clear auth in web mode!
+  if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    return
+  }
   localStorage.removeItem('web_isLoggedIn')
   localStorage.removeItem('web_currentUser')
   localStorage.removeItem('web_currentUserSession')
-  localStorage.removeItem('mock_active')
   window.dispatchEvent(new Event('auth-changed'))
 }
 
 const bootstrapAuth = async (): Promise<void> => {
   try {
+    // Skip bootstrapAuth entirely for web mode to prevent loops
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+      return
+    }
     if (localStorage.getItem('web_isLoggedIn') !== 'true') return
     await router.isReady()
 
@@ -228,4 +209,7 @@ const sandboxAutoRun = async (): Promise<void> => {
 }
 
 sandboxAutoRun()
-bootstrapAuth()
+// Only run bootstrapAuth in desktop mode
+if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
+  bootstrapAuth()
+}

@@ -1384,7 +1384,20 @@ const api = {
       return window.ipcRenderer?.invoke('licensing:activate', _key)
     },
     checkTrial: async () => {
-      if (mode !== 'desktop') return { isValid: true, daysLeft: 999, message: 'Cloud mode', isActivated: true }
+      if (mode !== 'desktop') {
+        try {
+          const res = await cloudRequest({ method: 'GET', url: '/subscriptions/status' })
+          const data = res.subscriptionStatus || res
+          return {
+            isValid: data.isActive || data.status === 'active',
+            daysLeft: data.daysLeft || 999,
+            message: data.planNameAr || 'سحابة',
+            isActivated: data.status === 'active' || data.status === 'lifetime'
+          }
+        } catch {
+          return { isValid: true, daysLeft: 999, message: 'Cloud mode', isActivated: true }
+        }
+      }
       try {
         return await window.ipcRenderer?.invoke('licensing:check-trial')
       } catch {
@@ -1395,6 +1408,32 @@ const api = {
       if (mode !== 'desktop') return Promise.resolve({ success: true, requiresRestart: false })
       return window.ipcRenderer?.invoke('licensing:reset-activation')
     }
+  },
+  subscriptions: {
+    getPlans: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'GET', url: '/subscriptions/plans' }),
+    getStatus: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'GET', url: '/subscriptions/status' }),
+    createPaymentIntent: (planId: string) =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'POST', url: '/subscriptions/create-payment-intent', data: { planId } }),
+    confirmPayment: (paymentId: string) =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'POST', url: `/subscriptions/confirm-payment/${paymentId}` }),
+    cancel: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'POST', url: '/subscriptions/cancel' }),
+    startTrial: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('Not in cloud mode'))
+        : cloudRequest({ method: 'POST', url: '/subscriptions/start-trial' })
   },
   najiz: {
     syncStart: () => {

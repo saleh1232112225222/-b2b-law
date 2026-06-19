@@ -459,9 +459,11 @@ const handleLogin = async () => {
     router.replace('/dashboard')
   } catch (e: any) {
     const errData = e?.response?.data?.error || e?.message || ''
-    if (errData === 'TrialExpired' || e?.response?.data?.message === 'TrialExpired') {
-      error.value =
-        'انتهت الفترة التجريبية الخاصة بك (7 أيام). يرجى التواصل مع الإدارة لتفعيل الاشتراك.'
+    if (errData === 'TrialExpired' || e?.response?.data?.message === 'TrialExpired' || errData === 'TrialExpiredWriteForbidden') {
+      error.value = 'انتهت الفترة التجريبية. سيتم تحويلك لصفحة الاشتراك.'
+      setTimeout(() => {
+        router.push('/subscription')
+      }, 2000)
     } else if (
       errData === 'AccountNotVerified' ||
       e?.response?.data?.message === 'AccountNotVerified'

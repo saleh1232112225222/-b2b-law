@@ -22,15 +22,46 @@
       <v-col cols="12" md="6">
         <SettingsOfficeCard v-model="settings" @save="saveSettings" />
 
-        <SettingsLicensingCard
-          :trial-info="trialInfo"
-          :request-code="requestCode"
-          v-model="activationKey"
-          :activating="activating"
-          @copy-request-code="copyRequestCode"
-          @activate="handleActivate"
-          @reset-activation="showResetActivationDialog = true"
-        />
+        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20">
+          <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
+            <LucideIcon name="crown" :size="20" class="text-gold me-3" />
+            <span class="text-subtitle-1 font-weight-black text-primary">الاشتراك والترخيص</span>
+            <v-spacer />
+            <v-chip :color="trialInfo?.isActivated ? 'success' : trialInfo?.isValid ? 'gold' : 'error'"
+              size="small" class="font-weight-black">
+              {{ trialInfo?.isActivated ? 'مفعل' : trialInfo?.isValid ? 'تجريبي' : 'منتهي' }}
+            </v-chip>
+          </div>
+          <div class="pa-4">
+            <div class="d-flex align-center mb-3">
+              <LucideIcon name="shield-check" :size="18" class="text-gold me-3" />
+              <div>
+                <div class="text-body-2 font-weight-black">حالة الاشتراك</div>
+                <div class="text-caption text-grey">
+                  {{ trialInfo?.isActivated ? 'اشتراك مدفوع' : trialInfo?.isValid ? 'تجربة مجانية' : 'منتهية' }}
+                </div>
+              </div>
+            </div>
+            <div v-if="trialInfo?.daysLeft !== undefined && trialInfo?.daysLeft < 999" class="d-flex align-center mb-3">
+              <LucideIcon name="clock" :size="18" class="text-gold me-3" />
+              <div>
+                <div class="text-body-2 font-weight-black">الأيام المتبقية</div>
+                <div class="text-caption text-grey">{{ trialInfo.daysLeft }} يوم</div>
+              </div>
+            </div>
+            <div class="d-flex align-center mb-3">
+              <LucideIcon name="globe" :size="18" class="text-gold me-3" />
+              <div>
+                <div class="text-body-2 font-weight-black">نوع الترخيص</div>
+                <div class="text-caption text-grey">اشتراك سحابي - مرتبط بالحساب</div>
+              </div>
+            </div>
+            <v-btn block color="accent" class="font-weight-black rounded-xl mt-2" @click="$router.push('/subscription')">
+              <LucideIcon name="crown" :size="18" class="me-2" />
+              {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
+            </v-btn>
+          </div>
+        </v-card>
       </v-col>
 
       <!-- Row 2: Data & Sync -->
@@ -584,51 +615,6 @@
       </template>
     </v-snackbar>
 
-    <!-- Deactivation Confirmation Dialog -->
-    <v-dialog v-model="showResetActivationDialog" max-width="550" persistent>
-      <v-card class="glass-card border-error border-2 overflow-hidden rounded-xl">
-        <div class="pa-6 bg-error text-white d-flex align-center font-weight-black">
-          <LucideIcon name="shield-alert" :size="28" class="me-3" /> إجراء تقني حساس
-        </div>
-        <v-card-text class="pa-8 bg-white">
-          <div class="text-h6 mb-4 font-weight-black text-black">
-            هل أنت متأكد من رغبتك في إلغاء تنشيط النسخة؟
-          </div>
-          <div class="text-body-1 text-grey-darken-4 mb-6 leading-relaxed font-weight-bold">
-            يرجى العلم أن هذا الإجراء سيقوم بفصل النظام عن مفتاح التنشيط الحالي فوراً.
-            <br /><br />
-            <span class="text-error font-weight-black">ملاحظة تقنية:</span>
-            لن تتمكن من استعادة الميزات المتقدمة أو الدخول للنظام مجدداً إلا من خلال
-            <b>كود تنشيط جديد وفريد</b> يتم إصداره من قبل الدعم الفني.
-          </div>
-          <div class="glass-panel-light pa-4 rounded-lg border-dashed border-error opacity-80">
-            <p class="text-caption text-error font-weight-black mb-0">
-              * نحن نهتم باستمرارية أعمالك؛ يرجى التأكد من توفر كود بديل قبل المتابعة.
-            </p>
-          </div>
-        </v-card-text>
-        <v-card-actions class="pa-6 pt-0 gap-3 bg-white">
-          <v-btn
-            variant="text"
-            color="grey-darken-1"
-            class="font-weight-black"
-            @click="showResetActivationDialog = false"
-          >
-            البقاء في النسخة الكاملة
-          </v-btn>
-          <v-spacer></v-spacer>
-          <v-btn
-            color="error"
-            variant="flat"
-            class="px-8 font-weight-black premium-lift"
-            @click="executeResetActivation"
-          >
-            تأكيد الإلغاء النهائي
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
     <!-- Performance Report Dialog -->
     <v-dialog v-model="showPerfReportDialog" max-width="700">
       <v-card class="glass-card border-gold border-2 overflow-hidden">
@@ -776,30 +762,11 @@ const najizPhaseLabel = computed(() => {
 
 const licensingStore = useLicensingStore()
 const trialInfo = computed(() => licensingStore.trialInfo)
-const requestCode = ref('')
-const activationKey = ref('')
-const activating = ref(false)
 
-const fetchLicensingInfo = async (): Promise<void> => {
-  const api = (window as any).api
-  if (!api?.licensing) return
-
+const fetchSubscriptionInfo = async (): Promise<void> => {
   try {
     await licensingStore.refreshStatus()
   } catch {}
-
-  if (typeof api?.licensing?.getRequestCode !== 'function') {
-    requestCode.value = ''
-    return
-  }
-
-  try {
-    const code = await api.licensing.getRequestCode()
-    requestCode.value = String(code || '')
-  } catch (err) {
-    requestCode.value = ''
-    showSnackbar('تعذر توليد رمز طلب التنشيط على هذا الجهاز', 'error')
-  }
 }
 
 const fetchInventory = async (): Promise<void> => {
@@ -817,7 +784,7 @@ const fetchInventory = async (): Promise<void> => {
 onMounted(async (): Promise<void> => {
   loading.value = true
   try {
-    await fetchLicensingInfo()
+    await fetchSubscriptionInfo()
     const data = (await (window as any).api.settings.get()) as AppSettings
     if (data) {
       settings.value = {
@@ -871,10 +838,10 @@ onMounted(async (): Promise<void> => {
       }
     }
 
-    await fetchLicensingInfo()
+    await fetchSubscriptionInfo()
   } catch (err: unknown) {
     console.error('[Settings] Initialization error:', err)
-    await fetchLicensingInfo()
+    await fetchSubscriptionInfo()
   } finally {
     loading.value = false
   }
@@ -1240,53 +1207,6 @@ const showSnackbar = (text: string, color: string): void => {
   snackbarText.value = text
   snackbarColor.value = color
   snackbar.value = true
-}
-const copyRequestCode = () => {
-  navigator.clipboard.writeText(requestCode.value)
-  showSnackbar('تم النسخ للحافظة', 'success')
-}
-
-const handleActivate = async () => {
-  if (!activationKey.value.trim()) {
-    showSnackbar('يرجى إدخال مفتاح التنشيط', 'error')
-    return
-  }
-  activating.value = true
-  try {
-    const result = await (window as any).api.licensing.activate(activationKey.value.trim())
-    if (result.success) {
-      showSnackbar(result.message, 'success')
-      await licensingStore.refreshStatus()
-    } else {
-      showSnackbar(result.message, 'error')
-    }
-  } catch (err) {
-    showSnackbar('خطأ أثناء التنشيط', 'error')
-  } finally {
-    activating.value = false
-  }
-}
-
-const showResetActivationDialog = ref(false)
-const executeResetActivation = async (): Promise<void> => {
-  showResetActivationDialog.value = false
-  try {
-    const api = (window as any).api
-    if (typeof api?.licensing?.resetActivation !== 'function') {
-      showSnackbar('ميزة إعادة التنشيط غير متاحة في هذا الإصدار', 'error')
-      return
-    }
-    const res = await api.licensing.resetActivation()
-    if (res?.requiresRestart) {
-      showSnackbar('تم إلغاء التنشيط. جاري إعادة التشغيل...', 'info')
-      return
-    }
-    activationKey.value = ''
-    await fetchLicensingInfo()
-    showSnackbar('تم إلغاء التنشيط بنجاح. النظام الآن في الوضع التجريبي.', 'success')
-  } catch (err) {
-    showSnackbar('حدث خطأ تقني أثناء محاولة إلغاء التنشيط', 'error')
-  }
 }
 </script>
 
