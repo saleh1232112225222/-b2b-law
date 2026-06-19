@@ -383,8 +383,9 @@ onMounted(async () => {
   if (googleToken) {
     localStorage.setItem('b2b_cloud_token', googleToken)
     localStorage.setItem('web_isLoggedIn', 'true')
-    
-    // Clear legacy desktop storage keys to avoid conflicts
+
+    // Clear mock mode and legacy desktop storage keys to avoid conflicts
+    localStorage.removeItem('mock_active')
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('currentUser')
     localStorage.removeItem('currentUserSession')
@@ -400,7 +401,6 @@ onMounted(async () => {
       }
     } catch (e) {
       console.error('[AUTH] Failed to fetch session after Google login:', e)
-      localStorage.setItem('web_currentUser', JSON.stringify({}))
     }
 
     window.dispatchEvent(new Event('auth-changed'))

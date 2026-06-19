@@ -215,6 +215,24 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/reports/export/pdf')) return { success: true, url: 'data:application/pdf;base64,JVBERi0xLjQK...' }
   if (url.startsWith('/reports/export/csv')) return { success: true }
 
+  // Mock subscription endpoints
+  if (url.startsWith('/subscriptions/plans')) return {
+    success: true,
+    data: [
+      { id: 'plan-monthly', name_ar: 'شهري', interval: 'month', price: 99, description: 'خطة شهرية مرنة' },
+      { id: 'plan-yearly', name_ar: 'سنوي', interval: 'year', price: 999, description: 'خطة سنوية اقتصادية' },
+      { id: 'plan-lifetime', name_ar: 'مدى الحياة', interval: 'lifetime', price: 2499, description: 'اشتراك لمرة واحدة' }
+    ]
+  }
+  if (url.startsWith('/subscriptions/status')) return {
+    isActive: true, status: 'active', daysLeft: 365,
+    planNameAr: 'سنوي', currentPeriodEnd: new Date(Date.now() + 365 * 86400000).toISOString()
+  }
+  if (url.startsWith('/subscriptions/create-payment-intent')) return { paymentId: 'mock-payment-' + Date.now() }
+  if (url.startsWith('/subscriptions/confirm-payment')) return { success: true, message: 'تم تأكيد الدفع بنجاح' }
+  if (url.startsWith('/subscriptions/cancel')) return { success: true }
+  if (url.startsWith('/subscriptions/start-trial')) return { success: true, message: 'تم بدء الفترة التجريبية', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString() }
+
   // Generic entity CRUD
   const entityMatch = url.match(/^\/(\w+)(?:\/(\w+))?(?:\/(\w+))?/)
   if (entityMatch) {

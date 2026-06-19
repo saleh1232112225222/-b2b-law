@@ -38,15 +38,25 @@ export const useLicensingStore = defineStore('licensing', () => {
         }
 
         try {
-          const response = await fetch('/api/subscriptions/status', {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
-          })
+          let data: any
 
-          if (response.ok) {
-            const data = await response.json()
+          // Try via the main API adapter first (handles mock mode)
+          try {
+            data = await (window as any).api.subscriptions.getStatus()
+          } catch {
+            // Fallback to direct fetch
+            const response = await fetch('/api/subscriptions/status', {
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            })
+            if (response.ok) {
+              data = await response.json()
+            } else {
+              throw new Error('API error')
+            }
+          }
             
             subscriptionStatus.value = {
               status: data.status || (data.isActive ? 'active' : 'expired'),
