@@ -63,3 +63,9 @@ node_modules
 # Agent/IDE metadata
 .opencode/
 .sandbox-home/
+
+# Test screenshots and results
+test-*.png
+debug-*.png
+test-results/
+*.log

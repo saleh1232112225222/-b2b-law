@@ -404,7 +404,7 @@ onMounted(async () => {
     }
 
     window.dispatchEvent(new Event('auth-changed'))
-    router.push('/dashboard')
+    router.replace('/dashboard')
   }
 })
 
@@ -456,7 +456,7 @@ const handleLogin = async () => {
       return
     }
 
-    router.push('/dashboard')
+    router.replace('/dashboard')
   } catch (e: any) {
     const errData = e?.response?.data?.error || e?.message || ''
     if (errData === 'TrialExpired' || e?.response?.data?.message === 'TrialExpired') {

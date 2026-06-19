@@ -132,7 +132,7 @@
           </v-list>
 
           <!-- Sidebar Footer -->
-          <div class="sidebar-footer-action mt-auto d-flex flex-column gap-2">
+          <div class="sidebar-footer-action mt-auto">
             <v-btn
               block
               color="white"
@@ -143,20 +143,6 @@
             >
               <LucideIcon name="log-out" :size="18" :class="rail ? '' : 'me-2'" />
               <span v-if="!rail">تسجيل الخروج</span>
-            </v-btn>
-
-            <!-- Technical Support Button for Mobile / Rail -->
-            <v-btn
-              v-if="isMobile || rail"
-              block
-              color="accent"
-              variant="text"
-              size="small"
-              class="rounded-xl font-weight-bold"
-              @click="showSupportDialog = true"
-            >
-              <LucideIcon name="info" :size="16" class="me-1" />
-              <span>الدعم الفني</span>
             </v-btn>
           </div>
         </div>
@@ -176,7 +162,7 @@
             <LucideIcon name="menu" :size="22" />
           </v-btn>
           <v-btn v-else icon variant="text" class="me-4 header-action-btn" @click="rail = !rail">
-            <LucideIcon :name="rail ? 'panel-right-open' : 'panel-right-close'" :size="22" />
+            <LucideIcon :name="rail ? 'layout-dashboard' : 'layout-dashboard'" :size="22" />
           </v-btn>
 
           <v-toolbar-title class="font-weight-black text-h5 text-visible-high">
@@ -265,7 +251,7 @@
         <div class="main-body-wrapper" :class="mainBodyPaddingClass">
           <!-- Premium Read-Only Banner when Trial is Expired -->
           <v-alert
-            v-if="trialInfo && !trialInfo.isValid"
+            v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated"
             type="warning"
             variant="flat"
             density="comfortable"
@@ -277,14 +263,15 @@
               <div class="d-flex align-center">
                 <LucideIcon name="shield-alert" :size="20" class="me-2" />
                 <span
-                  >انتهت الفترة التجريبية للبرنامج. تم تفعيل
-                  <strong>وضع القراءة فقط</strong> للحفاظ على سلامة بياناتك وتصفحها. يرجى التواصل معنا للتفعيل لتتمكن من إضافة أو تعديل البيانات.</span
+                  >انتهت الفترة التجريبية للبرنامج (30 يومًا). تم تفعيل
+                  <strong>وضع القراءة فقط</strong> للحفاظ على سلامة بياناتك وتصفحها. يرجى التنشيط
+                  بمفتاح تفعيل صالح لتتمكن من إضافة أو تعديل البيانات.</span
                 >
               </div>
               <v-btn
                 color="amber-darken-3"
                 size="small"
-                class="rounded-lg text-white font-weight-black"
+                class="rounded-lg text-white font-weight-bold"
                 @click="router.push('/settings')"
               >
                 تنشيط البرنامج الآن
@@ -302,7 +289,7 @@
 
       <!-- Clean Minimal Footer -->
       <v-footer
-        v-if="!hideLayout && !isMobile"
+        v-if="!hideLayout"
         app
         flat
         border
@@ -558,6 +545,9 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <!-- Global Quick View Drawer -->
+    <QuickViewDrawer />
   </v-app>
 </template>
 
@@ -571,6 +561,7 @@ import { useLicensingStore } from './stores/licensing'
 import { useAppStore } from './stores/app'
 import LucideIcon from './components/common/LucideIcon.vue'
 import appLogo from './assets/app-logo.png'
+import QuickViewDrawer from './components/common/QuickViewDrawer.vue'
 
 const appStore = useAppStore()
 console.log('[DEBUG] AppStore initialized:', appStore.hasUnsavedChanges)
@@ -605,7 +596,7 @@ const hideLayout = computed(() => isLoginPage.value || route.query.window === 'n
 const mainBodyPaddingClass = computed(() => {
   if (hideLayout.value) return 'pa-0'
   if (route.name === 'Dashboard') return 'pa-0'
-  return isMobile.value ? 'pa-0' : 'pa-8'
+  return isMobile.value ? 'pa-4' : 'pa-8'
 })
 
 const appRightInset = computed(() => {
@@ -686,8 +677,6 @@ const currentRouteName = computed(() => {
 })
 
 const categorizedMenu = computed(() => {
-  // Explicitly depend on session so this re-computes on auth changes
-  const _s = session.value
   const baseStructure = [
     { title: 'لوحة التحكم', icon: 'layout-dashboard', to: '/dashboard' },
     {
@@ -779,27 +768,19 @@ const categorizedMenu = computed(() => {
     }
   ]
 
-  // Helper: check permission using current session
-  const hasPermission = (perm?: string): boolean => {
-    if (!perm) return true
-    if (!_s) return false
-    if (_s.roleKey === 'admin') return true
-    return Array.isArray((_s as any).permissions) && ((_s as any).permissions as string[]).includes(perm)
-  }
-
   return baseStructure
-    .map((item: any) => {
+    .map((item) => {
       const newItem = { ...item }
       if (newItem.children) {
         newItem.children = newItem.children.filter(
-          (c: any) => hasPermission(c.perm)
+          (c) => !c.perm || (typeof can === 'function' && can(c.perm))
         )
       }
       return newItem
     })
-    .filter((item: any) => {
+    .filter((item) => {
       if (item.children) return item.children.length > 0
-      return hasPermission(item.perm)
+      return !item.perm || (typeof can === 'function' && can(item.perm))
     })
 })
 
@@ -815,29 +796,33 @@ const handleLogout = async (force: boolean | any = false): Promise<void> => {
     return
   }
 
+  // Clear auth and notify all listeners
   localStorage.removeItem('web_isLoggedIn')
-  router.push('/login')
+  localStorage.removeItem('web_currentUserSession')
+  localStorage.removeItem('web_currentUser')
+  window.dispatchEvent(new Event('auth-changed'))
+  router.replace('/login')
   appStore.clearChanges()
 }
 
 const handleSmartLogout = async () => {
+  // For web mode, skip vault operations and just do logout
+  if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    appStore.clearChanges()
+    showLogoutConfirm.value = false
+    handleLogout(true)
+    return
+  }
+  
   isSavingSnapshot.value = true
   try {
-    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
-      // Web mode: just clear changes and logout
+    const res = await (window as any).api.system.exportAutoSnapshotToVault()
+    if (res.success) {
       appStore.clearChanges()
       showLogoutConfirm.value = false
       handleLogout(true)
     } else {
-      // Desktop mode: use vault API
-      const res = await (window as any).api.system.exportAutoSnapshotToVault()
-      if (res.success) {
-        appStore.clearChanges()
-        showLogoutConfirm.value = false
-        handleLogout(true)
-      } else {
-        alert('فشل حفظ النسخة الاحتياطية: ' + res.message)
-      }
+      alert('فشل حفظ النسخة الاحتياطية: ' + res.message)
     }
   } catch (e: any) {
     console.error(e)
@@ -904,47 +889,12 @@ onMounted(async () => {
   // Attach global read-only click capture gate
   window.addEventListener('click', handleGlobalClickGate, { capture: true })
 
-  // Restore session if logged in to guarantee permissions are loaded
-  const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
-  if (isLoggedIn) {
-    try {
-      if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
-        // Web mode: use cloud session
-        const s = await (window as any).api.auth.getSession()
-        if (s) {
-          localStorage.setItem('web_currentUserSession', JSON.stringify(s))
-          localStorage.setItem(
-            'web_currentUser',
-            JSON.stringify({ username: s.username, roleKey: s.roleKey })
-          )
-          window.dispatchEvent(new Event('auth-changed'))
-        }
-      } else {
-        // Desktop mode: use desktop API
-        const s = await (window as any).api.auth.getSession()
-        if (s) {
-          localStorage.setItem('web_currentUserSession', JSON.stringify(s))
-          localStorage.setItem(
-            'web_currentUser',
-            JSON.stringify({ username: s.username, roleKey: s.roleKey })
-          )
-          window.dispatchEvent(new Event('auth-changed'))
-        }
-      }
-    } catch (e) {
-      console.error('[AUTH] Failed to restore session on mount:', e)
-    }
-  }
-
   // Fetch Trial Info via Store
   licensingStore.refreshStatus()
 
   // Fetch Developer Info
   try {
-    if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
-      const info = await (window as any).api.system.getDeveloperInfo()
-      developerInfo.value = info
-    } else {
+    if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
       // Mock developer info for web mode
       developerInfo.value = {
         name: 'B2B Legal System',
@@ -957,12 +907,15 @@ onMounted(async () => {
           legal: 'هذا البرنامج يعتبر أداة مساعدة فقط ولا يعتبر بديلاً عن الاستشارة القانونية المتخصصة.'
         }
       }
+    } else {
+      const info = await (window as any).api.system.getDeveloperInfo()
+      developerInfo.value = info
     }
   } catch (e) {
     console.error('Failed to fetch dev info', e)
   }
 
-  // --- Inactivity Tracking (Auto-Lock) ---
+  // --- Inactivity Tracking (Auto-Lock) - Only for desktop mode ---
   if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
     let lastTouchTime = 0
     const TOUCH_THROTTLE_MS = 30000 // 30 seconds
@@ -993,6 +946,12 @@ onMounted(async () => {
       window.addEventListener(event, handleUserActivity, { passive: true })
     })
 
+    // Listen for theme changes from settings
+    const handleThemeChange = (e: any) => {
+      isDark.value = e.detail === 'dark'
+    }
+    window.addEventListener('theme-changed', handleThemeChange)
+
     // Cleanup on unmount
     onUnmounted(() => {
       unbindLockListener()
@@ -1006,15 +965,8 @@ onMounted(async () => {
     // Cleanup on unmount for web mode
     onUnmounted(() => {
       window.removeEventListener('click', handleGlobalClickGate, { capture: true })
-      window.removeEventListener('theme-changed', handleThemeChange)
     })
   }
-
-  // Listen for theme changes from settings
-  const handleThemeChange = (e: any) => {
-    isDark.value = e.detail === 'dark'
-  }
-  window.addEventListener('theme-changed', handleThemeChange)
 })
 </script>
 
@@ -1023,12 +975,6 @@ onMounted(async () => {
   background: transparent;
 }
 
-/* ============================================================
-   APP SHELL — SIDEBAR, HEADER, FOOTER
-   Premium Enterprise Law SaaS Styling
-   ============================================================ */
-
-/* ---- Sidebar Drawer ---- */
 .premium-sidebar-modern {
   background: transparent !important;
   border-left: none !important;
@@ -1052,219 +998,172 @@ onMounted(async () => {
   width: 300px !important;
   max-width: 300px !important;
   min-width: 300px !important;
-  z-index: 2500 !important;
 }
 
-/* ---- Sidebar Inner Wrapper ---- */
 .sidebar-wrapper {
-  margin: 10px;
-  height: calc(100vh - 20px) !important;
-  border-radius: 16px !important;
-  background: var(--sidebar-bg) !important;
-  border: 1px solid rgba(233, 195, 73, 0.12) !important;
-  box-shadow: 0 24px 80px -32px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
-  overflow: hidden;
+  margin: 12px;
+  height: calc(100vh - 24px) !important;
+  border-radius: var(--radius-lg) !important;
+  background: #1a4b84 !important; /* Light Navy */
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 28px 80px -40px rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  overflow: hidden; /* Prevent content overflow */
 }
 
-/* ---- Sidebar Identity Section ---- */
 .sidebar-identity {
-  margin-bottom: 20px;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.12);
+  margin-bottom: 40px;
+  padding: 24px;
 }
 
-.sidebar-identity .v-avatar {
-  border: 2px solid rgba(233, 195, 73, 0.3);
-  box-shadow: 0 0 20px rgba(233, 195, 73, 0.15);
-  transition: var(--transition-smooth);
-}
-
-.sidebar-identity .v-avatar:hover {
-  border-color: var(--accent);
-  box-shadow: 0 0 30px rgba(233, 195, 73, 0.25);
-}
-
-/* ---- Sidebar Navigation List ---- */
 .sidebar-nav-list {
-  overflow-y: auto !important;
+  overflow-y: auto;
   scrollbar-width: none;
-  padding: 0 8px !important;
-  min-height: 0 !important;
-  flex: 1 1 0% !important;
-  margin-bottom: 12px !important;
 }
 .sidebar-nav-list::-webkit-scrollbar {
   display: none;
 }
 
-/* ---- Sidebar Menu Items (Top-level / Standalone) ---- */
 .menu-item-modern {
-  color: var(--sidebar-text) !important;
-  transition: var(--transition-smooth);
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border-radius: 10px !important;
-  margin-bottom: 4px !important;
-  min-height: 44px !important;
+  color: #ffffff !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1.5px solid rgba(255, 255, 255, 0.6) !important; /* بارزة ومحاطة بإطار */
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .menu-item-modern .v-list-item-title {
   color: inherit !important;
-  font-size: 0.85rem !important;
 }
 
 .menu-item-modern :deep(.lucide-icon) {
-  stroke: var(--sidebar-text) !important;
-  transition: var(--transition-fast);
+  stroke: #ffffff !important;
 }
 
 .menu-item-modern:hover {
-  background: rgba(233, 195, 73, 0.12) !important;
-  border-color: rgba(233, 195, 73, 0.3) !important;
-  color: #FFFFFF !important;
-  transform: translateX(-2px);
+  background: #e9c349 !important; /* ذهبي */
+  border-color: #e9c349 !important; /* إطار ذهبي رفيع */
+  color: #1a4b84 !important; /* نص كحلي للتباين مع الذهبي */
+  transform: translateX(-4px) scale(1.02);
 }
 
 .menu-item-modern:hover :deep(.lucide-icon) {
-  stroke: var(--accent) !important;
+  stroke: #1a4b84 !important;
 }
 
 .v-list-item--active.menu-item-modern {
-  background: rgba(233, 195, 73, 0.14) !important;
-  color: var(--accent) !important;
-  border-color: rgba(233, 195, 73, 0.4) !important;
-  box-shadow: 0 0 16px rgba(233, 195, 73, 0.10) !important;
+  background: rgba(233, 195, 73, 0.15) !important;
+  color: #e9c349 !important;
+  border-color: #e9c349 !important;
+  box-shadow: 0 0 20px rgba(233, 195, 73, 0.2) !important;
 }
 
 .v-list-item--active.menu-item-modern :deep(.lucide-icon) {
-  stroke: var(--accent) !important;
+  stroke: #e9c349 !important;
 }
 
-/* ---- Sidebar Sub-menu Items (Children) ---- */
 .menu-item-child {
-  color: var(--sidebar-text) !important;
-  padding-right: 32px !important;
-  transition: var(--transition-smooth);
-  border: none !important;
-  background: transparent !important;
-  margin-bottom: 2px !important;
-  margin-left: 16px !important;
-  margin-right: 8px !important;
-  min-height: 34px !important;
-  border-radius: 8px !important;
+  color: rgba(255, 255, 255, 0.7) !important;
+  padding-right: 36px !important; /* تقليص إضافي للمساحة */
+  transition: all 0.3s ease;
+  border: 0.5px solid rgba(255, 255, 255, 0.1) !important; /* تقليص حجم الإطار (السمك) */
+  background: rgba(255, 255, 255, 0.01) !important;
+  margin-bottom: 3px !important;
+  margin-left: 24px !important; /* تضييق المساحة المشغولة أكثر */
+  min-height: 28px !important;
 }
 
 .menu-item-child .v-list-item-title {
   color: inherit !important;
-  font-weight: 600 !important;
-  font-size: 0.78rem !important;
+  font-weight: 700 !important;
+  font-size: 0.75rem !important; /* تكبير الخط بنسبة 10% تقريباً عن السابق لزيادة الوضوح */
 }
 
 .menu-item-child :deep(.lucide-icon) {
-  stroke: var(--sidebar-text) !important;
-  width: 16px !important;
-  height: 16px !important;
-  opacity: 0.7;
+  stroke: rgba(255, 255, 255, 0.7) !important;
+  width: 14px !important; /* تكبير الأيقونة قليلاً لتناسب الخط */
+  height: 14px !important;
 }
 
 .menu-item-child:hover {
-  background: rgba(233, 195, 73, 0.08) !important;
-  color: #FFFFFF !important;
+  background: #e9c349 !important;
+  color: #1a4b84 !important;
+  border-color: #e9c349 !important;
 }
 
 .menu-item-child:hover :deep(.lucide-icon) {
-  stroke: var(--accent) !important;
-  opacity: 1;
+  stroke: #1a4b84 !important;
 }
 
 .menu-item-child.v-list-item--active {
-  color: var(--accent) !important;
-  background: rgba(233, 195, 73, 0.10) !important;
+  color: #e9c349 !important;
+  background: rgba(233, 195, 73, 0.1) !important;
+  border-color: #e9c349 !important;
 }
 
-.menu-item-child.v-list-item--active :deep(.lucide-icon) {
-  stroke: var(--accent) !important;
-  opacity: 1;
-}
-
-/* ---- v-list-group activator caret ---- */
-.v-list-group :deep(.v-list-group__header .v-list-item__append .v-icon) {
-  color: var(--sidebar-text) !important;
-  opacity: 0.6;
-}
-
-/* ---- Glass Header (Top App Bar) ---- */
 .glass-header {
   z-index: 1100 !important;
   top: 0 !important;
   left: 0 !important;
   background: var(--glass-bg) !important;
   border-bottom: 1px solid var(--divider) !important;
-  border-radius: 0 !important;
-  box-shadow: 0 1px 0 var(--divider), 0 4px 20px -8px rgba(0, 0, 0, 0.06) !important;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
+  box-shadow: 0 18px 50px -34px rgba(15, 23, 42, 0.18) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   transition: var(--transition-premium);
 }
 
-[data-theme='dark'] .glass-header {
-  border-bottom: 1px solid rgba(233, 195, 73, 0.08) !important;
-  box-shadow: 0 1px 0 rgba(233, 195, 73, 0.06), 0 4px 24px -8px rgba(0, 0, 0, 0.3) !important;
-}
-
 .header-action-btn {
   background: var(--glass-bg) !important;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  transition: var(--transition-smooth);
+  border-radius: var(--radius-sm);
+  transition: var(--transition-premium);
 }
 
 .header-action-btn:hover {
-  border-color: var(--accent);
+  border-color: rgba(26, 75, 132, 0.35);
   color: var(--accent);
-  background: var(--accent-alpha) !important;
 }
 
-/* ---- Status Indicators ---- */
+/* Status Indicators */
 .status-indicator {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 0 10px;
+  gap: 8px;
+  padding: 0 12px;
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
 }
 .dot.green {
   background: var(--success);
-  box-shadow: 0 0 6px var(--success);
+  box-shadow: 0 0 8px var(--success);
 }
 
-.status-chip {
-  font-size: 0.7rem !important;
-  height: 24px !important;
-}
-
-/* ---- User Profile ---- */
 .user-profile-modern {
   cursor: pointer;
-  transition: var(--transition-smooth);
+  transition: var(--transition-premium);
 }
 .user-profile-modern:hover {
   background: var(--surface-hover) !important;
   border-color: var(--accent) !important;
 }
 
-/* ---- Accent Glow Border ---- */
 .border-accent-glow {
   border: 2px solid var(--accent);
   box-shadow: 0 0 15px var(--accent-glow);
 }
 
-/* ---- Glass Footer ---- */
+.glass-card-noir {
+  background: var(--glass-noir-bg);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-noir-border);
+}
+
 .glass-footer {
   background: var(--glass-bg) !important;
   border-top: 1px solid var(--divider) !important;
@@ -1272,21 +1171,19 @@ onMounted(async () => {
   -webkit-backdrop-filter: var(--glass-blur) !important;
 }
 
-/* ---- Logout Button ---- */
 .logout-btn-modern {
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
-  color: var(--sidebar-text) !important;
-  transition: var(--transition-smooth) !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
 }
 
 .logout-btn-modern:hover {
-  background: rgba(233, 195, 73, 0.12) !important;
-  color: var(--accent) !important;
-  border-color: rgba(233, 195, 73, 0.3) !important;
+  background: #e9c349 !important;
+  color: #1a4b84 !important;
+  border-color: #e9c349 !important;
 }
 
-/* ---- Logo Shine Animation ---- */
+/* Logo Shine Animation */
 .logo-shine-container {
   position: relative;
   width: fit-content;
@@ -1301,8 +1198,8 @@ onMounted(async () => {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.3),
-    rgba(233, 195, 73, 0.2),
+    rgba(255, 255, 255, 0.4),
+    rgba(233, 195, 73, 0.3),
     transparent
   );
   transform: skewX(-25deg);
@@ -1311,94 +1208,37 @@ onMounted(async () => {
 }
 
 @keyframes shimmer-swipe {
-  0% { left: -150%; }
-  20% { left: 150%; }
-  100% { left: 150%; }
+  0% {
+    left: -150%;
+  }
+  20% {
+    left: 150%;
+  }
+  100% {
+    left: 150%;
+  }
 }
 
-/* ---- Page Transitions ---- */
+.border-accent-glow {
+  border: 2.5px solid #e9c349 !important;
+  box-shadow: 0 0 20px rgba(233, 195, 73, 0.25) !important;
+}
+
+/* Global Animations */
 .premium-fade-enter-active,
 .premium-fade-leave-active {
-  transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.premium-fade-enter-from {
-  opacity: 0;
-  transform: translateY(8px);
-}
+.premium-fade-enter-from,
 .premium-fade-leave-to {
   opacity: 0;
-  transform: translateY(-8px);
+  transform: translateY(5px) scale(0.99);
 }
 
-/* ---- Mobile Responsive ---- */
+/* ---- Mobile responsive tweaks for App shell ---- */
 @media (max-width: 768px) {
   .glass-header :deep(.v-toolbar-title) {
     font-size: 1rem !important;
-  }
-
-  .glass-header :deep(.v-btn.me-4.header-action-btn) {
-    min-height: 40px;
-    min-width: 40px;
-  }
-
-  .glass-header :deep(.status-container) {
-    display: none !important;
-  }
-
-  .glass-header :deep(.header-clock) {
-    display: none !important;
-  }
-
-  .glass-header :deep(.user-profile-modern .text-right.me-4) {
-    display: none !important;
-  }
-
-  .glass-header :deep(.user-profile-modern) {
-    padding: 4px !important;
-  }
-
-  .glass-header :deep(.user-profile-modern .v-avatar) {
-    width: 36px !important;
-    height: 36px !important;
-  }
-
-  .glass-header :deep(.theme-toggle-btn) {
-    min-width: 40px;
-    min-height: 40px;
-    margin-right: 4px !important;
-    flex-shrink: 0;
-    border: 1px solid var(--border) !important;
-    background: var(--glass-bg) !important;
-    border-radius: 10px !important;
-  }
-
-  .glass-header :deep(.theme-toggle-btn:hover) {
-    border-color: var(--accent) !important;
-    background: var(--accent-alpha) !important;
-  }
-
-  .glass-header :deep(.theme-toggle-btn .lucide-icon) {
-    stroke: var(--gold, #E9C349) !important;
-  }
-
-  .dark-mode .glass-header :deep(.theme-toggle-btn .lucide-icon) {
-    stroke: var(--gold, #E9C349) !important;
-  }
-
-  .the-jurist-canvas .glass-header :deep(.theme-toggle-btn .lucide-icon) {
-    stroke: var(--primary-dark, #1A437D) !important;
-  }
-
-  .glass-footer {
-    height: 28px !important;
-  }
-
-  .glass-footer :deep(.text-caption) {
-    font-size: 0.65rem !important;
-  }
-
-  .glass-footer :deep(.dev-credit .text-caption) {
-    display: none;
   }
 }
 </style>

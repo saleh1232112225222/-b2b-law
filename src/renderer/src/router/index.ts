@@ -283,7 +283,7 @@ router.beforeEach(async (to) => {
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
   const isTestBypass = localStorage.getItem('testBypass') === 'true'
 
-  // Hard gate: if route requires auth but we don't have a local session flag
+  // Unified auth guard for both web and desktop modes
   if (to.meta.requiresAuth && !isLoggedIn && !isTestBypass) {
     return '/login'
   }
@@ -299,24 +299,35 @@ router.beforeEach(async (to) => {
   if (to.meta.requiresAuth && requiredPermissions.length > 0 && !isTestBypass) {
     let session: any = null
     try {
-      session = await (window as any)?.api?.auth?.getSession?.()
-      if (session) {
-        localStorage.setItem('web_currentUserSession', JSON.stringify(session))
-        localStorage.setItem(
-          'web_currentUser',
-          JSON.stringify({ username: session.username, roleKey: session.roleKey })
-        )
-        window.dispatchEvent(new Event('auth-changed'))
-      }
+      const raw = localStorage.getItem('web_currentUserSession')
+      if (raw) session = JSON.parse(raw)
     } catch {}
 
     if (!session) {
       try {
-        const raw = localStorage.getItem('web_currentUserSession')
-        if (raw) session = JSON.parse(raw)
-      } catch {
-        session = null
-      }
+        session = await (window as any)?.api?.auth?.getSession?.()
+        if (session) {
+          localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+          localStorage.setItem(
+            'web_currentUser',
+            JSON.stringify({ username: session.username, roleKey: session.roleKey })
+          )
+          window.dispatchEvent(new Event('auth-changed'))
+        }
+      } catch {}
+    } else {
+      setTimeout(async () => {
+        try {
+          const freshSession = await (window as any)?.api?.auth?.getSession?.()
+          if (freshSession) {
+            localStorage.setItem('web_currentUserSession', JSON.stringify(freshSession))
+            localStorage.setItem(
+              'web_currentUser',
+              JSON.stringify({ username: freshSession.username, roleKey: freshSession.roleKey })
+            )
+          }
+        } catch {}
+      }, 0)
     }
 
     const can = (k: string) =>
