@@ -83,6 +83,9 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       subscriptionStatus = subCheck.rows[0].status
     }
 
+    // Allow login even if trial expired - will be in read-only mode
+    // trialExpired flag is sent to frontend for read-only enforcement
+
     const token = generateToken({
       userId: user.id,
       companyId: user.company_id,

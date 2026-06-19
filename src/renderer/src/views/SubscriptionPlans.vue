@@ -1,5 +1,33 @@
 <template>
   <v-container fluid class="pa-6 subscription-page rtl">
+    <!-- Expired Trial Hero Banner -->
+    <v-alert
+      v-if="isTrialExpired"
+      type="warning"
+      variant="tonal"
+      border="start"
+      class="mb-6 rounded-xl"
+      prominent
+    >
+      <div class="d-flex align-center">
+        <div class="flex-grow-1">
+          <div class="text-h6 font-weight-black mb-1">انتهت فترة التجربة المجانية</div>
+          <div class="text-body-2">
+            يمكنك الوصول للبيانات بشكل قراءة فقط. للاشتراك في خطة مدفوعة والمتابعة، اختر الخطة المناسبة أدناه.
+          </div>
+        </div>
+        <v-btn
+          v-if="isTrialExpired"
+          color="warning"
+          variant="elevated"
+          class="ms-4 font-weight-black"
+          @click="openPlans"
+        >
+          اشترك الآن
+        </v-btn>
+      </div>
+    </v-alert>
+
     <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
@@ -152,7 +180,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLicensingStore } from '../stores/licensing'
 
@@ -168,6 +196,8 @@ const showSuccessDialog = ref(false)
 const selectedPlan = ref<any>(null)
 const processingPayment = ref(false)
 const paymentError = ref('')
+
+const isTrialExpired = computed(() => licensingStore.isTrialExpired)
 
 const fetchData = async () => {
   loading.value = true

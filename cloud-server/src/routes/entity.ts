@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { getCompanyId } from '../middleware/tenant'
+import { readOnlyOnExpiredTrial } from '../middleware/readOnlyOnExpired'
 
 interface EntityConfig {
   name: string
@@ -224,7 +225,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('create')) {
-    router.post('/', authMiddleware, async (req: Request, res: Response) => {
+    router.post('/', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body, company_id: companyId }
@@ -271,7 +272,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('update')) {
-    router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+    router.put('/:id', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body }
@@ -320,7 +321,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('delete')) {
-    router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+    router.delete('/:id', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(

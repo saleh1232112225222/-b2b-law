@@ -247,6 +247,29 @@
       </v-app-bar>
 
       <!-- Main View - Vuetify Layout Aware -->
+      <!-- Read-Only Banner - Shows when trial expired -->
+      <v-banner
+        v-if="isTrialExpired && !isLoginPage"
+        color="warning"
+        icon="mdi-lock-alert"
+        class="readonly-banner"
+        stacked
+        dense
+      >
+        <template #text>
+          <div class="d-flex align-center justify-space-between w-100">
+            <div>
+              <strong>انتهت فترة التجربة المجانية</strong>
+              <span class="ms-2">— يمكنك التصفح والقراءة فقط. </span>
+              <router-link to="/subscription" class="text-white text-decoration-underline font-weight-bold">
+                اشترك الآن
+              </router-link>
+              <span> للاستمرار.</span>
+            </div>
+          </div>
+        </template>
+      </v-banner>
+
       <v-main class="main-content-scroll">
         <div class="main-body-wrapper" :class="mainBodyPaddingClass">
           <!-- Premium Read-Only Banner when Trial is Expired -->
@@ -609,6 +632,7 @@ const openedGroups = ref<string[]>([])
 const currentTime = ref(new Date().toLocaleTimeString('ar-SA'))
 const licensingStore = useLicensingStore()
 const trialInfo = computed(() => licensingStore.trialInfo)
+const isTrialExpired = computed(() => licensingStore.isTrialExpired)
 const developerInfo = ref<any>(null)
 const showSupportDialog = ref(false)
 const showLogoutConfirm = ref(false)
@@ -887,8 +911,12 @@ onMounted(async () => {
   // Attach global read-only click capture gate
   window.addEventListener('click', handleGlobalClickGate, { capture: true })
 
-  // Fetch Trial Info via Store
-  licensingStore.refreshStatus()
+  // Fetch Trial Info via Store when not on login/register pages
+  watch(isLoginPage, (newVal) => {
+    if (!newVal) {
+      licensingStore.refreshStatus()
+    }
+  }, { immediate: true })
 
   // Fetch Developer Info
   try {

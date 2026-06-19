@@ -31,7 +31,14 @@ export function setCloudBaseUrl(url: string) {
           return Promise.reject(error)
         }
         localStorage.removeItem('b2b_cloud_token')
-        window.location.href = '/login'
+        const onAuthPage =
+          window.location.pathname === '/login' ||
+          window.location.pathname === '/register' ||
+          window.location.hash.includes('/login') ||
+          window.location.hash.includes('/register')
+        if (!onAuthPage) {
+          window.location.hash = '#/login'
+        }
       }
       return Promise.reject(error)
     }

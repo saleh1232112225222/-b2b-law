@@ -164,6 +164,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/admin/subscriptions',
+    name: 'AdminSubscriptions',
+    component: () => import('../views/AdminSubscriptions.vue'),
+    meta: { requiresAuth: true, permissions: ['manage_settings'] }
+  },
+  {
     path: '/search',
     name: 'Search',
     component: () => import('../views/Search.vue'),
@@ -292,6 +298,27 @@ router.beforeEach(async (to) => {
   // Unified auth guard for both web and desktop modes
   if (to.meta.requiresAuth && !isLoggedIn && !isTestBypass) {
     return '/login'
+  }
+
+  // Check subscription status for web mode
+  if (to.meta.requiresAuth && isLoggedIn && typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    const sessionData = localStorage.getItem('web_currentUserSession')
+    if (sessionData) {
+      try {
+        const session = JSON.parse(sessionData)
+        
+        // If trial expired and no active subscription - allow access but in read-only mode
+        // Frontend will enforce read-only UI (hide add/edit/delete buttons)
+        if (session.trialExpired && session.subscriptionStatus !== 'active') {
+          // Store read-only flag for components to check
+          sessionStorage.setItem('app_readonly', 'true')
+        } else {
+          sessionStorage.removeItem('app_readonly')
+        }
+      } catch (e) {
+        console.error('Failed to parse session for subscription check:', e)
+      }
+    }
   }
 
   const requiredPermissions = (

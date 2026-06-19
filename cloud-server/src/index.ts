@@ -31,6 +31,7 @@ import { sessionOutcomesRouter } from './routes/session-outcomes'
 import { tasksRouter } from './routes/tasks'
 import { marketingRouter } from './routes/marketing'
 import { subscriptionRouter } from './routes/subscriptions'
+import { adminSubscriptionRouter } from './routes/adminSubscriptions'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -75,6 +76,7 @@ app.use('/api/contracts', contractsRouter)
 app.use('/api/session-outcomes', sessionOutcomesRouter)
 app.use('/api/tasks', tasksRouter)
 app.use('/api/subscriptions', subscriptionRouter)
+app.use('/api/admin/subscriptions', adminSubscriptionRouter)
 app.use('/api', marketingRouter)
 
 const entityTables = [
