@@ -326,10 +326,10 @@ async function seedSuperAdmin() {
 
     if (adminCheck.rows.length === 0) {
       // Create the seeded owner admin with the configured bootstrap hash.
-      // Password hash: '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK'
+      // Password hash: bcrypt('admin1390', 12)
       await dbQuery(
         `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
         []
       )
       console.log('[SEED] Super Admin user created')
