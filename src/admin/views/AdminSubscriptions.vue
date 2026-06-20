@@ -387,8 +387,8 @@ async function fetchData() {
       apiRequest('GET', '/api/admin/subscriptions'),
       apiRequest('GET', '/api/admin/subscriptions/stats/overview')
     ])
-    companies.value = companiesRes.data || []
-    stats.value = statsRes.data || {}
+    companies.value = companiesRes.data?.data || companiesRes.data || []
+    stats.value = statsRes.data?.subscriptions || statsRes.data || {}
   } catch (error) {
     console.error('Failed to fetch subscription data:', error)
   }
@@ -397,7 +397,7 @@ async function fetchData() {
 async function fetchPlans() {
   try {
     const response = await apiRequest('GET', '/api/subscriptions/plans')
-    availablePlans.value = response.data || []
+    availablePlans.value = response.data?.data || response.data || []
   } catch (error) {
     console.error('Failed to fetch plans:', error)
   }
