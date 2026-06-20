@@ -324,17 +324,23 @@ async function seedSuperAdmin() {
       ['admin', '00000000-0000-0000-0000-000000000000']
     )
 
+    const ADMIN_HASH = '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm'
+
     if (adminCheck.rows.length === 0) {
       // Create the seeded owner admin with the configured bootstrap hash.
-      // Password hash: bcrypt('admin1390', 12)
       await dbQuery(
         `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '${ADMIN_HASH}', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
         []
       )
       console.log('[SEED] Super Admin user created')
     } else {
-      console.log('[SEED] Super Admin user already exists')
+      // Always update the password hash to ensure it matches the expected hash
+      await dbQuery(
+        `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com' WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
+        []
+      )
+      console.log('[SEED] Super Admin password hash synced')
     }
   } catch (err) {
     console.error('[SEED] Failed to seed super admin:', err)
