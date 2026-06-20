@@ -234,13 +234,8 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
   try {
     const { companyId, planId, durationMonths, durationYears, lifetime } = req.body
     
-    if (!companyId) {
-      return res.status(400).json({ error: 'معرف الشركة مطلوب' })
-    }
-    
-    // planId is optional when lifetime is true
-    if (!planId && !lifetime) {
-      return res.status(400).json({ error: 'معرف الخطة مطلوب أو حدد اشتراك مدى الحياة' })
+    if (!companyId || !planId) {
+      return res.status(400).json({ error: 'معرف الشركة ومعرف الخطة مطلوبان' })
     }
     
     const companyResult = await query('SELECT id, name FROM companies WHERE id = $1', [companyId])
@@ -248,21 +243,15 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
       return res.status(404).json({ error: 'الشركة غير موجودة' })
     }
     
-    let resolvedPlanId = planId || null
-    
-    if (planId) {
-      const planResult = await query('SELECT id, name_ar, interval FROM plans WHERE id = $1', [planId])
-      if (planResult.rows.length === 0) {
-        return res.status(404).json({ error: 'الخطة غير موجودة' })
-      }
+    const planResult = await query('SELECT id, name_ar, interval FROM plans WHERE id = $1', [planId])
+    if (planResult.rows.length === 0) {
+      return res.status(404).json({ error: 'الخطة غير موجودة' })
     }
     
     const now = new Date()
     let periodEnd = new Date(now)
-    let status = 'active'
     
     if (lifetime) {
-      status = 'lifetime'
       periodEnd.setFullYear(2099, 11, 31)
     } else if (durationYears && durationYears > 0) {
       const limitedYears = Math.min(Number(durationYears), 100)
@@ -270,15 +259,12 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
     } else if (durationMonths && durationMonths > 0) {
       const limitedMonths = Math.min(Number(durationMonths), 1200)
       periodEnd.setMonth(periodEnd.getMonth() + limitedMonths)
-    } else if (planId) {
-      const planResult = await query('SELECT interval FROM plans WHERE id = $1', [planId])
-      if (planResult.rows.length > 0) {
-        const planInterval = planResult.rows[0].interval
-        if (planInterval === 'month') {
-          periodEnd.setMonth(periodEnd.getMonth() + 1)
-        } else if (planInterval === 'year') {
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-        }
+    } else {
+      const planInterval = planResult.rows[0].interval
+      if (planInterval === 'month') {
+        periodEnd.setMonth(periodEnd.getMonth() + 1)
+      } else if (planInterval === 'year') {
+        periodEnd.setFullYear(periodEnd.getFullYear() + 1)
       }
     }
     
@@ -290,19 +276,19 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
     if (existingSub.rows.length > 0) {
       await query(
         `UPDATE subscriptions 
-         SET plan_id = $1, status = $5, 
+         SET plan_id = $1, status = 'active', 
              current_period_start = $2, current_period_end = $3,
              trial_start = NULL, trial_end = NULL,
              canceled_at = NULL, updated_at = NOW()
          WHERE id = $4`,
-        [resolvedPlanId, now, periodEnd, existingSub.rows[0].id, status]
+        [planId, now, periodEnd, existingSub.rows[0].id]
       )
     } else {
       await query(
         `INSERT INTO subscriptions (id, company_id, plan_id, status, 
           current_period_start, current_period_end)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [uuidv4(), companyId, resolvedPlanId, status, now, periodEnd]
+         VALUES ($1, $2, $3, 'active', $4, $5)`,
+        [uuidv4(), companyId, planId, now, periodEnd]
       )
     }
     
