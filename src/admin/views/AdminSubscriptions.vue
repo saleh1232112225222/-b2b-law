@@ -1,653 +1,839 @@
 <template>
-  <v-container fluid class="pa-6 rtl">
-    <!-- Page Header -->
-    <v-row dense class="mb-6 align-center">
-      <v-col>
-        <div class="d-flex align-center">
-          <div class="bg-white pa-4 rounded-xl me-5 border-gold-alpha">
-            <LucideIcon name="crown" :size="36" class="text-gold" />
-          </div>
-          <div>
-            <h1 class="text-h5 font-weight-black text-pure-black mb-1">إدارة الاشتراكات</h1>
-            <p class="text-subtitle-1 text-pure-black font-weight-black">
-              إدارة اشتراكات العملاء وتفعيل الخطط
-            </p>
-          </div>
+  <div class="admin-subscriptions-page">
+    <div class="page-header">
+      <h1>إدارة الاشتراكات</h1>
+      <button class="btn-primary" @click="openAddSubscriberDialog">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        إضافة مشترك جديد
+      </button>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon active"></div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.activeCount }}</div>
+          <div class="stat-label">نشط</div>
         </div>
-      </v-col>
-    </v-row>
-
-    <!-- Stats Cards -->
-    <v-row dense class="mb-6">
-      <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="bg-white pa-5 rounded-xl border-gold-alpha">
-          <div class="d-flex align-center">
-            <div class="pa-3 rounded-lg me-4" style="background: rgba(76, 175, 80, 0.1)">
-              <LucideIcon name="shield-check" :size="28" class="text-success" />
-            </div>
-            <div>
-              <div class="text-caption text-grey-darken-1 mb-1">اشتراكات نشطة</div>
-              <div class="text-h4 font-weight-black text-success">{{ stats.activeCount }}</div>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="bg-white pa-5 rounded-xl border-gold-alpha">
-          <div class="d-flex align-center">
-            <div class="pa-3 rounded-lg me-4" style="background: rgba(33, 150, 243, 0.1)">
-              <LucideIcon name="clock" :size="28" class="text-info" />
-            </div>
-            <div>
-              <div class="text-caption text-grey-darken-1 mb-1">اشتراكات تجريبية</div>
-              <div class="text-h4 font-weight-black text-info">{{ stats.trialCount }}</div>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="bg-white pa-5 rounded-xl border-gold-alpha">
-          <div class="d-flex align-center">
-            <div class="pa-3 rounded-lg me-4" style="background: rgba(255, 152, 0, 0.1)">
-              <LucideIcon name="alert-triangle" :size="28" class="text-warning" />
-            </div>
-            <div>
-              <div class="text-caption text-grey-darken-1 mb-1">اشتراكات منتهية</div>
-              <div class="text-h4 font-weight-black text-warning">{{ stats.expiredCount }}</div>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
-      <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="bg-white pa-5 rounded-xl border-gold-alpha">
-          <div class="d-flex align-center">
-            <div class="pa-3 rounded-lg me-4" style="background: rgba(158, 158, 158, 0.1)">
-              <LucideIcon name="users" :size="28" class="text-grey" />
-            </div>
-            <div>
-              <div class="text-caption text-grey-darken-1 mb-1">إجمالي العملاء</div>
-              <div class="text-h4 font-weight-black text-grey-darken-1">{{ stats.totalCustomers }}</div>
-            </div>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-
-    <!-- Loading -->
-    <v-row v-if="loading" class="justify-center py-12">
-      <v-progress-circular indeterminate color="gold" :size="48" />
-    </v-row>
-
-    <!-- Data Table -->
-    <v-card v-else elevation="0" class="bg-white rounded-xl border-gold-alpha overflow-hidden">
-      <div class="pa-4 px-6 bg-gold-gradient d-flex align-center">
-        <LucideIcon name="list" :size="22" class="me-3 text-ebony" />
-        <span class="text-h6 font-weight-black text-ebony">قائمة الاشتراكات</span>
-        <v-spacer />
-        <v-btn
-          variant="text"
-          icon
-          color="ebony"
-          @click="fetchData"
-        >
-          <LucideIcon name="refresh-cw" :size="20" />
-        </v-btn>
       </div>
+      <div class="stat-card">
+        <div class="stat-icon trial"></div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.trialCount }}</div>
+          <div class="stat-label">تجربة</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon expired"></div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.expiredCount }}</div>
+          <div class="stat-label">منتهية</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon canceled"></div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.canceledCount }}</div>
+          <div class="stat-label">ملغاة</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon none"></div>
+        <div class="stat-info">
+          <div class="stat-value">{{ stats.noSubscriptionCount }}</div>
+          <div class="stat-label">بدون اشتراك</div>
+        </div>
+      </div>
+    </div>
 
-      <v-table class="glass-table">
+    <div class="table-container">
+      <table class="subscriptions-table">
         <thead>
           <tr>
-            <th class="font-weight-black text-body-2">الشركة</th>
-            <th class="font-weight-black text-body-2">الحالة</th>
-            <th class="font-weight-black text-body-2">الخطة</th>
-            <th class="font-weight-black text-body-2">الأيام المتبقية</th>
-            <th class="font-weight-black text-body-2">تاريخ الانتهاء</th>
-            <th class="font-weight-black text-body-2 text-center">الإجراءات</th>
+            <th>اسم الشركة</th>
+            <th>البريد الإلكتروني</th>
+            <th>الهاتف</th>
+            <th>الحالة</th>
+            <th>الخطة</th>
+            <th>الأيام المتبقية</th>
+            <th>تاريخ الانتهاء</th>
+            <th>الإجراءات</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="sub in subscriptions" :key="sub.companyId">
+          <tr v-for="company in companies" :key="company.id">
+            <td>{{ company.companyName }}</td>
+            <td>{{ company.email }}</td>
+            <td>{{ company.phone }}</td>
             <td>
-              <div class="d-flex align-center py-2">
-                <v-avatar size="40" color="gold" class="me-3">
-                  <span class="text-white font-weight-black text-h6">{{ getInitial(sub.companyName) }}</span>
-                </v-avatar>
-                <div>
-                  <div class="text-body-2 font-weight-black text-pure-black">{{ sub.companyName }}</div>
-                  <div class="text-caption text-grey-darken-1">{{ sub.email || '-' }}</div>
-                </div>
-              </div>
+              <span class="status-badge" :class="getStatusClass(company.effectiveStatus)">
+                {{ getStatusText(company.effectiveStatus) }}
+              </span>
             </td>
-            <td>
-              <v-chip
-                :color="getStatusColor(sub.status)"
-                size="small"
-                variant="elevated"
-                class="font-weight-black"
-              >
-                {{ getStatusText(sub.status) }}
-              </v-chip>
-            </td>
-            <td>
-              <span class="text-body-2 font-weight-black">{{ sub.planName || '-' }}</span>
-            </td>
-            <td>
-              <v-chip
-                v-if="sub.daysRemaining !== undefined && sub.daysRemaining !== null"
-                :color="sub.daysRemaining <= 0 ? 'error' : sub.daysRemaining <= 7 ? 'warning' : 'success'"
-                size="small"
-                variant="tonal"
-                class="font-weight-black"
-              >
-                {{ sub.daysRemaining <= 0 ? 'منتهي' : sub.daysRemaining + ' يوم' }}
-              </v-chip>
-              <span v-else class="text-body-2 text-grey">-</span>
-            </td>
-            <td>
-              <span class="text-body-2">{{ sub.expiryDate ? formatDate(sub.expiryDate) : '-' }}</span>
-            </td>
-            <td>
-              <div class="d-flex align-center justify-center" style="gap: 4px">
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="success"
-                  title="تفعيل"
-                  @click="openActivateDialog(sub)"
-                >
-                  <LucideIcon name="check-circle" :size="18" />
-                </v-btn>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="info"
-                  title="تمديد"
-                  @click="openExtendDialog(sub)"
-                >
-                  <LucideIcon name="calendar-plus" :size="18" />
-                </v-btn>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="warning"
-                  title="إيقاف"
-                  @click="suspendSubscription(sub)"
-                >
-                  <LucideIcon name="pause-circle" :size="18" />
-                </v-btn>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="error"
-                  title="إلغاء"
-                  @click="cancelSubscription(sub)"
-                >
-                  <LucideIcon name="x-circle" :size="18" />
-                </v-btn>
-              </div>
-            </td>
-          </tr>
-          <tr v-if="!subscriptions.length">
-            <td colspan="6" class="text-center py-8">
-              <div class="text-grey">
-                <LucideIcon name="inbox" :size="48" class="mb-3" />
-                <div class="text-body-1 font-weight-black">لا توجد اشتراكات</div>
-              </div>
+            <td>{{ company.planName || '-' }}</td>
+            <td>{{ company.daysRemaining }}</td>
+            <td>{{ formatDate(company.expiryDate) }}</td>
+            <td class="actions">
+              <button class="btn-icon" @click="openActivateDialog(company)" title="تفعيل الاشتراك">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </button>
+              <button class="btn-icon" @click="openExtendDialog(company)" title="تمديد الاشتراك">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M4 4v5h.01M20 14v5h-5M14 14l-5 5m0-5l5-5"/>
+                </svg>
+              </button>
+              <button class="btn-icon danger" @click="suspendSubscription(company)" title="تعليق الاشتراك">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10 11l-4 4m0 0l4-4m-4 4V7m8 14l4-4m-4 0l4 4"/>
+                </svg>
+              </button>
+              <button class="btn-icon" @click="cancelSubscription(company)" title="إلغاء الاشتراك">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </button>
             </td>
           </tr>
         </tbody>
-      </v-table>
-    </v-card>
+      </table>
+    </div>
 
-    <!-- Activate Dialog -->
-    <v-dialog v-model="activateDialog.show" max-width="520" persistent>
-      <v-card class="rounded-xl">
-        <div class="pa-5 bg-gold-gradient d-flex align-center">
-          <LucideIcon name="shield-check" :size="24" class="me-3 text-ebony" />
-          <span class="text-h6 font-weight-black text-ebony">تفعيل اشتراك</span>
-          <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="activateDialog.show = false">
-            <LucideIcon name="x" :size="22" />
-          </v-btn>
+    <!-- Add Subscriber Dialog -->
+    <div class="modal" :class="{ 'show': showAddSubscriberDialog }" @click="closeAddSubscriberDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>إضافة مشترك جديد</h3>
+          <button class="close-btn" @click="closeAddSubscriberDialog">×</button>
         </div>
-
-        <v-card-text class="pa-6 rtl">
-          <div class="text-body-1 font-weight-black mb-4">
-            الشركة: {{ activateDialog.companyName }}
-          </div>
-
-          <v-select
-            v-model="activateDialog.planId"
-            :items="plans"
-            item-title="name_ar"
-            item-value="id"
-            label="اختر الخطة"
-            variant="outlined"
-            density="comfortable"
-            class="mb-4"
-          />
-
-          <v-select
-            v-model="activateDialog.duration"
-            :items="durationOptions"
-            item-title="label"
-            item-value="value"
-            label="المدة"
-            variant="outlined"
-            density="comfortable"
-            class="mb-4"
-            :disabled="activateDialog.isLifetime"
-          />
-
-          <v-checkbox
-            v-model="activateDialog.isLifetime"
-            label="اشتراك مدى الحياة"
-            color="gold"
-            hide-details
-            class="mb-4"
-          />
-
-          <v-alert v-if="activateDialog.error" type="error" variant="tonal" class="mb-4" closable>
-            {{ activateDialog.error }}
-          </v-alert>
-        </v-card-text>
-
-        <v-card-actions class="pa-4 pt-0">
-          <v-spacer />
-          <v-btn variant="text" @click="activateDialog.show = false">إلغاء</v-btn>
-          <v-btn
-            color="accent"
-            variant="elevated"
-            class="font-weight-black rounded-xl px-6"
-            :loading="activateDialog.loading"
-            @click="activateSubscription"
-          >
-            تفعيل
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Extend Dialog -->
-    <v-dialog v-model="extendDialog.show" max-width="480" persistent>
-      <v-card class="rounded-xl">
-        <div class="pa-5 bg-gold-gradient d-flex align-center">
-          <LucideIcon name="calendar-plus" :size="24" class="me-3 text-ebony" />
-          <span class="text-h6 font-weight-black text-ebony">تمديد الاشتراك</span>
-          <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="extendDialog.show = false">
-            <LucideIcon name="x" :size="22" />
-          </v-btn>
+        <div class="modal-body">
+          <form @submit.prevent="createSubscriber">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>اسم المشترك الكامل</label>
+                <input type="text" v-model="newSubscriber.fullName" required />
+              </div>
+              <div class="form-group">
+                <label>اسم المستخدم</label>
+                <input type="text" v-model="newSubscriber.username" required />
+              </div>
+              <div class="form-group">
+                <label>كلمة المرور</label>
+                <input type="password" v-model="newSubscriber.password" required />
+              </div>
+              <div class="form-group">
+                <label>البريد الإلكتروني</label>
+                <input type="email" v-model="newSubscriber.email" />
+              </div>
+              <div class="form-group">
+                <label>رقم الهاتف</label>
+                """
+                <input type="tel" v-model="newSubscriber.phone" />
+              </div>
+              <div class="form-group">
+                <label>نوع الاشتراك</label>
+                <select v-model="newSubscriber.subscriptionType">
+                  <option value="trial">تجربة (30 يوم)</option>
+                  <option value="monthly">شهري (99 ريال)</option>
+                  <option value="yearly">سنوي (999 ريال)</option>
+                  <option value="lifetime">مدى الحياة (2,499 ريال)</option>
+                </select>
+              </div>
+              <div class="form-group" v-if="newSubscriber.subscriptionType === 'lifetime'">
+                <label>خطة الاشتراك</label>
+                <select v-model="newSubscriber.planId">
+                  <option value="">اختر الخطة...</option>
+                  <option v-for="plan in availablePlans" :key="plan.id" :value="plan.id">{{ plan.name }} - {{ plan.price }} ريال</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" @click="closeAddSubscriberDialog">إلغاء</button>
+              <button type="submit" class="btn-primary" :disabled="isCreatingSubscriber">
+                {{ isCreatingSubscriber ? 'جارِ الإنشاء...' : 'إنشاء المشترك' }}
+              </button>
+            </div>
+          </form>
         </div>
+      </div>
+    </div>
 
-        <v-card-text class="pa-6 rtl">
-          <div class="text-body-1 font-weight-black mb-4">
-            الشركة: {{ extendDialog.companyName }}
+    <!-- Activate Subscription Dialog -->
+    <div class="modal" :class="{ 'show': showActivateDialog }" @click="closeActivateDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>تفعيل الاشتراك</h3>
+          <button class="close-btn" @click="closeActivateDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="company-info">
+            <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
+            <p><strong>البريد الإلكتروني:</strong> {{ selectedCompany.email }}</p>
           </div>
+          <form @submit.prevent="activateSubscription">
+            <div class="form-group">
+              <label>الخطة</label>
+              <select v-model="activateData.planId" required>
+                <option value="">اختر الخطة...</option>
+                <option v-for="plan in availablePlans" :key="plan.id" :value="plan.id">
+                  {{ plan.name }} - {{ plan.price }} ريال ({{ plan.interval }})
+                </option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>المدة</label>
+              <select v-model="activateData.durationMonths">
+                <option value="">اختر...</option>
+                <option value="1">شهر واحد</option>
+                <option value="3">3 أشهر</option>
+                <option value="6">6 أشهر</option>
+                <option value="12">12 شهر</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>&nbsp;</label>
+              <label class="checkbox-label">
+                <input type="checkbox" v-model="activateData.lifetime" />
+                اشتراك مدى الحياة
+              </label>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" @click="closeActivateDialog">إلغاء</button>
+              <button type="submit" class="btn-primary" :disabled="isActivating">
+                {{ isActivating ? 'جارِ التفعيل...' : 'تفعيل الاشتراك' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
 
-          <v-select
-            v-model="extendDialog.duration"
-            :items="durationOptions"
-            item-title="label"
-            item-value="value"
-            label="مدة التمديد"
-            variant="outlined"
-            density="comfortable"
-            class="mb-4"
-          />
-
-          <v-alert v-if="extendDialog.error" type="error" variant="tonal" class="mb-4" closable>
-            {{ extendDialog.error }}
-          </v-alert>
-        </v-card-text>
-
-        <v-card-actions class="pa-4 pt-0">
-          <v-spacer />
-          <v-btn variant="text" @click="extendDialog.show = false">إلغاء</v-btn>
-          <v-btn
-            color="accent"
-            variant="elevated"
-            class="font-weight-black rounded-xl px-6"
-            :loading="extendDialog.loading"
-            @click="extendSubscription"
-          >
-            تمديد
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Snackbar -->
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="snackbar.timeout"
-      location="top"
-      class="font-weight-black"
-    >
-      {{ snackbar.text }}
-      <template #actions>
-        <v-btn variant="text" icon @click="snackbar.show = false">
-          <LucideIcon name="x" :size="16" />
-        </v-btn>
-      </template>
-    </v-snackbar>
-  </v-container>
+    <!-- Extend Subscription Dialog -->
+    <div class="modal" :class="{ 'show': showExtendDialog }" @click="closeExtendDialog">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>تمديد الاشتراك</h3>
+          <button class="close-btn" @click="closeExtendDialog">×</button>
+        </div>
+        <div class="modal-body">
+          <div class="company-info">
+            <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
+            <p><strong>الحالة الحالية:</strong> <span :class="getStatusClass(selectedCompany.effectiveStatus)">{{ getStatusText(selectedCompany.effectiveStatus) }}</span></p>
+          </div>
+          <form @submit.prevent="extendSubscription">
+            <div class="form-group">
+              <label>مدة التمديد</label>
+              <select v-model="extendData.extendMonths">
+                <option value="">اختر...</option>
+                <option value="1">شهر واحد</option>
+                <option value="3">3 أشهر</option>
+                <option value="6">6 أشهر</option>
+                <option value="12">12 شهر</option>
+              </select>
+            </div>
+            <div class="form-actions">
+              <button type="button" class="btn-secondary" @click="closeExtendDialog">إلغاء</button>
+              <button type="submit" class="btn-primary" :disabled="isExtending">
+                {{ isExtending ? 'جارِ التمديد...' : 'تمديد الاشتراك' }}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import LucideIcon from '../../renderer/src/components/common/LucideIcon.vue'
+<script setup>
+import { ref, reactive, onMounted } from 'vue'
+import { useApi } from '../../../api'
 
-// --- State ---
-const loading = ref(true)
-const subscriptions = ref<any[]>([])
-const plans = ref<any[]>([])
+const api = useApi()
+
+const companies = ref([])
 const stats = ref({
   activeCount: 0,
   trialCount: 0,
   expiredCount: 0,
-  totalCustomers: 0
+  canceledCount: 0,
+  noSubscriptionCount: 0,
+  totalCount: 0
+})
+const availablePlans = ref([])
+
+const showAddSubscriberDialog = ref(false)
+const showActivateDialog = ref(false)
+const showExtendDialog = ref(false)
+
+const selectedCompany = ref(null)
+const isCreatingSubscriber = ref(false)
+const isActivating = ref(false)
+const isExtending = ref(false)
+
+const newSubscriber = reactive({
+  fullName: '',
+  username: '',
+  password: '',
+  email: '',
+  phone: '',
+  subscriptionType: 'trial'
 })
 
-const snackbar = ref({ show: false, text: '', color: 'success', timeout: 3000 })
-
-const durationOptions = [
-  { label: 'شهر واحد', value: '1' },
-  { label: '3 أشهر', value: '3' },
-  { label: '6 أشهر', value: '6' },
-  { label: 'سنة واحدة', value: '12' }
-]
-
-const activateDialog = ref({
-  show: false,
+const activateData = reactive({
   companyId: '',
-  companyName: '',
   planId: '',
-  duration: '1',
-  isLifetime: false,
-  loading: false,
-  error: ''
+  durationMonths: '',
+  durationYears: '',
+  lifetime: false
 })
 
-const extendDialog = ref({
-  show: false,
+const extendData = reactive({
   companyId: '',
-  companyName: '',
-  duration: '1',
-  loading: false,
-  error: ''
+  extendMonths: '',
+  extendYears: ''
 })
 
-// --- Helpers ---
-function getStatusColor(status: string): string {
-  const map: Record<string, string> = {
-    active: 'success',
-    trial: 'info',
-    expired: 'warning',
-    past_due: 'orange-darken-3',
-    canceled: 'error',
-    lifetime: 'accent',
-    none: 'grey'
-  }
-  return map[status] || 'grey'
-}
+onMounted(async () => {
+  await fetchData()
+  await fetchPlans()
+})
 
-function getStatusText(status: string): string {
-  const map: Record<string, string> = {
-    active: 'نشط',
-    trial: 'تجريبي',
-    expired: 'منتهي',
-    past_due: 'متأخر السداد',
-    canceled: 'ملغي',
-    lifetime: 'مدى الحياة',
-    none: 'بدون اشتراك'
-  }
-  return map[status] || status
-}
-
-function getIntervalText(interval: string): string {
-  const map: Record<string, string> = {
-    month: 'شهري',
-    year: 'سنوي',
-    lifetime: 'مدى الحياة'
-  }
-  return map[interval] || interval
-}
-
-function formatDate(dateStr: string): string {
-  try {
-    const d = new Date(dateStr)
-    return d.toLocaleDateString('ar-SA', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-  } catch {
-    return dateStr
-  }
-}
-
-function getInitial(name: string): string {
-  if (!name) return '?'
-  return name.charAt(0).toUpperCase()
-}
-
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('b2b_cloud_token')
-  return {
-    'Content-Type': 'application/json',
-    ...(token ? { Authorization: `Bearer ${token}` } : {})
-  }
-}
-
-function showSnackbar(text: string, color = 'success') {
-  snackbar.value = { show: true, text, color, timeout: 3000 }
-}
-
-// --- Data Fetching ---
 async function fetchData() {
-  loading.value = true
   try {
-    const headers = getAuthHeaders()
-
-    const [subsRes, overviewRes, plansRes] = await Promise.all([
-      fetch('/api/admin/subscriptions', { headers }).then(r => r.json()),
-      fetch('/api/admin/subscriptions/stats/overview', { headers }).then(r => r.json()),
-      fetch('/api/subscriptions/plans', { headers }).then(r => r.json())
+    const [companiesRes, statsRes] = await Promise.all([
+      api.get('/api/admin/subscriptions'),
+      api.get('/api/admin/subscriptions/stats/overview')
     ])
+    companies.value = companiesRes.data || []
+    stats.value = statsRes.data || {}
+  } catch (error) {
+    console.error('Failed to fetch subscription data:', error)
+  }
+}
 
-    const rawData: any[] = Array.isArray(subsRes) ? subsRes : subsRes.data || []
-    subscriptions.value = rawData.map((r: any) => ({
-      id: r.id,
-      companyId: r.id,
-      companyName: r.companyName || '',
-      email: r.email || '',
-      phone: r.phone || '',
-      status: r.effectiveStatus || 'none',
-      planName: r.planName || null,
-      planInterval: r.planInterval || null,
-      daysRemaining: r.daysRemaining ?? null,
-      expiryDate: r.expiryDate || null
-    }))
+async function fetchPlans() {
+  try {
+    const response = await api.get('/api/subscriptions/plans')
+    availablePlans.value = response.data || []
+  } catch (error) {
+    console.error('Failed to fetch plans:', error)
+  }
+}
 
-    plans.value = Array.isArray(plansRes) ? plansRes : plansRes.data || []
+function openAddSubscriberDialog() {
+  resetNewSubscriber()
+  showAddSubscriberDialog.value = true
+}
 
-    if (overviewRes && overviewRes.subscriptions) {
-      const s = overviewRes.subscriptions
-      stats.value = {
-        activeCount: s.active_count ?? 0,
-        trialCount: s.trial_count ?? 0,
-        expiredCount: s.expired_count ?? 0,
-        totalCustomers: s.total_count ?? subscriptions.value.length
-      }
-    } else if (overviewRes && typeof overviewRes === 'object') {
-      stats.value = {
-        activeCount: overviewRes.active_count ?? overviewRes.activeCount ?? 0,
-        trialCount: overviewRes.trial_count ?? overviewRes.trialCount ?? 0,
-        expiredCount: overviewRes.expired_count ?? overviewRes.expiredCount ?? 0,
-        totalCustomers: overviewRes.total_count ?? overviewRes.totalCount ?? subscriptions.value.length
-      }
+function closeAddSubscriberDialog() {
+  showAddSubscriberDialog.value = false
+}
+
+function openActivateDialog(company) {
+  selectedCompany.value = company
+  activateData.companyId = company.id
+  activateData.planId = ''
+  activateData.durationMonths = ''
+  activateData.durationYears = ''
+  activateData.lifetime = false
+  showActivateDialog.value
+}
+
+function closeActivateDialog() {
+  showActivateDialog.value = false
+  selectedCompany.value = null
+}
+
+function openExtendDialog(company) {
+  selectedCompany.value = company
+  extendData.companyId = company.id
+  extendData.extendMonths = ''
+  extendData.extendYears = ''
+  showExtendDialog.value
+}
+
+function closeExtendDialog() {
+  showExtendDialog.value = false
+  selectedCompany.value = null
+}
+
+function getStatusClass(status) {
+  const statusMap = {
+    'active': 'status-active',
+    'trial': 'status-trial',
+    'expired': 'status-expired',
+    'canceled': 'status-canceled',
+    'none': 'status-none'
+  }
+  return statusMap[status] || ''
+}
+
+function getStatusText(status) {
+  const statusMap = {
+    'active': 'نشط',
+    'trial': 'تجربة',
+    'expired': 'منتهي',
+    'canceled': 'ملغى',
+    'none': 'بدون اشتراك'
+  }
+  return statusMap[status] || status
+}
+
+function formatDate(date) {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('ar-SA')
+}
+
+async function createSubscriber() {
+  if (!newSubscriber.username || !newSubscriber.password) {
+    alert('اسم المستخدم وكلمة المرور مطلوبان')
+    return
+  }
+
+  isCreatingSubscriber.value = true
+  try {
+    // Create user
+    const userResponse = await api.post('/api/users', {
+      username: newSubscriber.username,
+      password: newSubscriber.password,
+      full_name: newSubscriber.fullName || newSubscriber.username,
+      role_key: 'secretary',
+      employee_id: null
+    })
+
+    const userId = userResponse.data?.userId
+    if (!userId) {
+      alert('فشل إنشاء المستخدم')
+      return
     }
-  } catch (e: any) {
-    console.error('Failed to fetch admin subscriptions data:', e)
-    showSnackbar('فشل في تحميل البيانات', 'error')
+
+    // Create company
+    const companyResponse = await api.post('/api/auth/register', {
+      username: newSubscriber.username,
+      password: newSubscriber.password,
+      companyName: newSubscriber.fullName || `شركة ${newSubscriber.username}`,
+      email: newSubscriber.email || `${newSubscriber.username}@example.com`,
+      phone: newSubscriber.phone || '0500000000'
+    })
+
+    const companyId = companyResponse.data?.companyId || userId
+
+    // Create subscription
+    const subscriptionBody = {
+      companyId: companyId,
+      planId: newSubscriber.subscriptionType === 'lifetime' ? availablePlans.value.find(p => p.interval === 'lifetime')?.id : '933c1f86-78bb-4239-b35c-14cc94dc56db',
+      durationMonths: newSubscriber.subscriptionType === 'trial' ? 1 : null,
+      lifetime: newSubscriber.subscriptionType === 'lifetime'
+    }
+
+    await api.post('/api/admin/subscriptions/activate', subscriptionBody)
+
+    alert('تم إنشاء المشترك بنجاح')
+    closeAddSubscriberDialog()
+    await fetchData()
+  } catch (error) {
+    console.error('Failed to create subscriber:', error)
+    alert('حدث خطأ أثناء إنشاء المشترك')
   } finally {
-    loading.value = false
-  }
-}
-
-// --- Actions ---
-function openActivateDialog(sub: any) {
-  activateDialog.value = {
-    show: true,
-    companyId: sub.companyId,
-    companyName: sub.companyName,
-    planId: plans.value.length ? plans.value[0].id : '',
-    duration: '1',
-    isLifetime: false,
-    loading: false,
-    error: ''
-  }
-}
-
-function openExtendDialog(sub: any) {
-  extendDialog.value = {
-    show: true,
-    companyId: sub.companyId,
-    companyName: sub.companyName,
-    duration: '1',
-    loading: false,
-    error: ''
+    isCreatingSubscriber.value = false
   }
 }
 
 async function activateSubscription() {
-  const d = activateDialog.value
-  if (!d.planId) {
-    d.error = 'يرجى اختيار خطة'
+  if (!activateData.planId) {
+    alert('يرجى اختيار الخطة')
     return
   }
-  d.loading = true
-  d.error = ''
+
+  isActivating.value = true
   try {
-    const headers = getAuthHeaders()
-    const body: Record<string, any> = {
-      companyId: d.companyId,
-      planId: d.planId,
-      durationMonths: d.isLifetime ? 0 : parseInt(d.duration, 10),
-      isLifetime: d.isLifetime
-    }
-    const res = await fetch('/api/admin/subscriptions/activate', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || data.message || 'فشل التفعيل')
-    d.show = false
-    showSnackbar('تم تفعيل الاشتراك بنجاح')
+    await api.post('/api/admin/subscriptions/activate', activateData)
+    alert('تم تفعيل الاشتراك بنجاح')
+    closeActivateDialog()
     await fetchData()
-  } catch (e: any) {
-    d.error = e?.message || 'فشل تفعيل الاشتراك'
+  } catch (error) {
+    console.error('Failed to activate subscription:', error)
+    alert('حدث خطأ أثناء تفعيل الاشتراك')
   } finally {
-    d.loading = false
+    isActivating.value = false
   }
 }
 
 async function extendSubscription() {
-  const d = extendDialog.value
-  d.loading = true
-  d.error = ''
+  if (!extendData.extendMonths) {
+    alert('يرجى اختيار مدة التمديد')
+    return
+  }
+
+  isExtending.value = true
   try {
-    const headers = getAuthHeaders()
-    const body = {
-      companyId: d.companyId,
-      durationMonths: parseInt(d.duration, 10)
-    }
-    const res = await fetch('/api/admin/subscriptions/extend', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify(body)
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || data.message || 'فشل التمديد')
-    d.show = false
-    showSnackbar('تم تمديد الاشتراك بنجاح')
+    await api.post('/api/admin/subscriptions/extend', extendData)
+    alert('تم تمديد الاشتراك بنجاح')
+    closeExtendDialog()
     await fetchData()
-  } catch (e: any) {
-    d.error = e?.message || 'فشل تمديد الاشتراك'
+  } catch (error) {
+    console.error('Failed to extend subscription:', error)
+    alert('حدث خطأ أثناء تمديد الاشتراك')
   } finally {
-    d.loading = false
+    isExtending.value = false
   }
 }
 
-async function suspendSubscription(sub: any) {
-  if (!confirm(`هل أنت متأكد من إيقاف اشتراك "${sub.companyName}"؟`)) return
-  try {
-    const headers = getAuthHeaders()
-    const res = await fetch('/api/admin/subscriptions/suspend', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ companyId: sub.companyId })
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || data.message || 'فشل الإيقاف')
-    showSnackbar('تم إيقاف الاشتراك بنجاح', 'warning')
-    await fetchData()
-  } catch (e: any) {
-    showSnackbar(e?.message || 'فشل إيقاف الاشتراك', 'error')
-  }
+function resetNewSubscriber() {
+  newSubscriber.fullName = ''
+  newSubscriber.username = ''
+  newSubscriber.password = ''
+  newSubscriber.email = ''
+  newSubscriber.phone = ''
+  newSubscriber.subscriptionType = 'trial'
 }
-
-async function cancelSubscription(sub: any) {
-  if (!confirm(`هل أنت متأكد من إلغاء اشتراك "${sub.companyName}" نهائياً؟`)) return
-  try {
-    const headers = getAuthHeaders()
-    const res = await fetch('/api/admin/subscriptions/cancel', {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ companyId: sub.companyId })
-    })
-    const data = await res.json()
-    if (!res.ok) throw new Error(data.error || data.message || 'فشل الإلغاء')
-    showSnackbar('تم إلغاء الاشتراك بنجاح', 'error')
-    await fetchData()
-  } catch (e: any) {
-    showSnackbar(e?.message || 'فشل إلغاء الاشتراك', 'error')
-  }
-}
-
-// --- Lifecycle ---
-onMounted(fetchData)
 </script>
 
 <style scoped>
-.rtl {
-  direction: rtl;
+.admin-subscriptions-page {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
 }
-.glass-table {
-  background: transparent !important;
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
 }
-.glass-table :deep(thead tr th) {
-  font-size: 0.8rem;
-  padding: 12px 16px;
+
+.page-header h1 {
+  font-size: 28px;
+  font-weight: 600;
+  color: #1e293b;
 }
-.glass-table :deep(tbody tr td) {
-  padding: 10px 16px;
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
 }
-.glass-table :deep(tbody tr:hover) {
-  background: rgba(0, 0, 0, 0.02);
+
+.btn-primary:hover {
+  background-color: #2563eb;
 }
-@media (max-width: 1023px) {
-  :deep(.v-dialog > .v-overlay__content) {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 4px !important;
+
+.btn-primary:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  padding: 10px 20px;
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-secondary:hover {
+  background-color: #e2e8f0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stat-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+}
+
+.stat-icon.active {
+  background-color: #dcfce7;
+}
+
+.stat-icon.trial {
+  background-color: #fef3c7;
+}
+
+.stat-icon.expired {
+  background-color: #fee2e2;
+}
+
+.stat-icon.canceled {
+  background-color: #e2e8f0;
+}
+
+.stat-icon.none {
+  background-color: #f3f4f6;
+}
+
+.stat-info {
+  flex: 1;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.stat-label {
+  font-size: 14px;
+  color: #64748b;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.subscriptions-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.subscriptions-table th,
+.subscriptions-table td {
+  padding: 16px;
+  text-align: right;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.subscriptions-table th {
+  background-color: #f8fafc;
+  font-weight: 600;
+  color: #475569;
+}
+
+.subscriptions-table tr:hover {
+  background-color: #f8fafc;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.status-active {
+  background-color: #dcfce7;
+  color: #166534;
+}
+
+.status-trial {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
+.status-expired {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.status-canceled {
+  background-color: #e2e8f0;
+  color: #475569;
+}
+
+.status-none {
+  background-color: #f3f4f6;
+  color: #6b7280;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background-color: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-icon:hover {
+  background-color: #e2e8f0;
+}
+
+.btn-icon.danger {
+  background-color: #fee2e2;
+  border-color: #fecaca;
+}
+
+.btn-icon.danger:hover {
+  background-color: #fee2e2;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+
+.modal.show {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 90%;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: #64748b;
+}
+
+.close-btn:hover {
+  color: #1e293b;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #475569;
+}
+
+.form-group input,
+.form-group select {
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  margin-top: 24px;
+}
+
+.company-info {
+  background-color: #f8fafc;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 24px;
+}
+
+.company-info p {
+  margin: 8px 0;
+  color: #475569;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.checkbox-label input {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .table-container {
+    overflow-x: auto;
   }
 }
 </style>
+</script>
