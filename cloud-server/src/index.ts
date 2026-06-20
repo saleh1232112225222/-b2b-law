@@ -192,7 +192,8 @@ for (const entity of entityTables) {
 
   if (readPermission || writePermission) {
     const { requirePermission } = require('./middleware/permission')
-    app.use(`/api/${entity.name}`, (req: any, res: any, next: any) => {
+    const { authMiddleware } = require('./middleware/auth')
+    app.use(`/api/${entity.name}`, authMiddleware, (req: any, res: any, next: any) => {
       const isRead = req.method === 'GET'
       const perm = isRead ? readPermission : (writePermission || readPermission)
       if (perm) {
@@ -202,7 +203,8 @@ for (const entity of entityTables) {
       }
     }, entityRouter)
   } else {
-    app.use(`/api/${entity.name}`, entityRouter)
+    const { authMiddleware } = require('./middleware/auth')
+    app.use(`/api/${entity.name}`, authMiddleware, entityRouter)
   }
 }
 
