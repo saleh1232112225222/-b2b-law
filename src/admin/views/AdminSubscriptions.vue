@@ -318,7 +318,7 @@ import { ref, reactive, onMounted } from 'vue'
 const API_BASE = import.meta.env.VITE_API_URL || 'https://b2b-law-g2qr.onrender.com'
 
 async function apiRequest(method, path, body = null) {
-  const token = localStorage.getItem('token')
+  const token = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token')
   const opts = {
     method,
     headers: {
