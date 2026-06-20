@@ -836,4 +836,3 @@ function resetNewSubscriber() {
   }
 }
 </style>
-</script>
