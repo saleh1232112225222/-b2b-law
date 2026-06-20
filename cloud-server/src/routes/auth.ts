@@ -535,7 +535,20 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       JSON.stringify(1)
     ])
 
-    // 7. Send OTP code (fire-and-forget — don't block registration)
+    // 7. Create trial subscription record
+    try {
+      const planResult = await query('SELECT id FROM plans LIMIT 1')
+      const planId = planResult.rows.length > 0 ? planResult.rows[0].id : null
+      await query(
+        `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
+         VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
+        [uuidv4(), companyId, planId, trialExpiresAt]
+      )
+    } catch (subErr) {
+      console.error('[REGISTER] Failed to create trial subscription:', subErr)
+    }
+
+    // 8. Send OTP code (fire-and-forget — don't block registration)
     const smtpAvailable = getTransporter() !== null
     sendOTP(email, phone, otpCode)
 

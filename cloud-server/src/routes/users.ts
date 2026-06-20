@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { getCompanyId } from '../middleware/tenant'
@@ -294,5 +295,69 @@ usersRouter.put('/:id/recovery-info', authMiddleware, async (req: Request, res: 
   } catch (err) {
     console.error('[Users] Admin update recovery info error:', err)
     res.status(500).json({ error: 'Failed to update user recovery info' })
+  }
+})
+
+// 14. Create user
+usersRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const { username, full_name, role_key, password, employee_id } = req.body
+
+    if (!username || !password) {
+      res.status(400).json({ error: 'Username and password are required' })
+      return
+    }
+
+    const exists = await query('SELECT id FROM users WHERE username = $1', [username])
+    if (exists.rows.length > 0) {
+      res.status(400).json({ error: 'UsernameAlreadyExists' })
+      return
+    }
+
+    const userId = uuidv4()
+    const passwordHash = await bcrypt.hash(password, 12)
+
+    await query(
+      `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, employee_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE, $7, NOW())`,
+      [userId, companyId, username, full_name || username, passwordHash, role_key || 'secretary', employee_id || null]
+    )
+
+    res.status(201).json({ success: true, userId })
+  } catch (err) {
+    console.error('[Users] Create error:', err)
+    res.status(500).json({ error: 'Failed to create user' })
+  }
+})
+
+// 15. Delete user
+usersRouter.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const userId = req.params.id
+
+    const userCheck = await query(
+      'SELECT username FROM users WHERE id = $1 AND company_id = $2',
+      [userId, companyId]
+    )
+    if (userCheck.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' })
+      return
+    }
+    if (userCheck.rows[0].username === 'admin') {
+      res.status(403).json({ error: 'Cannot delete the main admin user' })
+      return
+    }
+
+    await query('DELETE FROM user_case_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+    await query('DELETE FROM user_client_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+    await query('DELETE FROM user_permissions WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+    await query('DELETE FROM users WHERE id = $1 AND company_id = $2', [userId, companyId])
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[Users] Delete error:', err)
+    res.status(500).json({ error: 'Failed to delete user' })
   }
 })
