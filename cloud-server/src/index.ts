@@ -1,3 +1,23 @@
+// Load .env FIRST before any imports that depend on process.env
+import * as _fs from 'fs';
+import * as _path from 'path';
+try {
+  const envPath = _path.resolve(process.cwd(), '.env');
+  if (_fs.existsSync(envPath)) {
+    _fs.readFileSync(envPath, 'utf8').split('\n').forEach((line: string) => {
+      const parts = line.split('=');
+      if (parts.length >= 2) {
+        const key = parts[0].trim();
+        const value = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
+        if (key && value && !process.env[key]) {
+          process.env[key] = value;
+        }
+      }
+    });
+    console.log('[ENV] Loaded .env file');
+  }
+} catch (e) { console.warn('[ENV] Failed to load .env:', e); }
+
 import express from 'express';
 import cors from 'cors';
 import { healthCheck, query } from './db/connection';
@@ -5,11 +25,11 @@ import { authRouter } from './routes/auth';
 import { debugRouter } from './routes/debug';
 
 
-// Patch Express 4 to catch async errors — acts like express-async-errors
+// Patch Express Router Layer to catch async errors
 try {
-  const Layer = require('express/lib/router').Layer
-  const originalHandle = Layer.prototype.handle_request
-  if (originalHandle) {
+  const Layer = require('express/lib/router/layer')
+  if (Layer && Layer.prototype && typeof Layer.prototype.handle_request === 'function') {
+    const originalHandle = Layer.prototype.handle_request
     Layer.prototype.handle_request = function (this: any, req: any, res: any, next: any) {
       const result = originalHandle.call(this, req, res, next)
       if (result && typeof result.catch === 'function') {
@@ -17,6 +37,7 @@ try {
       }
       return result
     }
+    console.log('[Express async error patch] Applied successfully')
   }
 } catch (e) {
   console.warn('[Express async error patch] Failed to apply:', e)
@@ -335,15 +356,20 @@ async function seedSuperAdmin() {
          VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '${ADMIN_HASH}', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
         []
       )
-      console.log('[SEED] Super Admin user created')
-    } else {
-      // Always update the password hash to ensure it matches the expected hash
-      await dbQuery(
-        `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com' WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
-        []
-      )
-      console.log('[SEED] Super Admin password hash synced')
+      console.log('[SEED] Super Admin user created in owner company')
     }
+
+    // Always sync/re-sync the super admin's password hash
+    await dbQuery(
+      `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com', is_active = TRUE, must_change_password = TRUE WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
+      []
+    )
+    // Also fix any stale admin user (from old registrations with random company IDs)
+    await dbQuery(
+      `UPDATE users SET password_hash = '${ADMIN_HASH}', is_active = TRUE, must_change_password = TRUE WHERE username = 'admin' AND password_hash IS DISTINCT FROM '${ADMIN_HASH}'`,
+      []
+    )
+    console.log('[SEED] Super Admin password hash synced')
   } catch (err) {
     console.error('[SEED] Failed to seed super admin:', err)
   }

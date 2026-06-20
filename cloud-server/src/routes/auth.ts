@@ -69,6 +69,9 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       params.push(companyId)
     }
 
+    // Order by most recently created first — ensures admin login picks the latest seed
+    userQuery += ` ORDER BY u.created_at DESC`
+
     const result = await query(userQuery, params)
     if (result.rows.length === 0) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - مستخدم غير موجود')
@@ -80,6 +83,12 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     if (!user.is_active) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معطل')
       res.status(403).json({ error: 'Account is disabled' })
+      return
+    }
+
+    if (!user.password_hash) {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - كلمة المرور غير معرفة')
+      res.status(401).json({ error: 'Invalid credentials' })
       return
     }
 

@@ -417,19 +417,9 @@ const handleLogin = async () => {
 
   try {
     let session: any;
-    // Temporary bypass for testing
-    if (username.value === 'admin' && password.value === 'admin') {
-      session = {
-        username: 'admin',
-        roleKey: 'admin',
-        mustChangePassword: false
-      }
-      // Enable mock mode so all API calls return mock data
-      localStorage.setItem('mock_active', 'true')
-
-    } else {
-      session = await (window as any).api.auth.login(username.value, password.value)
-    }
+    // Always use real API login - no mock bypass
+    localStorage.removeItem('mock_active')
+    session = await (window as any).api.auth.login(username.value, password.value)
     
     // Clear any legacy desktop storage keys to avoid conflicts
     localStorage.removeItem('isLoggedIn')
@@ -444,8 +434,9 @@ const handleLogin = async () => {
       username: session.username,
       roleKey: session.roleKey,
       companyId: session.companyId || null,
-      permissions: [],
+      permissions: session.permissions || [],
       trialExpired: session.trialExpired || false,
+      subscriptionStatus: session.subscriptionStatus || 'trial',
       mustChangePassword: session.mustChangePassword || false
     }
     localStorage.setItem('web_currentUser', JSON.stringify({ username: session.username, roleKey: session.roleKey }))
