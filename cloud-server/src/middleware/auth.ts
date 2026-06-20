@@ -14,9 +14,11 @@ const DEFAULT_SECRETS = [
 const isDevSecret = JWT_SECRET === 'b2b-law-cloud-dev-secret'
 const isProduction = process.env.NODE_ENV === 'production'
 
-if (!JWT_SECRET || DEFAULT_SECRETS.includes(JWT_SECRET) || (isDevSecret && isProduction)) {
-  console.error('❌ CRITICAL: JWT_SECRET is not set, is still a default value, or is a development secret in production!')
-  process.exit(1)
+if (!JWT_SECRET || DEFAULT_SECRETS.includes(JWT_SECRET)) {
+  if (isProduction) {
+    console.error('❌ CRITICAL: JWT_SECRET is not set, is still a default value, or is a development secret!');
+    process.exit(1);
+  }
 }
 
 export interface AuthPayload {

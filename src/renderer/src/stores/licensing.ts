@@ -9,7 +9,7 @@ export const useLicensingStore = defineStore('licensing', () => {
     isActivated: boolean
   } | null>(null)
   const subscriptionStatus = ref<{
-    status: 'trial' | 'active' | 'expired' | 'canceled' | 'none'
+    status: 'trial' | 'active' | 'expired' | 'canceled' | 'lifetime' | 'none'
     trialEnd?: string
     currentPeriodEnd?: string
     daysLeft: number
