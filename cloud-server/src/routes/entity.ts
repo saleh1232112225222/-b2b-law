@@ -1,6 +1,5 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
-import { authMiddleware } from '../middleware/auth'
 import { getCompanyId, getUserId } from '../middleware/tenant'
 
 interface EntityConfig {
@@ -78,7 +77,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   const excluded = new Set(config.excludedRoutes || [])
 
   if (!excluded.has('list') || !excluded.has('getAll')) {
-    router.get('/', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const { page = '1', pageSize = '50', q, ...filters } = req.query
@@ -126,7 +125,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('getAll')) {
-    router.get('/all', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/all',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(
@@ -142,7 +141,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('count')) {
-    router.get('/count', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/count',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const { q, ...filters } = req.query
@@ -179,7 +178,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('search')) {
-    router.get('/search', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/search',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const q = req.query.q as string
@@ -204,7 +203,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('getById')) {
-    router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+    router.get('/:id',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(
@@ -224,7 +223,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('create')) {
-    router.post('/', authMiddleware, async (req: Request, res: Response) => {
+    router.post('/',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body, company_id: companyId }
@@ -271,7 +270,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('update')) {
-    router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+    router.put('/:id',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body }
@@ -320,7 +319,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('delete')) {
-    router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+    router.delete('/:id',  async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(

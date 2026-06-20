@@ -8,8 +8,10 @@ import bcrypt from 'bcryptjs'
 
 export const usersRouter = Router()
 
+usersRouter.use(authMiddleware)
+
 // 1. Get Assignable Users
-usersRouter.get('/assignable', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.get('/assignable', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -26,13 +28,13 @@ usersRouter.get('/assignable', authMiddleware, async (req: Request, res: Respons
   }
 })
 
-usersRouter.use(authMiddleware, (req, res, next) => {
+usersRouter.use( (req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   requirePermission('manage_users')(req, res, next)
 })
 
 // 2. Get Active Staff
-usersRouter.get('/active-staff', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.get('/active-staff',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -50,7 +52,7 @@ usersRouter.get('/active-staff', authMiddleware, async (req: Request, res: Respo
 })
 
 // 3. Toggle Active
-usersRouter.put('/:id/toggle-active', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/toggle-active',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -68,7 +70,7 @@ usersRouter.put('/:id/toggle-active', authMiddleware, async (req: Request, res: 
 })
 
 // 4. Set Role
-usersRouter.put('/:id/role', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/role',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -86,7 +88,7 @@ usersRouter.put('/:id/role', authMiddleware, async (req: Request, res: Response)
 })
 
 // 5. Get Scope
-usersRouter.get('/:id/scope', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.get('/:id/scope',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -111,7 +113,7 @@ usersRouter.get('/:id/scope', authMiddleware, async (req: Request, res: Response
 })
 
 // 6. Set Scope
-usersRouter.put('/:id/scope', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/scope',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -141,7 +143,7 @@ usersRouter.put('/:id/scope', authMiddleware, async (req: Request, res: Response
 })
 
 // 7. Get Permission Overrides
-usersRouter.get('/:id/permission-overrides', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.get('/:id/permission-overrides',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -158,7 +160,7 @@ usersRouter.get('/:id/permission-overrides', authMiddleware, async (req: Request
 })
 
 // 8. Set Permission Override
-usersRouter.put('/:id/permissions/:permissionKey', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/permissions/:permissionKey',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -180,7 +182,7 @@ usersRouter.put('/:id/permissions/:permissionKey', authMiddleware, async (req: R
 })
 
 // 9. Set Bulk Overrides
-usersRouter.put('/:id/permissions/bulk', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/permissions/bulk',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -203,7 +205,7 @@ usersRouter.put('/:id/permissions/bulk', authMiddleware, async (req: Request, re
 })
 
 // 10. Update Username
-usersRouter.put('/:id/username', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/username',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -228,7 +230,7 @@ usersRouter.put('/:id/username', authMiddleware, async (req: Request, res: Respo
 })
 
 // 11. Self get recovery info
-usersRouter.get('/recovery-info', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.get('/recovery-info',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -249,7 +251,7 @@ usersRouter.get('/recovery-info', authMiddleware, async (req: Request, res: Resp
 })
 
 // 12. Self update recovery info
-usersRouter.put('/recovery-info', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/recovery-info',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -274,7 +276,7 @@ usersRouter.put('/recovery-info', authMiddleware, async (req: Request, res: Resp
 })
 
 // 13. Admin updates user recovery info
-usersRouter.put('/:id/recovery-info', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.put('/:id/recovery-info',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
@@ -299,7 +301,7 @@ usersRouter.put('/:id/recovery-info', authMiddleware, async (req: Request, res: 
 })
 
 // 14. Create user
-usersRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.post('/',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { username, full_name, role_key, password, employee_id } = req.body
@@ -332,7 +334,7 @@ usersRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
 })
 
 // 15. Delete user
-usersRouter.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+usersRouter.delete('/:id',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id

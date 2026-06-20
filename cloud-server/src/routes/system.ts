@@ -5,6 +5,8 @@ import { getCompanyId } from '../middleware/tenant'
 
 export const systemRouter = Router()
 
+systemRouter.use(authMiddleware)
+
 const requireAdminRole = (req: Request, res: Response, next: Function) => {
   if (req.auth?.roleKey !== 'admin') {
     return res.status(403).json({ error: 'Admin access required' })
@@ -12,7 +14,7 @@ const requireAdminRole = (req: Request, res: Response, next: Function) => {
   next()
 }
 
-systemRouter.get('/system/settings', authMiddleware, async (req: Request, res: Response) => {
+systemRouter.get('/system/settings', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query('SELECT key, value FROM firm_data WHERE company_id = $1', [
@@ -43,7 +45,7 @@ systemRouter.get('/system/settings', authMiddleware, async (req: Request, res: R
   }
 })
 
-systemRouter.put('/system/settings', authMiddleware, async (req: Request, res: Response) => {
+systemRouter.put('/system/settings',  async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const body = req.body
@@ -66,7 +68,7 @@ systemRouter.put('/system/settings', authMiddleware, async (req: Request, res: R
 
 systemRouter.get(
   '/system/database-inventory',
-  authMiddleware,
+  
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
@@ -97,7 +99,7 @@ systemRouter.get(
 
 systemRouter.post(
   '/system/export-snapshot',
-  authMiddleware,
+  
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
@@ -129,7 +131,7 @@ systemRouter.post(
 
 systemRouter.post(
   '/system/import-snapshot',
-  authMiddleware,
+  
   requireAdminRole,
   async (req: Request, res: Response) => {
     const client = await getClient()
@@ -425,7 +427,7 @@ systemRouter.post(
   }
 )
 
-systemRouter.post('/system/clear-all-data', authMiddleware, requireAdminRole, async (req: Request, res: Response) => {
+systemRouter.post('/system/clear-all-data',  requireAdminRole, async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)

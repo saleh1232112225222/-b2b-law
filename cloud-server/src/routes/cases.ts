@@ -8,7 +8,9 @@ import * as caseService from '../services/case.service'
 
 export const casesRouter = Router()
 
-casesRouter.get('/analytics/dashboard', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.use(authMiddleware)
+
+casesRouter.get('/analytics/dashboard', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const data = await caseService.getDashboardAnalytics(companyId)
@@ -20,7 +22,7 @@ casesRouter.get('/analytics/dashboard', authMiddleware, requirePermission('view_
 })
 
 // 2. Check Case Number Uniqueness
-casesRouter.get('/is-unique', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/is-unique', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { caseNumber, ignoreId } = req.query
@@ -46,7 +48,7 @@ casesRouter.get('/is-unique', authMiddleware, requirePermission('view_cases'), a
 })
 
 // 3. Get Cases by Client ID
-casesRouter.get('/by-client/:clientId', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/by-client/:clientId', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -66,7 +68,7 @@ casesRouter.get('/by-client/:clientId', authMiddleware, requirePermission('view_
 })
 
 // 4. List Case Assignments
-casesRouter.get('/:id/assignments', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/:id/assignments', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -85,7 +87,7 @@ casesRouter.get('/:id/assignments', authMiddleware, requirePermission('view_case
 })
 
 // 5. Assign Employee
-casesRouter.post('/:id/assignments', authMiddleware, requirePermission('create_cases'), async (req: Request, res: Response) => {
+casesRouter.post('/:id/assignments', requirePermission('create_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const caseId = req.params.id
@@ -105,7 +107,7 @@ casesRouter.post('/:id/assignments', authMiddleware, requirePermission('create_c
 })
 
 // 6. Remove Employee Assignment
-casesRouter.delete('/:id/assignments/:employeeId', authMiddleware, requirePermission('edit_cases'), async (req: Request, res: Response) => {
+casesRouter.delete('/:id/assignments/:employeeId', requirePermission('edit_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     await query(
@@ -120,7 +122,7 @@ casesRouter.delete('/:id/assignments/:employeeId', authMiddleware, requirePermis
 })
 
 // 7. Get Count of Cases
-casesRouter.get('/count', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { q, status, priority, responsible_user_id } = req.query
@@ -156,7 +158,7 @@ casesRouter.get('/count', authMiddleware, requirePermission('view_cases'), async
 })
 
 // 8. Search Cases
-casesRouter.get('/search', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/search', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const q = req.query.q as string
@@ -181,7 +183,7 @@ casesRouter.get('/search', authMiddleware, requirePermission('view_cases'), asyn
 })
 
 // 9. Get Case by ID (with parties)
-casesRouter.get('/:id', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -218,7 +220,7 @@ casesRouter.get('/:id', authMiddleware, requirePermission('view_cases'), async (
 })
 
 // 10. Get All Cases (non-paginated)
-casesRouter.get('/all', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/all', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -238,7 +240,7 @@ casesRouter.get('/all', authMiddleware, requirePermission('view_cases'), async (
 })
 
 // 10. List Cases (paginated)
-casesRouter.get('/', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
+casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { page = '1', pageSize = '25', q, status, priority, responsible_user_id } = req.query
@@ -309,7 +311,7 @@ casesRouter.get('/', authMiddleware, requirePermission('view_cases'), async (req
 })
 
 // 11. Create Case (with Transaction)
-casesRouter.post('/', authMiddleware, requirePermission('create_cases'), async (req: Request, res: Response) => {
+casesRouter.post('/', requirePermission('create_cases'), async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -388,7 +390,7 @@ casesRouter.post('/', authMiddleware, requirePermission('create_cases'), async (
 })
 
 // 12. Update Case (with Transaction)
-casesRouter.put('/:id', authMiddleware, requirePermission('edit_cases'), async (req: Request, res: Response) => {
+casesRouter.put('/:id', requirePermission('edit_cases'), async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -467,7 +469,7 @@ casesRouter.put('/:id', authMiddleware, requirePermission('edit_cases'), async (
 })
 
 // 13. Delete Case
-casesRouter.delete('/:id', authMiddleware, requirePermission('edit_cases'), async (req: Request, res: Response) => {
+casesRouter.delete('/:id', requirePermission('edit_cases'), async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
