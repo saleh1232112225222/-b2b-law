@@ -1,7 +1,8 @@
-import express from 'express'
-import cors from 'cors'
-import { healthCheck, query } from './db/connection'
-import { authRouter } from './routes/auth'
+import express from 'express';
+import cors from 'cors';
+import { healthCheck, query } from './db/connection';
+import { authRouter } from './routes/auth';
+import { debugRouter } from './routes/debug';
 
 
 // Patch Express 4 to catch async errors — acts like express-async-errors
@@ -78,7 +79,8 @@ app.use('/api/session-outcomes', sessionOutcomesRouter)
 app.use('/api/tasks', tasksRouter)
 app.use('/api/subscriptions', subscriptionRouter)
 app.use('/api/admin/subscriptions', adminSubscriptionRouter)
-app.use('/api', marketingRouter)
+app.use('/api', marketingRouter);
+app.use('/api/debug', debugRouter);
 
 
 
