@@ -249,9 +249,24 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useApi } from '../../../api'
 
-const api = useApi()
+const API_BASE = import.meta.env.VITE_API_URL || 'https://b2b-law-g2qr.onrender.com'
+
+async function apiRequest(method, path, body = null) {
+  const token = localStorage.getItem('token')
+  const opts = {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {})
+    }
+  }
+  if (body) opts.body = JSON.stringify(body)
+  const res = await fetch(`${API_BASE}${path}`, opts)
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const data = await res.json()
+  return { data }
+}
 
 const companies = ref([])
 const stats = ref({
@@ -304,8 +319,8 @@ onMounted(async () => {
 async function fetchData() {
   try {
     const [companiesRes, statsRes] = await Promise.all([
-      api.get('/api/admin/subscriptions'),
-      api.get('/api/admin/subscriptions/stats/overview')
+      apiRequest('GET', '/api/admin/subscriptions'),
+      apiRequest('GET', '/api/admin/subscriptions/stats/overview')
     ])
     companies.value = companiesRes.data || []
     stats.value = statsRes.data || {}
@@ -316,7 +331,7 @@ async function fetchData() {
 
 async function fetchPlans() {
   try {
-    const response = await api.get('/api/subscriptions/plans')
+    const response = await apiRequest('GET', '/api/subscriptions/plans')
     availablePlans.value = response.data || []
   } catch (error) {
     console.error('Failed to fetch plans:', error)
@@ -396,7 +411,7 @@ async function createSubscriber() {
   isCreatingSubscriber.value = true
   try {
     // Create user
-    const userResponse = await api.post('/api/users', {
+    const userResponse = await apiRequest('POST', '/api/users', {
       username: newSubscriber.username,
       password: newSubscriber.password,
       full_name: newSubscriber.fullName || newSubscriber.username,
@@ -411,7 +426,7 @@ async function createSubscriber() {
     }
 
     // Create company
-    const companyResponse = await api.post('/api/auth/register', {
+    const companyResponse = await apiRequest('POST', '/api/auth/register', {
       username: newSubscriber.username,
       password: newSubscriber.password,
       companyName: newSubscriber.fullName || `شركة ${newSubscriber.username}`,
@@ -429,7 +444,7 @@ async function createSubscriber() {
       lifetime: newSubscriber.subscriptionType === 'lifetime'
     }
 
-    await api.post('/api/admin/subscriptions/activate', subscriptionBody)
+    await apiRequest('POST', '/api/admin/subscriptions/activate', subscriptionBody)
 
     alert('تم إنشاء المشترك بنجاح')
     closeAddSubscriberDialog()
@@ -450,7 +465,7 @@ async function activateSubscription() {
 
   isActivating.value = true
   try {
-    await api.post('/api/admin/subscriptions/activate', activateData)
+    await apiRequest('POST', '/api/admin/subscriptions/activate', activateData)
     alert('تم تفعيل الاشتراك بنجاح')
     closeActivateDialog()
     await fetchData()
@@ -470,7 +485,7 @@ async function extendSubscription() {
 
   isExtending.value = true
   try {
-    await api.post('/api/admin/subscriptions/extend', extendData)
+    await apiRequest('POST', '/api/admin/subscriptions/extend', extendData)
     alert('تم تمديد الاشتراك بنجاح')
     closeExtendDialog()
     await fetchData()
