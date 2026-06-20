@@ -26,7 +26,7 @@ usersRouter.get('/assignable', authMiddleware, async (req: Request, res: Respons
   }
 })
 
-usersRouter.use((req, res, next) => {
+usersRouter.use(authMiddleware, (req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   requirePermission('manage_users')(req, res, next)
 })
