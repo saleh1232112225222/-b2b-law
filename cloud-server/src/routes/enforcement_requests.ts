@@ -6,14 +6,16 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const enforcementRequestsRouter = Router()
 
-enforcementRequestsRouter.use((req, res, next) => {
+enforcementRequestsRouter.use(authMiddleware)
+
+.use((req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   const perm = req.method === 'GET' ? 'view_enforcement' : 'create_enforcement'
   requirePermission(perm)(req, res, next)
 })
 
 // 1. List Requests
-enforcementRequestsRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { page = '1', pageSize = '25', q, status, type } = req.query
@@ -57,7 +59,7 @@ enforcementRequestsRouter.get('/', authMiddleware, async (req: Request, res: Res
 })
 
 // 2. Get Single Request (with details, decisions, parties)
-enforcementRequestsRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const requestId = req.params.id
@@ -104,7 +106,7 @@ enforcementRequestsRouter.get('/:id', authMiddleware, async (req: Request, res: 
 })
 
 // 3. Create Request (Transaction)
-enforcementRequestsRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.post('/', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -227,7 +229,7 @@ enforcementRequestsRouter.post('/', authMiddleware, async (req: Request, res: Re
 })
 
 // 4. Update Request (Transaction)
-enforcementRequestsRouter.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.put('/:id', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -368,7 +370,7 @@ enforcementRequestsRouter.put('/:id', authMiddleware, async (req: Request, res: 
 })
 
 // 5. Delete Request
-enforcementRequestsRouter.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const id = req.params.id
@@ -389,7 +391,7 @@ enforcementRequestsRouter.delete('/:id', authMiddleware, async (req: Request, re
 })
 
 // 6. Get Attachments
-enforcementRequestsRouter.get('/:id/attachments', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.get('/:id/attachments', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const requestId = req.params.id
@@ -410,7 +412,7 @@ enforcementRequestsRouter.get('/:id/attachments', authMiddleware, async (req: Re
 })
 
 // 7. Add Attachments (Transaction)
-enforcementRequestsRouter.post('/:id/attachments', authMiddleware, async (req: Request, res: Response) => {
+enforcementRequestsRouter.post('/:id/attachments', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)

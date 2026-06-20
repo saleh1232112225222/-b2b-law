@@ -535,6 +535,36 @@ async function activateSubscription() {
   }
 }
 
+async function suspendSubscription(company) {
+  if (!confirm('هل ترغب بتعليق الاشتراك لهذا المشترك؟')) {
+    return
+  }
+  
+  try {
+    await apiRequest('POST', '/api/admin/subscriptions/suspend', { companyId: company.id, reason: 'تعليق من لوحة الإدارة' })
+    alert('تم تعليق الاشتراك بنجاح')
+    await fetchData()
+  } catch (error) {
+    console.error('Failed to suspend subscription:', error)
+    alert('حدث خطأ أثناء تعليق الاشتراك')
+  }
+}
+
+async function cancelSubscription(company) {
+  if (!confirm('هل ترغب بحذف المشترك لايمكن استعادة بعد الحذف')) {
+    return
+  }
+  
+  try {
+    await apiRequest('DELETE', `/api/admin/subscriptions/${company.id}`)
+    alert('تم الحذف بنجاح')
+    await fetchData()
+  } catch (error) {
+    console.error('Failed to cancel subscription:', error)
+    alert('حدث خطأ أثناء التنفيذ')
+  }
+}
+
 async function extendSubscription() {
   if (!extendData.extendMonths) {
     alert('يرجى اختيار مدة التمديد')

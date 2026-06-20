@@ -5,12 +5,14 @@ import { getCompanyId } from '../middleware/tenant'
 
 export const agenciesRouter = Router()
 
+agenciesRouter.use(authMiddleware)
+
 agenciesRouter.use((req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   requirePermission('view_clients')(req, res, next)
 })
 
-agenciesRouter.get('/by-client/:clientId', authMiddleware, async (req: Request, res: Response) => {
+agenciesRouter.get('/by-client/:clientId', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -27,7 +29,7 @@ agenciesRouter.get('/by-client/:clientId', authMiddleware, async (req: Request, 
   }
 })
 
-agenciesRouter.get('/expiry-alerts', authMiddleware, async (req: Request, res: Response) => {
+agenciesRouter.get('/expiry-alerts', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const today = (req.query.today as string) || new Date().toISOString().split('T')[0]
@@ -54,7 +56,7 @@ agenciesRouter.get('/expiry-alerts', authMiddleware, async (req: Request, res: R
   }
 })
 
-agenciesRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
+agenciesRouter.get('/', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { page = '1', pageSize = '50', q } = req.query
@@ -97,7 +99,7 @@ agenciesRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
   }
 })
 
-agenciesRouter.get('/all', authMiddleware, async (req: Request, res: Response) => {
+agenciesRouter.get('/all', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -115,7 +117,7 @@ agenciesRouter.get('/all', authMiddleware, async (req: Request, res: Response) =
   }
 })
 
-agenciesRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+agenciesRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(

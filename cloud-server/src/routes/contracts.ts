@@ -6,6 +6,8 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const contractsRouter = Router()
 
+contractsRouter.use(authMiddleware)
+
 contractsRouter.use((req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   const perm = req.method === 'GET' ? 'view_contracts' : 'create_contracts'
@@ -157,7 +159,7 @@ async function ensureSignature(client: any, companyId: string, contractId: strin
 }
 
 // 1. Get Party Types
-contractsRouter.get('/party-types', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/party-types', async (req: Request, res: Response) => {
   try {
     const result = await query(
       `SELECT * FROM contract_party_types ORDER BY sort_order ASC, party_type_name ASC`
@@ -170,7 +172,7 @@ contractsRouter.get('/party-types', authMiddleware, async (req: Request, res: Re
 })
 
 // 2. Get Templates
-contractsRouter.get('/templates', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/templates', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { contractType } = req.query
@@ -190,7 +192,7 @@ contractsRouter.get('/templates', authMiddleware, async (req: Request, res: Resp
 })
 
 // 3. Create Template
-contractsRouter.post('/templates', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.post('/templates', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { contract_type, name, body } = req.body
@@ -208,7 +210,7 @@ contractsRouter.post('/templates', authMiddleware, async (req: Request, res: Res
 })
 
 // 4. Update Template
-contractsRouter.put('/templates/:id', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/templates/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { name, body, is_active } = req.body
@@ -243,7 +245,7 @@ contractsRouter.put('/templates/:id', authMiddleware, async (req: Request, res: 
 })
 
 // 5. Delete Template
-contractsRouter.delete('/templates/:id', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.delete('/templates/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     await query(
@@ -258,7 +260,7 @@ contractsRouter.delete('/templates/:id', authMiddleware, async (req: Request, re
 })
 
 // 6. Get All Contracts (non-paginated)
-contractsRouter.get('/all', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/all', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -273,7 +275,7 @@ contractsRouter.get('/all', authMiddleware, async (req: Request, res: Response) 
 })
 
 // 6. List Contracts
-contractsRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { contract_type, caseId, clientId, employeeUserId } = req.query
@@ -306,7 +308,7 @@ contractsRouter.get('/', authMiddleware, async (req: Request, res: Response) => 
 })
 
 // 7. Get Contract by ID (with details)
-contractsRouter.get('/:id', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const id = req.params.id
@@ -382,7 +384,7 @@ contractsRouter.get('/:id', authMiddleware, async (req: Request, res: Response) 
 })
 
 // 8. Create Contract (with Transaction)
-contractsRouter.post('/', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.post('/', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -643,7 +645,7 @@ contractsRouter.post('/', authMiddleware, async (req: Request, res: Response) =>
 })
 
 // 9. Update Contract
-contractsRouter.put('/:id', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const id = req.params.id
@@ -728,7 +730,7 @@ contractsRouter.put('/:id', authMiddleware, async (req: Request, res: Response) 
 })
 
 // 10. Approve Contract
-contractsRouter.post('/:id/approve', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.post('/:id/approve', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -757,7 +759,7 @@ contractsRouter.post('/:id/approve', authMiddleware, async (req: Request, res: R
 })
 
 // 11. Archive Contract
-contractsRouter.put('/:id/archive', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/:id/archive', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -787,7 +789,7 @@ contractsRouter.put('/:id/archive', authMiddleware, async (req: Request, res: Re
 })
 
 // 12. List Party Audits
-contractsRouter.get('/:id/party-audits', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.get('/:id/party-audits', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -804,7 +806,7 @@ contractsRouter.get('/:id/party-audits', authMiddleware, async (req: Request, re
 })
 
 // 13. Add Participant
-contractsRouter.post('/:contractId/participants', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.post('/:contractId/participants', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -834,7 +836,7 @@ contractsRouter.post('/:contractId/participants', authMiddleware, async (req: Re
 })
 
 // 14. Update Participant
-contractsRouter.put('/:contractId/participants/:participantId', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/:contractId/participants/:participantId', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { role_key, role_label, side_key, sort_order } = req.body
@@ -873,7 +875,7 @@ contractsRouter.put('/:contractId/participants/:participantId', authMiddleware, 
 })
 
 // 15. Remove Participant
-contractsRouter.delete('/:contractId/participants/:participantId', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.delete('/:contractId/participants/:participantId', async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -905,7 +907,7 @@ contractsRouter.delete('/:contractId/participants/:participantId', authMiddlewar
 })
 
 // 16. Update Signature
-contractsRouter.put('/:contractId/signatures/:signatureId', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/:contractId/signatures/:signatureId', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { signature_status, signature_payload_json, signed_at } = req.body
@@ -940,7 +942,7 @@ contractsRouter.put('/:contractId/signatures/:signatureId', authMiddleware, asyn
 })
 
 // 17. Update Schedule Status
-contractsRouter.put('/schedules/:id', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.put('/schedules/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { status } = req.body
@@ -956,7 +958,7 @@ contractsRouter.put('/schedules/:id', authMiddleware, async (req: Request, res: 
 })
 
 // 18. Create Amendment
-contractsRouter.post('/:contractId/amendments', authMiddleware, async (req: Request, res: Response) => {
+contractsRouter.post('/:contractId/amendments', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { reason, content } = req.body
