@@ -1,14 +1,30 @@
 <template>
   <div class="admin-subscriptions-page">
-    <div class="page-header">
-      <h1>إدارة الاشتراكات</h1>
-      <button class="btn-primary" @click="openAddSubscriberDialog">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M5 12h14"/>
-        </svg>
-        إضافة مشترك جديد
-      </button>
-    </div>
+    <!-- Vuetify Header -->
+    <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
+      <v-card-text class="d-flex align-center justify-space-between pa-6">
+        <div class="d-flex align-center">
+          <v-avatar color="gold-lighten-4" size="56" class="me-4">
+            <v-icon icon="mdi-crown" class="text-gold" size="32"></v-icon>
+          </v-avatar>
+          <div>
+            <h1 class="text-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
+            <div class="text-subtitle-1 text-medium-emphasis">إدارة اشتراكات العملاء وتفعيل الخطط</div>
+          </div>
+        </div>
+        
+        <v-btn
+          color="gold"
+          size="x-large"
+          class="font-weight-bold rounded-lg text-ebony"
+          elevation="2"
+          prepend-icon="mdi-plus"
+          @click="openAddSubscriberDialog"
+        >
+          إضافة مشترك جديد
+        </v-btn>
+      </v-card-text>
+    </v-card>
 
     <div class="stats-grid">
       <div class="stat-card">
@@ -102,64 +118,113 @@
       </table>
     </div>
 
-    <!-- Add Subscriber Dialog -->
-    <div class="modal" :class="{ 'show': showAddSubscriberDialog }" @click="closeAddSubscriberDialog">
-      <div class="modal-content" @click.stop>
-        <div class="modal-header">
-          <h3>إضافة مشترك جديد</h3>
-          <button class="close-btn" @click="closeAddSubscriberDialog">×</button>
-        </div>
-        <div class="modal-body">
-          <form @submit.prevent="createSubscriber">
-            <div class="form-grid">
-              <div class="form-group">
-                <label>اسم المشترك الكامل</label>
-                <input type="text" v-model="newSubscriber.fullName" required />
-              </div>
-              <div class="form-group">
-                <label>اسم المستخدم</label>
-                <input type="text" v-model="newSubscriber.username" required />
-              </div>
-              <div class="form-group">
-                <label>كلمة المرور</label>
-                <input type="password" v-model="newSubscriber.password" required />
-              </div>
-              <div class="form-group">
-                <label>البريد الإلكتروني</label>
-                <input type="email" v-model="newSubscriber.email" />
-              </div>
-              <div class="form-group">
-                <label>رقم الهاتف</label>
-                """
-                <input type="tel" v-model="newSubscriber.phone" />
-              </div>
-              <div class="form-group">
-                <label>نوع الاشتراك</label>
-                <select v-model="newSubscriber.subscriptionType">
-                  <option value="trial">تجربة (30 يوم)</option>
-                  <option value="monthly">شهري (99 ريال)</option>
-                  <option value="yearly">سنوي (999 ريال)</option>
-                  <option value="lifetime">مدى الحياة (2,499 ريال)</option>
-                </select>
-              </div>
-              <div class="form-group" v-if="newSubscriber.subscriptionType === 'lifetime'">
-                <label>خطة الاشتراك</label>
-                <select v-model="newSubscriber.planId">
-                  <option value="">اختر الخطة...</option>
-                  <option v-for="plan in availablePlans" :key="plan.id" :value="plan.id">{{ plan.name }} - {{ plan.price }} ريال</option>
-                </select>
-              </div>
+    <!-- Add Subscriber Vuetify Dialog -->
+    <v-dialog v-model="showAddSubscriberDialog" max-width="600px" persistent>
+      <v-card class="rounded-xl border-gold border-1">
+        <v-card-title class="bg-gold-gradient text-ebony pa-4 d-flex align-center">
+          <v-icon icon="mdi-account-plus" class="me-2"></v-icon>
+          <span class="text-h6 font-weight-bold">إضافة مشترك جديد</span>
+          <v-spacer></v-spacer>
+          <v-btn icon="mdi-close" variant="text" @click="closeAddSubscriberDialog"></v-btn>
+        </v-card-title>
+        
+        <v-card-text class="pa-6">
+          <v-form @submit.prevent="createSubscriber" ref="addForm">
+            <v-row>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="newSubscriber.fullName"
+                  label="اسم المشترك / الشركة"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-domain"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="newSubscriber.username"
+                  label="اسم المستخدم (للدخول)"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-account"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="newSubscriber.password"
+                  label="كلمة المرور"
+                  type="password"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-lock"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="newSubscriber.email"
+                  label="البريد الإلكتروني"
+                  type="email"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-email"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
+                  v-model="newSubscriber.phone"
+                  label="رقم الجوال"
+                  type="tel"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-phone"
+                  required
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-select
+                  v-model="newSubscriber.subscriptionType"
+                  :items="[
+                    { title: 'تجربة مجانية (30 يوم)', value: 'trial' },
+                    { title: 'اشتراك شهري', value: 'monthly' },
+                    { title: 'اشتراك سنوي', value: 'yearly' },
+                    { title: 'مدى الحياة', value: 'lifetime' }
+                  ]"
+                  label="نوع الاشتراك"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-card-account-details"
+                ></v-select>
+              </v-col>
+              <v-col cols="12" v-if="newSubscriber.subscriptionType !== 'trial'">
+                <v-select
+                  v-model="newSubscriber.planId"
+                  :items="availablePlans"
+                  item-title="name"
+                  item-value="id"
+                  label="خطة الاشتراك"
+                  variant="outlined"
+                  color="gold"
+                >
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item v-bind="props" :subtitle="`${item.raw.price} ريال`"></v-list-item>
+                  </template>
+                </v-select>
+              </v-col>
+            </v-row>
+            <div class="d-flex justify-end mt-4">
+              <v-btn color="grey-darken-1" variant="text" class="me-2" @click="closeAddSubscriberDialog">إلغاء</v-btn>
+              <v-btn color="gold" type="submit" class="text-ebony font-weight-bold" :loading="isCreatingSubscriber">
+                إنشاء المشترك
+              </v-btn>
             </div>
-            <div class="form-actions">
-              <button type="button" class="btn-secondary" @click="closeAddSubscriberDialog">إلغاء</button>
-              <button type="submit" class="btn-primary" :disabled="isCreatingSubscriber">
-                {{ isCreatingSubscriber ? 'جارِ الإنشاء...' : 'إنشاء المشترك' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
 
     <!-- Activate Subscription Dialog -->
     <div class="modal" :class="{ 'show': showActivateDialog }" @click="closeActivateDialog">
@@ -169,7 +234,7 @@
           <button class="close-btn" @click="closeActivateDialog">×</button>
         </div>
         <div class="modal-body">
-          <div class="company-info">
+          <div class="company-info" v-if="selectedCompany">
             <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
             <p><strong>البريد الإلكتروني:</strong> {{ selectedCompany.email }}</p>
           </div>
@@ -219,7 +284,7 @@
           <button class="close-btn" @click="closeExtendDialog">×</button>
         </div>
         <div class="modal-body">
-          <div class="company-info">
+          <div class="company-info" v-if="selectedCompany">
             <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
             <p><strong>الحالة الحالية:</strong> <span :class="getStatusClass(selectedCompany.effectiveStatus)">{{ getStatusText(selectedCompany.effectiveStatus) }}</span></p>
           </div>
@@ -403,55 +468,48 @@ function formatDate(date) {
 }
 
 async function createSubscriber() {
-  if (!newSubscriber.username || !newSubscriber.password) {
-    alert('اسم المستخدم وكلمة المرور مطلوبان')
+  if (!newSubscriber.username || !newSubscriber.password || !newSubscriber.fullName) {
+    alert('اسم المستخدم وكلمة المرور واسم الشركة/المشترك مطلوبان')
     return
   }
 
   isCreatingSubscriber.value = true
   try {
-    // Create user
-    const userResponse = await apiRequest('POST', '/api/users', {
-      username: newSubscriber.username,
-      password: newSubscriber.password,
-      full_name: newSubscriber.fullName || newSubscriber.username,
-      role_key: 'secretary',
-      employee_id: null
-    })
-
-    const userId = userResponse.data?.userId
-    if (!userId) {
-      alert('فشل إنشاء المستخدم')
-      return
-    }
-
-    // Create company
+    // Create company and super admin user in one step using the auth/register endpoint
     const companyResponse = await apiRequest('POST', '/api/auth/register', {
       username: newSubscriber.username,
       password: newSubscriber.password,
-      companyName: newSubscriber.fullName || `شركة ${newSubscriber.username}`,
+      companyName: newSubscriber.fullName,
       email: newSubscriber.email || `${newSubscriber.username}@example.com`,
       phone: newSubscriber.phone || '0500000000'
     })
 
-    const companyId = companyResponse.data?.companyId || userId
+    const companyId = companyResponse.data?.companyId
 
-    // Create subscription
-    const subscriptionBody = {
-      companyId: companyId,
-      planId: newSubscriber.subscriptionType === 'lifetime' ? availablePlans.value.find(p => p.interval === 'lifetime')?.id : '933c1f86-78bb-4239-b35c-14cc94dc56db',
-      durationMonths: newSubscriber.subscriptionType === 'trial' ? 1 : null,
-      lifetime: newSubscriber.subscriptionType === 'lifetime'
+    if (!companyId) {
+      alert('فشل إنشاء الشركة. قد يكون اسم المستخدم أو البريد الإلكتروني مسجل مسبقاً.')
+      return
     }
 
-    await apiRequest('POST', '/api/admin/subscriptions/activate', subscriptionBody)
+    // Create subscription if not a basic trial
+    // NOTE: /api/auth/register automatically creates a trial subscription, 
+    // but we can activate a different plan if selected.
+    if (newSubscriber.subscriptionType !== 'trial') {
+      const subscriptionBody = {
+        companyId: companyId,
+        planId: newSubscriber.planId,
+        durationMonths: newSubscriber.subscriptionType === 'monthly' ? 1 : newSubscriber.subscriptionType === 'yearly' ? 12 : null,
+        lifetime: newSubscriber.subscriptionType === 'lifetime'
+      }
+      await apiRequest('POST', '/api/admin/subscriptions/activate', subscriptionBody)
+    }
 
     alert('تم إنشاء المشترك بنجاح')
     closeAddSubscriberDialog()
     await fetchData()
   } catch (error) {
     console.error('Failed to create subscriber:', error)
-    alert('حدث خطأ أثناء إنشاء المشترك')
+    alert('حدث خطأ أثناء إنشاء المشترك. يرجى التأكد من أن البيانات المدخلة غير مكررة.')
   } finally {
     isCreatingSubscriber.value = false
   }
