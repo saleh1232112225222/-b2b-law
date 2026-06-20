@@ -1,4 +1,5 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
+import { isSuperAdmin } from '../../../admin/middleware/adminGuard'
 
 const routes = [
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
@@ -166,7 +167,7 @@ const routes = [
   {
     path: '/admin/subscriptions',
     name: 'AdminSubscriptions',
-    component: () => import('../views/AdminSubscriptions.vue'),
+    component: () => import('../../../admin/views/AdminSubscriptions.vue'),
     meta: { requiresAuth: true, permissions: ['manage_settings'] }
   },
   {
@@ -309,7 +310,7 @@ router.beforeEach(async (to) => {
         
         // If trial expired and no active subscription - allow access but in read-only mode
         // Frontend will enforce read-only UI (hide add/edit/delete buttons)
-        if (session.trialExpired && session.subscriptionStatus !== 'active') {
+        if (session.trialExpired && session.subscriptionStatus !== 'active' && session.subscriptionStatus !== 'lifetime') {
           // Store read-only flag for components to check
           sessionStorage.setItem('app_readonly', 'true')
         } else {
@@ -318,6 +319,24 @@ router.beforeEach(async (to) => {
       } catch (e) {
         console.error('Failed to parse session for subscription check:', e)
       }
+    }
+  }
+
+  // Admin Routes Guard - حماية صفحات الأدمن
+  if (to.path.startsWith('/admin')) {
+    const sessionData = localStorage.getItem('web_currentUserSession')
+    if (sessionData) {
+      try {
+        const session = JSON.parse(sessionData)
+        if (!isSuperAdmin(session)) {
+          return '/dashboard' // أعد توجيهه للوحة التحكم
+        }
+      } catch (e) {
+        console.error('Failed to parse session for admin check:', e)
+        return '/dashboard'
+      }
+    } else {
+      return '/dashboard'
     }
   }
 

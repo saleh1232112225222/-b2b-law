@@ -2,8 +2,22 @@ import { Request, Response, NextFunction } from 'express'
 import jwt from 'jsonwebtoken'
 import { query } from '../db/connection'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'b2b-law-cloud-jwt-secret-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET || ''
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '24h'
+
+const DEFAULT_SECRETS = [
+  'b2b-law-cloud-jwt-secret-change-in-production',
+  'your-secret-key-here-change-in-production',
+  'my-secret-key'
+]
+
+const isDevSecret = JWT_SECRET === 'b2b-law-cloud-dev-secret'
+const isProduction = process.env.NODE_ENV === 'production'
+
+if (!JWT_SECRET || DEFAULT_SECRETS.includes(JWT_SECRET) || (isDevSecret && isProduction)) {
+  console.error('❌ CRITICAL: JWT_SECRET is not set, is still a default value, or is a development secret in production!')
+  process.exit(1)
+}
 
 export interface AuthPayload {
   userId: string
@@ -24,7 +38,7 @@ declare global {
 }
 
 export function generateToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '24h' } as any)
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any)
 }
 
 export function verifyToken(token: string): AuthPayload {
@@ -74,8 +88,15 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       }
     }
 
-    const isSystemAction = req.path.startsWith('/system/') || req.originalUrl.includes('/system/')
-    if (isExpired && req.method !== 'GET' && !isSystemAction) {
+    const isExcludedPath = 
+      req.path.startsWith('/system/') || 
+      req.originalUrl.includes('/system/') ||
+      req.path.startsWith('/subscriptions/') ||
+      req.originalUrl.includes('/subscriptions/') ||
+      req.path.startsWith('/admin/') ||
+      req.originalUrl.includes('/admin/')
+
+    if (isExpired && req.method !== 'GET' && !isExcludedPath) {
       res.status(403).json({
         error: 'TrialExpiredWriteForbidden',
         message: 'انتهت الفترة التجريبية. يرجى الاشتراك للاستمرار في الإضافة والتعديل.',

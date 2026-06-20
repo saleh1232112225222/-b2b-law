@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { getCompanyId } from '../middleware/tenant'
+
 import bcrypt from 'bcryptjs'
 
 export const usersRouter = Router()
@@ -22,6 +23,11 @@ usersRouter.get('/assignable', authMiddleware, async (req: Request, res: Respons
     console.error('[Users] Get assignable error:', err)
     res.status(500).json({ error: 'Failed to get assignable users' })
   }
+})
+
+usersRouter.use((req, res, next) => {
+  const { requirePermission } = require('../middleware/permission')
+  requirePermission('manage_users')(req, res, next)
 })
 
 // 2. Get Active Staff

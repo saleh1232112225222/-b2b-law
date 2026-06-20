@@ -55,6 +55,30 @@ export const db = drizzle(pool, { schema: drizzleSchema })
 
 export async function runMigrations(): Promise<void> {
   console.log('[DB] Running Drizzle migrations...')
+  
+  // Pre-seed Drizzle migration tracking table for 0000_dear_domino
+  try {
+    await query('CREATE SCHEMA IF NOT EXISTS "drizzle"')
+    await query(`
+      CREATE TABLE IF NOT EXISTS "drizzle"."__drizzle_migrations" (
+        id SERIAL PRIMARY KEY,
+        hash text NOT NULL,
+        created_at bigint
+      )
+    `)
+    // Check if 0000_dear_domino is already there
+    const check = await query('SELECT id FROM "drizzle"."__drizzle_migrations" WHERE id = 1')
+    if (check.rows.length === 0) {
+      await query(`
+        INSERT INTO "drizzle"."__drizzle_migrations" (id, hash, created_at)
+        VALUES (1, '741d7b0b95cace6bb95e285a97c2c05c5b24329deccf0050947710d116922bee', 1781016214198)
+      `)
+      console.log('[DB] Pre-seeded drizzle migration table with 0000_dear_domino')
+    }
+  } catch (err: any) {
+    console.warn('[DB] Pre-seeding drizzle migration table failed:', err.message)
+  }
+
   const migrationsFolder = path.join(__dirname, 'migrations')
   if (fs.existsSync(migrationsFolder)) {
     await migrate(db, { migrationsFolder })

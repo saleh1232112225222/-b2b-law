@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
+import { requirePermission } from '../middleware/permission'
 
 export const tasksRouter = Router()
 
@@ -12,7 +13,7 @@ function getCompanyId(req: Request): string {
 }
 
 // GET /api/tasks/by-case/:caseId
-tasksRouter.get('/by-case/:caseId', async (req: Request, res: Response) => {
+tasksRouter.get('/by-case/:caseId', requirePermission('view_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { caseId } = req.params
@@ -28,7 +29,7 @@ tasksRouter.get('/by-case/:caseId', async (req: Request, res: Response) => {
 })
 
 // GET /api/tasks/pending
-tasksRouter.get('/pending', async (req: Request, res: Response) => {
+tasksRouter.get('/pending', requirePermission('view_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -43,7 +44,7 @@ tasksRouter.get('/pending', async (req: Request, res: Response) => {
 })
 
 // POST /api/tasks/:id/transition
-tasksRouter.post('/:id/transition', async (req: Request, res: Response) => {
+tasksRouter.post('/:id/transition', requirePermission('edit_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -109,7 +110,7 @@ tasksRouter.post('/:id/transition', async (req: Request, res: Response) => {
 })
 
 // POST /api/tasks/:id/close
-tasksRouter.post('/:id/close', async (req: Request, res: Response) => {
+tasksRouter.post('/:id/close', requirePermission('close_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -144,7 +145,7 @@ tasksRouter.post('/:id/close', async (req: Request, res: Response) => {
 })
 
 // POST /api/tasks/:id/cancel
-tasksRouter.post('/:id/cancel', async (req: Request, res: Response) => {
+tasksRouter.post('/:id/cancel', requirePermission('cancel_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
@@ -179,7 +180,7 @@ tasksRouter.post('/:id/cancel', async (req: Request, res: Response) => {
 })
 
 // GET /api/tasks/:taskId/audit/count
-tasksRouter.get('/:taskId/audit/count', async (req: Request, res: Response) => {
+tasksRouter.get('/:taskId/audit/count', requirePermission('view_task_audit'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { taskId } = req.params
@@ -195,7 +196,7 @@ tasksRouter.get('/:taskId/audit/count', async (req: Request, res: Response) => {
 })
 
 // GET /api/tasks/:taskId/audit
-tasksRouter.get('/:taskId/audit', async (req: Request, res: Response) => {
+tasksRouter.get('/:taskId/audit', requirePermission('view_task_audit'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { taskId } = req.params

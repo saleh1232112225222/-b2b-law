@@ -1,9 +1,10 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
 import { generateToken, authMiddleware } from '../middleware/auth'
+import { getUserPermissions } from '../middleware/permission'
 import { sendOTP, sendEmail, getTransporter, notifyAdminOfNewRegistration } from '../services/notification'
 
 export const authRouter = Router()
@@ -21,7 +22,38 @@ async function logActivity(actor: string, actionKey: string, moduleKey: string, 
   }
 }
 
-authRouter.post('/login', async (req: Request, res: Response) => {
+const authAttempts = new Map<string, { count: number; resetTime: number }>()
+
+const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown'
+  const now = Date.now()
+  const windowMs = 15 * 60 * 1000 // 15 minutes
+  const maxAttempts = 10 // max 10 attempts
+
+  const attempt = authAttempts.get(ip)
+  if (!attempt) {
+    authAttempts.set(ip, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  if (now > attempt.resetTime) {
+    authAttempts.set(ip, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  attempt.count++
+  if (attempt.count > maxAttempts) {
+    const minutesLeft = Math.ceil((attempt.resetTime - now) / 60000)
+    return res.status(429).json({
+      error: 'TooManyRequests',
+      message: `لقد تجاوزت الحد الأقصى لمحاولات تسجيل الدخول أو التفعيل. يرجى المحاولة بعد ${minutesLeft} دقيقة.`
+    })
+  }
+
+  next()
+}
+
+authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const { username, password, companyId } = req.body
     if (!username || !password) {
@@ -114,6 +146,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
       console.error('Failed to notify admin of manual login:', e)
     }
 
+    const permissions = await getUserPermissions(user.company_id, user.id, user.role_key)
+
     res.json({
       token,
       user: {
@@ -126,7 +160,8 @@ authRouter.post('/login', async (req: Request, res: Response) => {
         mustChangePassword: user.must_change_password,
         trialExpired,
         trialExpiresAt,
-        subscriptionStatus
+        subscriptionStatus,
+        permissions
       }
     })
   } catch (err) {
@@ -157,6 +192,8 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
     if (subCheck.rows.length > 0) {
       subscriptionStatus = subCheck.rows[0].status
     }
+    const permissions = await getUserPermissions(req.auth!.companyId, req.auth!.userId, req.auth!.roleKey)
+
     res.json({
       id: req.auth!.userId,
       username: req.auth!.username,
@@ -165,7 +202,8 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
       trialExpired,
       trialExpiresAt,
       subscriptionStatus,
-      isLocked: false
+      isLocked: false,
+      permissions
     })
   } catch (err) {
     console.error('[AUTH] Session error:', err)
@@ -355,12 +393,23 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     if (companyRes.rows.length > 0) {
       trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
     }
+    
+    let subscriptionStatus = 'trial'
+    const subCheck = await query(
+      `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+      [companyId]
+    )
+    if (subCheck.rows.length > 0) {
+      subscriptionStatus = subCheck.rows[0].status
+    }
+
     const token = generateToken({
       userId: user.id,
       companyId,
       username: user.username,
       roleKey: user.role_key,
-      trialExpired
+      trialExpired,
+      subscriptionStatus
     })
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
@@ -370,7 +419,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
   }
 })
 
-authRouter.post('/register', async (req: Request, res: Response) => {
+authRouter.post('/register', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const { companyName, username, email, phone, password } = req.body
     if (!companyName || !username || !email || !phone || !password) {
@@ -425,7 +474,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
 
     const companyId = uuidv4()
     const trialExpiresAt = new Date()
-    trialExpiresAt.setDate(trialExpiresAt.getDate() + 7) // 7 days trial
+    trialExpiresAt.setDate(trialExpiresAt.getDate() + 30) // 30 days trial
 
     // Generate 6-digit random code (OTP)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
@@ -508,7 +557,7 @@ authRouter.post('/register', async (req: Request, res: Response) => {
   }
 })
 
-authRouter.post('/verify', async (req: Request, res: Response) => {
+authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const { username, code } = req.body
     if (!username || !code) {

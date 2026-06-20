@@ -6,6 +6,12 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const contractsRouter = Router()
 
+contractsRouter.use((req, res, next) => {
+  const { requirePermission } = require('../middleware/permission')
+  const perm = req.method === 'GET' ? 'view_contracts' : 'create_contracts'
+  requirePermission(perm)(req, res, next)
+})
+
 const normalizeIso = (raw?: string | null) => {
   const s = String(raw || '').trim()
   if (!s) return null

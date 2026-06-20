@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import { query, getClient } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
+import { requirePermission } from '../middleware/permission'
 import { analyzeJudgment, saveGeneratedTasks, detectCaseType } from '../services/judgmentAnalyzer.service'
 
 export const sessionOutcomesRouter = Router()
@@ -13,7 +14,7 @@ function getCompanyId(req: Request): string {
 }
 
 // GET /api/session-outcomes/by-session/:sessionId
-sessionOutcomesRouter.get('/by-session/:sessionId', async (req: Request, res: Response) => {
+sessionOutcomesRouter.get('/by-session/:sessionId', requirePermission('view_sessions'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { sessionId } = req.params
@@ -29,7 +30,7 @@ sessionOutcomesRouter.get('/by-session/:sessionId', async (req: Request, res: Re
 })
 
 // POST /api/session-outcomes/apply — full workflow with smart analysis
-sessionOutcomesRouter.post('/apply', async (req: Request, res: Response) => {
+sessionOutcomesRouter.post('/apply', requirePermission('edit_sessions'), async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)
@@ -133,7 +134,7 @@ sessionOutcomesRouter.post('/apply', async (req: Request, res: Response) => {
 })
 
 // POST /api/session-outcomes/preview — preview analysis without saving
-sessionOutcomesRouter.post('/preview', async (req: Request, res: Response) => {
+sessionOutcomesRouter.post('/preview', requirePermission('edit_sessions'), async (req: Request, res: Response) => {
   try {
     const { result, judgmentData, caseType, notes } = req.body
     if (!result) {

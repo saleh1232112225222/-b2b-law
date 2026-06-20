@@ -1,7 +1,8 @@
 import express from 'express'
 import cors from 'cors'
-import { healthCheck } from './db/connection'
+import { healthCheck, query } from './db/connection'
 import { authRouter } from './routes/auth'
+
 
 // Patch Express 4 to catch async errors — acts like express-async-errors
 try {
@@ -79,6 +80,8 @@ app.use('/api/subscriptions', subscriptionRouter)
 app.use('/api/admin/subscriptions', adminSubscriptionRouter)
 app.use('/api', marketingRouter)
 
+
+
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },
   { name: 'defendants', table: 'defendants', searchFields: ['name', 'id_number', 'phone'] },
@@ -114,8 +117,87 @@ for (const entity of entityTables) {
   if (entity.name === 'permissions') continue
   if (entity.name === 'cases') continue
   if (entity.name === 'contracts') continue
-  app.use(`/api/${entity.name}`, createEntityRouter(entity))
+
+  let readPermission = ''
+  let writePermission = ''
+
+  if (entity.name === 'clients') {
+    readPermission = 'view_clients'
+    writePermission = 'create_clients'
+  } else if (entity.name === 'defendants') {
+    readPermission = 'view_defendants'
+    writePermission = 'create_defendants'
+  } else if (entity.name === 'employees') {
+    readPermission = 'view_employees'
+    writePermission = 'view_employees'
+  } else if (['finances', 'invoices', 'vouchers', 'receivables', 'credit-notes'].includes(entity.name)) {
+    readPermission = 'view_finances'
+    writePermission = 'create_finances'
+  } else if (['firm', 'accounts'].includes(entity.name)) {
+    readPermission = 'manage_settings'
+    writePermission = 'manage_settings'
+  } else if (entity.name === 'activity-logs') {
+    readPermission = 'view_activity_logs'
+    writePermission = 'view_activity_logs'
+  } else if (entity.name === 'sessions') {
+    readPermission = 'view_sessions'
+    writePermission = 'edit_sessions'
+  } else if (entity.name === 'documents') {
+    readPermission = 'view_documents'
+    writePermission = 'create_documents'
+  } else if (entity.name === 'evidence') {
+    readPermission = 'view_cases'
+    writePermission = 'edit_cases'
+  } else if (entity.name === 'judgments') {
+    readPermission = 'view_cases'
+    writePermission = 'edit_cases'
+  } else if (entity.name === 'memoranda') {
+    readPermission = 'view_cases'
+    writePermission = 'edit_cases'
+  } else if (entity.name === 'experts') {
+    readPermission = 'view_cases'
+    writePermission = 'edit_cases'
+  } else if (entity.name === 'communications') {
+    readPermission = 'view_clients'
+    writePermission = 'create_cases'
+  } else if (entity.name === 'collections') {
+    readPermission = 'view_finances'
+    writePermission = 'create_finances'
+  }
+
+  const entityRouter = createEntityRouter(entity)
+
+  if (readPermission || writePermission) {
+    const { requirePermission } = require('./middleware/permission')
+    app.use(`/api/${entity.name}`, (req: any, res: any, next: any) => {
+      const isRead = req.method === 'GET'
+      const perm = isRead ? readPermission : (writePermission || readPermission)
+      if (perm) {
+        requirePermission(perm)(req, res, next)
+      } else {
+        next()
+      }
+    }, entityRouter)
+  } else {
+    app.use(`/api/${entity.name}`, entityRouter)
+  }
 }
+
+app.get('/api/permissions', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
+  try {
+    const { getCompanyId } = require('./middleware/tenant')
+    const companyId = getCompanyId(req)
+    const { ensureDefaultPermissions } = require('./middleware/permission')
+    
+    await ensureDefaultPermissions(companyId)
+
+    const result = await query('SELECT * FROM permissions WHERE company_id = $1', [companyId])
+    res.json(result.rows)
+  } catch (err: any) {
+    console.error('Failed to get permissions:', err)
+    res.status(500).json({ error: 'Failed to retrieve permissions' })
+  }
+})
 
 app.use('/api/reports', reportsRouter)
 app.use('/api', systemRouter)
@@ -247,7 +329,7 @@ async function seedSuperAdmin() {
       // Password hash: '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK'
       await dbQuery(
         `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK', 'admin', TRUE, FALSE, 'slaehmap@gmail.com', NOW())`,
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '$2a$12$mr2bHXoL1L0ktHjB57xJfu0mXBFKmRoBBEMAmU7xtMmL9JL.YxxYK', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
         []
       )
       console.log('[SEED] Super Admin user created')

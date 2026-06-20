@@ -6,6 +6,12 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const enforcementRequestsRouter = Router()
 
+enforcementRequestsRouter.use((req, res, next) => {
+  const { requirePermission } = require('../middleware/permission')
+  const perm = req.method === 'GET' ? 'view_enforcement' : 'create_enforcement'
+  requirePermission(perm)(req, res, next)
+})
+
 // 1. List Requests
 enforcementRequestsRouter.get('/', authMiddleware, async (req: Request, res: Response) => {
   try {

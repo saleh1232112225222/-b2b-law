@@ -1,8 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
-import { getCompanyId } from '../middleware/tenant'
-import { readOnlyOnExpiredTrial } from '../middleware/readOnlyOnExpired'
+import { getCompanyId, getUserId } from '../middleware/tenant'
 
 interface EntityConfig {
   name: string
@@ -225,13 +224,13 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('create')) {
-    router.post('/', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
+    router.post('/', authMiddleware, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body, company_id: companyId }
         delete body.id
 
-        if (!body.created_by) body.created_by = getCompanyId(req)
+        if (!body.created_by) body.created_by = getUserId(req)
         body.created_at = new Date().toISOString()
         body.updated_at = body.created_at
 
@@ -272,7 +271,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('update')) {
-    router.put('/:id', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
+    router.put('/:id', authMiddleware, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body }
@@ -280,7 +279,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         delete body.company_id
 
         body.updated_at = new Date().toISOString()
-        if (!body.updated_by) body.updated_by = getCompanyId(req)
+        if (!body.updated_by) body.updated_by = getUserId(req)
 
         // Convert empty strings to null for PostgreSQL compatibility
         for (const key of Object.keys(body)) {
@@ -321,7 +320,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('delete')) {
-    router.delete('/:id', authMiddleware, readOnlyOnExpiredTrial, async (req: Request, res: Response) => {
+    router.delete('/:id', authMiddleware, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(

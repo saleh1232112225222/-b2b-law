@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
+import { requirePermission } from '../middleware/permission'
 import { getCompanyId } from '../middleware/tenant'
 
 export const reportsRouter = Router()
 
-reportsRouter.get('/case', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/case', authMiddleware, requirePermission('export_reports'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { caseId } = req.query
@@ -124,7 +125,7 @@ reportsRouter.get('/case', authMiddleware, async (req: Request, res: Response) =
   }
 })
 
-reportsRouter.get('/sessions', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/sessions', authMiddleware, requirePermission('export_reports'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { from, to, caseId } = req.query
@@ -153,7 +154,7 @@ reportsRouter.get('/sessions', authMiddleware, async (req: Request, res: Respons
   }
 })
 
-reportsRouter.get('/financial-summary', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/financial-summary', authMiddleware, requirePermission('export_reports'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const invoices = await query(
@@ -179,7 +180,7 @@ reportsRouter.get('/financial-summary', authMiddleware, async (req: Request, res
   }
 })
 
-reportsRouter.get('/activity', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/activity', authMiddleware, requirePermission('view_activity_logs'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { from, to } = req.query
@@ -203,7 +204,7 @@ reportsRouter.get('/activity', authMiddleware, async (req: Request, res: Respons
   }
 })
 
-reportsRouter.post('/export/csv', authMiddleware, (req: Request, res: Response) => {
+reportsRouter.post('/export/csv', authMiddleware, requirePermission('export_reports'), (req: Request, res: Response) => {
   const { filename, rows } = req.body
   if (!rows || !Array.isArray(rows) || rows.length === 0) {
     res.status(400).json({ error: 'No data to export' })
@@ -222,15 +223,15 @@ reportsRouter.post('/export/csv', authMiddleware, (req: Request, res: Response) 
   res.send(csv)
 })
 
-reportsRouter.post('/export/pdf', (_req: Request, res: Response) => {
+reportsRouter.post('/export/pdf', authMiddleware, requirePermission('export_reports'), (_req: Request, res: Response) => {
   res.status(501).json({ error: 'PDF export not yet implemented on server' })
 })
 
-reportsRouter.post('/export/html', (_req: Request, res: Response) => {
+reportsRouter.post('/export/html', authMiddleware, requirePermission('export_reports'), (_req: Request, res: Response) => {
   res.status(501).json({ error: 'HTML export not yet implemented on server' })
 })
 
-reportsRouter.get('/users', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/users', authMiddleware, requirePermission('manage_users'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -243,7 +244,7 @@ reportsRouter.get('/users', authMiddleware, async (req: Request, res: Response) 
   }
 })
 
-reportsRouter.get('/clients', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/clients', authMiddleware, requirePermission('view_clients'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -256,7 +257,7 @@ reportsRouter.get('/clients', authMiddleware, async (req: Request, res: Response
   }
 })
 
-reportsRouter.get('/operations-summary', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/operations-summary', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const [cases, sessions, tasks, clients] = await Promise.all([
@@ -276,7 +277,7 @@ reportsRouter.get('/operations-summary', authMiddleware, async (req: Request, re
   }
 })
 
-reportsRouter.get('/users-permissions', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/users-permissions', authMiddleware, requirePermission('manage_users'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const users = await query(
@@ -289,7 +290,7 @@ reportsRouter.get('/users-permissions', authMiddleware, async (req: Request, res
   }
 })
 
-reportsRouter.get('/dashboard', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/dashboard', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const [caseCount, sessionCount, taskCount, clientCount, recentCases, todaySessions] =
@@ -326,7 +327,7 @@ reportsRouter.get('/dashboard', authMiddleware, async (req: Request, res: Respon
   }
 })
 
-reportsRouter.get('/cases', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/cases', authMiddleware, requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -344,7 +345,7 @@ reportsRouter.get('/cases', authMiddleware, async (req: Request, res: Response) 
   }
 })
 
-reportsRouter.get('/user-activity', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/user-activity', authMiddleware, requirePermission('view_activity_logs'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { from, to, actor, page = '1', pageSize = '500' } = req.query
@@ -393,7 +394,7 @@ reportsRouter.get('/user-activity', authMiddleware, async (req: Request, res: Re
   }
 })
 
-reportsRouter.get('/evidence', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/evidence', authMiddleware, requirePermission('view_documents'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { from, to, caseId, page = '1', pageSize = '25' } = req.query
@@ -442,7 +443,7 @@ reportsRouter.get('/evidence', authMiddleware, async (req: Request, res: Respons
   }
 })
 
-reportsRouter.get('/memoranda', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/memoranda', authMiddleware, requirePermission('view_documents'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { from, to, caseId, q, status = 'active', page = '1', pageSize = '25' } = req.query
@@ -498,7 +499,7 @@ reportsRouter.get('/memoranda', authMiddleware, async (req: Request, res: Respon
   }
 })
 
-reportsRouter.get('/memoranda/:id', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/memoranda/:id', authMiddleware, requirePermission('view_documents'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -520,7 +521,7 @@ reportsRouter.get('/memoranda/:id', authMiddleware, async (req: Request, res: Re
   }
 })
 
-reportsRouter.get('/documents', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/documents', authMiddleware, requirePermission('view_documents'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { linkType, parentId, from, to, page = '1', pageSize = '25' } = req.query
@@ -587,7 +588,7 @@ reportsRouter.get('/documents', authMiddleware, async (req: Request, res: Respon
   }
 })
 
-reportsRouter.get('/sessions-list', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/sessions-list', authMiddleware, requirePermission('view_sessions'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { caseId } = req.query
@@ -606,7 +607,7 @@ reportsRouter.get('/sessions-list', authMiddleware, async (req: Request, res: Re
   }
 })
 
-reportsRouter.get('/tasks-list', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.get('/tasks-list', authMiddleware, requirePermission('view_tasks'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { caseId } = req.query
@@ -625,7 +626,7 @@ reportsRouter.get('/tasks-list', authMiddleware, async (req: Request, res: Respo
   }
 })
 
-reportsRouter.post('/preview', authMiddleware, async (req: Request, res: Response) => {
+reportsRouter.post('/preview', authMiddleware, requirePermission('export_reports'), async (req: Request, res: Response) => {
   try {
     res.send(`
       <html>

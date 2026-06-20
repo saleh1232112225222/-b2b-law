@@ -119,7 +119,7 @@ export const useLicensingStore = defineStore('licensing', () => {
     // Web mode - check subscription status
     if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
       if (!subscriptionStatus.value) return false
-      return subscriptionStatus.value.isExpired && subscriptionStatus.value.status !== 'active'
+      return subscriptionStatus.value.isExpired && subscriptionStatus.value.status !== 'active' && subscriptionStatus.value.status !== 'lifetime'
     }
     
     // Desktop mode - check trial info
@@ -132,7 +132,7 @@ export const useLicensingStore = defineStore('licensing', () => {
 
   const isTrialExpired = computed(() => {
     if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
-      return subscriptionStatus.value?.isExpired && subscriptionStatus.value?.status !== 'active'
+      return subscriptionStatus.value?.isExpired && subscriptionStatus.value?.status !== 'active' && subscriptionStatus.value?.status !== 'lifetime'
     }
     return trialInfo.value ? (!trialInfo.value.isValid && !trialInfo.value.isActivated) : false
   })

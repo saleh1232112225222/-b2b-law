@@ -5,6 +5,13 @@ import { getCompanyId } from '../middleware/tenant'
 
 export const systemRouter = Router()
 
+const requireAdminRole = (req: Request, res: Response, next: Function) => {
+  if (req.auth?.roleKey !== 'admin') {
+    return res.status(403).json({ error: 'Admin access required' })
+  }
+  next()
+}
+
 systemRouter.get('/system/settings', authMiddleware, async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
@@ -123,6 +130,7 @@ systemRouter.post(
 systemRouter.post(
   '/system/import-snapshot',
   authMiddleware,
+  requireAdminRole,
   async (req: Request, res: Response) => {
     const client = await getClient()
     try {
@@ -417,7 +425,7 @@ systemRouter.post(
   }
 )
 
-systemRouter.post('/system/clear-all-data', authMiddleware, async (req: Request, res: Response) => {
+systemRouter.post('/system/clear-all-data', authMiddleware, requireAdminRole, async (req: Request, res: Response) => {
   const client = await getClient()
   try {
     const companyId = getCompanyId(req)

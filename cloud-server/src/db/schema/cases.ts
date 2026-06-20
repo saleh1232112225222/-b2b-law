@@ -1,5 +1,5 @@
 import { pgTable, uuid, text, boolean, timestamp, numeric, date, unique } from 'drizzle-orm/pg-core'
-import { clients, users } from './core'
+import { clients, users, defendants } from './core'
 
 export const cases = pgTable('cases', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -52,7 +52,7 @@ export const caseParties = pgTable('case_parties', {
   caseId: uuid('case_id').notNull().references(() => cases.id, { onDelete: 'cascade' }),
   partyType: text('party_type').notNull(),
   clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
-  defendantId: uuid('defendant_id').references(() => clients.id, { onDelete: 'set null' }),
+  defendantId: uuid('defendant_id').references(() => defendants.id, { onDelete: 'set null' }),
   name: text('name'),
   idNumber: text('id_number'),
   phone: text('phone'),

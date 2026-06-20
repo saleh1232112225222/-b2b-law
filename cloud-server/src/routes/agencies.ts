@@ -5,6 +5,11 @@ import { getCompanyId } from '../middleware/tenant'
 
 export const agenciesRouter = Router()
 
+agenciesRouter.use((req, res, next) => {
+  const { requirePermission } = require('../middleware/permission')
+  requirePermission('view_clients')(req, res, next)
+})
+
 agenciesRouter.get('/by-client/:clientId', authMiddleware, async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)

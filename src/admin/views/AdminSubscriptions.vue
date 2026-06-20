@@ -341,7 +341,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import LucideIcon from '../components/common/LucideIcon.vue'
+import LucideIcon from '../../renderer/src/components/common/LucideIcon.vue'
 
 // --- State ---
 const loading = ref(true)
@@ -389,7 +389,9 @@ function getStatusColor(status: string): string {
     active: 'success',
     trial: 'info',
     expired: 'warning',
+    past_due: 'orange-darken-3',
     canceled: 'error',
+    lifetime: 'accent',
     none: 'grey'
   }
   return map[status] || 'grey'
@@ -400,7 +402,9 @@ function getStatusText(status: string): string {
     active: 'نشط',
     trial: 'تجريبي',
     expired: 'منتهي',
+    past_due: 'متأخر السداد',
     canceled: 'ملغي',
+    lifetime: 'مدى الحياة',
     none: 'بدون اشتراك'
   }
   return map[status] || status
@@ -461,14 +465,14 @@ async function fetchData() {
     subscriptions.value = rawData.map((r: any) => ({
       id: r.id,
       companyId: r.id,
-      companyName: r.company_name || r.companyName || '',
+      companyName: r.companyName || '',
       email: r.email || '',
       phone: r.phone || '',
-      status: r.effective_status || r.status || 'none',
-      planName: r.plan_name || r.planName || null,
-      planInterval: r.plan_interval || r.planInterval || null,
-      daysRemaining: r.days_remaining ?? r.daysRemaining ?? null,
-      expiryDate: r.current_period_end || r.trial_expires_at || r.expiryDate || null
+      status: r.effectiveStatus || 'none',
+      planName: r.planName || null,
+      planInterval: r.planInterval || null,
+      daysRemaining: r.daysRemaining ?? null,
+      expiryDate: r.expiryDate || null
     }))
 
     plans.value = Array.isArray(plansRes) ? plansRes : plansRes.data || []
