@@ -1,20 +1,9 @@
 import { test, expect } from '@playwright/test'
 
 async function login(page) {
-  await page.route('**/api/auth/login', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/json',
-      body: JSON.stringify({
-        token: 'mock-token',
-        user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', is_active: true, permissions: [] }
-      })
-    })
-  })
-
-  await page.goto('/login')
-  await page.fill('#username-input', 'admin')
-  await page.fill('#password-input', 'admin1390')
+  await page.goto('https://b2b-law.netlify.app/login')
+  await page.fill('input[name="username"]', 'admin')
+  await page.fill('input[name="password"]', 'admin1390')
   await page.click('button[type="submit"]')
   await page.waitForURL(/dashboard/, { timeout: 15000 })
 }
