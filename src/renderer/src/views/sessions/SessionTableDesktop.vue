@@ -1,5 +1,6 @@
 <template>
-  <v-card elevation="0" class="glass-card overflow-hidden min-h-500">
+  <v-card elevation="0" class="glass-card min-h-500">
+    <div class="table-scroll-wrapper">
     <v-data-table-server
       :items-per-page="itemsPerPage"
       :headers="headers"
@@ -105,6 +106,12 @@
         </div>
       </template>
 
+      <template #[`item.court_room`]="{ item }">
+        <span class="text-body-2 font-weight-black text-white opacity-80">
+          {{ item.court_room || '---' }}
+        </span>
+      </template>
+
       <template #[`item.status`]="{ item }">
         <v-chip
           :color="getStatusColor(item.status)"
@@ -171,6 +178,7 @@
         <v-skeleton-loader type="table-row@10" class="bg-transparent"></v-skeleton-loader>
       </template>
     </v-data-table-server>
+    </div>
   </v-card>
 </template>
 
@@ -203,14 +211,14 @@ defineEmits<{
 }>()
 
 const headers = [
-  { title: 'موعد الجلسة', key: 'date', align: 'center' as const },
-  { title: 'الوقت', key: 'time', align: 'center' as const },
-  { title: 'رقم ملف القضية', key: 'case_number', align: 'center' as const },
-  { title: 'اسم الموكل', key: 'client_name', align: 'center' as const },
-  { title: 'القاعة / الدائرة', key: 'court_room', align: 'center' as const },
-  { title: 'حالة الجلسة', key: 'status', align: 'center' as const },
-  { title: '', key: 'session_room', sortable: false, align: 'center' as const, width: 64 },
-  { title: 'إجراءات', key: 'actions', sortable: false, align: 'center' as const }
+  { title: 'موعد الجلسة', key: 'date', align: 'center' as const, width: 140 },
+  { title: 'الوقت', key: 'time', align: 'center' as const, width: 80 },
+  { title: 'رقم ملف القضية', key: 'case_number', align: 'center' as const, width: 160 },
+  { title: 'اسم الموكل', key: 'client_name', align: 'center' as const, width: 150 },
+  { title: 'القاعة / الدائرة', key: 'court_room', align: 'center' as const, width: 130 },
+  { title: 'حالة الجلسة', key: 'status', align: 'center' as const, width: 100 },
+  { title: '', key: 'session_room', sortable: false, align: 'center' as const, width: 80 },
+  { title: 'إجراءات', key: 'actions', sortable: false, align: 'center' as const, width: 100 }
 ]
 
 const getStatusColor = (status: string): string => {
@@ -228,3 +236,14 @@ const getStatusColor = (status: string): string => {
   }
 }
 </script>
+
+<style scoped>
+.table-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll-wrapper :deep(.premium-table) {
+  overflow: visible !important;
+}
+</style>
