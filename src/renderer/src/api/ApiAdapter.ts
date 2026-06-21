@@ -13,7 +13,7 @@ export function setApiMode(m: ApiMode) {
 export function setCloudBaseUrl(url: string) {
   cloudClient = axios.create({
     baseURL: url,
-    timeout: 15000,
+    timeout: 60000,
     headers: { 'Content-Type': 'application/json' }
   })
   cloudClient.interceptors.request.use((config) => {
@@ -1371,7 +1371,8 @@ const api = {
                 const result = await cloudRequest({
                   method: 'POST',
                   url: '/system/import-snapshot',
-                  data: { tables: data.tables, mode: 'merge' }
+                  data: { tables: data.tables, mode: 'merge' },
+                  timeout: 120000
                 })
                 resolve(result)
               } catch (e) {
