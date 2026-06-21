@@ -456,23 +456,48 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
 adminSubscriptionRouter.delete('/:companyId', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const { companyId } = req.params
-    
-    const result = await query(
-      'DELETE FROM subscriptions WHERE company_id = $1 RETURNING id',
-      [companyId]
-    )
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'لا يوجد اشتراك لهذه الشركة' })
+
+    const companyCheck = await query('SELECT id FROM companies WHERE id = $1', [companyId])
+    if (companyCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'المشترك غير موجود' })
     }
+
+    await query('BEGIN')
+
+    const tablesToClear = [
+      'invoice_items', 'invoices', 'vouchers', 'receivables', 'finances',
+      'collections_payments', 'collections_claims', 'enf_attachments', 'enf_decisions',
+      'enf_request_parties', 'enf_financial_details', 'enf_personal_details',
+      'enf_direct_details', 'enforcement_requests', 'enforcement_actions',
+      'enforcement_parties', 'enforcement_files', 'session_outcomes', 'sessions',
+      'judgments', 'tasks_v2', 'tasks', 'documents_v2', 'documents', 'file_assets',
+      'communications', 'evidence', 'experts', 'agencies', 'user_case_access',
+      'user_client_access', 'user_permissions', 'cases', 'case_parties', 'clients',
+      'defendants', 'case_actions', 'assignment_logs', 'professional_liability_logs',
+      'judgment_amendments', 'contract_signatures', 'contract_participants',
+      'contract_parties', 'contract_party_types', 'contract_party_audits',
+      'contract_links', 'contract_schedules', 'contract_amendments', 'contracts',
+      'contract_templates', 'activity_logs', 'accounts', 'firm_data'
+    ]
+
+    for (const table of tablesToClear) {
+      await query(`DELETE FROM ${table} WHERE company_id = $1`, [companyId]).catch(() => {})
+    }
+
+    await query('DELETE FROM subscriptions WHERE company_id = $1', [companyId])
+    await query('DELETE FROM users WHERE company_id = $1', [companyId])
+    await query('DELETE FROM companies WHERE id = $1', [companyId])
+
+    await query('COMMIT')
     
     res.json({
       success: true,
-      message: 'تم حذف الاشتراك بنجاح'
+      message: 'تم حذف المشترك وكافة بياناته بنجاح'
     })
   } catch (err) {
-    console.error('[ADMIN] Failed to delete subscription:', err)
-    res.status(500).json({ error: 'فشل حذف الاشتراك' })
+    await query('ROLLBACK').catch(() => {})
+    console.error('[ADMIN] Failed to delete company/subscriber:', err)
+    res.status(500).json({ error: 'فشل حذف المشترك' })
   }
 })
 
