@@ -7,14 +7,9 @@ export default defineConfig({
   timeout: 30000,
   retries: 1,
   use: {
-    baseURL: 'http://localhost:5173',
+    baseURL: 'https://b2b-law.netlify.app',
     headless: true,
-    screenshot: 'only-on-failure'
-  },
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:5173',
-    reuseExistingServer: true,
-    timeout: 30000
+    screenshot: 'only-on-failure',
+    video: 'retain-on-failure'
   }
 })
