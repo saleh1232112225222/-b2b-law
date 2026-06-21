@@ -28,7 +28,7 @@ const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown'
   const now = Date.now()
   const windowMs = 15 * 60 * 1000 // 15 minutes
-  const maxAttempts = 10 // max 10 attempts
+  const maxAttempts = 50 // max 50 attempts
 
   const attempt = authAttempts.get(ip)
   if (!attempt) {
