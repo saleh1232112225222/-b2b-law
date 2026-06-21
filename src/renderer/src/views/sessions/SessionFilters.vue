@@ -17,15 +17,34 @@
         </v-text-field>
       </v-col>
       <v-col cols="12" md="4">
-        <v-btn-toggle v-model="filterType" mandatory color="accent" variant="text" class="glass-panel rounded-lg w-100 pa-1" density="comfortable">
-          <v-btn value="all" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold">الكل</v-btn>
-          <v-btn value="upcoming" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold">القادمة</v-btn>
-          <v-btn value="recent" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold">الأخيرة</v-btn>
+        <v-btn-toggle
+          v-model="filterType"
+          mandatory
+          color="accent"
+          variant="text"
+          class="glass-panel rounded-lg w-100 pa-1"
+          density="comfortable"
+        >
+          <v-btn value="all" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold"
+            >الكل</v-btn
+          >
+          <v-btn value="upcoming" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold"
+            >القادمة</v-btn
+          >
+          <v-btn value="recent" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold"
+            >الأخيرة</v-btn
+          >
         </v-btn-toggle>
       </v-col>
       <v-spacer />
       <v-col cols="auto">
-        <v-btn variant="text" color="gold" class="rounded-lg" :loading="loading" @click="$emit('reset')">
+        <v-btn
+          variant="text"
+          color="gold"
+          class="rounded-lg"
+          :loading="loading"
+          @click="$emit('reset')"
+        >
           <LucideIcon name="refresh-cw" :size="20" class="me-2" />
           <span class="font-weight-black">تصفير</span>
         </v-btn>

@@ -1,6 +1,16 @@
 <template>
-  <v-col cols="12" md="3" class="d-flex flex-column" style="gap: 12px" :class="{ 'overflow-hidden h-100': !isMobile }">
-    <v-card flat class="quick-actions-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
+  <v-col
+    cols="12"
+    md="3"
+    class="d-flex flex-column"
+    style="gap: 12px"
+    :class="{ 'overflow-hidden h-100': !isMobile }"
+  >
+    <v-card
+      flat
+      class="quick-actions-card d-flex flex-column"
+      :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
+    >
       <div class="d-flex align-center pa-3 px-4">
         <div class="quick-actions-icon-wrapper me-3">
           <LucideIcon name="zap" :size="18" class="quick-actions-icon" />
@@ -18,7 +28,11 @@
               size="small"
               class="quick-action-btn"
               :to="action.to"
-              @click="action.to ? $emit('navigate', action.to) : action.onClick && $emit('action', action.onClick)"
+              @click="
+                action.to
+                  ? $emit('navigate', action.to)
+                  : action.onClick && $emit('action', action.onClick)
+              "
             >
               <LucideIcon :name="action.icon" :size="16" class="me-2" />
               {{ action.title }}

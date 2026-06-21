@@ -106,10 +106,15 @@ const responsibleUserIdModel = computed({
   set: (v) => emit('update:responsibleUserId', v)
 })
 
-const getUserDisplayName = (u: any) => u ? (u.full_name || u.username || '') : ''
+const getUserDisplayName = (u: any) => (u ? u.full_name || u.username || '' : '')
 
 const arabicFilter = (itemTitle: string, queryText: string) => {
-  const norm = (s: string) => s.replace(/[إأآا]/g, 'ا').replace(/[ىي]/g, 'ي').replace(/[ةه]/g, 'ه').toLowerCase()
+  const norm = (s: string) =>
+    s
+      .replace(/[إأآا]/g, 'ا')
+      .replace(/[ىي]/g, 'ي')
+      .replace(/[ةه]/g, 'ه')
+      .toLowerCase()
   return norm(itemTitle).includes(norm(queryText))
 }
 </script>

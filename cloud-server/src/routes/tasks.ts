@@ -12,6 +12,266 @@ function getCompanyId(req: Request): string {
   return req.auth!.companyId
 }
 
+// GET /api/tasks/count
+tasksRouter.get('/count', requirePermission('view_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const { q, status, priority, responsible_user_id, is_archived } = req.query
+
+    let whereClause = 'WHERE company_id = $1'
+    const params: any[] = [companyId]
+    let paramIndex = 2
+
+    if (status && status !== 'all') {
+      whereClause += ` AND status = $${paramIndex++}`
+      params.push(status)
+    }
+    if (priority) {
+      whereClause += ` AND priority = $${paramIndex++}`
+      params.push(priority)
+    }
+    if (responsible_user_id) {
+      whereClause += ` AND responsible_user_id = $${paramIndex++}`
+      params.push(responsible_user_id)
+    }
+    if (is_archived !== undefined) {
+      whereClause += ` AND is_archived = $${paramIndex++}`
+      const isArchivedStr = String(is_archived)
+      params.push(isArchivedStr === '1' || isArchivedStr === 'true')
+    } else {
+      whereClause += ` AND is_archived = FALSE`
+    }
+    if (q) {
+      whereClause += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`
+      params.push(`%${q}%`)
+      paramIndex++
+    }
+
+    const countResult = await query(`SELECT COUNT(*) FROM tasks_v2 ${whereClause}`, params)
+    res.json({ count: parseInt(countResult.rows[0].count, 10) })
+  } catch (err) {
+    console.error('[TASKS] Count error:', err)
+    res.status(500).json({ error: 'Failed to count tasks' })
+  }
+})
+
+// GET /api/tasks
+tasksRouter.get('/', requirePermission('view_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const { page = '1', pageSize = '50', q, status, priority, responsible_user_id, is_archived } = req.query
+    const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string)
+    const limit = parseInt(pageSize as string)
+
+    let whereClause = 'WHERE company_id = $1'
+    const params: any[] = [companyId]
+    let paramIndex = 2
+
+    if (status && status !== 'all') {
+      whereClause += ` AND status = $${paramIndex++}`
+      params.push(status)
+    }
+    if (priority) {
+      whereClause += ` AND priority = $${paramIndex++}`
+      params.push(priority)
+    }
+    if (responsible_user_id) {
+      whereClause += ` AND responsible_user_id = $${paramIndex++}`
+      params.push(responsible_user_id)
+    }
+    if (is_archived !== undefined) {
+      whereClause += ` AND is_archived = $${paramIndex++}`
+      const isArchivedStr = String(is_archived)
+      params.push(isArchivedStr === '1' || isArchivedStr === 'true')
+    } else {
+      whereClause += ` AND is_archived = FALSE`
+    }
+    if (q) {
+      whereClause += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`
+      params.push(`%${q}%`)
+      paramIndex++
+    }
+
+    const dataResult = await query(
+      `SELECT * FROM tasks_v2 ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      [...params, limit, offset]
+    )
+
+    res.json({ data: dataResult.rows })
+  } catch (err) {
+    console.error('[TASKS] List error:', err)
+    res.status(500).json({ error: 'Failed to list tasks' })
+  }
+})
+
+// POST /api/tasks
+tasksRouter.post('/', requirePermission('create_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const userId = req.auth!.userId
+    const body = { ...req.body, company_id: companyId }
+    delete body.id
+
+    if (!body.created_by) body.created_by = userId
+    body.created_at = new Date().toISOString()
+    body.updated_at = body.created_at
+
+    const id = uuidv4()
+    body.id = id
+
+    // Convert empty strings to null for PostgreSQL compatibility
+    for (const key of Object.keys(body)) {
+      if (body[key] === '') {
+        body[key] = null
+      }
+    }
+
+    const allowedFields = [
+      'id', 'company_id', 'case_id', 'client_id', 'link_type',
+      'external_name', 'owner_type', 'responsible_user_id', 'title',
+      'description', 'due_date', 'status', 'priority', 'is_archived',
+      'created_by', 'updated_by', 'created_at', 'updated_at',
+      'status_changed_at', 'scheduled_for', 'started_at', 'completed_at',
+      'closed_at', 'closed_by', 'closure_note', 'cancelled_at',
+      'cancelled_by', 'cancel_reason'
+    ]
+
+    for (const key of Object.keys(body)) {
+      if (!allowedFields.includes(key)) {
+        delete body[key]
+      }
+    }
+
+    const keys = Object.keys(body)
+    const values = Object.values(body)
+    const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
+    const columns = keys.join(', ')
+
+    await query(`INSERT INTO tasks_v2 (${columns}) VALUES (${placeholders})`, values)
+
+    // Audit log
+    await query(
+      `INSERT INTO task_audit_log (id, company_id, task_id, action_key, actor_user_id, before_json, after_json, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, NOW())`,
+      [uuidv4(), companyId, id, 'CREATED', userId, null, JSON.stringify(body)]
+    )
+
+    res.status(201).json(body)
+  } catch (err) {
+    console.error('[TASKS] Create error:', err)
+    res.status(500).json({ error: 'Failed to create task' })
+  }
+})
+
+// GET /api/tasks/:id
+tasksRouter.get('/:id', requirePermission('view_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const { id } = req.params
+
+    const result = await query(
+      'SELECT * FROM tasks_v2 WHERE id = $1 AND company_id = $2',
+      [id, companyId]
+    )
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Task not found' })
+      return
+    }
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('[TASKS] GetById error:', err)
+    res.status(500).json({ error: 'Failed to get task' })
+  }
+})
+
+// PUT /api/tasks/:id
+tasksRouter.put('/:id', requirePermission('edit_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const userId = req.auth!.userId
+    const { id } = req.params
+    const body = { ...req.body }
+    delete body.id
+    delete body.company_id
+
+    body.updated_at = new Date().toISOString()
+    if (!body.updated_by) body.updated_by = userId
+
+    // Fetch before state for audit logging
+    const beforeRes = await query('SELECT * FROM tasks_v2 WHERE id = $1 AND company_id = $2', [id, companyId])
+    if (beforeRes.rows.length === 0) {
+      res.status(404).json({ error: 'Task not found' })
+      return
+    }
+    const before = beforeRes.rows[0]
+
+    // Convert empty strings to null for PostgreSQL compatibility
+    for (const key of Object.keys(body)) {
+      if (body[key] === '') {
+        body[key] = null
+      }
+    }
+
+    const allowedFields = [
+      'case_id', 'client_id', 'link_type', 'external_name', 'owner_type',
+      'responsible_user_id', 'title', 'description', 'due_date', 'status',
+      'priority', 'is_archived', 'updated_by', 'updated_at',
+      'status_changed_at', 'scheduled_for', 'started_at', 'completed_at',
+      'closed_at', 'closed_by', 'closure_note', 'cancelled_at',
+      'cancelled_by', 'cancel_reason'
+    ]
+
+    for (const key of Object.keys(body)) {
+      if (!allowedFields.includes(key)) {
+        delete body[key]
+      }
+    }
+
+    const keys = Object.keys(body)
+    const values = Object.values(body)
+    const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ')
+
+    await query(
+      `UPDATE tasks_v2 SET ${setClause} WHERE id = $${keys.length + 1} AND company_id = $${keys.length + 2}`,
+      [...values, id, companyId]
+    )
+
+    // Audit log
+    await query(
+      `INSERT INTO task_audit_log (id, company_id, task_id, action_key, actor_user_id, before_json, after_json, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7::jsonb, NOW())`,
+      [uuidv4(), companyId, id, 'UPDATED', userId, JSON.stringify(before), JSON.stringify(body)]
+    )
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[TASKS] Update error:', err)
+    res.status(500).json({ error: 'Failed to update task' })
+  }
+})
+
+// DELETE /api/tasks/:id
+tasksRouter.delete('/:id', requirePermission('edit_tasks'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const { id } = req.params
+
+    const result = await query(
+      'DELETE FROM tasks_v2 WHERE id = $1 AND company_id = $2',
+      [id, companyId]
+    )
+    if (result.rowCount === 0) {
+      res.status(404).json({ error: 'Task not found' })
+      return
+    }
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[TASKS] Delete error:', err)
+    res.status(500).json({ error: 'Failed to delete task' })
+  }
+})
+
 // GET /api/tasks/by-case/:caseId
 tasksRouter.get('/by-case/:caseId', requirePermission('view_tasks'), async (req: Request, res: Response) => {
   try {

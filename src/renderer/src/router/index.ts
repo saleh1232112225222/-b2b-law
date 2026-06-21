@@ -171,6 +171,12 @@ const routes = [
     meta: { requiresAuth: true, permissions: ['manage_settings'] }
   },
   {
+    path: '/admin/dashboard',
+    name: 'AdminDashboard',
+    component: () => import('../../../admin/views/AdminDashboard.vue'),
+    meta: { requiresAuth: true, permissions: ['manage_settings'] }
+  },
+  {
     path: '/search',
     name: 'Search',
     component: () => import('../views/Search.vue'),
@@ -307,10 +313,14 @@ router.beforeEach(async (to) => {
     if (sessionData) {
       try {
         const session = JSON.parse(sessionData)
-        
+
         // If trial expired and no active subscription - allow access but in read-only mode
         // Frontend will enforce read-only UI (hide add/edit/delete buttons)
-        if (session.trialExpired && session.subscriptionStatus !== 'active' && session.subscriptionStatus !== 'lifetime') {
+        if (
+          session.trialExpired &&
+          session.subscriptionStatus !== 'active' &&
+          session.subscriptionStatus !== 'lifetime'
+        ) {
           // Store read-only flag for components to check
           sessionStorage.setItem('app_readonly', 'true')
         } else {

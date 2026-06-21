@@ -565,16 +565,49 @@ const showSnackbar = (text: string, color: string): void => {
 
 /* Mobile (<=1023px only) */
 @media (max-width: 1023px) {
-  :deep(.v-row.mb-8.align-center > .v-col-auto) { flex: 0 0 100% !important; max-width: 100% !important; margin-top: 8px; }
-  :deep(.v-row.mb-8.align-center > .v-col-auto .v-btn) { width: 100% !important; }
-  :deep(.v-table) { overflow-x: auto !important; display: block !important; }
-  :deep(.v-table thead th) { white-space: nowrap !important; font-size: 0.7rem !important; padding: 8px !important; }
-  :deep(.v-table tbody td) { padding: 8px !important; font-size: 0.78rem !important; }
-  :deep(.v-data-table .v-table__wrapper) { overflow-x: auto !important; }
-  :deep(.v-dialog > .v-overlay__content) { width: 95vw !important; max-width: 95vw !important; margin: 8px !important; }
-  :deep(.v-card-text.pa-8) { padding: 12px !important; }
-  :deep(.v-card-actions.pa-8) { padding: 12px !important; flex-wrap: wrap !important; gap: 8px !important; }
-  :deep(.v-card-actions .v-spacer) { display: none !important; }
-  :deep(.v-card-actions .v-btn) { flex: 1 1 auto !important; min-width: 100px !important; }
+  :deep(.v-row.mb-8.align-center > .v-col-auto) {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-top: 8px;
+  }
+  :deep(.v-row.mb-8.align-center > .v-col-auto .v-btn) {
+    width: 100% !important;
+  }
+  :deep(.v-table) {
+    overflow-x: auto !important;
+    display: block !important;
+  }
+  :deep(.v-table thead th) {
+    white-space: nowrap !important;
+    font-size: 0.7rem !important;
+    padding: 8px !important;
+  }
+  :deep(.v-table tbody td) {
+    padding: 8px !important;
+    font-size: 0.78rem !important;
+  }
+  :deep(.v-data-table .v-table__wrapper) {
+    overflow-x: auto !important;
+  }
+  :deep(.v-dialog > .v-overlay__content) {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 8px !important;
+  }
+  :deep(.v-card-text.pa-8) {
+    padding: 12px !important;
+  }
+  :deep(.v-card-actions.pa-8) {
+    padding: 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  :deep(.v-card-actions .v-spacer) {
+    display: none !important;
+  }
+  :deep(.v-card-actions .v-btn) {
+    flex: 1 1 auto !important;
+    min-width: 100px !important;
+  }
 }
 </style>

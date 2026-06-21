@@ -86,12 +86,40 @@ function mockDashboardData(): any {
     openTasks: 11,
     overdueTasks: 3,
     recentCases: [
-      { id: '1', case_number: '1446/1', case_type: 'مدني', status: 'نشط', client_name: 'شركة الأمل', next_session: null },
-      { id: '2', case_number: '1446/2', case_type: 'تجاري', status: 'نشط', client_name: 'مؤسسة النور', next_session: new Date(Date.now() + 86400000).toISOString() },
+      {
+        id: '1',
+        case_number: '1446/1',
+        case_type: 'مدني',
+        status: 'نشط',
+        client_name: 'شركة الأمل',
+        next_session: null
+      },
+      {
+        id: '2',
+        case_number: '1446/2',
+        case_type: 'تجاري',
+        status: 'نشط',
+        client_name: 'مؤسسة النور',
+        next_session: new Date(Date.now() + 86400000).toISOString()
+      }
     ],
     upcomingSessions: [
-      { id: '1', case_number: '1446/1', session_date: new Date(Date.now() + 86400000).toISOString(), session_type: 'جلسة مرافعة', court: 'المحكمة العامة', client_name: 'شركة الأمل' },
-      { id: '2', case_number: '1446/3', session_date: new Date(Date.now() + 172800000).toISOString(), session_type: 'جلسة تحضيرية', court: 'المحكمة التجارية', client_name: 'شركة البركة' },
+      {
+        id: '1',
+        case_number: '1446/1',
+        session_date: new Date(Date.now() + 86400000).toISOString(),
+        session_type: 'جلسة مرافعة',
+        court: 'المحكمة العامة',
+        client_name: 'شركة الأمل'
+      },
+      {
+        id: '2',
+        case_number: '1446/3',
+        session_date: new Date(Date.now() + 172800000).toISOString(),
+        session_type: 'جلسة تحضيرية',
+        court: 'المحكمة التجارية',
+        client_name: 'شركة البركة'
+      }
     ]
   }
 }
@@ -110,9 +138,11 @@ function mockSession(date: Date, id: string): any {
     time: `${8 + Math.floor(Math.random() * 10)}:00`,
     type: types[Math.floor(Math.random() * types.length)],
     status: statuses[Math.floor(Math.random() * statuses.length)],
-    court_room: ['القاعة الأولى', 'القاعة الثانية', 'القاعة الثالثة'][Math.floor(Math.random() * 3)],
+    court_room: ['القاعة الأولى', 'القاعة الثانية', 'القاعة الثالثة'][
+      Math.floor(Math.random() * 3)
+    ],
     notes: null,
-    result: null,
+    result: null
   }
 }
 
@@ -122,7 +152,7 @@ function mockOperationsSummary(): any {
     thisMonthSessions: 7,
     thisMonthTasks: 12,
     thisMonthContracts: 2,
-    pendingEnforcements: 1,
+    pendingEnforcements: 1
   }
 }
 
@@ -133,39 +163,90 @@ function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   const hasRealToken = token && !token.startsWith('mock-')
   if (isMockMode() && !hasRealToken) {
     const url = config.url || ''
-    return Promise.resolve(mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T)
+    return Promise.resolve(
+      mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T
+    )
   }
   return cloudClient(config).then((r) => r.data)
 }
 
 function mockCloudRequest(url: string, method: string, data?: any, params?: any): any {
   if (url.startsWith('/auth/login')) {
-  const token = import.meta.env.VITE_USE_MOCK_OTP === 'true' ? 'mock-token' : localStorage.getItem('b2b_cloud_token')
-  return { token, user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, permissions: [] } }
-}
-  if (url.startsWith('/auth/session')) return { user: { id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', role_key: 'admin', is_active: true, isLocked: false, permissions: [] } }
+    const token =
+      import.meta.env.VITE_USE_MOCK_OTP === 'true'
+        ? 'mock-token'
+        : localStorage.getItem('b2b_cloud_token')
+    return {
+      token,
+      user: {
+        id: '1',
+        username: 'admin',
+        name: 'المدير',
+        roleKey: 'admin',
+        role_key: 'admin',
+        is_active: true,
+        permissions: []
+      }
+    }
+  }
+  if (url.startsWith('/auth/session'))
+    return {
+      user: {
+        id: '1',
+        username: 'admin',
+        name: 'المدير',
+        roleKey: 'admin',
+        role_key: 'admin',
+        is_active: true,
+        isLocked: false,
+        permissions: []
+      }
+    }
   if (url.startsWith('/auth/recovery/question')) return 'ما هو اسم أول حيوان أليف لديك؟'
   if (url.startsWith('/auth/recovery/reset')) return { success: true }
   if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
-  if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary')) return mockOperationsSummary()
+  if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary'))
+    return mockOperationsSummary()
   if (url.startsWith('/briefing/summary')) return mockOperationsSummary()
-  if (url.startsWith('/cases/analytics/dashboard')) return {
-    total: 24,
-    buckets: [
-      { key: 'نشط', doc_count: 15 },
-      { key: 'معلق', doc_count: 5 },
-      { key: 'منتهي', doc_count: 4 },
-    ],
-    trend: { '2024': 10, '2025': 18, '2026': 24 },
-    recentCases: [
-      { id: '1', case_number: '1446/1', case_type: 'مدني', status: 'نشط', client_name: 'شركة الأمل' },
-      { id: '2', case_number: '1446/2', case_type: 'تجاري', status: 'نشط', client_name: 'مؤسسة النور' },
-    ],
-    upcomingSessions: [
-      { id: '1', case_number: '1446/1', date: new Date(Date.now() + 86400000).toISOString(), type: 'جلسة مرافعة', client_name: 'شركة الأمل' },
-    ]
-  }
-  if (url.startsWith('/sessions/today') || (url.startsWith('/sessions') && method === 'GET' && params?.from)) {
+  if (url.startsWith('/cases/analytics/dashboard'))
+    return {
+      total: 24,
+      buckets: [
+        { key: 'نشط', doc_count: 15 },
+        { key: 'معلق', doc_count: 5 },
+        { key: 'منتهي', doc_count: 4 }
+      ],
+      trend: { '2024': 10, '2025': 18, '2026': 24 },
+      recentCases: [
+        {
+          id: '1',
+          case_number: '1446/1',
+          case_type: 'مدني',
+          status: 'نشط',
+          client_name: 'شركة الأمل'
+        },
+        {
+          id: '2',
+          case_number: '1446/2',
+          case_type: 'تجاري',
+          status: 'نشط',
+          client_name: 'مؤسسة النور'
+        }
+      ],
+      upcomingSessions: [
+        {
+          id: '1',
+          case_number: '1446/1',
+          date: new Date(Date.now() + 86400000).toISOString(),
+          type: 'جلسة مرافعة',
+          client_name: 'شركة الأمل'
+        }
+      ]
+    }
+  if (
+    url.startsWith('/sessions/today') ||
+    (url.startsWith('/sessions') && method === 'GET' && params?.from)
+  ) {
     const sessions = []
     for (let i = 0; i < 3; i++) {
       sessions.push(mockSession(new Date(), `mock-session-t-${i}`))
@@ -193,17 +274,21 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/employees') && url.endsWith('/performance')) return { data: [] }
   if (url.startsWith('/agencies/expiry-alerts')) return { data: [] }
   if (url.startsWith('/system/settings')) return { data: {} }
-  if (url.startsWith('/system/database-inventory')) return [
-    { name: 'clients', count: 12 },
-    { name: 'cases', count: 24 },
-    { name: 'sessions', count: 8 }
-  ]
-  if (url.startsWith('/system/export-snapshot')) return { success: true, companyId: 'mock-company', tables: {} }
-  if (url.startsWith('/system/import-snapshot')) return { success: true, counts: { clients: { received: 10, imported: 10 } } }
+  if (url.startsWith('/system/database-inventory'))
+    return [
+      { name: 'clients', count: 12 },
+      { name: 'cases', count: 24 },
+      { name: 'sessions', count: 8 }
+    ]
+  if (url.startsWith('/system/export-snapshot'))
+    return { success: true, companyId: 'mock-company', tables: {} }
+  if (url.startsWith('/system/import-snapshot'))
+    return { success: true, counts: { clients: { received: 10, imported: 10 } } }
   if (url.startsWith('/system/clear-all-data')) return { success: true }
   if (url.startsWith('/firm')) return { data: { name: 'مكتب المحاماة', logo: null } }
   if (url.startsWith('/permissions')) return { data: [] }
-  if (url.startsWith('/users/active-staff') || url.startsWith('/users/assignable')) return { data: [] }
+  if (url.startsWith('/users/active-staff') || url.startsWith('/users/assignable'))
+    return { data: [] }
   if (url.startsWith('/enforcement/count')) return { count: 0 }
   if (url.startsWith('/enforcement/requests')) return { data: [], total: 0 }
   if (url.startsWith('/enforcement')) return { data: [], total: 0 }
@@ -220,26 +305,57 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/reports/memoranda')) return { data: [] }
   if (url.startsWith('/reports/documents')) return { data: [] }
   if (url.startsWith('/reports/operations-summary')) return { data: {} }
-  if (url.startsWith('/reports/export/pdf')) return { success: true, url: 'data:application/pdf;base64,JVBERi0xLjQK...' }
+  if (url.startsWith('/reports/export/pdf'))
+    return { success: true, url: 'data:application/pdf;base64,JVBERi0xLjQK...' }
   if (url.startsWith('/reports/export/csv')) return { success: true }
 
   // Mock subscription endpoints
-  if (url.startsWith('/subscriptions/plans')) return {
-    success: true,
-    data: [
-      { id: 'plan-monthly', name_ar: 'شهري', interval: 'month', price: 99, description: 'خطة شهرية مرنة' },
-      { id: 'plan-yearly', name_ar: 'سنوي', interval: 'year', price: 999, description: 'خطة سنوية اقتصادية' },
-      { id: 'plan-lifetime', name_ar: 'مدى الحياة', interval: 'lifetime', price: 2499, description: 'اشتراك لمرة واحدة' }
-    ]
-  }
-  if (url.startsWith('/subscriptions/status')) return {
-    isActive: true, status: 'active', daysLeft: 365,
-    planNameAr: 'سنوي', currentPeriodEnd: new Date(Date.now() + 365 * 86400000).toISOString()
-  }
-  if (url.startsWith('/subscriptions/create-payment-intent')) return { paymentId: 'mock-payment-' + Date.now() }
-  if (url.startsWith('/subscriptions/confirm-payment')) return { success: true, message: 'تم تأكيد الدفع بنجاح' }
+  if (url.startsWith('/subscriptions/plans'))
+    return {
+      success: true,
+      data: [
+        {
+          id: 'plan-monthly',
+          name_ar: 'شهري',
+          interval: 'month',
+          price: 99,
+          description: 'خطة شهرية مرنة'
+        },
+        {
+          id: 'plan-yearly',
+          name_ar: 'سنوي',
+          interval: 'year',
+          price: 999,
+          description: 'خطة سنوية اقتصادية'
+        },
+        {
+          id: 'plan-lifetime',
+          name_ar: 'مدى الحياة',
+          interval: 'lifetime',
+          price: 2499,
+          description: 'اشتراك لمرة واحدة'
+        }
+      ]
+    }
+  if (url.startsWith('/subscriptions/status'))
+    return {
+      isActive: true,
+      status: 'active',
+      daysLeft: 365,
+      planNameAr: 'سنوي',
+      currentPeriodEnd: new Date(Date.now() + 365 * 86400000).toISOString()
+    }
+  if (url.startsWith('/subscriptions/create-payment-intent'))
+    return { paymentId: 'mock-payment-' + Date.now() }
+  if (url.startsWith('/subscriptions/confirm-payment'))
+    return { success: true, message: 'تم تأكيد الدفع بنجاح' }
   if (url.startsWith('/subscriptions/cancel')) return { success: true }
-  if (url.startsWith('/subscriptions/start-trial')) return { success: true, message: 'تم بدء الفترة التجريبية', trialEnd: new Date(Date.now() + 7 * 86400000).toISOString() }
+  if (url.startsWith('/subscriptions/start-trial'))
+    return {
+      success: true,
+      message: 'تم بدء الفترة التجريبية',
+      trialEnd: new Date(Date.now() + 7 * 86400000).toISOString()
+    }
 
   // Generic entity CRUD
   const entityMatch = url.match(/^\/(\w+)(?:\/(\w+))?(?:\/(\w+))?/)
@@ -264,9 +380,11 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
     // list with params: GET /entity
     if (method === 'GET' && params) return { data: [] }
     // create: POST /entity
-    if (method === 'POST') return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
+    if (method === 'POST')
+      return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
     // create sub-entity: POST /entity/:action
-    if (method === 'POST' && action) return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
+    if (method === 'POST' && action)
+      return { success: true, id: crypto.randomUUID?.() || Date.now().toString() }
     // default
     return { data: [] }
   }
@@ -356,7 +474,13 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:unlock', password)
         : cloudRequest({ method: 'POST', url: '/auth/unlock', data: { password } }),
-    register: (companyName: string, username: string, email: string, phone: string, password: string) =>
+    register: (
+      companyName: string,
+      username: string,
+      email: string,
+      phone: string,
+      password: string
+    ) =>
       mode === 'desktop'
         ? Promise.reject(new Error('Direct registration is not supported in desktop mode'))
         : cloudRequest<any>({
@@ -855,15 +979,21 @@ const api = {
     count: (filters?: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:count', filters)
-        : cloudRequest<any>({ method: 'GET', url: '/activity-logs/count', params: filters }).then((r) => r?.count ?? 0),
+        : cloudRequest<any>({ method: 'GET', url: '/activity-logs/count', params: filters }).then(
+            (r) => r?.count ?? 0
+          ),
     list: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:list', params)
-        : cloudRequest<any>({ method: 'GET', url: '/activity-logs', params: {
-            page: params?.page || 1,
-            pageSize: params?.pageSize || 25,
-            ...(params?.filters || {})
-          }}).then((r) => r?.data ?? r ?? []),
+        : cloudRequest<any>({
+            method: 'GET',
+            url: '/activity-logs',
+            params: {
+              page: params?.page || 1,
+              pageSize: params?.pageSize || 25,
+              ...(params?.filters || {})
+            }
+          }).then((r) => r?.data ?? r ?? []),
     clearBeforeDate: (date: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('activityLogs:clearBeforeDate', date)
@@ -1304,7 +1434,11 @@ const api = {
               }
               try {
                 if (restoreProgressCallback) {
-                  restoreProgressCallback({ stage: 'parse', percent: 10, message: 'قراءة ملف النسخة الاحتياطية...' })
+                  restoreProgressCallback({
+                    stage: 'parse',
+                    percent: 10,
+                    message: 'قراءة ملف النسخة الاحتياطية...'
+                  })
                 }
                 const text = await file.text()
                 const data = JSON.parse(text)
@@ -1313,10 +1447,18 @@ const api = {
                   return
                 }
                 if (restoreProgressCallback) {
-                  restoreProgressCallback({ stage: 'verify', percent: 30, message: 'التحقق من سلامة البيانات...' })
+                  restoreProgressCallback({
+                    stage: 'verify',
+                    percent: 30,
+                    message: 'التحقق من سلامة البيانات...'
+                  })
                 }
                 if (restoreProgressCallback) {
-                  restoreProgressCallback({ stage: 'inject', percent: 50, message: 'جاري استيراد البيانات إلى الخادم السحابي...' })
+                  restoreProgressCallback({
+                    stage: 'inject',
+                    percent: 50,
+                    message: 'جاري استيراد البيانات إلى الخادم السحابي...'
+                  })
                 }
                 const result = await cloudRequest({
                   method: 'POST',
@@ -1324,7 +1466,11 @@ const api = {
                   data: { tables: data.tables, mode: 'replace' }
                 })
                 if (restoreProgressCallback) {
-                  restoreProgressCallback({ stage: 'done', percent: 100, message: 'تمت الاستعادة بنجاح.' })
+                  restoreProgressCallback({
+                    stage: 'done',
+                    percent: 100,
+                    message: 'تمت الاستعادة بنجاح.'
+                  })
                 }
                 resolve({ success: true, ...result })
               } catch (e) {
@@ -1413,7 +1559,8 @@ const api = {
       return window.ipcRenderer?.invoke('licensing:get-request-code')
     },
     activate: (_key: string) => {
-      if (mode !== 'desktop') return Promise.resolve({ success: true, message: 'نشط في وضع السحابة' })
+      if (mode !== 'desktop')
+        return Promise.resolve({ success: true, message: 'نشط في وضع السحابة' })
       return window.ipcRenderer?.invoke('licensing:activate', _key)
     },
     checkTrial: async () => {
@@ -1454,7 +1601,11 @@ const api = {
     createPaymentIntent: (planId: string) =>
       mode === 'desktop'
         ? Promise.reject(new Error('Not in cloud mode'))
-        : cloudRequest({ method: 'POST', url: '/subscriptions/create-payment-intent', data: { planId } }),
+        : cloudRequest({
+            method: 'POST',
+            url: '/subscriptions/create-payment-intent',
+            data: { planId }
+          }),
     confirmPayment: (paymentId: string) =>
       mode === 'desktop'
         ? Promise.reject(new Error('Not in cloud mode'))

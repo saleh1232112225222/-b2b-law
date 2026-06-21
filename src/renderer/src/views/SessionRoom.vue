@@ -1,56 +1,160 @@
 <template>
-  <v-container fluid class="pa-4 bg-noir-surface session-room" style="min-height: calc(100vh - 8px); overflow-y: auto">
-    <SessionRoomHeader :is-new-window="isNewWindow" :has-active-session="!!activeSession" @open-new-window="openInNewWindow" @go-back="goBack" @open-picker="pickerDialog = true" @open-outcome="openOutcomeModal" />
+  <v-container
+    fluid
+    class="pa-4 bg-noir-surface session-room"
+    style="min-height: calc(100vh - 8px); overflow-y: auto"
+  >
+    <SessionRoomHeader
+      :is-new-window="isNewWindow"
+      :has-active-session="!!activeSession"
+      @open-new-window="openInNewWindow"
+      @go-back="goBack"
+      @open-picker="pickerDialog = true"
+      @open-outcome="openOutcomeModal"
+    />
 
-    <CaseInfoHeaderCard :header="header" :has-client="!!caseItem?.client_id" @show-poa="showPoaPreview" @go-to-client="goToClient" @copy="copy" @open-external="openExternal" />
+    <CaseInfoHeaderCard
+      :header="header"
+      :has-client="!!caseItem?.client_id"
+      @show-poa="showPoaPreview"
+      @go-to-client="goToClient"
+      @copy="copy"
+      @open-external="openExternal"
+    />
 
-    <CaseSidePanels :docs="docs" :case-sessions="caseSessions" :memos="memos" :judgments="judgments" :case-item="caseItem" :selected="selected" @select-text="selectText" @select-pdf="selectPdf" @select-session-text="selectSessionText" @judgment-click="(j) => selectText('الحكم', j.judgment_type || j.type || 'حكم', judgmentText(j))" @copy="copy" @open-external="openExternal" />
+    <CaseSidePanels
+      :docs="docs"
+      :case-sessions="caseSessions"
+      :memos="memos"
+      :judgments="judgments"
+      :case-item="caseItem"
+      :selected="selected"
+      @select-text="selectText"
+      @select-pdf="selectPdf"
+      @select-session-text="selectSessionText"
+      @judgment-click="
+        (j) => selectText('الحكم', j.judgment_type || j.type || 'حكم', judgmentText(j))
+      "
+      @copy="copy"
+      @open-external="openExternal"
+    />
 
     <v-row dense style="height: calc(72vh - 126px)">
       <ContentViewer :selected="selected" :pdf-src="pdfSrc" @copy="copy" @open-file="openFile" />
 
-      <NotepadPanel v-model:note="note" :active-session-id="activeSession?.id || null" @save="saveNote" @clear="note = ''" @copy="copy" />
+      <NotepadPanel
+        v-model:note="note"
+        :active-session-id="activeSession?.id || null"
+        @save="saveNote"
+        @clear="note = ''"
+        @copy="copy"
+      />
     </v-row>
 
-    <SessionPickerDialog v-model:show="pickerDialog" :pick-options="pickOptions" @choose="chooseSession" />
+    <SessionPickerDialog
+      v-model:show="pickerDialog"
+      :pick-options="pickOptions"
+      @choose="chooseSession"
+    />
 
-    <v-snackbar v-model="snackbar.show" :color="snackbar.color" timeout="3000" rounded="pill" elevation="12">
+    <v-snackbar
+      v-model="snackbar.show"
+      :color="snackbar.color"
+      timeout="3000"
+      rounded="pill"
+      elevation="12"
+    >
       <div class="d-flex align-center">
-        <LucideIcon :name="snackbar.color === 'success' ? 'check-circle' : 'alert-circle'" :size="20" class="me-2" />
+        <LucideIcon
+          :name="snackbar.color === 'success' ? 'check-circle' : 'alert-circle'"
+          :size="20"
+          class="me-2"
+        />
         <span class="font-weight-black">{{ snackbar.text }}</span>
       </div>
     </v-snackbar>
 
-    <PremiumModal v-model="outcomeModal.show" title="رصد نتيجة الجلسة الإجرائية" subtitle="سيتم تحديث حالة القضية بناءً على النتيجة المدخلة فوراً" icon="gavel" save-label="تثبيت النتيجة الآن" :loading="outcomeModal.loading" @save="submitOutcome">
+    <PremiumModal
+      v-model="outcomeModal.show"
+      title="رصد نتيجة الجلسة الإجرائية"
+      subtitle="سيتم تحديث حالة القضية بناءً على النتيجة المدخلة فوراً"
+      icon="gavel"
+      save-label="تثبيت النتيجة الآن"
+      :loading="outcomeModal.loading"
+      @save="submitOutcome"
+    >
       <v-row dense>
         <v-col cols="12">
           <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
             <LucideIcon name="help-circle" :size="18" class="me-2" /> ما هي نتيجة الجلسة النهائية؟
           </v-label>
-          <v-select v-model="outcomeModal.result" :items="SESSION_OUTCOMES" variant="outlined" placeholder="اختر النتيجة من القائمة..." density="comfortable" class="rounded-xl premium-select" hide-details />
+          <v-select
+            v-model="outcomeModal.result"
+            :items="SESSION_OUTCOMES"
+            variant="outlined"
+            placeholder="اختر النتيجة من القائمة..."
+            density="comfortable"
+            class="rounded-xl premium-select"
+            hide-details
+          />
         </v-col>
         <v-col v-if="outcomeModal.result === 'شطب الدعوى / انقطاع'" cols="12" class="mt-4">
           <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
             <LucideIcon name="alert-triangle" :size="18" class="me-2" /> قرار الشطب / الانقطاع
           </v-label>
-          <v-select v-model="outcomeModal.dismissalDecision" :items="['إعادة القيد', 'إغلاق نهائي']" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details />
+          <v-select
+            v-model="outcomeModal.dismissalDecision"
+            :items="['إعادة القيد', 'إغلاق نهائي']"
+            variant="outlined"
+            density="comfortable"
+            class="rounded-xl premium-select"
+            hide-details
+          />
         </v-col>
         <v-col v-if="outcomeModal.result === 'تبليغ / إجراء إداري'" cols="12" class="mt-4">
           <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
             <LucideIcon name="calendar" :size="18" class="me-2" /> بيانات التبليغ
           </v-label>
-          <v-text-field v-model="outcomeModal.serviceDate" type="date" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details />
+          <v-text-field
+            v-model="outcomeModal.serviceDate"
+            type="date"
+            variant="outlined"
+            density="comfortable"
+            class="rounded-xl premium-select"
+            hide-details
+          />
         </v-col>
-        <v-col v-if="outcomeModal.result === 'صدور حكم ابتدائي' || outcomeModal.result === 'صدور حكم قطعي'" cols="12" class="mt-4">
+        <v-col
+          v-if="
+            outcomeModal.result === 'صدور حكم ابتدائي' || outcomeModal.result === 'صدور حكم قطعي'
+          "
+          cols="12"
+          class="mt-4"
+        >
           <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
             <LucideIcon name="file-text" :size="18" class="me-2" /> بيانات الحكم القضائي
           </v-label>
           <v-row dense>
             <v-col cols="6">
-              <v-text-field v-model="outcomeModal.judgmentNumber" label="رقم الحكم" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details />
+              <v-text-field
+                v-model="outcomeModal.judgmentNumber"
+                label="رقم الحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl premium-select"
+                hide-details
+              />
             </v-col>
             <v-col cols="6">
-              <v-text-field v-model="outcomeModal.judgmentDate" type="date" label="تاريخ الحكم" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details />
+              <v-text-field
+                v-model="outcomeModal.judgmentDate"
+                type="date"
+                label="تاريخ الحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl premium-select"
+                hide-details
+              />
             </v-col>
           </v-row>
 
@@ -60,7 +164,15 @@
               <v-label class="mb-2 font-weight-black text-warning d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> درجة الحكم:
               </v-label>
-              <v-btn-toggle v-model="outcomeModal.judgmentDegree" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable" class="flex-wrap">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentDegree"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+                class="flex-wrap"
+              >
                 <v-btn value="استئنافي" class="px-4">استئنافي</v-btn>
                 <v-btn value="قطعي" class="px-4">قطعي</v-btn>
                 <v-btn value="نهائي" class="px-4">نهائي</v-btn>
@@ -74,7 +186,14 @@
               <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
               </v-label>
-              <v-btn-toggle v-model="outcomeModal.judgmentFavors" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentFavors"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="الموكل" class="px-5">الموكل</v-btn>
                 <v-btn value="الخصم" class="px-5">الخصم</v-btn>
               </v-btn-toggle>
@@ -87,7 +206,14 @@
               <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
               </v-label>
-              <v-btn-toggle v-model="outcomeModal.judgmentNeedsExecution" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentNeedsExecution"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="نعم" class="px-5">نعم، يحتاج تنفيذ</v-btn>
                 <v-btn value="لا" class="px-5">لا، براءة أو منتهي</v-btn>
               </v-btn-toggle>
@@ -98,15 +224,31 @@
           <v-row v-if="outcomeModal.judgmentFavors === 'الخصم'" dense class="mt-3">
             <v-col cols="12">
               <v-label class="mb-2 font-weight-black text-warning d-flex align-center">
-                <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع للاعتراض على الحكم؟
+                <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
+                للاعتراض على الحكم؟
               </v-label>
-              <v-btn-toggle v-model="outcomeModal.judgmentHasAppealGrounds" mandatory color="warning" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentHasAppealGrounds"
+                mandatory
+                color="warning"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="نعم" class="px-5">نعم، يوجد أسباب</v-btn>
                 <v-btn value="لا" class="px-5">لا، الحكم صحيح</v-btn>
               </v-btn-toggle>
             </v-col>
             <v-col v-if="outcomeModal.judgmentHasAppealGrounds === 'نعم'" cols="12" class="mt-2">
-              <v-text-field v-model="outcomeModal.serviceDate" type="date" label="تاريخ التبليغ بالحكم" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details />
+              <v-text-field
+                v-model="outcomeModal.serviceDate"
+                type="date"
+                label="تاريخ التبليغ بالحكم"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl premium-select"
+                hide-details
+              />
             </v-col>
           </v-row>
 
@@ -114,22 +256,56 @@
           <v-row dense class="mt-3">
             <v-col cols="12">
               <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
-                <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة النظامية)
+                <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة
+                النظامية)
               </v-label>
-              <v-select v-model="outcomeModal.caseType" :items="['مدنية','تجارية','عمالية','جنائية','إدارية','أحوال شخصية']" variant="outlined" density="comfortable" class="rounded-xl premium-select" hide-details placeholder="اختر نوع القضية..." />
+              <v-select
+                v-model="outcomeModal.caseType"
+                :items="['مدنية', 'تجارية', 'عمالية', 'جنائية', 'إدارية', 'أحوال شخصية']"
+                variant="outlined"
+                density="comfortable"
+                class="rounded-xl premium-select"
+                hide-details
+                placeholder="اختر نوع القضية..."
+              />
             </v-col>
           </v-row>
         </v-col>
         <v-col cols="12" class="mt-4">
           <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
-            <LucideIcon name="message-square" :size="18" class="me-2" /> {{ outcomeModal.result === 'أخرى' ? 'سبب النتيجة (مطلوب)' : 'ملاحظات إضافية (اختياري)' }}
+            <LucideIcon name="message-square" :size="18" class="me-2" />
+            {{
+              outcomeModal.result === 'أخرى' ? 'سبب النتيجة (مطلوب)' : 'ملاحظات إضافية (اختياري)'
+            }}
           </v-label>
-          <v-textarea v-model="outcomeModal.notes" rows="3" variant="outlined" :placeholder="outcomeModal.result === 'أخرى' ? 'اكتب سبب النتيجة...' : 'اكتب أي ملاحظات فنية أو إجرائية هنا...'" class="rounded-xl premium-select" hide-details />
+          <v-textarea
+            v-model="outcomeModal.notes"
+            rows="3"
+            variant="outlined"
+            :placeholder="
+              outcomeModal.result === 'أخرى'
+                ? 'اكتب سبب النتيجة...'
+                : 'اكتب أي ملاحظات فنية أو إجرائية هنا...'
+            "
+            class="rounded-xl premium-select"
+            hide-details
+          />
         </v-col>
       </v-row>
     </PremiumModal>
 
-    <ConfirmDialog v-model="confirmDialog.show" :title="confirmDialog.title" :message="confirmDialog.message" :color="confirmDialog.color" :confirm-button-color="confirmDialog.confirmButtonColor" :icon="confirmDialog.icon" :confirm-text="confirmDialog.confirmText" :cancel-text="confirmDialog.cancelText" :loading="confirmDialog.loading" @confirm="confirmDialog.action" />
+    <ConfirmDialog
+      v-model="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      :color="confirmDialog.color"
+      :confirm-button-color="confirmDialog.confirmButtonColor"
+      :icon="confirmDialog.icon"
+      :confirm-text="confirmDialog.confirmText"
+      :cancel-text="confirmDialog.cancelText"
+      :loading="confirmDialog.loading"
+      @confirm="confirmDialog.action"
+    />
 
     <PoaPreviewDialog v-model:show="poaPreviewDialog" :data="poaPreviewData" />
   </v-container>
@@ -162,9 +338,12 @@ const isNewWindow = computed(() => route.query.window === 'new')
 const openInNewWindow = () => {
   if (activeSession.value?.id) {
     if ((window as any).api?.system?.openSessionWindow) {
-      (window as any).api.system.openSessionWindow(activeSession.value.id)
+      ;(window as any).api.system.openSessionWindow(activeSession.value.id)
     } else {
-      const routeUrl = router.resolve({ path: '/session-room', query: { session_id: activeSession.value.id, window: 'new' } })
+      const routeUrl = router.resolve({
+        path: '/session-room',
+        query: { session_id: activeSession.value.id, window: 'new' }
+      })
       window.open(routeUrl.href, '_blank')
     }
     goBack()
@@ -184,17 +363,29 @@ const poaPreviewDialog = ref(false)
 const poaPreviewData = ref<any>(null)
 
 const showPoaPreview = async () => {
-  if (!caseItem.value?.client_id) { showToast('لا يمكن جلب الوكالة بدون معرف الموكل', 'error'); return }
+  if (!caseItem.value?.client_id) {
+    showToast('لا يمكن جلب الوكالة بدون معرف الموكل', 'error')
+    return
+  }
   await agenciesStore.fetchAgencies()
   let targetAgencyNumber = header.value.agencyNumber
   if (!targetAgencyNumber) {
-    const clientAgs = agenciesStore.agencies.filter((a) => String(a.client_id) === String(caseItem.value.client_id))
+    const clientAgs = agenciesStore.agencies.filter(
+      (a) => String(a.client_id) === String(caseItem.value.client_id)
+    )
     if (clientAgs.length > 0) targetAgencyNumber = clientAgs[0].agency_number
   }
-  if (!targetAgencyNumber) { showToast('لا يوجد رقم وكالة مسجل لهذه القضية أو الموكل', 'error'); return }
-  const poa = agenciesStore.agencies.find((a) => String(a.agency_number) === String(targetAgencyNumber))
-  if (poa) { poaPreviewData.value = poa; poaPreviewDialog.value = true }
-  else showToast('لم يتم العثور على تفاصيل الوكالة في النظام', 'error')
+  if (!targetAgencyNumber) {
+    showToast('لا يوجد رقم وكالة مسجل لهذه القضية أو الموكل', 'error')
+    return
+  }
+  const poa = agenciesStore.agencies.find(
+    (a) => String(a.agency_number) === String(targetAgencyNumber)
+  )
+  if (poa) {
+    poaPreviewData.value = poa
+    poaPreviewDialog.value = true
+  } else showToast('لم يتم العثور على تفاصيل الوكالة في النظام', 'error')
 }
 
 const goToClient = () => {
@@ -203,14 +394,28 @@ const goToClient = () => {
 }
 
 const outcomeModal = ref({
-  show: false, loading: false, result: '', notes: '', dismissalDecision: '',
-  serviceDate: '', judgmentNumber: '', judgmentDate: new Date().toLocaleDateString('en-CA'), objectionDays: 30,
-  judgmentFavors: '', judgmentNeedsExecution: '', judgmentHasAppealGrounds: '', judgmentDegree: '', caseType: ''
+  show: false,
+  loading: false,
+  result: '',
+  notes: '',
+  dismissalDecision: '',
+  serviceDate: '',
+  judgmentNumber: '',
+  judgmentDate: new Date().toLocaleDateString('en-CA'),
+  objectionDays: 30,
+  judgmentFavors: '',
+  judgmentNeedsExecution: '',
+  judgmentHasAppealGrounds: '',
+  judgmentDegree: '',
+  caseType: ''
 })
 
 const todaySessions = ref<any[]>([])
 const tomorrowSessions = ref<any[]>([])
-const pickOptions = computed(() => [...safeArray(todaySessions.value), ...safeArray(tomorrowSessions.value)])
+const pickOptions = computed(() => [
+  ...safeArray(todaySessions.value),
+  ...safeArray(tomorrowSessions.value)
+])
 
 const activeSession = ref<any | null>(null)
 const caseItem = ref<any | null>(null)
@@ -223,10 +428,13 @@ const header = computed(() => {
   const c = caseItem.value || {}
   const parties = safeArray(c.parties)
   const opponents = parties.filter((p: any) => p.party_type === 'opponent')
-  const opponentName = String(opponents[0]?.name || opponents[0]?.defendant_linked_name || c.opponent_name || '').trim()
+  const opponentName = String(
+    opponents[0]?.name || opponents[0]?.defendant_linked_name || c.opponent_name || ''
+  ).trim()
   return {
     clientName: String(c.client_name || c.client?.name || '').trim(),
-    opponentName, caseNumber: String(c.case_number || '').trim(),
+    opponentName,
+    caseNumber: String(c.case_number || '').trim(),
     najizUrl: String(c.najiz_url || '').trim(),
     agencyNumber: String((c as any).__agency_number || '').trim(),
     agencyExpiry: String((c as any).__agency_expiry || '').trim()
@@ -234,7 +442,14 @@ const header = computed(() => {
 })
 
 const note = ref('')
-const selected = ref<any>({ type: 'text', category: '', title: '', content: '', file_path: '', session_id: '' })
+const selected = ref<any>({
+  type: 'text',
+  category: '',
+  title: '',
+  content: '',
+  file_path: '',
+  session_id: ''
+})
 
 const pdfSrc = computed(() => {
   if (selected.value.type !== 'pdf') return ''
@@ -251,15 +466,22 @@ const goBack = () => router.push('/dashboard')
 const copy = async (text: string) => {
   const t = String(text || '').trim()
   if (!t) return
-  try { await navigator.clipboard.writeText(t); showToast('تم النسخ', 'success') }
-  catch { showToast('تعذر النسخ', 'error') }
+  try {
+    await navigator.clipboard.writeText(t)
+    showToast('تم النسخ', 'success')
+  } catch {
+    showToast('تعذر النسخ', 'error')
+  }
 }
 
 const openExternal = async (url: string) => {
   const u = String(url || '').trim()
   if (!u) return
-  try { await (window as any).api.system.openExternal(u) }
-  catch (e: unknown) { showToast('تعذر فتح الرابط: ' + (e as Error).message, 'error') }
+  try {
+    await (window as any).api.system.openExternal(u)
+  } catch (e: unknown) {
+    showToast('تعذر فتح الرابط: ' + (e as Error).message, 'error')
+  }
 }
 
 const openFile = (path: string) => {
@@ -269,11 +491,25 @@ const openFile = (path: string) => {
 }
 
 const selectText = (category: string, title: string, content: string) => {
-  selected.value = { type: 'text', category, title, content: String(content || '').trim(), file_path: '', session_id: selected.value.session_id || '' }
+  selected.value = {
+    type: 'text',
+    category,
+    title,
+    content: String(content || '').trim(),
+    file_path: '',
+    session_id: selected.value.session_id || ''
+  }
 }
 
 const selectPdf = (category: string, title: string, file_path: string) => {
-  selected.value = { type: 'pdf', category, title, content: '', file_path: String(file_path || '').trim(), session_id: selected.value.session_id || '' }
+  selected.value = {
+    type: 'pdf',
+    category,
+    title,
+    content: '',
+    file_path: String(file_path || '').trim(),
+    session_id: selected.value.session_id || ''
+  }
 }
 
 const selectSessionText = (s: any, idx: number) => {
@@ -283,7 +519,14 @@ const selectSessionText = (s: any, idx: number) => {
   if (s.status) lines.push(`الحالة: ${String(s.status)}`)
   if (s.result) lines.push(`النتيجة: ${String(s.result)}`)
   if (s.notes) lines.push(`الملاحظات: ${String(s.notes)}`)
-  selected.value = { type: 'text', category: `الجلسة ${ordinal(idx)}`, title: `محضر الجلسة ${ordinal(idx)}`, content: lines.join('\n'), file_path: '', session_id: String(s.id || '') }
+  selected.value = {
+    type: 'text',
+    category: `الجلسة ${ordinal(idx)}`,
+    title: `محضر الجلسة ${ordinal(idx)}`,
+    content: lines.join('\n'),
+    file_path: '',
+    session_id: String(s.id || '')
+  }
   activeSession.value = s
 }
 
@@ -297,37 +540,56 @@ const judgmentText = (j: any) => {
   return lines.join('\n')
 }
 
-const chooseSession = async (s: any) => { await loadForSessionId(String(s.id || '')) }
+const chooseSession = async (s: any) => {
+  await loadForSessionId(String(s.id || ''))
+}
 
 const loadLookups = async () => {
-  try { todaySessions.value = safeArray(await (window as any).api.sessions.getToday()) } catch { todaySessions.value = [] }
-  try { tomorrowSessions.value = safeArray(await (window as any).api.sessions.getTomorrow()) } catch { tomorrowSessions.value = [] }
+  try {
+    todaySessions.value = safeArray(await (window as any).api.sessions.getToday())
+  } catch {
+    todaySessions.value = []
+  }
+  try {
+    tomorrowSessions.value = safeArray(await (window as any).api.sessions.getTomorrow())
+  } catch {
+    tomorrowSessions.value = []
+  }
 }
 
 const splitDocs = (allDocs: any[]) => {
-  const pdfs = safeArray(allDocs).filter((d: any) => String(d?.file_path || '').toLowerCase().endsWith('.pdf'))
-  const isMemo = (name: string) => { const n = String(name || '').toLowerCase(); return n.includes('مذكرة') || n.includes('لائحة') || n.includes('اعتراضية') || n.includes('رد') }
+  const pdfs = safeArray(allDocs).filter((d: any) =>
+    String(d?.file_path || '')
+      .toLowerCase()
+      .endsWith('.pdf')
+  )
+  const isMemo = (name: string) => {
+    const n = String(name || '').toLowerCase()
+    return n.includes('مذكرة') || n.includes('لائحة') || n.includes('اعتراضية') || n.includes('رد')
+  }
   memos.value = pdfs.filter((d: any) => isMemo(d?.name))
   docs.value = pdfs.filter((d: any) => !isMemo(d?.name))
 }
 
 const loadCaseBundles = async (caseId: string) => {
   caseItem.value = await (window as any).api.cases.getById(caseId)
-  caseSessions.value = safeArray(await (window as any).api.sessions.getByCaseId(caseId)).sort((a: any, b: any) => {
-    const da = String(a?.date || '').localeCompare(String(b?.date || ''))
-    if (da !== 0) return da
-    return String(a?.time || '').localeCompare(String(b?.time || ''))
-  })
-  judgments.value = safeArray(await (window as any).api.judgments.getByCaseId(caseId)).sort((a: any, b: any) =>
-    String(b?.judgment_date || '').localeCompare(String(a?.judgment_date || ''))
+  caseSessions.value = safeArray(await (window as any).api.sessions.getByCaseId(caseId)).sort(
+    (a: any, b: any) => {
+      const da = String(a?.date || '').localeCompare(String(b?.date || ''))
+      if (da !== 0) return da
+      return String(a?.time || '').localeCompare(String(b?.time || ''))
+    }
+  )
+  judgments.value = safeArray(await (window as any).api.judgments.getByCaseId(caseId)).sort(
+    (a: any, b: any) => String(b?.judgment_date || '').localeCompare(String(a?.judgment_date || ''))
   )
   const allDocs = safeArray(await (window as any).api.documents.getByCaseId(caseId))
   splitDocs(allDocs)
   try {
     const clientId = String(caseItem.value?.client_id || '').trim()
     if (clientId) {
-      const ags = safeArray(await (window as any).api.agencies.getByClientId(clientId)).sort((a: any, b: any) =>
-        String(b?.date || '').localeCompare(String(a?.date || ''))
+      const ags = safeArray(await (window as any).api.agencies.getByClientId(clientId)).sort(
+        (a: any, b: any) => String(b?.date || '').localeCompare(String(a?.date || ''))
       )
       const top = ags[0]
       ;(caseItem.value as any).__agency_number = String(top?.agency_number || '').trim()
@@ -344,10 +606,15 @@ const loadForSessionId = async (sessionId: string) => {
     try {
       const allSessions = safeArray(await (window as any).api.sessions.getAll())
       activeSession.value = allSessions.find((x: any) => String(x?.id || '') === sessionId) || null
-    } catch { activeSession.value = null }
+    } catch {
+      activeSession.value = null
+    }
   }
   const caseId = String(activeSession.value?.case_id || '').trim()
-  if (!caseId) { showToast('هذه الجلسة غير مرتبطة بقضية', 'error'); return }
+  if (!caseId) {
+    showToast('هذه الجلسة غير مرتبطة بقضية', 'error')
+    return
+  }
   await loadCaseBundles(caseId)
   if (caseSessions.value.length > 0) selectSessionText(caseSessions.value[0], 0)
   else selectText('الموضوع', 'موضوع الدعوى', caseItem.value?.subject || '—')
@@ -358,15 +625,37 @@ const saveNote = async () => {
   try {
     await (window as any).api.sessions.update(activeSession.value.id, { notes: note.value })
     showToast('تم حفظ الملاحظات', 'success')
-  } catch (e: unknown) { showToast('تعذر حفظ الملاحظات: ' + (e as Error).message, 'error') }
+  } catch (e: unknown) {
+    showToast('تعذر حفظ الملاحظات: ' + (e as Error).message, 'error')
+  }
 }
 
 const openOutcomeModal = () => {
-  outcomeModal.value = { ...outcomeModal.value, show: true, loading: false, result: '', notes: note.value || activeSession.value?.notes || '', serviceDate: new Date().toLocaleDateString('en-CA'), judgmentDate: new Date().toLocaleDateString('en-CA'), judgmentFavors: '', judgmentNeedsExecution: '', judgmentHasAppealGrounds: '', judgmentDegree: '', caseType: '' }
+  outcomeModal.value = {
+    ...outcomeModal.value,
+    show: true,
+    loading: false,
+    result: '',
+    notes: note.value || activeSession.value?.notes || '',
+    serviceDate: new Date().toLocaleDateString('en-CA'),
+    judgmentDate: new Date().toLocaleDateString('en-CA'),
+    judgmentFavors: '',
+    judgmentNeedsExecution: '',
+    judgmentHasAppealGrounds: '',
+    judgmentDegree: '',
+    caseType: ''
+  }
 }
 
 const translateOutcomeItem = (k: string): string => {
-  const map: Record<string, string> = { session: 'الجلسة الحالية', next_session: 'جلسة جديدة', task_reminder: 'مهمة تذكير', task_schedule_next_session: 'مهمة: تحديد موعد الجلسة القادمة', judgment_final: 'تسجيل حكم قطعي', judgment_preliminary: 'تسجيل حكم ابتدائي' }
+  const map: Record<string, string> = {
+    session: 'الجلسة الحالية',
+    next_session: 'جلسة جديدة',
+    task_reminder: 'مهمة تذكير',
+    task_schedule_next_session: 'مهمة: تحديد موعد الجلسة القادمة',
+    judgment_final: 'تسجيل حكم قطعي',
+    judgment_preliminary: 'تسجيل حكم ابتدائي'
+  }
   return map[k] || k
 }
 
@@ -376,7 +665,12 @@ const submitOutcome = async () => {
   outcomeModal.value.loading = true
   try {
     const api = (window as any).api
-    const payload: Record<string, any> = { sessionId: activeSession.value.id, result, notes: outcomeModal.value.notes, caseType: outcomeModal.value.caseType || undefined }
+    const payload: Record<string, any> = {
+      sessionId: activeSession.value.id,
+      result,
+      notes: outcomeModal.value.notes,
+      caseType: outcomeModal.value.caseType || undefined
+    }
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
       const jt = outcomeModal.value.result === 'صدور حكم قطعي' ? 'قطعي' : 'ابتدائي'
       payload.judgmentData = {
@@ -389,15 +683,25 @@ const submitOutcome = async () => {
         needs_execution: outcomeModal.value.judgmentNeedsExecution === 'نعم'
       }
     }
-    if (result === 'شطب الدعوى / انقطاع') payload.dismissalDecision = outcomeModal.value.dismissalDecision
-    if (result === 'تبليغ / إجراء إداري') payload.serviceData = { date: outcomeModal.value.serviceDate, notes: outcomeModal.value.notes }
+    if (result === 'شطب الدعوى / انقطاع')
+      payload.dismissalDecision = outcomeModal.value.dismissalDecision
+    if (result === 'تبليغ / إجراء إداري')
+      payload.serviceData = {
+        date: outcomeModal.value.serviceDate,
+        notes: outcomeModal.value.notes
+      }
 
     // Preview analysis via smart engine (cloud) or workflow (desktop)
     if (api.sessionOutcome?.preview) {
-      const previewRes = await api.sessionOutcome.preview({ result, judgmentData: payload.judgmentData, notes: outcomeModal.value.notes })
+      const previewRes = await api.sessionOutcome.preview({
+        result,
+        judgmentData: payload.judgmentData,
+        notes: outcomeModal.value.notes
+      })
       const analysis = previewRes?.analysis
       const taskList = safeArray(analysis?.tasks)
-      const priorityLabel = (p: string) => p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
+      const priorityLabel = (p: string) =>
+        p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
 
       // بناء رسالة تأكيد مخصصة حسب السيناريو
       const lines: string[] = []
@@ -420,7 +724,9 @@ const submitOutcome = async () => {
           lines.push(`• الحكم: ضد الموكل (لصالح الخصم)`)
           if (analysis.hasAppealGrounds) {
             lines.push('• الإجراء: يوجد أسباب اعتراض')
-            lines.push(`• المسار: ${analysis.appealType === 'نقض' ? 'الطعن بالنقض' : 'تقديم الاعتراض'}`)
+            lines.push(
+              `• المسار: ${analysis.appealType === 'نقض' ? 'الطعن بالنقض' : 'تقديم الاعتراض'}`
+            )
           } else {
             lines.push('• الإجراء: لا يوجد أسباب اعتراض')
             lines.push('• المسار: تبليغ العميل')
@@ -467,79 +773,179 @@ const submitOutcome = async () => {
       const msg = lines.join('\n')
 
       openConfirm({
-        title: 'تأكيد تسجيل النتيجة مع التحليل الذكي', message: msg, color: 'primary', icon: 'brain',
-        confirmText: 'نعم، سجل النتيجة', cancelText: 'إلغاء',
+        title: 'تأكيد تسجيل النتيجة مع التحليل الذكي',
+        message: msg,
+        color: 'primary',
+        icon: 'brain',
+        confirmText: 'نعم، سجل النتيجة',
+        cancelText: 'إلغاء',
         action: async () => {
           confirmDialog.value.loading = true
           try {
-            const applied = await api.sessionOutcome.apply({ sessionId: activeSession.value.id, result, notes: outcomeModal.value.notes, judgmentData: payload.judgmentData, caseType: outcomeModal.value.caseType || undefined })
+            const applied = await api.sessionOutcome.apply({
+              sessionId: activeSession.value.id,
+              result,
+              notes: outcomeModal.value.notes,
+              judgmentData: payload.judgmentData,
+              caseType: outcomeModal.value.caseType || undefined
+            })
             outcomeModal.value.show = false
             showToast('تم تسجيل النتيجة بنجاح مع التحليل الذكي', 'success')
             router.push('/sessions')
-          } catch (e: unknown) { showToast('فشل تسجيل النتيجة: ' + (e as Error).message, 'error') }
-          finally { confirmDialog.value.loading = false; closeConfirm() }
+          } catch (e: unknown) {
+            showToast('فشل تسجيل النتيجة: ' + (e as Error).message, 'error')
+          } finally {
+            confirmDialog.value.loading = false
+            closeConfirm()
+          }
         }
       })
     } else {
       // Fallback to desktop workflow
-      const previewRes = await api.workflow.previewDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
+      const previewRes = await api.workflow.previewDecision({
+        sessionId: activeSession.value.id,
+        resultLabel: result,
+        inputs: payload
+      })
       const missing = safeArray(previewRes?.missing)
-      if (missing.length > 0) { showToast('بيانات مطلوبة: ' + missing.map((m: any) => m?.label).join('، '), 'error'); return }
+      if (missing.length > 0) {
+        showToast('بيانات مطلوبة: ' + missing.map((m: any) => m?.label).join('، '), 'error')
+        return
+      }
       const p = previewRes?.preview?.preview || {}
       const closeList = safeArray(p.closes).map((x: any) => translateOutcomeItem(String(x)))
       const createList = safeArray(p.creates).map((x: any) => translateOutcomeItem(String(x)))
       const msg = `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n${closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : ''}${createList.length ? `- إنشاء: ${createList.join('، ')}\n` : ''}\nهل تريد المتابعة؟`
       openConfirm({
-        title: 'تأكيد مسار الإجراء', message: msg, color: 'primary', icon: 'git-branch',
-        confirmText: 'نعم، ثبت النتيجة', cancelText: 'إلغاء',
+        title: 'تأكيد مسار الإجراء',
+        message: msg,
+        color: 'primary',
+        icon: 'git-branch',
+        confirmText: 'نعم، ثبت النتيجة',
+        cancelText: 'إلغاء',
         action: async () => {
           confirmDialog.value.loading = true
           try {
-            const applied = await api.workflow.applyDecision({ sessionId: activeSession.value.id, resultLabel: result, inputs: payload })
+            const applied = await api.workflow.applyDecision({
+              sessionId: activeSession.value.id,
+              resultLabel: result,
+              inputs: payload
+            })
             outcomeModal.value.show = false
             showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح', 'success')
             const next = applied?.next
-            if (next?.type === 'ui' && next?.route) router.push({ path: next.route, query: next.query || {} })
+            if (next?.type === 'ui' && next?.route)
+              router.push({ path: next.route, query: next.query || {} })
             else router.push('/sessions')
-          } catch (e: unknown) { showToast('فشل تثبيت النتيجة: ' + (e as Error).message, 'error') }
-          finally { confirmDialog.value.loading = false; closeConfirm() }
+          } catch (e: unknown) {
+            showToast('فشل تثبيت النتيجة: ' + (e as Error).message, 'error')
+          } finally {
+            confirmDialog.value.loading = false
+            closeConfirm()
+          }
         }
       })
     }
-  } finally { outcomeModal.value.loading = false }
+  } finally {
+    outcomeModal.value.loading = false
+  }
 }
 
-watch(() => note.value, () => {
-  if (!activeSession.value?.id) return
-  try { localStorage.setItem(`session_room_note:${activeSession.value.id}`, note.value) } catch {}
-})
+watch(
+  () => note.value,
+  () => {
+    if (!activeSession.value?.id) return
+    try {
+      localStorage.setItem(`session_room_note:${activeSession.value.id}`, note.value)
+    } catch {}
+  }
+)
 
-watch(() => activeSession.value?.id, (id) => {
-  if (!id) return
-  try { note.value = localStorage.getItem(`session_room_note:${id}`) || String(activeSession.value?.notes || '') }
-  catch { note.value = String(activeSession.value?.notes || '') }
-}, { immediate: true })
+watch(
+  () => activeSession.value?.id,
+  (id) => {
+    if (!id) return
+    try {
+      note.value =
+        localStorage.getItem(`session_room_note:${id}`) || String(activeSession.value?.notes || '')
+    } catch {
+      note.value = String(activeSession.value?.notes || '')
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   await loadLookups()
   const q = String(route.query.session_id || '').trim()
-  if (q) { await loadForSessionId(q); return }
+  if (q) {
+    await loadForSessionId(q)
+    return
+  }
   const first = pickOptions.value[0]
-  if (first?.id) { await loadForSessionId(String(first.id)); return }
+  if (first?.id) {
+    await loadForSessionId(String(first.id))
+    return
+  }
   pickerDialog.value = true
 })
 </script>
 
 <style scoped>
-.session-text { white-space: pre-wrap; font-family: 'Consolas', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.7; }
-.recording-dot { width: 10px; height: 10px; border-radius: 50%; background: #ef4444; animation: pulse 1.5s ease-in-out infinite; }
-@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }
-.note-textarea :deep(textarea) { background: repeating-linear-gradient(transparent, transparent 31px, rgba(197, 160, 40, 0.08) 31px, rgba(197, 160, 40, 0.08) 32px) !important; line-height: 32px !important; padding: 0 !important; font-size: 0.95rem; min-height: 400px; }
-.session-room-btn-zr1 { height: 56px; }
+.session-text {
+  white-space: pre-wrap;
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+.recording-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ef4444;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+.note-textarea :deep(textarea) {
+  background: repeating-linear-gradient(
+    transparent,
+    transparent 31px,
+    rgba(197, 160, 40, 0.08) 31px,
+    rgba(197, 160, 40, 0.08) 32px
+  ) !important;
+  line-height: 32px !important;
+  padding: 0 !important;
+  font-size: 0.95rem;
+  min-height: 400px;
+}
+.session-room-btn-zr1 {
+  height: 56px;
+}
 @media (max-width: 1023px) {
-  .session-room-btn-zr1 { height: 48px; font-size: 0.8rem !important; padding: 0 12px !important; }
-  :deep(.v-row .v-col-md-2), :deep(.v-row .v-col-md-3) { flex: 0 0 100% !important; max-width: 100% !important; margin-bottom: 8px; }
-  :deep(.v-row[style*="30vh"]) { height: auto !important; }
-  :deep(.v-row[style*="72vh"]) { height: auto !important; }
+  .session-room-btn-zr1 {
+    height: 48px;
+    font-size: 0.8rem !important;
+    padding: 0 12px !important;
+  }
+  :deep(.v-row .v-col-md-2),
+  :deep(.v-row .v-col-md-3) {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    margin-bottom: 8px;
+  }
+  :deep(.v-row[style*='30vh']) {
+    height: auto !important;
+  }
+  :deep(.v-row[style*='72vh']) {
+    height: auto !important;
+  }
 }
 </style>

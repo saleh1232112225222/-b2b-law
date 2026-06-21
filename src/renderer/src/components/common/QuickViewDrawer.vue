@@ -13,7 +13,9 @@
         <div class="bg-accent-alpha pa-2 rounded-lg">
           <LucideIcon :name="getIconName()" :size="20" class="text-gold" />
         </div>
-        <span class="text-subtitle-1 font-weight-black text-gold">{{ store.title || 'معاينة سريعة' }}</span>
+        <span class="text-subtitle-1 font-weight-black text-gold">{{
+          store.title || 'معاينة سريعة'
+        }}</span>
       </div>
 
       <!-- Action Buttons -->

@@ -14,10 +14,16 @@
         <div>
           <h3 class="text-h6 font-weight-black text-gold mb-1">{{ client.name }}</h3>
           <div class="d-flex align-center ga-2">
-            <v-chip size="x-small" :color="getClientTypeColor(client.type)" class="font-weight-black rounded-lg">
+            <v-chip
+              size="x-small"
+              :color="getClientTypeColor(client.type)"
+              class="font-weight-black rounded-lg"
+            >
               {{ client.type || 'فرد' }}
             </v-chip>
-            <span class="text-caption text-gold opacity-60">الهوية: {{ client.id_number || '---' }}</span>
+            <span class="text-caption text-gold opacity-60"
+              >الهوية: {{ client.id_number || '---' }}</span
+            >
           </div>
         </div>
       </div>
@@ -28,7 +34,9 @@
           <LucideIcon name="info" :size="16" class="me-2" /> المعطيات الأساسية
         </v-tab>
         <v-tab value="cases" class="font-weight-bold text-caption py-3">
-          <LucideIcon name="gavel" :size="16" class="me-2" /> القضايا ({{ safeLength(linkedCases) }})
+          <LucideIcon name="gavel" :size="16" class="me-2" /> القضايا ({{
+            safeLength(linkedCases)
+          }})
         </v-tab>
       </v-tabs>
 
@@ -42,8 +50,12 @@
                   <LucideIcon name="phone" :size="16" class="text-accent" />
                 </div>
               </template>
-              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold">رقم الجوال</v-list-item-title>
-              <v-list-item-subtitle class="text-body-2 font-weight-black text-white ltr-text">{{ client.phone || '---' }}</v-list-item-subtitle>
+              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold"
+                >رقم الجوال</v-list-item-title
+              >
+              <v-list-item-subtitle class="text-body-2 font-weight-black text-white ltr-text">{{
+                client.phone || '---'
+              }}</v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item class="px-0 py-2 border-b-thin">
@@ -52,8 +64,12 @@
                   <LucideIcon name="mail" :size="16" class="text-accent" />
                 </div>
               </template>
-              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold">البريد الإلكتروني</v-list-item-title>
-              <v-list-item-subtitle class="text-body-2 font-weight-black text-white">{{ client.email || '---' }}</v-list-item-subtitle>
+              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold"
+                >البريد الإلكتروني</v-list-item-title
+              >
+              <v-list-item-subtitle class="text-body-2 font-weight-black text-white">{{
+                client.email || '---'
+              }}</v-list-item-subtitle>
             </v-list-item>
 
             <v-list-item class="px-0 py-2 border-b-thin">
@@ -62,7 +78,9 @@
                   <LucideIcon name="map-pin" :size="16" class="text-accent" />
                 </div>
               </template>
-              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold">العنوان</v-list-item-title>
+              <v-list-item-title class="text-tiny text-gold opacity-50 font-weight-bold"
+                >العنوان</v-list-item-title
+              >
               <v-list-item-subtitle class="text-body-2 font-weight-black text-white">
                 {{ client.city || '' }} {{ client.address ? '- ' + client.address : '' }}
               </v-list-item-subtitle>
@@ -71,7 +89,8 @@
 
           <v-card variant="tonal" color="primary" class="mt-4 pa-4 rounded-xl border-gold-alpha">
             <div class="text-caption font-weight-black text-gold mb-2 d-flex align-center">
-              <LucideIcon name="message-square" :size="16" class="me-2 opacity-50" /> الملاحظات المسجلة
+              <LucideIcon name="message-square" :size="16" class="me-2 opacity-50" /> الملاحظات
+              المسجلة
             </div>
             <div class="text-caption text-white opacity-70 leading-relaxed font-weight-medium">
               {{ client.notes || 'لا توجد ملاحظات مسجلة.' }}
@@ -92,20 +111,25 @@
           >
             <div class="d-flex align-center justify-space-between mb-1">
               <span class="text-caption font-weight-black text-gold">{{ item.case_number }}</span>
-              <v-chip size="x-small" :color="getStatusColor(item.status)" variant="flat" class="font-weight-black">
+              <v-chip
+                size="x-small"
+                :color="getStatusColor(item.status)"
+                variant="flat"
+                class="font-weight-black"
+              >
                 {{ item.status }}
               </v-chip>
             </div>
-            <div class="text-caption font-weight-black text-white mb-2">{{ item.subject || 'بدون موضوع' }}</div>
+            <div class="text-caption font-weight-black text-white mb-2">
+              {{ item.subject || 'بدون موضوع' }}
+            </div>
             <div class="text-tiny text-gold opacity-50">{{ item.court || 'غير محدد' }}</div>
           </v-card>
         </v-window-item>
       </v-window>
     </div>
 
-    <div v-else class="text-center pa-10 text-error">
-      الموكل المطلوب غير موجود.
-    </div>
+    <div v-else class="text-center pa-10 text-error">الموكل المطلوب غير موجود.</div>
   </div>
 </template>
 
@@ -145,9 +169,12 @@ onMounted(() => {
   loadData()
 })
 
-watch(() => props.clientId, () => {
-  loadData()
-})
+watch(
+  () => props.clientId,
+  () => {
+    loadData()
+  }
+)
 
 const getClientTypeColor = (type?: string) => {
   const map: Record<string, string> = {

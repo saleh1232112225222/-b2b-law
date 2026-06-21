@@ -3,7 +3,7 @@
     <div class="mock-banner-content">
       <LucideIcon name="info" :size="18" class="text-gold banner-icon" />
       <span class="banner-text">
-        وضع التحقق التجريبي نشط: لن يتم إرسال رسائل بريد حقيقية. الرمز الافتراضي هو 
+        وضع التحقق التجريبي نشط: لن يتم إرسال رسائل بريد حقيقية. الرمز الافتراضي هو
         <strong class="otp-highlight">123456</strong>
       </span>
     </div>
@@ -76,7 +76,8 @@ const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
 }
 
 @keyframes pulse-glow {
-  0%, 100% {
+  0%,
+  100% {
     transform: scale(1);
     filter: drop-shadow(0 0 2px rgba(229, 193, 88, 0.4));
   }

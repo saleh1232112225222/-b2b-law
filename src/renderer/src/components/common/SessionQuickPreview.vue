@@ -7,19 +7,25 @@
 
     <div v-else-if="session" class="pa-4">
       <!-- Status & Date Header -->
-      <div class="d-flex align-center justify-space-between mb-6 bg-accent-alpha pa-4 rounded-xl border-gold-alpha">
+      <div
+        class="d-flex align-center justify-space-between mb-6 bg-accent-alpha pa-4 rounded-xl border-gold-alpha"
+      >
         <div class="d-flex align-center">
           <div class="glass-panel-light pa-2 rounded-lg me-3">
             <LucideIcon name="calendar-clock" :size="24" class="text-accent" />
           </div>
           <div>
-            <h4 class="text-subtitle-1 font-weight-black text-white mb-1">
-              {{ session.date }} مـ
-            </h4>
-            <span class="text-caption text-gold opacity-60">الوقت: {{ session.time || 'غير محدد' }}</span>
+            <h4 class="text-subtitle-1 font-weight-black text-white mb-1">{{ session.date }} مـ</h4>
+            <span class="text-caption text-gold opacity-60"
+              >الوقت: {{ session.time || 'غير محدد' }}</span
+            >
           </div>
         </div>
-        <v-chip :color="getStatusColor(session.status)" variant="flat" class="font-weight-black rounded-lg px-4">
+        <v-chip
+          :color="getStatusColor(session.status)"
+          variant="flat"
+          class="font-weight-black rounded-lg px-4"
+        >
           {{ session.status }}
         </v-chip>
       </div>
@@ -32,7 +38,9 @@
         </v-col>
         <v-col cols="6">
           <div class="text-tiny text-gold opacity-50 font-weight-bold mb-1">القاعة / الدائرة</div>
-          <div class="text-body-2 font-weight-black text-white">{{ session.court_room || 'غير محدد' }}</div>
+          <div class="text-body-2 font-weight-black text-white">
+            {{ session.court_room || 'غير محدد' }}
+          </div>
         </v-col>
       </v-row>
 
@@ -43,11 +51,17 @@
         <div class="text-caption font-weight-bold text-gold mb-2">ملف القضية المقترن</div>
         <v-card elevation="0" class="glass-panel-light pa-4 rounded-xl border-gold-alpha">
           <div class="d-flex align-center justify-space-between mb-2">
-            <span class="text-body-2 font-weight-black text-accent">{{ caseItem.case_number }}</span>
-            <v-chip size="x-small" color="primary" class="font-weight-bold">{{ caseItem.priority || 'عادية' }}</v-chip>
+            <span class="text-body-2 font-weight-black text-accent">{{
+              caseItem.case_number
+            }}</span>
+            <v-chip size="x-small" color="primary" class="font-weight-bold">{{
+              caseItem.priority || 'عادية'
+            }}</v-chip>
           </div>
           <div class="text-body-2 font-weight-black text-white mb-2">{{ caseItem.subject }}</div>
-          <div class="text-caption text-gold opacity-60">المحكمة: {{ caseItem.court || 'غير محدد' }}</div>
+          <div class="text-caption text-gold opacity-60">
+            المحكمة: {{ caseItem.court || 'غير محدد' }}
+          </div>
         </v-card>
       </div>
 
@@ -74,9 +88,15 @@
         </div>
       </v-card>
 
-      <v-card v-if="session.result" variant="tonal" color="success" class="pa-4 rounded-xl border-gold-alpha">
+      <v-card
+        v-if="session.result"
+        variant="tonal"
+        color="success"
+        class="pa-4 rounded-xl border-gold-alpha"
+      >
         <div class="text-caption font-weight-black text-accent mb-2 d-flex align-center">
-          <LucideIcon name="check-square" :size="16" class="me-2 opacity-50" /> قرار اللجنة / سبب التأجيل
+          <LucideIcon name="check-square" :size="16" class="me-2 opacity-50" /> قرار اللجنة / سبب
+          التأجيل
         </div>
         <div class="text-caption text-white opacity-70 leading-relaxed font-weight-medium">
           {{ session.result }}
@@ -84,9 +104,7 @@
       </v-card>
     </div>
 
-    <div v-else class="text-center pa-10 text-error">
-      الجلسة المطلوبة غير موجودة.
-    </div>
+    <div v-else class="text-center pa-10 text-error">الجلسة المطلوبة غير موجودة.</div>
   </div>
 </template>
 
@@ -127,9 +145,12 @@ onMounted(() => {
   loadData()
 })
 
-watch(() => props.sessionId, () => {
-  loadData()
-})
+watch(
+  () => props.sessionId,
+  () => {
+    loadData()
+  }
+)
 
 const getStatusColor = (status?: string) => {
   switch (status) {

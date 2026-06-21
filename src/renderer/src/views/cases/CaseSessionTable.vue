@@ -1,6 +1,8 @@
 <template>
   <v-card variant="flat" class="rounded-xl glass-card border overflow-hidden">
-    <div class="py-4 px-6 text-subtitle-2 font-weight-black text-primary d-flex align-center glass-card-noir border-0 border-b">
+    <div
+      class="py-4 px-6 text-subtitle-2 font-weight-black text-primary d-flex align-center glass-card-noir border-0 border-b"
+    >
       <LucideIcon name="calendar-days" :size="18" class="text-accent me-2" />
       سجل الجلسات المرتبطة
       <v-spacer />
@@ -18,14 +20,27 @@
         </thead>
         <tbody>
           <tr v-if="sessions.length === 0">
-            <td colspan="4" class="text-center py-8 text-text-muted opacity-50 italic">لا توجد جلسات مضافة بعد</td>
+            <td colspan="4" class="text-center py-8 text-text-muted opacity-50 italic">
+              لا توجد جلسات مضافة بعد
+            </td>
           </tr>
           <tr v-for="s in sessions" :key="s.id" class="premium-hover">
             <td class="font-weight-bold text-primary">{{ s.date || '-' }}</td>
             <td>{{ s.time || '-' }}</td>
             <td>{{ s.court_room || '-' }}</td>
             <td>
-              <v-chip size="x-small" :color="s.status?.includes('تمت') ? 'success' : s.status?.includes('مؤجلة') ? 'warning' : 'info'" variant="flat" class="font-weight-black rounded-lg">
+              <v-chip
+                size="x-small"
+                :color="
+                  s.status?.includes('تمت')
+                    ? 'success'
+                    : s.status?.includes('مؤجلة')
+                      ? 'warning'
+                      : 'info'
+                "
+                variant="flat"
+                class="font-weight-black rounded-lg"
+              >
                 {{ s.status || '-' }}
               </v-chip>
             </td>

@@ -7,22 +7,10 @@
             {{ calendarMonthLabel }}
           </div>
           <div class="d-flex align-center gap-1">
-            <v-btn
-              variant="tonal"
-              color="primary"
-              icon
-              size="x-small"
-              @click="$emit('prev-month')"
-            >
+            <v-btn variant="tonal" color="primary" icon size="x-small" @click="$emit('prev-month')">
               <LucideIcon name="chevron-right" :size="12" />
             </v-btn>
-            <v-btn
-              variant="tonal"
-              color="primary"
-              icon
-              size="x-small"
-              @click="$emit('next-month')"
-            >
+            <v-btn variant="tonal" color="primary" icon size="x-small" @click="$emit('next-month')">
               <LucideIcon name="chevron-left" :size="12" />
             </v-btn>
           </div>
@@ -57,9 +45,7 @@
           class="glass-card-light overflow-hidden flex-grow-1 d-flex flex-column"
           min-height="100"
         >
-          <v-card-title
-            class="pa-1 px-2 d-flex align-center justify-space-between shrink-0"
-          >
+          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0">
             <span class="text-tiny-v font-weight-black dashboard-title">
               {{ selectedDate }} &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp;
               {{ gregorianIsoToHijriIso(selectedDate) }}
@@ -82,10 +68,7 @@
                 <v-list-item-title class="font-weight-black text-tiny-v">{{
                   it.title
                 }}</v-list-item-title>
-                <v-list-item-subtitle
-                  v-if="it.subtitle"
-                  class="text-tiny-vv opacity-70"
-                >
+                <v-list-item-subtitle v-if="it.subtitle" class="text-tiny-vv opacity-70">
                   {{ it.subtitle }}
                 </v-list-item-subtitle>
               </v-list-item>

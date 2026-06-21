@@ -14,8 +14,14 @@
       </div>
     </v-col>
     <v-col cols="auto">
-      <v-btn color="accent" variant="flat" size="large"
-        class="font-weight-black rounded-lg px-8 premium-lift text-primary-dark" height="56" @click="$emit('add')">
+      <v-btn
+        color="accent"
+        variant="flat"
+        size="large"
+        class="font-weight-black rounded-lg px-8 premium-lift text-primary-dark"
+        height="56"
+        @click="$emit('add')"
+      >
         <LucideIcon name="folder-plus" :size="20" class="me-2" />
         قضية جديدة
       </v-btn>
@@ -29,5 +35,12 @@ defineEmits<{ add: [] }>()
 </script>
 
 <style scoped>
-.header-icon-box { width: 72px; height: 72px; display: flex; align-items: center; justify-content: center; background: var(--glass-bg); }
+.header-icon-box {
+  width: 72px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--glass-bg);
+}
 </style>

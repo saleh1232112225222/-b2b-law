@@ -360,7 +360,11 @@ const detailComponent = computed(() => {
 })
 
 const getTypeName = (type: string) => {
-  const types: Record<string, string> = { financial: 'تنفيذ مالي', personal: 'أحوال شخصية', direct: 'تنفيذ مباشر' }
+  const types: Record<string, string> = {
+    financial: 'تنفيذ مالي',
+    personal: 'أحوال شخصية',
+    direct: 'تنفيذ مباشر'
+  }
   return types[type] || ''
 }
 

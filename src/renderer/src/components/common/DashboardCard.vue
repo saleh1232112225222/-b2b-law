@@ -1,5 +1,9 @@
 <template>
-  <v-card class="glass-card premium-lift" :class="{ 'cursor-pointer': hoverable, 'dashboard-card-mobile': isMobile }" :elevation="0">
+  <v-card
+    class="glass-card premium-lift"
+    :class="{ 'cursor-pointer': hoverable, 'dashboard-card-mobile': isMobile }"
+    :elevation="0"
+  >
     <div class="pa-5" :class="{ 'pa-3': isMobile }">
       <div class="d-flex align-center justify-space-between mb-4" :class="{ 'mb-2': isMobile }">
         <div
@@ -7,7 +11,11 @@
           :class="{ 'pa-2': isMobile }"
           :style="{ backgroundColor: `var(--${color}-alpha)` }"
         >
-          <LucideIcon :name="icon" :size="isMobile ? 18 : 22" :style="{ color: `var(--${color})` }" />
+          <LucideIcon
+            :name="icon"
+            :size="isMobile ? 18 : 22"
+            :style="{ color: `var(--${color})` }"
+          />
         </div>
         <div
           v-if="trend !== undefined"
@@ -24,10 +32,16 @@
       </div>
 
       <div class="card-content">
-        <div class="text-h4 font-weight-black text-pure-black mb-1" :class="{ 'text-h5': isMobile }">
+        <div
+          class="text-h4 font-weight-black text-pure-black mb-1"
+          :class="{ 'text-h5': isMobile }"
+        >
           <slot name="value">{{ value }}</slot>
         </div>
-        <div class="text-tiny text-pure-black font-weight-black" :class="{ 'text-tiny-v': isMobile }">
+        <div
+          class="text-tiny text-pure-black font-weight-black"
+          :class="{ 'text-tiny-v': isMobile }"
+        >
           {{ title }}
         </div>
       </div>
@@ -126,17 +140,21 @@ const getHexColor = (colorName: string): string => {
 
 .glass-card.premium-lift:hover {
   border-color: var(--accent) !important;
-  box-shadow: 0 8px 24px -4px var(--accent-glow), 0 0 0 1px var(--accent-alpha) !important;
+  box-shadow:
+    0 8px 24px -4px var(--accent-glow),
+    0 0 0 1px var(--accent-alpha) !important;
   transform: translateY(-3px) scale(1.01);
 }
 
 [data-theme='dark'] .glass-card.premium-lift {
   background: rgba(13, 21, 38, 0.7) !important;
-  border-color: rgba(233, 195, 73, 0.10) !important;
+  border-color: rgba(233, 195, 73, 0.1) !important;
 }
 
 [data-theme='dark'] .glass-card.premium-lift:hover {
   border-color: rgba(233, 195, 73, 0.35) !important;
-  box-shadow: 0 8px 32px -4px rgba(233, 195, 73, 0.12), 0 0 0 1px rgba(233, 195, 73, 0.08) !important;
+  box-shadow:
+    0 8px 32px -4px rgba(233, 195, 73, 0.12),
+    0 0 0 1px rgba(233, 195, 73, 0.08) !important;
 }
 </style>

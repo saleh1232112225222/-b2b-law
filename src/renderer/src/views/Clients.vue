@@ -113,14 +113,24 @@
 
     <!-- Data Table -->
     <!-- Data Table / Cards -->
-    <v-card elevation="0" class="bg-white border-gold-alpha overflow-hidden rounded-2xl table-to-cards">
-      <div v-if="isMobile" class="mobile-cards-list pa-4 bg-transparent overflow-y-auto" style="height: calc(100vh - 430px)">
+    <v-card
+      elevation="0"
+      class="bg-white border-gold-alpha overflow-hidden rounded-2xl table-to-cards"
+    >
+      <div
+        v-if="isMobile"
+        class="mobile-cards-list pa-4 bg-transparent overflow-y-auto"
+        style="height: calc(100vh - 430px)"
+      >
         <v-skeleton-loader
           v-if="store.loading"
           type="card@3"
           class="bg-transparent"
         ></v-skeleton-loader>
-        <div v-else-if="safeArray(store.clients).length === 0" class="text-center py-8 opacity-50 text-black">
+        <div
+          v-else-if="safeArray(store.clients).length === 0"
+          class="text-center py-8 opacity-50 text-black"
+        >
           لا يوجد موكلين مطابقين للبحث
         </div>
         <div v-else class="d-flex flex-column ga-4">
@@ -198,17 +208,23 @@
               <div class="d-flex align-center ga-1 text-caption">
                 <LucideIcon name="phone" :size="14" class="text-gold" />
                 <span class="text-text-muted">رقم الجوال:</span>
-                <span class="text-pure-black font-weight-black ltr-text">{{ item.phone || '-' }}</span>
+                <span class="text-pure-black font-weight-black ltr-text">{{
+                  item.phone || '-'
+                }}</span>
               </div>
               <div class="d-flex align-center ga-1 text-caption">
                 <LucideIcon name="mail" :size="14" class="text-gold" />
                 <span class="text-text-muted">البريد:</span>
-                <span class="text-primary font-weight-bold" style="word-break: break-all;">{{ item.email || '-' }}</span>
+                <span class="text-primary font-weight-bold" style="word-break: break-all">{{
+                  item.email || '-'
+                }}</span>
               </div>
               <div class="d-flex align-center ga-1 text-caption">
                 <LucideIcon name="calendar" :size="14" class="text-gold" />
                 <span class="text-text-muted">تاريخ الانضمام:</span>
-                <span class="text-pure-black font-weight-black">{{ formatDate(item.created_at) }}</span>
+                <span class="text-pure-black font-weight-black">{{
+                  formatDate(item.created_at)
+                }}</span>
               </div>
             </div>
           </v-card>
@@ -483,7 +499,9 @@ const router = useRouter()
 const filterType = ref('الكل')
 
 const { mobile } = useDisplay()
-const isMobile = computed(() => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768))
+const isMobile = computed(
+  () => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768)
+)
 
 const onMobilePagePrev = (): void => {
   if (store.page > 1) {

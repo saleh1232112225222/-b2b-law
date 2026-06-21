@@ -109,7 +109,12 @@ const emit = defineEmits<{
 
 const localSearch = ref(props.modelValue)
 
-watch(() => props.modelValue, (v) => { localSearch.value = v })
+watch(
+  () => props.modelValue,
+  (v) => {
+    localSearch.value = v
+  }
+)
 
 watch(localSearch, (v) => {
   emit('update:modelValue', v)

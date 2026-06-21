@@ -42,11 +42,25 @@
 
       <template #[`item.date`]="{ item }">
         <div class="d-flex flex-column align-center py-3">
-          <v-btn variant="text" color="gold" class="px-0 text-body-1 font-weight-black hover-gold" @click="$emit('edit', item)">
+          <v-btn
+            variant="text"
+            color="gold"
+            class="px-0 text-body-1 font-weight-black hover-gold"
+            @click="$emit('edit', item)"
+          >
             {{ item.date }} م
           </v-btn>
-          <span class="text-tiny text-gold opacity-60 font-weight-black">{{ item.date_hijri || '---' }} هـ</span>
-          <v-btn v-if="item.meeting_link" color="accent" size="x-small" variant="flat" class="rounded-md px-3 mt-2 font-weight-black premium-lift" @click="$emit('open-najiz', item.meeting_link)">
+          <span class="text-tiny text-gold opacity-60 font-weight-black"
+            >{{ item.date_hijri || '---' }} هـ</span
+          >
+          <v-btn
+            v-if="item.meeting_link"
+            color="accent"
+            size="x-small"
+            variant="flat"
+            class="rounded-md px-3 mt-2 font-weight-black premium-lift"
+            @click="$emit('open-najiz', item.meeting_link)"
+          >
             <LucideIcon name="video" :size="12" class="me-2" /> انضمام مباشر
           </v-btn>
         </div>
@@ -60,30 +74,68 @@
       </template>
 
       <template #[`item.client_name`]="{ item }">
-        <v-btn v-if="item.client_id" variant="text" color="gold" class="px-0 text-body-2 font-weight-black opacity-80 hover-gold" :to="'/clients/' + item.client_id" density="compact">
+        <v-btn
+          v-if="item.client_id"
+          variant="text"
+          color="gold"
+          class="px-0 text-body-2 font-weight-black opacity-80 hover-gold"
+          :to="'/clients/' + item.client_id"
+          density="compact"
+        >
           {{ item.client_name }}
         </v-btn>
-        <div v-else class="text-body-2 font-weight-black text-white opacity-40">{{ item.client_name || 'بدون موكل' }}</div>
+        <div v-else class="text-body-2 font-weight-black text-white opacity-40">
+          {{ item.client_name || 'بدون موكل' }}
+        </div>
       </template>
 
       <template #[`item.case_number`]="{ item }">
-        <v-btn v-if="item.case_id" variant="text" color="accent" class="px-0 text-body-2 font-weight-black hover-gold" :to="'/cases/' + item.case_id" density="compact">
+        <v-btn
+          v-if="item.case_id"
+          variant="text"
+          color="accent"
+          class="px-0 text-body-2 font-weight-black hover-gold"
+          :to="'/cases/' + item.case_id"
+          density="compact"
+        >
           {{ item.case_number }}
         </v-btn>
-        <div v-else class="text-body-2 font-weight-black text-accent opacity-60">{{ item.case_number }}</div>
+        <div v-else class="text-body-2 font-weight-black text-accent opacity-60">
+          {{ item.case_number }}
+        </div>
       </template>
 
       <template #[`item.status`]="{ item }">
-        <v-chip :color="getStatusColor(item.status)" size="x-small" variant="flat" class="font-weight-black rounded-md">{{ item.status }}</v-chip>
+        <v-chip
+          :color="getStatusColor(item.status)"
+          size="x-small"
+          variant="flat"
+          class="font-weight-black rounded-md"
+          >{{ item.status }}</v-chip
+        >
       </template>
 
       <template #[`item.session_room`]="{ item }">
         <div class="d-flex justify-center ga-1">
-          <v-btn icon variant="text" color="accent" size="small" class="premium-hover" @click="$emit('open-session-room', item)">
+          <v-btn
+            icon
+            variant="text"
+            color="accent"
+            size="small"
+            class="premium-hover"
+            @click="$emit('open-session-room', item)"
+          >
             <LucideIcon name="swords" :size="20" />
             <v-tooltip activator="parent" location="top">غرفة العمليات</v-tooltip>
           </v-btn>
-          <v-btn icon variant="text" color="primary" size="small" class="premium-hover" @click="$emit('open-session-room-new-window', item)">
+          <v-btn
+            icon
+            variant="text"
+            color="primary"
+            size="small"
+            class="premium-hover"
+            @click="$emit('open-session-room-new-window', item)"
+          >
             <LucideIcon name="external-link" :size="18" />
             <v-tooltip activator="parent" location="top">فتح في نافذة مستقلة</v-tooltip>
           </v-btn>
@@ -92,10 +144,24 @@
 
       <template #[`item.actions`]="{ item }">
         <div class="d-flex justify-center gap-2">
-          <v-btn icon variant="text" color="gold" size="small" class="premium-hover opacity-70" @click="$emit('edit', item)">
+          <v-btn
+            icon
+            variant="text"
+            color="gold"
+            size="small"
+            class="premium-hover opacity-70"
+            @click="$emit('edit', item)"
+          >
             <LucideIcon name="edit-3" :size="18" />
           </v-btn>
-          <v-btn icon variant="text" color="error" size="small" class="premium-hover opacity-70" @click="$emit('delete', item)">
+          <v-btn
+            icon
+            variant="text"
+            color="error"
+            size="small"
+            class="premium-hover opacity-70"
+            @click="$emit('delete', item)"
+          >
             <LucideIcon name="trash-2" :size="18" />
           </v-btn>
         </div>
@@ -122,7 +188,13 @@ defineProps<{
 }>()
 
 defineEmits<{
-  'update:options': [options: { page: number; itemsPerPage: number; sortBy: { key: string; order?: 'asc' | 'desc' }[] }]
+  'update:options': [
+    options: {
+      page: number
+      itemsPerPage: number
+      sortBy: { key: string; order?: 'asc' | 'desc' }[]
+    }
+  ]
   edit: [item: any]
   delete: [item: any]
   'open-session-room': [item: any]
@@ -143,11 +215,16 @@ const headers = [
 
 const getStatusColor = (status: string): string => {
   switch (status) {
-    case 'قادمة': return 'accent'
-    case 'تمت': return 'green-darken-3'
-    case 'مؤجلة': return 'warning'
-    case 'ملغاة': return 'error'
-    default: return 'grey'
+    case 'قادمة':
+      return 'accent'
+    case 'تمت':
+      return 'green-darken-3'
+    case 'مؤجلة':
+      return 'warning'
+    case 'ملغاة':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 </script>

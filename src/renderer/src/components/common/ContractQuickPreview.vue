@@ -7,7 +7,9 @@
 
     <div v-else-if="contract" class="pa-4">
       <!-- Title & Status Header -->
-      <div class="d-flex align-center justify-space-between mb-6 bg-accent-alpha pa-4 rounded-xl border-gold-alpha">
+      <div
+        class="d-flex align-center justify-space-between mb-6 bg-accent-alpha pa-4 rounded-xl border-gold-alpha"
+      >
         <div class="d-flex align-center">
           <div class="glass-panel-light pa-2 rounded-lg me-3">
             <LucideIcon name="file-signature" :size="24" class="text-accent" />
@@ -16,7 +18,9 @@
             <h4 class="text-subtitle-1 font-weight-black text-white mb-1">
               {{ contract.title || 'عقد بدون عنوان' }}
             </h4>
-            <span class="text-caption text-gold opacity-60">مرجع: {{ contract.contract_no || contract.id }}</span>
+            <span class="text-caption text-gold opacity-60"
+              >مرجع: {{ contract.contract_no || contract.id }}</span
+            >
           </div>
         </div>
         <v-chip
@@ -44,7 +48,13 @@
         <v-col cols="6">
           <div class="text-tiny text-gold opacity-50 font-weight-bold mb-1">القيمة المالية</div>
           <div class="text-body-2 font-weight-black text-accent">
-            {{ formatCurrency(contract.contract_type === 'employment' ? contract.salary_amount : contract.total_amount) }}
+            {{
+              formatCurrency(
+                contract.contract_type === 'employment'
+                  ? contract.salary_amount
+                  : contract.total_amount
+              )
+            }}
           </div>
         </v-col>
       </v-row>
@@ -69,16 +79,18 @@
       <div class="text-caption font-weight-black text-gold mb-2 d-flex align-center">
         <LucideIcon name="scroll" :size="16" class="me-2 opacity-50" /> بنود المتن القانوني الموثق
       </div>
-      <div class="glass-panel-light pa-4 rounded-xl border border-gold-alpha text-content-scroll mb-4">
-        <div class="whitespace-pre-wrap font-judicial text-white opacity-80 leading-loose text-caption pre-wrap">
+      <div
+        class="glass-panel-light pa-4 rounded-xl border border-gold-alpha text-content-scroll mb-4"
+      >
+        <div
+          class="whitespace-pre-wrap font-judicial text-white opacity-80 leading-loose text-caption pre-wrap"
+        >
           {{ contract.text_content }}
         </div>
       </div>
     </div>
 
-    <div v-else class="text-center pa-10 text-error">
-      العقد المطلوب غير موجود.
-    </div>
+    <div v-else class="text-center pa-10 text-error">العقد المطلوب غير موجود.</div>
   </div>
 </template>
 
@@ -112,9 +124,12 @@ onMounted(() => {
   loadData()
 })
 
-watch(() => props.contractId, () => {
-  loadData()
-})
+watch(
+  () => props.contractId,
+  () => {
+    loadData()
+  }
+)
 
 const formatCurrency = (val?: number) => {
   if (val === undefined || val === null) return '0.00 ر.س'

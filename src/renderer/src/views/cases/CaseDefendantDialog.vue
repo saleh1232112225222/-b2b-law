@@ -1,11 +1,21 @@
 <template>
-  <v-dialog :model-value="modelValue" width="90%" max-width="800" persistent scrollable transition="dialog-bottom-transition" @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog
+    :model-value="modelValue"
+    width="90%"
+    max-width="800"
+    persistent
+    scrollable
+    transition="dialog-bottom-transition"
+    @update:model-value="$emit('update:modelValue', $event)"
+  >
     <v-card class="glass-card-noir border rounded-xl shadow-premium overflow-hidden">
       <v-toolbar color="transparent" class="px-6 border-b" height="72">
         <div class="pa-3 rounded-xl glass-card border-accent me-4">
           <LucideIcon name="user-plus" :size="24" class="text-accent" />
         </div>
-        <v-toolbar-title class="font-weight-black text-primary">إضافة خصم جديد للمنظومة</v-toolbar-title>
+        <v-toolbar-title class="font-weight-black text-primary"
+          >إضافة خصم جديد للمنظومة</v-toolbar-title
+        >
         <v-spacer />
         <v-btn icon variant="tonal" class="rounded-lg" @click="$emit('update:modelValue', false)">
           <LucideIcon name="x" :size="20" />
@@ -16,9 +26,20 @@
       </v-card-text>
       <v-divider class="opacity-10" />
       <v-card-actions class="pa-6 bg-transparent">
-        <v-btn variant="tonal" class="px-6 font-weight-black rounded-xl" @click="$emit('update:modelValue', false)">إلغاء</v-btn>
+        <v-btn
+          variant="tonal"
+          class="px-6 font-weight-black rounded-xl"
+          @click="$emit('update:modelValue', false)"
+          >إلغاء</v-btn
+        >
         <v-spacer />
-        <v-btn color="primary" variant="flat" class="px-10 font-weight-black rounded-xl shadow-premium" :loading="saving" @click="onSave">
+        <v-btn
+          color="primary"
+          variant="flat"
+          class="px-10 font-weight-black rounded-xl shadow-premium"
+          :loading="saving"
+          @click="onSave"
+        >
           حفظ الخصم
         </v-btn>
       </v-card-actions>
@@ -41,10 +62,17 @@ const emit = defineEmits<{
 }>()
 
 const formRef = ref<any>(null)
-const defendant = ref<any>({ name: '', type: 'فرد', id_number: '', phone: '', nationality: 'سعودي', city: '' })
+const defendant = ref<any>({
+  name: '',
+  type: 'فرد',
+  id_number: '',
+  phone: '',
+  nationality: 'سعودي',
+  city: ''
+})
 
 const onSave = async (): Promise<void> => {
-  const { valid } = await formRef.value?.validate() || { valid: false }
+  const { valid } = (await formRef.value?.validate()) || { valid: false }
   if (!valid) return
   emit('save')
 }

@@ -902,7 +902,7 @@ const handleDelete = async (): Promise<void> => {
 /* ---- Mobile Styles (max-width: 1023px) ---- */
 @media (max-width: 1023px) {
   /* Header: stack buttons vertically */
-  :deep(.v-row.mb-8.align-center > .v-col[cols="auto"]) {
+  :deep(.v-row.mb-8.align-center > .v-col[cols='auto']) {
     flex: 0 0 100% !important;
     max-width: 100% !important;
     display: flex !important;
@@ -910,7 +910,7 @@ const handleDelete = async (): Promise<void> => {
     gap: 8px !important;
   }
 
-  :deep(.v-row.mb-8.align-center > .v-col[cols="auto"] .v-btn) {
+  :deep(.v-row.mb-8.align-center > .v-col[cols='auto'] .v-btn) {
     width: 100% !important;
     margin: 0 !important;
   }

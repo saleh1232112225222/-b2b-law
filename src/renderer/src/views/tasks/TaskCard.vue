@@ -56,9 +56,7 @@
           <div
             v-if="task.due_date"
             class="mt-4 d-flex align-center text-caption font-weight-black"
-            :class="
-              isOverdue(task.due_date, task.status) ? 'text-error' : 'text-accent'
-            "
+            :class="isOverdue(task.due_date, task.status) ? 'text-error' : 'text-accent'"
           >
             <LucideIcon name="alert-circle" :size="14" class="me-2" />
             <span>مستحق في: {{ formatDate(task.due_date) }} م</span>
@@ -99,40 +97,28 @@
                 "
                 @click="$emit('complete', task)"
               >
-                <v-list-item-title class="font-weight-black"
-                  >إكمال المهمة</v-list-item-title
-                >
+                <v-list-item-title class="font-weight-black">إكمال المهمة</v-list-item-title>
               </v-list-item>
               <v-list-item
-                v-if="
-                  canCancel && task.status !== 'cancelled' && task.status !== 'closed'
-                "
+                v-if="canCancel && task.status !== 'cancelled' && task.status !== 'closed'"
                 @click="$emit('cancel', task)"
               >
-                <v-list-item-title class="font-weight-black"
-                  >إلغاء المهمة</v-list-item-title
-                >
+                <v-list-item-title class="font-weight-black">إلغاء المهمة</v-list-item-title>
               </v-list-item>
               <v-list-item
                 v-if="canClose && task.status !== 'closed'"
                 @click="$emit('close', task)"
               >
-                <v-list-item-title class="font-weight-black"
-                  >إقفال المهمة</v-list-item-title
-                >
+                <v-list-item-title class="font-weight-black">إقفال المهمة</v-list-item-title>
               </v-list-item>
               <v-list-item v-if="canArchive" @click="$emit('archive', task)">
-                <v-list-item-title class="font-weight-black"
-                  >أرشفة المهمة</v-list-item-title
-                >
+                <v-list-item-title class="font-weight-black">أرشفة المهمة</v-list-item-title>
               </v-list-item>
               <v-list-item
                 v-if="canReopen && task.status === 'completed'"
                 @click="$emit('reopen', task)"
               >
-                <v-list-item-title class="font-weight-black"
-                  >إعادة فتح</v-list-item-title
-                >
+                <v-list-item-title class="font-weight-black">إعادة فتح</v-list-item-title>
               </v-list-item>
             </v-list>
           </v-menu>
@@ -172,10 +158,12 @@ const isOverdue = (date: string, status: string): boolean => {
 
 const formatDate = (date: string): string => {
   if (!date) return ''
-  try { return new Date(date).toLocaleDateString('ar-SA') }
-  catch { return date }
+  try {
+    return new Date(date).toLocaleDateString('ar-SA')
+  } catch {
+    return date
+  }
 }
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

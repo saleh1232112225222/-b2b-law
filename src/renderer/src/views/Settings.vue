@@ -27,8 +27,11 @@
             <LucideIcon name="crown" :size="20" class="text-gold me-3" />
             <span class="text-subtitle-1 font-weight-black text-primary">الاشتراك والترخيص</span>
             <v-spacer />
-            <v-chip :color="trialInfo?.isActivated ? 'success' : trialInfo?.isValid ? 'gold' : 'error'"
-              size="small" class="font-weight-black">
+            <v-chip
+              :color="trialInfo?.isActivated ? 'success' : trialInfo?.isValid ? 'gold' : 'error'"
+              size="small"
+              class="font-weight-black"
+            >
               {{ trialInfo?.isActivated ? 'مفعل' : trialInfo?.isValid ? 'تجريبي' : 'منتهي' }}
             </v-chip>
           </div>
@@ -38,11 +41,20 @@
               <div>
                 <div class="text-body-2 font-weight-black">حالة الاشتراك</div>
                 <div class="text-caption text-grey">
-                  {{ trialInfo?.isActivated ? 'اشتراك مدفوع' : trialInfo?.isValid ? 'تجربة مجانية' : 'منتهية' }}
+                  {{
+                    trialInfo?.isActivated
+                      ? 'اشتراك مدفوع'
+                      : trialInfo?.isValid
+                        ? 'تجربة مجانية'
+                        : 'منتهية'
+                  }}
                 </div>
               </div>
             </div>
-            <div v-if="trialInfo?.daysLeft !== undefined && trialInfo?.daysLeft < 999" class="d-flex align-center mb-3">
+            <div
+              v-if="trialInfo?.daysLeft !== undefined && trialInfo?.daysLeft < 999"
+              class="d-flex align-center mb-3"
+            >
               <LucideIcon name="clock" :size="18" class="text-gold me-3" />
               <div>
                 <div class="text-body-2 font-weight-black">الأيام المتبقية</div>
@@ -56,7 +68,12 @@
                 <div class="text-caption text-grey">اشتراك سحابي - مرتبط بالحساب</div>
               </div>
             </div>
-            <v-btn block color="accent" class="font-weight-black rounded-xl mt-2" @click="$router.push('/subscription')">
+            <v-btn
+              block
+              color="accent"
+              class="font-weight-black rounded-xl mt-2"
+              @click="$router.push('/subscription')"
+            >
               <LucideIcon name="crown" :size="18" class="me-2" />
               {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
             </v-btn>

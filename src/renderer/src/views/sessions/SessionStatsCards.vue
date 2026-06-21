@@ -2,7 +2,11 @@
   <v-row class="mb-8" dense>
     <v-col cols="12" md="4">
       <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
-        <v-skeleton-loader v-if="loading" type="list-item-two-line" class="bg-transparent"></v-skeleton-loader>
+        <v-skeleton-loader
+          v-if="loading"
+          type="list-item-two-line"
+          class="bg-transparent"
+        ></v-skeleton-loader>
         <div v-else>
           <div class="text-tiny font-weight-black text-gold mb-1">جلسات اليوم</div>
           <div class="d-flex align-center justify-space-between">
@@ -14,7 +18,11 @@
     </v-col>
     <v-col cols="12" md="4">
       <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
-        <v-skeleton-loader v-if="loading" type="list-item-two-line" class="bg-transparent"></v-skeleton-loader>
+        <v-skeleton-loader
+          v-if="loading"
+          type="list-item-two-line"
+          class="bg-transparent"
+        ></v-skeleton-loader>
         <div v-else>
           <div class="text-tiny font-weight-black text-gold mb-1">جلسات الغد</div>
           <div class="d-flex align-center justify-space-between">
@@ -26,7 +34,11 @@
     </v-col>
     <v-col cols="12" md="4">
       <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
-        <v-skeleton-loader v-if="loading" type="list-item-two-line" class="bg-transparent"></v-skeleton-loader>
+        <v-skeleton-loader
+          v-if="loading"
+          type="list-item-two-line"
+          class="bg-transparent"
+        ></v-skeleton-loader>
         <div v-else>
           <div class="text-tiny font-weight-black text-gold mb-1">إجمالي المواعيد</div>
           <div class="d-flex align-center justify-space-between">

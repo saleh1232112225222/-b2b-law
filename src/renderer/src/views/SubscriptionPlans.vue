@@ -13,7 +13,8 @@
         <div class="flex-grow-1">
           <div class="text-h6 font-weight-black mb-1">انتهت فترة التجربة المجانية</div>
           <div class="text-body-2">
-            يمكنك الوصول للبيانات بشكل قراءة فقط. للاشتراك في خطة مدفوعة والمتابعة، اختر الخطة المناسبة أدناه.
+            يمكنك الوصول للبيانات بشكل قراءة فقط. للاشتراك في خطة مدفوعة والمتابعة، اختر الخطة
+            المناسبة أدناه.
           </div>
         </div>
         <v-btn
@@ -45,13 +46,20 @@
     </v-row>
 
     <!-- Current Subscription Status -->
-    <v-card v-if="currentSub" elevation="0" class="bg-white pa-6 mb-8 border-gold-alpha rounded-2xl">
+    <v-card
+      v-if="currentSub"
+      elevation="0"
+      class="bg-white pa-6 mb-8 border-gold-alpha rounded-2xl"
+    >
       <v-row dense align="center">
         <v-col cols="12" md="8">
           <div class="d-flex align-center">
             <div class="bg-white pa-3 rounded-lg me-4 border-gold-alpha">
-              <LucideIcon :name="currentSub.isActive ? 'shield-check' : 'alert-triangle'" :size="28"
-                :class="currentSub.isActive ? 'text-success' : 'text-error'" />
+              <LucideIcon
+                :name="currentSub.isActive ? 'shield-check' : 'alert-triangle'"
+                :size="28"
+                :class="currentSub.isActive ? 'text-success' : 'text-error'"
+              />
             </div>
             <div>
               <div class="text-body-1 font-weight-black text-pure-black">
@@ -61,23 +69,41 @@
                 <template v-if="currentSub.isExpired">
                   <span class="text-error font-weight-black">منتهية</span>
                 </template>
-                <template v-else-if="currentSub.daysLeft !== undefined && currentSub.daysLeft < 999">
+                <template
+                  v-else-if="currentSub.daysLeft !== undefined && currentSub.daysLeft < 999"
+                >
                   متبقي {{ currentSub.daysLeft }} يوم
                 </template>
-                <template v-else>
-                  نشط
-                </template>
-                - {{ currentSub.status === 'trial' ? 'تجريبي' : currentSub.status === 'active' ? 'مدفوع' : 'ملغى' }}
+                <template v-else> نشط </template>
+                -
+                {{
+                  currentSub.status === 'trial'
+                    ? 'تجريبي'
+                    : currentSub.status === 'active'
+                      ? 'مدفوع'
+                      : 'ملغى'
+                }}
               </div>
             </div>
           </div>
         </v-col>
         <v-col cols="12" md="4" class="text-md-end">
-          <v-btn v-if="currentSub.isExpired" color="accent" size="large" class="font-weight-black rounded-xl px-8">
+          <v-btn
+            v-if="currentSub.isExpired"
+            color="accent"
+            size="large"
+            class="font-weight-black rounded-xl px-8"
+          >
             اشترك الآن
           </v-btn>
-          <v-btn v-else variant="outlined" color="gold" size="large" class="font-weight-black rounded-xl px-8"
-            @click="openPlans">
+          <v-btn
+            v-else
+            variant="outlined"
+            color="gold"
+            size="large"
+            class="font-weight-black rounded-xl px-8"
+            @click="openPlans"
+          >
             تغيير الخطة
           </v-btn>
         </v-col>
@@ -92,29 +118,53 @@
     <!-- Plans Grid -->
     <v-row v-else>
       <v-col v-for="plan in plans" :key="plan.id" cols="12" md="6" lg="4">
-        <v-card elevation="0" class="plan-card bg-white border-gold-alpha rounded-2xl overflow-hidden"
-          :class="{ 'plan-featured': plan.interval === 'year' }">
-          <div v-if="plan.interval === 'year'" class="featured-banner text-center pa-2 bg-accent text-white font-weight-black text-body-3">
+        <v-card
+          elevation="0"
+          class="plan-card bg-white border-gold-alpha rounded-2xl overflow-hidden"
+          :class="{ 'plan-featured': plan.interval === 'year' }"
+        >
+          <div
+            v-if="plan.interval === 'year'"
+            class="featured-banner text-center pa-2 bg-accent text-white font-weight-black text-body-3"
+          >
             الأفضل
           </div>
           <div class="pa-6">
             <div class="text-h5 font-weight-black text-pure-black mb-1">{{ plan.name_ar }}</div>
             <div class="text-body-2 text-grey-darken-1 mb-4">{{ plan.description_ar }}</div>
 
-            <div class="text-h3 font-weight-black text-gold mb-1">{{ plan.price }} <span class="text-h6">ريال</span></div>
+            <div class="text-h3 font-weight-black text-gold mb-1">
+              {{ plan.price }} <span class="text-h6">ريال</span>
+            </div>
             <div class="text-body-2 text-grey-darken-1 mb-6">
-              {{ plan.interval === 'month' ? '/ شهرياً' : plan.interval === 'year' ? '/ سنوياً' : 'مدى الحياة' }}
+              {{
+                plan.interval === 'month'
+                  ? '/ شهرياً'
+                  : plan.interval === 'year'
+                    ? '/ سنوياً'
+                    : 'مدى الحياة'
+              }}
             </div>
 
             <v-divider class="mb-4" />
 
-            <div v-for="(feature, fi) in plan.features_ar" :key="fi" class="d-flex align-center mb-3">
+            <div
+              v-for="(feature, fi) in plan.features_ar"
+              :key="fi"
+              class="d-flex align-center mb-3"
+            >
               <LucideIcon name="check-circle-2" :size="18" class="text-success me-3" />
               <span class="text-body-2 text-pure-black">{{ feature }}</span>
             </div>
 
-            <v-btn block color="accent" size="large" class="mt-6 font-weight-black rounded-xl"
-              :loading="processingPlan === plan.id" @click="selectPlan(plan)">
+            <v-btn
+              block
+              color="accent"
+              size="large"
+              class="mt-6 font-weight-black rounded-xl"
+              :loading="processingPlan === plan.id"
+              @click="selectPlan(plan)"
+            >
               {{ plan.interval === 'lifetime' ? 'اشتري الآن' : 'اشترك الآن' }}
             </v-btn>
           </div>
@@ -137,7 +187,9 @@
         <v-card-text class="pa-6 rtl">
           <div class="text-h5 font-weight-black text-center mb-4">{{ selectedPlan?.name_ar }}</div>
 
-          <div class="d-flex justify-space-between align-center mb-3 pa-4 bg-grey-lighten-4 rounded-lg">
+          <div
+            class="d-flex justify-space-between align-center mb-3 pa-4 bg-grey-lighten-4 rounded-lg"
+          >
             <span class="font-weight-black">المبلغ</span>
             <span class="text-h5 font-weight-black text-gold">{{ selectedPlan?.price }} ريال</span>
           </div>
@@ -150,8 +202,14 @@
             {{ paymentError }}
           </v-alert>
 
-          <v-btn block color="accent" size="x-large" class="font-weight-black rounded-xl mb-3"
-            :loading="processingPayment" @click="processPayment">
+          <v-btn
+            block
+            color="accent"
+            size="x-large"
+            class="font-weight-black rounded-xl mb-3"
+            :loading="processingPayment"
+            @click="processPayment"
+          >
             <LucideIcon name="shield-check" :size="22" class="me-3" />
             تأكيد الدفع
           </v-btn>
@@ -171,7 +229,12 @@
         <p class="text-body-1 text-grey-darken-1 mb-6">
           اشتراكك الآن نشط. يمكنك الاستمتاع بجميع ميزات {{ selectedPlan?.name_ar }}.
         </p>
-        <v-btn color="accent" size="large" class="font-weight-black rounded-xl px-12" @click="closeSuccessDialog">
+        <v-btn
+          color="accent"
+          size="large"
+          class="font-weight-black rounded-xl px-12"
+          @click="closeSuccessDialog"
+        >
           الذهاب للوحة التحكم
         </v-btn>
       </v-card>
@@ -232,7 +295,9 @@ const processPayment = async () => {
   processingPayment.value = true
   paymentError.value = ''
   try {
-    const intent = await (window as any).api.subscriptions.createPaymentIntent(selectedPlan.value.id)
+    const intent = await (window as any).api.subscriptions.createPaymentIntent(
+      selectedPlan.value.id
+    )
     const confirm = await (window as any).api.subscriptions.confirmPayment(intent.paymentId)
     if (confirm.success) {
       showPaymentDialog.value = false

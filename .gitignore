@@ -66,8 +66,13 @@ node_modules
 .opencode/
 .sandbox-home/
 
+# opencode config with secrets
+opencode.json
+
 # Test screenshots and results
 test-*.png
 debug-*.png
 test-results/
 *.log
+
+testsprite_tests\tmp\config.json

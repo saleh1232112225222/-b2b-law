@@ -6,28 +6,74 @@
         <v-row dense class="mb-4 mb-md-8 align-center">
           <v-col cols="12" sm>
             <div class="d-flex align-center">
-              <div class="glass-panel-light pa-3 pa-md-4 rounded-xl me-3 me-md-5 border-gold opacity-20">
+              <div
+                class="glass-panel-light pa-3 pa-md-4 rounded-xl me-3 me-md-5 border-gold opacity-20"
+              >
                 <LucideIcon name="calendar-days" :size="isMobile ? 24 : 36" class="text-accent" />
               </div>
               <div>
-                <h1 class="text-h5 text-md-h4 font-weight-black text-gold mb-1">أجندة الجلسات الذكية</h1>
-                <p v-if="!isMobile" class="text-subtitle-1 text-gold font-weight-black">الجدولة الزمنية المتزامنة لكافة المواعيد والوقائع القضائية</p>
+                <h1 class="text-h5 text-md-h4 font-weight-black text-gold mb-1">
+                  أجندة الجلسات الذكية
+                </h1>
+                <p v-if="!isMobile" class="text-subtitle-1 text-gold font-weight-black">
+                  الجدولة الزمنية المتزامنة لكافة المواعيد والوقائع القضائية
+                </p>
               </div>
             </div>
           </v-col>
           <v-col cols="12" sm="auto">
-            <v-btn color="accent" :size="isMobile ? 'default' : 'large'" :block="isMobile" class="font-weight-black rounded-lg premium-lift" :class="isMobile ? '' : 'px-8 h-100'" @click="openAddDialog">
+            <v-btn
+              color="accent"
+              :size="isMobile ? 'default' : 'large'"
+              :block="isMobile"
+              class="font-weight-black rounded-lg premium-lift"
+              :class="isMobile ? '' : 'px-8 h-100'"
+              @click="openAddDialog"
+            >
               <LucideIcon name="calendar-plus" :size="18" class="me-2" /> جدولة جلسة جديدة
             </v-btn>
           </v-col>
         </v-row>
 
-        <SessionStatsCards :today-count="safeLength(store.todaySessions)" :tomorrow-count="safeLength(store.tomorrowSessions)" :total-count="valWithDefault(store.totalSessions, 0)" :loading="store.loading" />
+        <SessionStatsCards
+          :today-count="safeLength(store.todaySessions)"
+          :tomorrow-count="safeLength(store.tomorrowSessions)"
+          :total-count="valWithDefault(store.totalSessions, 0)"
+          :loading="store.loading"
+        />
 
-        <SessionFilters v-model:search="search" v-model:filter-type="filterType" :loading="store.loading" @reset="resetFilters" />
+        <SessionFilters
+          v-model:search="search"
+          v-model:filter-type="filterType"
+          :loading="store.loading"
+          @reset="resetFilters"
+        />
 
-        <SessionTableDesktop v-if="!isMobile" :sessions="safeArray(store.sessions)" :total-sessions="store.totalSessions" :loading="store.loading" :search="search" :items-per-page="itemsPerPage" @update:options="loadItems" @edit="openEditDialog" @delete="confirmDelete" @open-session-room="openSessionRoom" @open-session-room-new-window="openSessionRoomInNewWindow" @open-najiz="openNajiz" />
-        <SessionCardMobile v-else :sessions="safeArray(store.sessions)" :loading="store.loading" :total-sessions="store.totalSessions" :items-per-page="itemsPerPage" v-model:model-value="serverOptions.page" @edit="openEditDialog" @delete="confirmDelete" @open-session-room="openSessionRoom" />
+        <SessionTableDesktop
+          v-if="!isMobile"
+          :sessions="safeArray(store.sessions)"
+          :total-sessions="store.totalSessions"
+          :loading="store.loading"
+          :search="search"
+          :items-per-page="itemsPerPage"
+          @update:options="loadItems"
+          @edit="openEditDialog"
+          @delete="confirmDelete"
+          @open-session-room="openSessionRoom"
+          @open-session-room-new-window="openSessionRoomInNewWindow"
+          @open-najiz="openNajiz"
+        />
+        <SessionCardMobile
+          v-else
+          v-model:model-value="serverOptions.page"
+          :sessions="safeArray(store.sessions)"
+          :loading="store.loading"
+          :total-sessions="store.totalSessions"
+          :items-per-page="itemsPerPage"
+          @edit="openEditDialog"
+          @delete="confirmDelete"
+          @open-session-room="openSessionRoom"
+        />
       </div>
 
       <div v-else>
@@ -42,16 +88,38 @@
       </div>
     </v-fade-transition>
 
-    <SessionFormDialog :show="showDialog" :case-options="caseOptions" :is-editing="isEditing" :editing-item="editingItem" @update:show="showDialog = $event" @save="handleSave" />
+    <SessionFormDialog
+      :show="showDialog"
+      :case-options="caseOptions"
+      :is-editing="isEditing"
+      :editing-item="editingItem"
+      @update:show="showDialog = $event"
+      @save="handleSave"
+    />
 
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
       <div class="d-flex align-center">
-        <LucideIcon :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'" :size="18" class="me-3" />
+        <LucideIcon
+          :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
+          :size="18"
+          class="me-3"
+        />
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
     </v-snackbar>
 
-    <ConfirmDialog v-model="confirmDialog.show" :title="confirmDialog.title" :message="confirmDialog.message" :color="confirmDialog.color" :confirm-button-color="confirmDialog.confirmButtonColor" :icon="confirmDialog.icon" :confirm-text="confirmDialog.confirmText" :cancel-text="confirmDialog.cancelText" :loading="confirmDialog.loading" @confirm="confirmDialog.action" />
+    <ConfirmDialog
+      v-model="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      :color="confirmDialog.color"
+      :confirm-button-color="confirmDialog.confirmButtonColor"
+      :icon="confirmDialog.icon"
+      :confirm-text="confirmDialog.confirmText"
+      :cancel-text="confirmDialog.cancelText"
+      :loading="confirmDialog.loading"
+      @confirm="confirmDialog.action"
+    />
   </v-container>
 </template>
 
@@ -97,7 +165,11 @@ const serverOptions = ref<{ page: number; itemsPerPage: number; sortBy: SortItem
   sortBy: []
 })
 
-async function loadItems(options: { page: number; itemsPerPage: number; sortBy: SortItem[] }): Promise<void> {
+async function loadItems(options: {
+  page: number
+  itemsPerPage: number
+  sortBy: SortItem[]
+}): Promise<void> {
   serverOptions.value = options
   const { page, itemsPerPage, sortBy } = options
   const params: Record<string, any> = {
@@ -173,9 +245,12 @@ const openSessionRoomInNewWindow = (item: any): void => {
   const id = String(item?.id || '').trim()
   if (!id) return
   if ((window as any).api?.system?.openSessionWindow) {
-    (window as any).api.system.openSessionWindow(id)
+    ;(window as any).api.system.openSessionWindow(id)
   } else {
-    const routeUrl = router.resolve({ path: '/session-room', query: { session_id: id, window: 'new' } })
+    const routeUrl = router.resolve({
+      path: '/session-room',
+      query: { session_id: id, window: 'new' }
+    })
     window.open(routeUrl.href, '_blank')
   }
 }
@@ -190,7 +265,9 @@ onMounted(async () => {
       loadItems(serverOptions.value)
     ])
     if (route.query.new === '1') {
-      setTimeout(() => { openAddDialog() }, 200)
+      setTimeout(() => {
+        openAddDialog()
+      }, 200)
       const q: any = { ...route.query }
       delete q.new
       router.replace({ path: route.path, query: q })
@@ -198,7 +275,11 @@ onMounted(async () => {
     if (route.query.add_for) {
       setTimeout(() => {
         openAddDialog()
-        editingItem.value = { case_id: route.query.add_for as string, type: 'مرافعة', status: 'قادمة' }
+        editingItem.value = {
+          case_id: route.query.add_for as string,
+          type: 'مرافعة',
+          status: 'قادمة'
+        }
       }, 500)
     }
   } catch (error) {

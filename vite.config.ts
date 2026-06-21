@@ -32,7 +32,9 @@ export default defineConfig({
   },
   define: {
     __IS_WEB__: 'true',
-    __API_BASE_URL__: JSON.stringify(process.env.VITE_API_BASE_URL || 'https://b2b-law-g2qr.onrender.com/api')
+    __API_BASE_URL__: JSON.stringify(
+      process.env.VITE_API_BASE_URL || 'https://b2b-law-g2qr.onrender.com/api'
+    )
   },
   plugins: [vue(), vuetify({ autoImport: true }), tailwindcss()],
   server: {

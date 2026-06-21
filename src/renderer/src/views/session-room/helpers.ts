@@ -14,7 +14,18 @@ export const formatSessionDate = (s: any): string => {
 }
 
 export const ordinal = (idx: number): string => {
-  const map = ['الأولى', 'الثانية', 'الثالثة', 'الرابعة', 'الخامسة', 'السادسة', 'السابعة', 'الثامنة', 'التاسعة', 'العاشرة']
+  const map = [
+    'الأولى',
+    'الثانية',
+    'الثالثة',
+    'الرابعة',
+    'الخامسة',
+    'السادسة',
+    'السابعة',
+    'الثامنة',
+    'التاسعة',
+    'العاشرة'
+  ]
   if (idx >= 0 && idx < map.length) return map[idx]
   return String(idx + 1)
 }

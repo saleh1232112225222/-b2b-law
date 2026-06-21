@@ -132,7 +132,10 @@ const bootstrapAuth = async (): Promise<void> => {
       return
     }
 
-    if (router.currentRoute.value.path !== '/vault-setup' && (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__)) {
+    if (
+      router.currentRoute.value.path !== '/vault-setup' &&
+      (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__)
+    ) {
       try {
         // @ts-ignore
         if ((window as any).api?.vault?.needsSetup) {

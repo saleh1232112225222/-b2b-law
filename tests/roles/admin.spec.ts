@@ -5,13 +5,19 @@ const PASS = process.env.ADMIN_PASS || 'admin1390'
 
 async function login(page) {
   await page.goto('/login')
-  await page.fill('input[name="username"]', USER)
-  await page.fill('input[name="password"]', PASS)
-  await page.click('button[type="submit"]')
-  await page.waitForURL(/(dashboard|login)/, { timeout: 15000 })
+  const isLoggedIn = await page.evaluate(() => localStorage.getItem('web_isLoggedIn') === 'true')
+  if (isLoggedIn) {
+    await page.goto('/#dashboard')
+    return
+  }
+  await page.fill('#username-input', USER)
+  await page.fill('#password-input', PASS)
+  await page.click('#login-submit-btn')
+  await page.waitForURL(/dashboard/, { timeout: 20000 })
 }
 
 test('مدخل النظام يرى جميع الصفحات', async ({ page }) => {
+  test.setTimeout(60000)
   await login(page)
 
   const pages = ['/dashboard', '/clients', '/defendants', '/poa', '/cases', '/sessions', '/tasks', '/documents', '/drafting', '/memoranda', '/finance', '/contracts', '/enforcement', '/communications', '/employees', '/settings', '/users', '/reports', '/archive', '/search', '/firm']

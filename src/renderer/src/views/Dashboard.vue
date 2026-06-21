@@ -18,9 +18,21 @@
       dense
       :style="{ '--dashboard-bottom-h': bottomStripHeight + 'px' }"
     >
-      <v-col cols="12" md="9" class="d-flex flex-column" style="gap: 12px" :class="{ 'overflow-hidden h-100': !isMobile }">
-        <v-card flat class="dashboard-panel-card d-flex flex-column" :class="{ 'flex-grow-1 overflow-hidden': !isMobile }">
-          <div class="dashboard-panel-header d-flex align-center justify-space-between shrink-0 pa-3 px-4">
+      <v-col
+        cols="12"
+        md="9"
+        class="d-flex flex-column"
+        style="gap: 12px"
+        :class="{ 'overflow-hidden h-100': !isMobile }"
+      >
+        <v-card
+          flat
+          class="dashboard-panel-card d-flex flex-column"
+          :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
+        >
+          <div
+            class="dashboard-panel-header d-flex align-center justify-space-between shrink-0 pa-3 px-4"
+          >
             <div class="d-flex align-center">
               <div class="panel-icon-wrapper me-3">
                 <LucideIcon name="sliders-horizontal" :size="18" class="panel-icon" />
@@ -80,7 +92,12 @@
         />
       </v-col>
 
-      <DashboardQuickActions :last-refresh-time="lastRefreshTime" :is-mobile="isMobile" @navigate="$router.push($event)" @action="handleQuickAction($event)" />
+      <DashboardQuickActions
+        :last-refresh-time="lastRefreshTime"
+        :is-mobile="isMobile"
+        @navigate="$router.push($event)"
+        @action="handleQuickAction($event)"
+      />
     </v-row>
 
     <v-snackbar
@@ -98,7 +115,13 @@
       </template>
     </v-snackbar>
 
-    <DashboardAgencyDialog :agency-edit-dialog="agencyEditDialog" :clients="clientsStore.clients" :is-mobile="isMobile" @save="handleAgencySave($event)" @close="agencyEditDialog.show = false" />
+    <DashboardAgencyDialog
+      :agency-edit-dialog="agencyEditDialog"
+      :clients="clientsStore.clients"
+      :is-mobile="isMobile"
+      @save="handleAgencySave($event)"
+      @close="agencyEditDialog.show = false"
+    />
 
     <ConfirmDialog
       v-model="confirmDialog.show"
@@ -147,7 +170,9 @@ const tasksStore = useTasksStore()
 const agenciesStore = useAgenciesStore()
 
 const { mobile } = useDisplay()
-const isMobile = computed(() => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768))
+const isMobile = computed(
+  () => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768)
+)
 
 const handleQuickAction = (action: string) => {
   if (action === 'snapshot') handleSnapshotExport()
@@ -633,7 +658,6 @@ const fetchData = async () => {
     )
   ])
 }
-
 </script>
 
 <style scoped>
@@ -751,16 +775,16 @@ const fetchData = async () => {
 
 [data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__td),
 [data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__td) {
-  color: #F1F5F9 !important;
+  color: #f1f5f9 !important;
 }
 
 [data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__th),
 [data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
-  color: #F1F5F9 !important;
+  color: #f1f5f9 !important;
 }
 
 [data-theme='dark'] .dashboard-list-mini :deep(.v-list-item-title) {
-  color: #F1F5F9 !important;
+  color: #f1f5f9 !important;
 }
 
 @media (min-width: 1280px) {

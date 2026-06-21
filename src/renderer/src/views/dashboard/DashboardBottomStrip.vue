@@ -15,7 +15,8 @@
               size="x-small"
               class="font-weight-bold"
               @click="$emit('navigate', '/tasks')"
-            >الكل</v-btn>
+              >الكل</v-btn
+            >
           </v-card-title>
           <v-divider opacity="0.1"></v-divider>
           <div class="overflow-y-auto flex-grow-1 pa-1 max-h-150">
@@ -36,14 +37,12 @@
                     variant="flat"
                     class="text-tiny-vv px-1"
                     style="height: 14px !important"
-                  >{{ task.priority }}</v-chip>
+                    >{{ task.priority }}</v-chip
+                  >
                 </template>
               </v-list-item>
             </v-list>
-            <div
-              v-if="dashboardTasks.length === 0"
-              class="pa-2 text-center opacity-40 text-tiny-v"
-            >
+            <div v-if="dashboardTasks.length === 0" class="pa-2 text-center opacity-40 text-tiny-v">
               لا توجد مهام
             </div>
           </div>
@@ -60,11 +59,7 @@
           </v-card-title>
           <v-divider opacity="0.1"></v-divider>
           <div class="overflow-y-auto flex-grow-1 max-h-150">
-            <v-list
-              v-if="safeLength(alerts) > 0"
-              class="pa-0 bg-transparent"
-              density="compact"
-            >
+            <v-list v-if="safeLength(alerts) > 0" class="pa-0 bg-transparent" density="compact">
               <v-list-item
                 v-for="alert in alerts"
                 :key="alert.id"
@@ -106,11 +101,11 @@ const bottomStripRef = ref<HTMLElement | null>(null)
 
 const getPriorityColor = (priority: string): string => {
   const map: Record<string, string> = {
-    'عاجل': 'error',
-    'مرتفع': 'error',
-    'متوسط': 'warning',
-    'عادي': 'success',
-    'منخفض': 'success'
+    عاجل: 'error',
+    مرتفع: 'error',
+    متوسط: 'warning',
+    عادي: 'success',
+    منخفض: 'success'
   }
   return map[priority] || 'grey'
 }

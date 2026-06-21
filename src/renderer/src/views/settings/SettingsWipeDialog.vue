@@ -1,5 +1,10 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="500" persistent @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog
+    :model-value="modelValue"
+    max-width="500"
+    persistent
+    @update:model-value="$emit('update:modelValue', $event)"
+  >
     <v-card
       class="pa-0 border-error border-4 rounded-xl shadow-2xl overflow-hidden"
       style="background: #ffffff !important"
@@ -63,11 +68,14 @@ const emit = defineEmits<{
 
 const wipeConfirmInput = ref('')
 
-watch(() => props.modelValue, (val) => {
-  if (!val) {
-    wipeConfirmInput.value = ''
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (!val) {
+      wipeConfirmInput.value = ''
+    }
   }
-})
+)
 
 const handleCancel = (): void => {
   wipeConfirmInput.value = ''

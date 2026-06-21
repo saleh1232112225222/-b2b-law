@@ -37,9 +37,16 @@ async function ensureLoggedIn(page: Page) {
     await page.evaluate(() => {
       localStorage.setItem('web_isLoggedIn', 'true')
       localStorage.setItem('mock_active', 'true')
-      localStorage.setItem('web_currentUserSession', JSON.stringify({
-        id: '1', username: 'admin', name: 'المدير', roleKey: 'admin', permissions: []
-      }))
+      localStorage.setItem(
+        'web_currentUserSession',
+        JSON.stringify({
+          id: '1',
+          username: 'admin',
+          name: 'المدير',
+          roleKey: 'admin',
+          permissions: []
+        })
+      )
     })
     await page.goto(APP + '/#/dashboard', { waitUntil: 'load', timeout: 30000 })
     await page.waitForTimeout(2000)
@@ -148,7 +155,13 @@ test.describe('تجربة مستخدم حقيقية - Real User Test', () => {
     await page.waitForTimeout(2000)
 
     // Check for export buttons
-    const hasExportBtn = await page.locator('button:has-text("تصدير"), button:has-text("PDF"), button:has-text("Excel"), button:has-text("CSV"), button:has-text("طباعة")').first().isVisible({ timeout: 3000 }).catch(() => false)
+    const hasExportBtn = await page
+      .locator(
+        'button:has-text("تصدير"), button:has-text("PDF"), button:has-text("Excel"), button:has-text("CSV"), button:has-text("طباعة")'
+      )
+      .first()
+      .isVisible({ timeout: 3000 })
+      .catch(() => false)
     console.log('  Export buttons found:', hasExportBtn)
     await page.screenshot({ path: 'test-10-export.png', fullPage: true })
   })
@@ -193,14 +206,37 @@ test.describe('تجربة مستخدم حقيقية - Real User Test', () => {
     await ensureLoggedIn(page)
 
     const allRoutes = [
-      '/#/dashboard', '/#/briefing', '/#/clients', '/#/defendants', '/#/poa',
-      '/#/cases', '/#/sessions', '/#/tasks', '/#/documents', '/#/drafting',
-      '/#/memoranda', '/#/finance', '/#/contracts', '/#/enforcement',
-      '/#/communications', '/#/employees', '/#/settings', '/#/users',
-      '/#/reports', '/#/activity-log', '/#/archive', '/#/search', '/#/firm',
-      '/#/reports/case', '/#/reports/court-cases', '/#/reports/sessions',
-      '/#/reports/finance', '/#/reports/user-activity', '/#/reports/evidence',
-      '/#/reports/memoranda', '/#/reports/documents'
+      '/#/dashboard',
+      '/#/briefing',
+      '/#/clients',
+      '/#/defendants',
+      '/#/poa',
+      '/#/cases',
+      '/#/sessions',
+      '/#/tasks',
+      '/#/documents',
+      '/#/drafting',
+      '/#/memoranda',
+      '/#/finance',
+      '/#/contracts',
+      '/#/enforcement',
+      '/#/communications',
+      '/#/employees',
+      '/#/settings',
+      '/#/users',
+      '/#/reports',
+      '/#/activity-log',
+      '/#/archive',
+      '/#/search',
+      '/#/firm',
+      '/#/reports/case',
+      '/#/reports/court-cases',
+      '/#/reports/sessions',
+      '/#/reports/finance',
+      '/#/reports/user-activity',
+      '/#/reports/evidence',
+      '/#/reports/memoranda',
+      '/#/reports/documents'
     ]
 
     for (const route of allRoutes) {
@@ -222,8 +258,12 @@ test.describe('تجربة مستخدم حقيقية - Real User Test', () => {
 
     // Navigate back and forth between pages multiple times
     const testRoutes = [
-      '/#/dashboard', '/#/clients', '/#/cases',
-      '/#/sessions', '/#/reports', '/#/settings'
+      '/#/dashboard',
+      '/#/clients',
+      '/#/cases',
+      '/#/sessions',
+      '/#/reports',
+      '/#/settings'
     ]
 
     for (let cycle = 0; cycle < 3; cycle++) {
@@ -256,7 +296,7 @@ test.describe('تجربة مستخدم حقيقية - Real User Test', () => {
       { route: '/#/reports/memoranda', name: 'Memoranda Report' },
       { route: '/#/reports/documents', name: 'Documents Report' },
       { route: '/#/reports/operations', name: 'Operations Report' },
-      { route: '/#/reports/users', name: 'Users Permissions Report' },
+      { route: '/#/reports/users', name: 'Users Permissions Report' }
     ]
 
     for (const { route, name } of reportRoutes) {

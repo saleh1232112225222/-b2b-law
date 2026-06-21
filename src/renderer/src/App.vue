@@ -40,7 +40,7 @@
           >
             <div class="logo-shine-container mx-auto mb-5">
               <v-avatar
-                :size="isMobile ? 50 : (rail ? 40 : 80)"
+                :size="isMobile ? 50 : rail ? 40 : 80"
                 class="mx-auto border-accent-glow premium-hover position-relative overflow-hidden"
                 elevation="24"
               >
@@ -158,7 +158,13 @@
         :style="{ right: appRightInset }"
       >
         <div class="d-flex align-center w-100 px-6">
-          <v-btn v-if="isMobile" icon variant="text" class="me-4 header-action-btn" @click="drawer = !drawer">
+          <v-btn
+            v-if="isMobile"
+            icon
+            variant="text"
+            class="me-4 header-action-btn"
+            @click="drawer = !drawer"
+          >
             <LucideIcon name="menu" :size="22" />
           </v-btn>
           <v-btn v-else icon variant="text" class="me-4 header-action-btn" @click="rail = !rail">
@@ -259,8 +265,13 @@
         <template #text>
           <div class="d-flex align-center justify-space-between w-100">
             <div>
-              <strong v-if="daysRemaining > 1">فترة تجربتك تنتهي خلال {{ countdownDetail.days }} أيام</strong>
-              <strong v-else-if="countdownDetail.hours > 0">فترة تجربتك تنتهي خلال {{ countdownDetail.hours }} ساعة و {{ countdownDetail.minutes }} دقيقة</strong>
+              <strong v-if="daysRemaining > 1"
+                >فترة تجربتك تنتهي خلال {{ countdownDetail.days }} أيام</strong
+              >
+              <strong v-else-if="countdownDetail.hours > 0"
+                >فترة تجربتك تنتهي خلال {{ countdownDetail.hours }} ساعة و
+                {{ countdownDetail.minutes }} دقيقة</strong
+              >
               <strong v-else>فترة تجربتك تنتهي خلال {{ countdownDetail.minutes }} دقيقة</strong>
               <span class="ms-2">— اشترك الآن لضمان عدم توقف الخدمة</span>
             </div>
@@ -291,7 +302,10 @@
             <div>
               <strong>انتهت فترة التجربة المجانية</strong>
               <span class="ms-2">— يمكنك التصفح والقراءة فقط. </span>
-              <router-link to="/subscription" class="text-white text-decoration-underline font-weight-bold">
+              <router-link
+                to="/subscription"
+                class="text-white text-decoration-underline font-weight-bold"
+              >
                 اشترك الآن
               </router-link>
               <span> للاستمرار في إضافة وتعديل البيانات.</span>
@@ -302,31 +316,31 @@
 
       <v-main class="main-content-scroll">
         <div class="main-body-wrapper" :class="mainBodyPaddingClass">
-      <!-- Premium Read-Only Banner - kept for desktop mode compatibility -->
-      <v-alert
-        v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated && !isTrialExpired"
-        type="warning"
-        variant="flat"
-        density="comfortable"
-        icon="shield-alert"
-        class="mb-6 rounded-xl border-warning-glow premium-shadow-sm font-weight-black text-caption"
-        prominent
-      >
-        <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
-          <div class="d-flex align-center">
-            <LucideIcon name="shield-alert" :size="20" class="me-2" />
-            <span>انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط.</span>
-          </div>
-          <v-btn
-            color="amber-darken-3"
-            size="small"
-            class="rounded-lg text-white font-weight-bold"
-            @click="router.push('/subscription')"
+          <!-- Premium Read-Only Banner - kept for desktop mode compatibility -->
+          <v-alert
+            v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated && !isTrialExpired"
+            type="warning"
+            variant="flat"
+            density="comfortable"
+            icon="shield-alert"
+            class="mb-6 rounded-xl border-warning-glow premium-shadow-sm font-weight-black text-caption"
+            prominent
           >
-            اشترك الآن
-          </v-btn>
-        </div>
-      </v-alert>
+            <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
+              <div class="d-flex align-center">
+                <LucideIcon name="shield-alert" :size="20" class="me-2" />
+                <span>انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط.</span>
+              </div>
+              <v-btn
+                color="amber-darken-3"
+                size="small"
+                class="rounded-lg text-white font-weight-bold"
+                @click="router.push('/subscription')"
+              >
+                اشترك الآن
+              </v-btn>
+            </div>
+          </v-alert>
 
           <router-view v-slot="{ Component }">
             <transition name="premium-fade" mode="out-in">
@@ -625,11 +639,14 @@ watch(isMobile, (newVal) => {
 const route = useRoute()
 const router = useRouter()
 
-watch(() => route.path, () => {
-  if (isMobile.value) {
-    drawer.value = false
+watch(
+  () => route.path,
+  () => {
+    if (isMobile.value) {
+      drawer.value = false
+    }
   }
-})
+)
 
 const onMenuClick = () => {
   if (isMobile.value) {
@@ -640,7 +657,13 @@ const rail = ref(false)
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 const { can, session } = usePermissions()
 
-const isLoginPage = computed(() => route.path === '/login' || route.path === '/register' || route.name === 'Login' || route.name === 'Register')
+const isLoginPage = computed(
+  () =>
+    route.path === '/login' ||
+    route.path === '/register' ||
+    route.name === 'Login' ||
+    route.name === 'Register'
+)
 const hideLayout = computed(() => isLoginPage.value || route.query.window === 'new')
 const mainBodyPaddingClass = computed(() => {
   if (hideLayout.value) return 'pa-0'
@@ -822,9 +845,9 @@ const categorizedMenu = computed(() => {
       title: 'الإعدادات والأدوات',
       icon: 'settings-2',
       children: [
-        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000' ? [
-          { title: 'إدارة الاشتراكات', icon: 'crown', to: '/admin/subscriptions' }
-        ] : []),
+        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000'
+          ? [{ title: 'إدارة الاشتراكات', icon: 'crown', to: '/admin/subscriptions' }]
+          : []),
         { title: 'إدارة المستخدمين', icon: 'users-2', to: '/users', perm: 'manage_users' },
         { title: 'الإعدادات', icon: 'settings', to: '/settings', perm: 'manage_settings' },
         { title: 'مركز التقارير', icon: 'clipboard-check', to: '/reports', perm: 'export_reports' },
@@ -884,7 +907,7 @@ const handleSmartLogout = async () => {
     handleLogout(true)
     return
   }
-  
+
   isSavingSnapshot.value = true
   try {
     const res = await (window as any).api.system.exportAutoSnapshotToVault()
@@ -961,11 +984,15 @@ onMounted(async () => {
   window.addEventListener('click', handleGlobalClickGate, { capture: true })
 
   // Fetch Trial Info via Store when not on login/register pages
-  watch(isLoginPage, (newVal) => {
-    if (!newVal) {
-      licensingStore.refreshStatus()
-    }
-  }, { immediate: true })
+  watch(
+    isLoginPage,
+    (newVal) => {
+      if (!newVal) {
+        licensingStore.refreshStatus()
+      }
+    },
+    { immediate: true }
+  )
 
   // Real-time countdown tick every 60 seconds
   countdownInterval = setInterval(() => {
@@ -984,8 +1011,10 @@ onMounted(async () => {
         email: 'info@saleh-lawyer.com',
         disclaimer: {
           title: 'تنبيه قانوني',
-          development: 'تم تطوير هذا البرنامج لمساعدة المحامين في إدارة مكتباتهم والمحافظة على بياناتهم.',
-          legal: 'هذا البرنامج يعتبر أداة مساعدة فقط ولا يعتبر بديلاً عن الاستشارة القانونية المتخصصة.'
+          development:
+            'تم تطوير هذا البرنامج لمساعدة المحامين في إدارة مكتباتهم والمحافظة على بياناتهم.',
+          legal:
+            'هذا البرنامج يعتبر أداة مساعدة فقط ولا يعتبر بديلاً عن الاستشارة القانونية المتخصصة.'
         }
       }
     } else {

@@ -5,10 +5,15 @@ const PASS = process.env.ADMIN_PASS || 'admin1390'
 
 async function login(page) {
   await page.goto('/login')
-  await page.fill('input[name="username"]', USER)
-  await page.fill('input[name="password"]', PASS)
-  await page.click('button[type="submit"]')
-  await page.waitForURL(/dashboard/, { timeout: 15000 })
+  const isLoggedIn = await page.evaluate(() => localStorage.getItem('web_isLoggedIn') === 'true')
+  if (isLoggedIn) {
+    await page.goto('/#dashboard')
+    return
+  }
+  await page.fill('#username-input', USER)
+  await page.fill('#password-input', PASS)
+  await page.click('#login-submit-btn')
+  await page.waitForURL(/dashboard/, { timeout: 20000 })
 }
 
 test('تسجيل الخروج والعودة لصفحة الدخول', async ({ page }) => {

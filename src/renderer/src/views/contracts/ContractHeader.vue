@@ -7,12 +7,20 @@
         </div>
         <div>
           <h1 class="text-h5 font-weight-black text-gold mb-1">مركز إدارة العقود</h1>
-          <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">إدارة عقود التوظيف واتفاقيات الأتعاب القانونية الموثقة</p>
+          <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+            إدارة عقود التوظيف واتفاقيات الأتعاب القانونية الموثقة
+          </p>
         </div>
       </div>
     </v-col>
     <v-col cols="auto">
-      <v-btn color="accent" size="large" class="font-weight-black rounded-lg px-8 premium-lift h-100" :disabled="!can('create_contracts')" @click="$emit('create')">
+      <v-btn
+        color="accent"
+        size="large"
+        class="font-weight-black rounded-lg px-8 premium-lift h-100"
+        :disabled="!can('create_contracts')"
+        @click="$emit('create')"
+      >
         <LucideIcon name="plus" :size="20" class="me-3" /> إدراج عقد جديد
       </v-btn>
     </v-col>

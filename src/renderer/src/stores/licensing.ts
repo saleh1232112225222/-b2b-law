@@ -47,7 +47,7 @@ export const useLicensingStore = defineStore('licensing', () => {
             // Fallback to direct fetch
             const response = await fetch('/api/subscriptions/status', {
               headers: {
-                'Authorization': `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
                 'Content-Type': 'application/json'
               }
             })
@@ -57,7 +57,7 @@ export const useLicensingStore = defineStore('licensing', () => {
               throw new Error('API error')
             }
           }
-            
+
           if (data) {
             subscriptionStatus.value = {
               status: data.status || (data.isActive ? 'active' : 'expired'),
@@ -72,10 +72,10 @@ export const useLicensingStore = defineStore('licensing', () => {
             trialInfo.value = {
               isValid: data.isActive || !data.isExpired,
               daysLeft: data.daysLeft || 0,
-              message: data.isActive 
+              message: data.isActive
                 ? `اشتراك نشط - ${data.planNameAr || data.planName || 'مدفوع'}`
-                : data.isExpired 
-                  ? 'انتهت الفترة التجريبية' 
+                : data.isExpired
+                  ? 'انتهت الفترة التجريبية'
                   : `فترة تجريبية - ${data.daysLeft} يوم متبقي`,
               isActivated: data.status === 'active'
             }
@@ -119,9 +119,13 @@ export const useLicensingStore = defineStore('licensing', () => {
     // Web mode - check subscription status
     if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
       if (!subscriptionStatus.value) return false
-      return subscriptionStatus.value.isExpired && subscriptionStatus.value.status !== 'active' && subscriptionStatus.value.status !== 'lifetime'
+      return (
+        subscriptionStatus.value.isExpired &&
+        subscriptionStatus.value.status !== 'active' &&
+        subscriptionStatus.value.status !== 'lifetime'
+      )
     }
-    
+
     // Desktop mode - check trial info
     if (!trialInfo.value) return false
     if (trialInfo.value.message && trialInfo.value.message.includes('Cloud mode')) {
@@ -132,9 +136,13 @@ export const useLicensingStore = defineStore('licensing', () => {
 
   const isTrialExpired = computed(() => {
     if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
-      return subscriptionStatus.value?.isExpired && subscriptionStatus.value?.status !== 'active' && subscriptionStatus.value?.status !== 'lifetime'
+      return (
+        subscriptionStatus.value?.isExpired &&
+        subscriptionStatus.value?.status !== 'active' &&
+        subscriptionStatus.value?.status !== 'lifetime'
+      )
     }
-    return trialInfo.value ? (!trialInfo.value.isValid && !trialInfo.value.isActivated) : false
+    return trialInfo.value ? !trialInfo.value.isValid && !trialInfo.value.isActivated : false
   })
 
   // عد تنازلي قبل انتهاء التجربة (يظهر في آخر 3 أيام)
@@ -146,7 +154,7 @@ export const useLicensingStore = defineStore('licensing', () => {
       return s.daysLeft > 0 && s.daysLeft <= 3
     }
     const t = trialInfo.value
-    return t ? (t.daysLeft > 0 && t.daysLeft <= 3 && !t.isActivated) : false
+    return t ? t.daysLeft > 0 && t.daysLeft <= 3 && !t.isActivated : false
   })
 
   // أيام متبقية بالضبط (للعداد التنازلي)

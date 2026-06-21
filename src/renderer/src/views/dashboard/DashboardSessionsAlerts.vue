@@ -73,11 +73,7 @@
           /></v-btn>
         </v-card-title>
         <div class="max-h-140 overflow-y-auto">
-          <v-list
-            v-if="safeLength(agencyAlerts) > 0"
-            class="pa-0 bg-transparent"
-            density="compact"
-          >
+          <v-list v-if="safeLength(agencyAlerts) > 0" class="pa-0 bg-transparent" density="compact">
             <v-list-item
               v-for="ag in agencyAlerts"
               :key="ag.id"
@@ -107,11 +103,7 @@
                     :color="ag.days_remaining <= 0 ? 'error' : 'warning'"
                     variant="flat"
                     class="text-tiny-v font-weight-black rounded-pill me-1"
-                    style="
-                      min-width: 80px;
-                      justify-content: center;
-                      height: 16px !important;
-                    "
+                    style="min-width: 80px; justify-content: center; height: 16px !important"
                   >
                     {{
                       ag.days_remaining > 0
@@ -129,17 +121,13 @@
                     @click.stop="$emit('open-agency', ag)"
                   >
                     <LucideIcon name="refresh-cw" :size="12" />
-                    <v-tooltip activator="parent" location="top"
-                      >تحديث بيانات الوكالة</v-tooltip
-                    >
+                    <v-tooltip activator="parent" location="top">تحديث بيانات الوكالة</v-tooltip>
                   </v-btn>
                 </div>
               </template>
             </v-list-item>
           </v-list>
-          <div v-else class="pa-2 text-center opacity-40 text-tiny-v">
-            لا توجد تنبيهات
-          </div>
+          <div v-else class="pa-2 text-center opacity-40 text-tiny-v">لا توجد تنبيهات</div>
         </div>
       </v-card>
     </v-col>

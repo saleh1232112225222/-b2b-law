@@ -39,8 +39,26 @@ defineProps<{
 }>()
 
 const cards = [
-  { label: 'إجمالي المهام', key: 'total', icon: 'layers', valueClass: 'text-accent', iconColor: 'text-accent' },
-  { label: 'قيد الإنجاز', key: 'in_progress', icon: 'clock', valueClass: 'text-warning', iconColor: 'text-warning' },
-  { label: 'تم الإنجاز', key: 'completed', icon: 'check-circle', valueClass: 'text-success', iconColor: 'text-success' }
+  {
+    label: 'إجمالي المهام',
+    key: 'total',
+    icon: 'layers',
+    valueClass: 'text-accent',
+    iconColor: 'text-accent'
+  },
+  {
+    label: 'قيد الإنجاز',
+    key: 'in_progress',
+    icon: 'clock',
+    valueClass: 'text-warning',
+    iconColor: 'text-warning'
+  },
+  {
+    label: 'تم الإنجاز',
+    key: 'completed',
+    icon: 'check-circle',
+    valueClass: 'text-success',
+    iconColor: 'text-success'
+  }
 ]
 </script>

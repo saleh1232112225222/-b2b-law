@@ -4,11 +4,7 @@
       <PieChart :labels="pieLabels" :data="pieData" :colors="pieColors" />
     </div>
     <div style="height: 120px">
-      <TimeSeriesLineChart
-        :labels="trendLabels"
-        :data="trendValues"
-        color="#1a437d"
-      />
+      <TimeSeriesLineChart :labels="trendLabels" :data="trendValues" color="#1a437d" />
     </div>
   </div>
 </template>

@@ -416,11 +416,11 @@ const handleLogin = async () => {
   error.value = ''
 
   try {
-    let session: any;
+    let session: any
     // Always use real API login - no mock bypass
     localStorage.removeItem('mock_active')
     session = await (window as any).api.auth.login(username.value, password.value)
-    
+
     // Clear any legacy desktop storage keys to avoid conflicts
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('currentUser')
@@ -439,7 +439,10 @@ const handleLogin = async () => {
       subscriptionStatus: session.subscriptionStatus || 'trial',
       mustChangePassword: session.mustChangePassword || false
     }
-    localStorage.setItem('web_currentUser', JSON.stringify({ username: session.username, roleKey: session.roleKey }))
+    localStorage.setItem(
+      'web_currentUser',
+      JSON.stringify({ username: session.username, roleKey: session.roleKey })
+    )
     localStorage.setItem('web_currentUserSession', JSON.stringify(sessionToStore))
     window.dispatchEvent(new Event('auth-changed'))
 
@@ -451,7 +454,11 @@ const handleLogin = async () => {
     router.replace('/dashboard')
   } catch (e: any) {
     const errData = e?.response?.data?.error || e?.message || ''
-    if (errData === 'TrialExpired' || e?.response?.data?.message === 'TrialExpired' || errData === 'TrialExpiredWriteForbidden') {
+    if (
+      errData === 'TrialExpired' ||
+      e?.response?.data?.message === 'TrialExpired' ||
+      errData === 'TrialExpiredWriteForbidden'
+    ) {
       error.value = 'انتهت الفترة التجريبية. سيتم تحويلك لصفحة الاشتراك.'
       setTimeout(() => {
         router.push('/subscription')

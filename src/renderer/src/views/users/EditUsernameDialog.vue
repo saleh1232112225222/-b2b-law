@@ -10,21 +10,50 @@
         </v-btn>
       </div>
       <v-card-text class="pa-8">
-        <div class="text-caption text-gold opacity-60 mb-4 font-weight-black">المستخدم الحالي: {{ oldUsername }}</div>
+        <div class="text-caption text-gold opacity-60 mb-4 font-weight-black">
+          المستخدم الحالي: {{ oldUsername }}
+        </div>
         <v-label class="mb-3 font-weight-black text-gold opacity-60">اسم المستخدم الجديد</v-label>
-        <v-text-field v-model="newUsername" variant="outlined" class="glass-input" placeholder="أدخل اسم المستخدم الجديد" hide-details="auto" autofocus @keyup.enter="handleSave">
+        <v-text-field
+          v-model="newUsername"
+          variant="outlined"
+          class="glass-input"
+          placeholder="أدخل اسم المستخدم الجديد"
+          hide-details="auto"
+          autofocus
+          @keyup.enter="handleSave"
+        >
           <template #prepend-inner>
             <LucideIcon name="user" :size="20" class="text-gold me-2" />
           </template>
         </v-text-field>
-        <v-alert type="info" variant="tonal" density="compact" class="mt-6 text-caption font-weight-bold border-gold border-opacity-20">
+        <v-alert
+          type="info"
+          variant="tonal"
+          density="compact"
+          class="mt-6 text-caption font-weight-bold border-gold border-opacity-20"
+        >
           تغيير اسم المستخدم سيؤثر على عملية تسجيل الدخول القادمة لهذا الحساب.
         </v-alert>
       </v-card-text>
       <v-card-actions class="pa-8 pt-0 ga-3">
-        <v-btn variant="text" color="gold" class="font-weight-black" @click="$emit('update:show', false)">إلغاء</v-btn>
+        <v-btn
+          variant="text"
+          color="gold"
+          class="font-weight-black"
+          @click="$emit('update:show', false)"
+          >إلغاء</v-btn
+        >
         <v-spacer />
-        <v-btn color="gold" variant="flat" class="px-8 font-weight-black premium-lift" :loading="loading" :disabled="!newUsername || newUsername.length < 3 || newUsername === oldUsername" @click="handleSave">حفظ التغيير</v-btn>
+        <v-btn
+          color="gold"
+          variant="flat"
+          class="px-8 font-weight-black premium-lift"
+          :loading="loading"
+          :disabled="!newUsername || newUsername.length < 3 || newUsername === oldUsername"
+          @click="handleSave"
+          >حفظ التغيير</v-btn
+        >
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -48,9 +77,12 @@ const emit = defineEmits<{
 const newUsername = ref('')
 const loading = ref(false)
 
-watch(() => props.show, (val) => {
-  if (val) newUsername.value = props.oldUsername
-})
+watch(
+  () => props.show,
+  (val) => {
+    if (val) newUsername.value = props.oldUsername
+  }
+)
 
 const handleSave = async () => {
   if (!props.userId || !newUsername.value) return

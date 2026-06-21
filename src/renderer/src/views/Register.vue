@@ -42,31 +42,32 @@
             </v-btn>
           </div>
 
-            <!-- OTP Verification Form (Web Mode) -->
-            <v-form
-              v-else-if="isVerifying"
-              v-model="verifyFormValid"
-              class="login-form"
-              @submit.prevent="handleVerify"
-            >
-              <div class="branding-header text-center mb-6">
-                <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
-                <p
-                  v-if="isMockMode || devOtp"
-                  class="text-white text-caption mt-2"
-                  style="font-size: 0.9rem !important; line-height: 1.6"
-                >
-                  وضع التطوير: رمز التحقق هو <strong class="text-gold">{{ devOtp || '123456' }}</strong>
-                </p>
-                <p
-                  v-else
-                  class="text-white text-caption mt-2"
-                  style="font-size: 0.9rem !important; line-height: 1.6"
-                >
-                  تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
-                  لتفعيل الفترة التجريبية.
-                </p>
-              </div>
+          <!-- OTP Verification Form (Web Mode) -->
+          <v-form
+            v-else-if="isVerifying"
+            v-model="verifyFormValid"
+            class="login-form"
+            @submit.prevent="handleVerify"
+          >
+            <div class="branding-header text-center mb-6">
+              <h2 class="welcome-back text-subtitle-1 text-gold">تفعيل الحساب</h2>
+              <p
+                v-if="isMockMode || devOtp"
+                class="text-white text-caption mt-2"
+                style="font-size: 0.9rem !important; line-height: 1.6"
+              >
+                وضع التطوير: رمز التحقق هو
+                <strong class="text-gold">{{ devOtp || '123456' }}</strong>
+              </p>
+              <p
+                v-else
+                class="text-white text-caption mt-2"
+                style="font-size: 0.9rem !important; line-height: 1.6"
+              >
+                تم إرسال رمز التحقق المكون من 6 أرقام إلى البريد الإلكتروني ورقم الجوال. يرجى إدخاله
+                لتفعيل الفترة التجريبية.
+              </p>
+            </div>
 
             <!-- OTP Code Field -->
             <div class="input-group mb-6">

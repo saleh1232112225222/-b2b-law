@@ -479,7 +479,15 @@
               <div class="text-subtitle-2 font-weight-black text-warning mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> درجة الحكم:
               </div>
-              <v-btn-toggle v-model="outcomeModal.judgmentDegree" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable" class="flex-wrap">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentDegree"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+                class="flex-wrap"
+              >
                 <v-btn value="استئنافي" class="px-4">استئنافي</v-btn>
                 <v-btn value="قطعي" class="px-4">قطعي</v-btn>
                 <v-btn value="نهائي" class="px-4">نهائي</v-btn>
@@ -493,7 +501,14 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
               </div>
-              <v-btn-toggle v-model="outcomeModal.judgmentFavors" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentFavors"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="الموكل" class="px-5">الموكل</v-btn>
                 <v-btn value="الخصم" class="px-5">الخصم</v-btn>
               </v-btn-toggle>
@@ -506,7 +521,14 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
               </div>
-              <v-btn-toggle v-model="outcomeModal.judgmentNeedsExecution" mandatory color="primary" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentNeedsExecution"
+                mandatory
+                color="primary"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="نعم" class="px-5">نعم، يحتاج تنفيذ</v-btn>
                 <v-btn value="لا" class="px-5">لا، براءة أو منتهي</v-btn>
               </v-btn-toggle>
@@ -517,9 +539,17 @@
           <v-row v-if="outcomeModal.judgmentFavors === 'الخصم'" dense class="mt-3">
             <v-col cols="12">
               <div class="text-subtitle-2 font-weight-black text-warning mb-2 d-flex align-center">
-                <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع للاعتراض على الحكم؟
+                <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
+                للاعتراض على الحكم؟
               </div>
-              <v-btn-toggle v-model="outcomeModal.judgmentHasAppealGrounds" mandatory color="warning" variant="outlined" rounded="xl" density="comfortable">
+              <v-btn-toggle
+                v-model="outcomeModal.judgmentHasAppealGrounds"
+                mandatory
+                color="warning"
+                variant="outlined"
+                rounded="xl"
+                density="comfortable"
+              >
                 <v-btn value="نعم" class="px-5">نعم، يوجد أسباب</v-btn>
                 <v-btn value="لا" class="px-5">لا، الحكم صحيح</v-btn>
               </v-btn-toggle>
@@ -541,11 +571,12 @@
           <v-row dense class="mt-3">
             <v-col cols="12">
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
-                <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة النظامية)
+                <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة
+                النظامية)
               </div>
               <v-select
                 v-model="outcomeModal.caseType"
-                :items="['مدنية','تجارية','عمالية','جنائية','إدارية','أحوال شخصية']"
+                :items="['مدنية', 'تجارية', 'عمالية', 'جنائية', 'إدارية', 'أحوال شخصية']"
                 variant="outlined"
                 density="comfortable"
                 class="rounded-xl"
@@ -868,7 +899,8 @@ async function submitOutcome(): Promise<void> {
       })
       const analysis = previewRes?.analysis
       const taskList = safeArray(analysis?.tasks)
-      const priorityLabel = (p: string) => p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
+      const priorityLabel = (p: string) =>
+        p === 'عاجلة' ? '[عاجلة]' : p === 'مهمة' ? '[مهمة]' : '[عادية]'
 
       // بناء رسالة تأكيد مخصصة حسب السيناريو
       const lines: string[] = []
@@ -891,7 +923,9 @@ async function submitOutcome(): Promise<void> {
           lines.push(`• الحكم: ضد الموكل (لصالح الخصم)`)
           if (analysis.hasAppealGrounds) {
             lines.push('• الإجراء: يوجد أسباب اعتراض')
-            lines.push(`• المسار: ${analysis.appealType === 'نقض' ? 'الطعن بالنقض' : 'تقديم الاعتراض'}`)
+            lines.push(
+              `• المسار: ${analysis.appealType === 'نقض' ? 'الطعن بالنقض' : 'تقديم الاعتراض'}`
+            )
           } else {
             lines.push('• الإجراء: لا يوجد أسباب اعتراض')
             lines.push('• المسار: تبليغ العميل')
@@ -960,12 +994,19 @@ async function submitOutcome(): Promise<void> {
             const taskCount = tasks.length
             cleanSnackbar.value = {
               show: true,
-              text: taskCount > 0 ? `تم تسجيل النتيجة وإنشاء ${taskCount} مهام ذكية.` : 'تم تسجيل النتيجة بنجاح.',
+              text:
+                taskCount > 0
+                  ? `تم تسجيل النتيجة وإنشاء ${taskCount} مهام ذكية.`
+                  : 'تم تسجيل النتيجة بنجاح.',
               color: 'success'
             }
             closeConfirm()
           } catch (e: unknown) {
-            cleanSnackbar.value = { show: true, text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message), color: 'error' }
+            cleanSnackbar.value = {
+              show: true,
+              text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message),
+              color: 'error'
+            }
           } finally {
             confirmDialog.value.loading = false
           }
@@ -973,15 +1014,30 @@ async function submitOutcome(): Promise<void> {
       })
     } else {
       // Desktop workflow fallback
-      const previewRes = await api.workflow.previewDecision({ sessionId: outcomeModal.value.session.id, resultLabel: result, inputs: payload })
+      const previewRes = await api.workflow.previewDecision({
+        sessionId: outcomeModal.value.session.id,
+        resultLabel: result,
+        inputs: payload
+      })
       const missing = safeArray(previewRes?.missing)
       if (missing.length > 0) {
-        cleanSnackbar.value = { show: true, text: 'بيانات مطلوبة: ' + missing.map((m: any) => m?.label).filter(Boolean).join('، '), color: 'error' }
+        cleanSnackbar.value = {
+          show: true,
+          text:
+            'بيانات مطلوبة: ' +
+            missing
+              .map((m: any) => m?.label)
+              .filter(Boolean)
+              .join('، '),
+          color: 'error'
+        }
         return
       }
       const p = previewRes?.preview || null
       const closeList = safeArray(p?.preview?.closes).map((x: any) => translatePlanItem(String(x)))
-      const createList = safeArray(p?.preview?.creates).map((x: any) => translatePlanItem(String(x)))
+      const createList = safeArray(p?.preview?.creates).map((x: any) =>
+        translatePlanItem(String(x))
+      )
       const msg = `سيتم تنفيذ التالي عند تثبيت النتيجة:\n\n${closeList.length ? `- إغلاق: ${closeList.join('، ')}\n` : ''}${createList.length ? `- إنشاء: ${createList.join('، ')}\n` : ''}\nهل تريد المتابعة?`
 
       openConfirm({
@@ -995,15 +1051,28 @@ async function submitOutcome(): Promise<void> {
         action: async () => {
           confirmDialog.value.loading = true
           try {
-            const applied = await api.workflow.applyDecision({ sessionId: outcomeModal.value.session.id, resultLabel: result, inputs: payload })
+            const applied = await api.workflow.applyDecision({
+              sessionId: outcomeModal.value.session.id,
+              resultLabel: result,
+              inputs: payload
+            })
             outcomeModal.value.show = false
             await loadSummary()
             const next = applied?.next
-            if (next?.type === 'ui' && next?.route) router.push({ path: next.route, query: next.query || {} })
-            cleanSnackbar.value = { show: true, text: 'تم تحديث ملف القضية بنجاح.', color: 'success' }
+            if (next?.type === 'ui' && next?.route)
+              router.push({ path: next.route, query: next.query || {} })
+            cleanSnackbar.value = {
+              show: true,
+              text: 'تم تحديث ملف القضية بنجاح.',
+              color: 'success'
+            }
             closeConfirm()
           } catch (e: unknown) {
-            cleanSnackbar.value = { show: true, text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message), color: 'error' }
+            cleanSnackbar.value = {
+              show: true,
+              text: 'فشل تثبيت النتيجة: ' + toFriendlyError((e as Error).message),
+              color: 'error'
+            }
           } finally {
             confirmDialog.value.loading = false
           }

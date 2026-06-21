@@ -1,5 +1,9 @@
 <template>
-  <v-dialog :model-value="modelValue" max-width="520" @update:model-value="$emit('update:modelValue', $event)">
+  <v-dialog
+    :model-value="modelValue"
+    max-width="520"
+    @update:model-value="$emit('update:modelValue', $event)"
+  >
     <v-card elevation="0" class="rounded-xl glass-card border shadow-premium">
       <v-card-title class="font-weight-black">{{ title }}</v-card-title>
       <v-card-text class="pt-2">
@@ -51,7 +55,10 @@ const emit = defineEmits<{
 
 const reason = ref('')
 
-watch(() => props.modelValue, (val) => {
-  if (val) reason.value = ''
-})
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val) reason.value = ''
+  }
+)
 </script>

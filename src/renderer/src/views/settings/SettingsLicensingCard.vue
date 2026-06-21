@@ -42,7 +42,13 @@
         hide-details="auto"
       >
         <template #append-inner>
-          <v-btn icon variant="text" color="gold" density="compact" @click="$emit('copy-request-code')">
+          <v-btn
+            icon
+            variant="text"
+            color="gold"
+            density="compact"
+            @click="$emit('copy-request-code')"
+          >
             <LucideIcon name="copy" :size="16" />
           </v-btn>
         </template>
@@ -75,9 +81,7 @@
       >
         <LucideIcon name="shield-check" :size="32" class="text-success mb-2" />
         <div class="text-subtitle-1 font-weight-black text-success">النظام مفعل بالكامل</div>
-        <div class="text-caption text-white opacity-70">
-          شكراً لاستخدامك النسخة الأصلية من B2B
-        </div>
+        <div class="text-caption text-white opacity-70">شكراً لاستخدامك النسخة الأصلية من B2B</div>
       </div>
       <v-btn
         v-if="trialInfo?.isActivated"
@@ -87,7 +91,7 @@
         block
         class="mt-1 font-weight-bold"
         @click="$emit('reset-activation')"
-      >إلغاء التنشيط (للاختبار)</v-btn
+        >إلغاء التنشيط (للاختبار)</v-btn
       >
     </v-card-text>
   </v-card>
@@ -106,7 +110,7 @@ defineProps<{
 defineEmits<{
   'update:modelValue': [value: string]
   'copy-request-code': []
-  'activate': []
+  activate: []
   'reset-activation': []
 }>()
 </script>

@@ -2,19 +2,79 @@
   <v-container fluid class="pa-6 pb-12 rtl">
     <UserHeader @create="openCreate = true" />
 
-    <UsersTable :users="users" :roles="roles" :loading="loading" :is-admin="isAdmin" @toggle-active="toggleActive" @edit-username="openUsernameEdit" @edit-permissions="(id) => { selectedUserId = id; openPerms = true }" @edit-recovery="openRecoveryEdit" @edit-scope="(id) => { selectedUserId = id; openScope = true }" @delete-user="deleteUser" @set-role="setRole" />
+    <UsersTable
+      :users="users"
+      :roles="roles"
+      :loading="loading"
+      :is-admin="isAdmin"
+      @toggle-active="toggleActive"
+      @edit-username="openUsernameEdit"
+      @edit-permissions="
+        (id) => {
+          selectedUserId = id
+          openPerms = true
+        }
+      "
+      @edit-recovery="openRecoveryEdit"
+      @edit-scope="
+        (id) => {
+          selectedUserId = id
+          openScope = true
+        }
+      "
+      @delete-user="deleteUser"
+      @set-role="setRole"
+    />
 
-    <EditUsernameDialog :show="usernameDialog.show" :user-id="usernameDialog.userId" :old-username="usernameDialog.oldUsername" @update:show="usernameDialog.show = $event" @done="loadUsers" />
+    <EditUsernameDialog
+      :show="usernameDialog.show"
+      :user-id="usernameDialog.userId"
+      :old-username="usernameDialog.oldUsername"
+      @update:show="usernameDialog.show = $event"
+      @done="loadUsers"
+    />
 
-    <CreateUserDialog :show="openCreate" :roles="roles" @update:show="openCreate = $event" @done="loadUsers" />
+    <CreateUserDialog
+      :show="openCreate"
+      :roles="roles"
+      @update:show="openCreate = $event"
+      @done="loadUsers"
+    />
 
-    <PermissionsOverridesDialog :show="openPerms" :selected-user-id="selectedUserId" @update:show="openPerms = $event" @done="loadUsers" />
+    <PermissionsOverridesDialog
+      :show="openPerms"
+      :selected-user-id="selectedUserId"
+      @update:show="openPerms = $event"
+      @done="loadUsers"
+    />
 
-    <ScopeManagementDialog :show="openScope" :selected-user-id="selectedUserId" @update:show="openScope = $event" @done="loadUsers" />
+    <ScopeManagementDialog
+      :show="openScope"
+      :selected-user-id="selectedUserId"
+      @update:show="openScope = $event"
+      @done="loadUsers"
+    />
 
-    <RecoveryInfoDialog :show="recoveryDialog.show" :user-id="recoveryDialog.userId" :username="recoveryDialog.username" @update:show="recoveryDialog.show = $event" @done="loadUsers" />
+    <RecoveryInfoDialog
+      :show="recoveryDialog.show"
+      :user-id="recoveryDialog.userId"
+      :username="recoveryDialog.username"
+      @update:show="recoveryDialog.show = $event"
+      @done="loadUsers"
+    />
 
-    <PremiumConfirm v-model="confirmDialog.show" :title="confirmDialog.title" :message="confirmDialog.message" :color="confirmDialog.color" :confirm-button-color="confirmDialog.confirmButtonColor" :icon="confirmDialog.icon" :confirm-text="confirmDialog.confirmText" :cancel-text="confirmDialog.cancelText" :loading="confirmDialog.loading" @confirm="confirmDialog.action" />
+    <PremiumConfirm
+      v-model="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      :color="confirmDialog.color"
+      :confirm-button-color="confirmDialog.confirmButtonColor"
+      :icon="confirmDialog.icon"
+      :confirm-text="confirmDialog.confirmText"
+      :cancel-text="confirmDialog.cancelText"
+      :loading="confirmDialog.loading"
+      @confirm="confirmDialog.action"
+    />
   </v-container>
 </template>
 
@@ -63,14 +123,40 @@ const openRecoveryEdit = (u: any) => {
 }
 
 const confirmDialog = ref({
-  show: false, title: '', message: '', color: 'primary',
-  confirmButtonColor: 'primary', icon: 'alert-circle',
-  confirmText: 'موافق', cancelText: 'إلغاء الأمر',
-  loading: false, action: () => {}
+  show: false,
+  title: '',
+  message: '',
+  color: 'primary',
+  confirmButtonColor: 'primary',
+  icon: 'alert-circle',
+  confirmText: 'موافق',
+  cancelText: 'إلغاء الأمر',
+  loading: false,
+  action: () => {}
 })
 
-const openConfirm = (options: { title: string; message: string; color?: string; confirmButtonColor?: string; icon?: string; confirmText?: string; cancelText?: string; action: () => void }) => {
-  confirmDialog.value = { show: true, title: options.title, message: options.message, color: options.color || 'primary', confirmButtonColor: options.confirmButtonColor || 'primary', icon: options.icon || 'alert-circle', confirmText: options.confirmText || 'موافق', cancelText: options.cancelText || 'إلغاء الأمر', loading: false, action: options.action }
+const openConfirm = (options: {
+  title: string
+  message: string
+  color?: string
+  confirmButtonColor?: string
+  icon?: string
+  confirmText?: string
+  cancelText?: string
+  action: () => void
+}) => {
+  confirmDialog.value = {
+    show: true,
+    title: options.title,
+    message: options.message,
+    color: options.color || 'primary',
+    confirmButtonColor: options.confirmButtonColor || 'primary',
+    icon: options.icon || 'alert-circle',
+    confirmText: options.confirmText || 'موافق',
+    cancelText: options.cancelText || 'إلغاء الأمر',
+    loading: false,
+    action: options.action
+  }
 }
 
 const loadUsers = async (): Promise<void> => {
@@ -99,8 +185,11 @@ const deleteUser = async (userId: string): Promise<void> => {
   openConfirm({
     title: 'تأكيد حذف المستخدم نهائياً',
     message: `هل أنت متأكد من حذف المستخدم نهائياً؟\n${u?.username || ''}`,
-    color: 'error', confirmButtonColor: 'error', icon: 'user-x',
-    confirmText: 'حذف نهائي', cancelText: 'إلغاء',
+    color: 'error',
+    confirmButtonColor: 'error',
+    icon: 'user-x',
+    confirmText: 'حذف نهائي',
+    cancelText: 'إلغاء',
     action: async () => {
       confirmDialog.value.loading = true
       try {
@@ -127,20 +216,47 @@ const setRole = async (userId: string, roleKey: string): Promise<void> => {
   }
 }
 
-onMounted(() => { loadUsers() })
+onMounted(() => {
+  loadUsers()
+})
 </script>
 
 <style scoped>
-.rtl { direction: rtl; }
-.font-mono { font-family: 'Consolas', 'Monaco', monospace; }
-.gap-2 { gap: 0.5rem; }
-.gap-3 { gap: 0.75rem; }
-.glass-input-compact :deep(.v-field__input) { padding-top: 4px !important; padding-bottom: 4px !important; min-height: 36px !important; }
-.glass-table { background: transparent !important; }
+.rtl {
+  direction: rtl;
+}
+.font-mono {
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+.gap-2 {
+  gap: 0.5rem;
+}
+.gap-3 {
+  gap: 0.75rem;
+}
+.glass-input-compact :deep(.v-field__input) {
+  padding-top: 4px !important;
+  padding-bottom: 4px !important;
+  min-height: 36px !important;
+}
+.glass-table {
+  background: transparent !important;
+}
 @media (max-width: 1023px) {
-  :deep(.v-dialog > .v-overlay__content) { width: 95vw !important; max-width: 95vw !important; margin: 4px !important; }
-  :deep(.v-card-actions) { flex-wrap: wrap !important; gap: 8px !important; }
-  :deep(.v-card-actions .v-spacer) { display: none !important; }
-  :deep(.v-card-actions .v-btn) { flex: 1 1 auto !important; }
+  :deep(.v-dialog > .v-overlay__content) {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 4px !important;
+  }
+  :deep(.v-card-actions) {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  :deep(.v-card-actions .v-spacer) {
+    display: none !important;
+  }
+  :deep(.v-card-actions .v-btn) {
+    flex: 1 1 auto !important;
+  }
 }
 </style>

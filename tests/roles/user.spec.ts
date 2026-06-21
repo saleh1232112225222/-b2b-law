@@ -1,11 +1,13 @@
 import { test, expect } from '@playwright/test'
 
-test('صلاحيات المستخدم العادي', async ({ page }) => {
-  await page.goto('https://b2b-law.netlify.app/login')
+test.use({ storageState: { cookies: [], origins: [] } })
 
-  await page.fill('input[name="username"]', 'user@test.com')
-  await page.fill('input[name="password"]', '123456')
-  await page.click('button[type="submit"]')
+test('صلاحيات المستخدم العادي', async ({ page }) => {
+  await page.goto('/login')
+
+  await page.fill('#username-input', 'user@test.com')
+  await page.fill('#password-input', '123456')
+  await page.click('#login-submit-btn')
 
   await page.waitForURL(/dashboard/)
 
