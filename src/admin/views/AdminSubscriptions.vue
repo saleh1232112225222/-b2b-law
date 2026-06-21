@@ -9,10 +9,12 @@
           </v-avatar>
           <div>
             <h1 class="text-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
-            <div class="text-subtitle-1 text-medium-emphasis">إدارة اشتراكات العملاء وتفعيل الخطط</div>
+            <div class="text-subtitle-1 text-medium-emphasis">
+              إدارة اشتراكات العملاء وتفعيل الخطط
+            </div>
           </div>
         </div>
-        
+
         <v-btn
           color="gold"
           size="x-large"
@@ -92,24 +94,56 @@
             <td>{{ company.daysRemaining }}</td>
             <td>{{ formatDate(company.expiryDate) }}</td>
             <td class="actions">
-              <button class="btn-icon" @click="openActivateDialog(company)" title="تفعيل الاشتراك">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              <button class="btn-icon" title="تفعيل الاشتراك" @click="openActivateDialog(company)">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
-              <button class="btn-icon" @click="openExtendDialog(company)" title="تمديد الاشتراك">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M4 4v5h.01M20 14v5h-5M14 14l-5 5m0-5l5-5"/>
+              <button class="btn-icon" title="تمديد الاشتراك" @click="openExtendDialog(company)">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M4 4v5h.01M20 14v5h-5M14 14l-5 5m0-5l5-5" />
                 </svg>
               </button>
-              <button class="btn-icon danger" @click="suspendSubscription(company)" title="تعليق الاشتراك">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M10 11l-4 4m0 0l4-4m-4 4V7m8 14l4-4m-4 0l4 4"/>
+              <button
+                class="btn-icon danger"
+                title="تعليق الاشتراك"
+                @click="suspendSubscription(company)"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M10 11l-4 4m0 0l4-4m-4 4V7m8 14l4-4m-4 0l4 4" />
                 </svg>
               </button>
-              <button class="btn-icon" @click="cancelSubscription(company)" title="إلغاء الاشتراك">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M6 18L18 6M6 6l12 12"/>
+              <button class="btn-icon" title="إلغاء الاشتراك" @click="cancelSubscription(company)">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </td>
@@ -127,9 +161,9 @@
           <v-spacer></v-spacer>
           <v-btn icon="mdi-close" variant="text" @click="closeAddSubscriberDialog"></v-btn>
         </v-card-title>
-        
+
         <v-card-text class="pa-6">
-          <v-form @submit.prevent="createSubscriber" ref="addForm">
+          <v-form ref="addForm" @submit.prevent="createSubscriber">
             <v-row>
               <v-col cols="12" sm="6">
                 <v-text-field
@@ -199,7 +233,7 @@
                   prepend-inner-icon="mdi-card-account-details"
                 ></v-select>
               </v-col>
-              <v-col cols="12" v-if="newSubscriber.subscriptionType !== 'trial'">
+              <v-col v-if="newSubscriber.subscriptionType !== 'trial'" cols="12">
                 <v-select
                   v-model="newSubscriber.planId"
                   :items="availablePlans"
@@ -209,15 +243,26 @@
                   variant="outlined"
                   color="gold"
                 >
-                  <template v-slot:item="{ props, item }">
+                  <template #item="{ props, item }">
                     <v-list-item v-bind="props" :subtitle="`${item.raw.price} ريال`"></v-list-item>
                   </template>
                 </v-select>
               </v-col>
             </v-row>
             <div class="d-flex justify-end mt-4">
-              <v-btn color="grey-darken-1" variant="text" class="me-2" @click="closeAddSubscriberDialog">إلغاء</v-btn>
-              <v-btn color="gold" type="submit" class="text-ebony font-weight-bold" :loading="isCreatingSubscriber">
+              <v-btn
+                color="grey-darken-1"
+                variant="text"
+                class="me-2"
+                @click="closeAddSubscriberDialog"
+                >إلغاء</v-btn
+              >
+              <v-btn
+                color="gold"
+                type="submit"
+                class="text-ebony font-weight-bold"
+                :loading="isCreatingSubscriber"
+              >
                 إنشاء المشترك
               </v-btn>
             </div>
@@ -227,14 +272,14 @@
     </v-dialog>
 
     <!-- Activate Subscription Dialog -->
-    <div class="modal" :class="{ 'show': showActivateDialog }" @click="closeActivateDialog">
+    <div class="modal" :class="{ show: showActivateDialog }" @click="closeActivateDialog">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>تفعيل الاشتراك</h3>
           <button class="close-btn" @click="closeActivateDialog">×</button>
         </div>
         <div class="modal-body">
-          <div class="company-info" v-if="selectedCompany">
+          <div v-if="selectedCompany" class="company-info">
             <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
             <p><strong>البريد الإلكتروني:</strong> {{ selectedCompany.email }}</p>
           </div>
@@ -261,12 +306,14 @@
             <div class="form-group">
               <label>&nbsp;</label>
               <label class="checkbox-label">
-                <input type="checkbox" v-model="activateData.lifetime" />
+                <input v-model="activateData.lifetime" type="checkbox" />
                 اشتراك مدى الحياة
               </label>
             </div>
             <div class="form-actions">
-              <button type="button" class="btn-secondary" @click="closeActivateDialog">إلغاء</button>
+              <button type="button" class="btn-secondary" @click="closeActivateDialog">
+                إلغاء
+              </button>
               <button type="submit" class="btn-primary" :disabled="isActivating">
                 {{ isActivating ? 'جارِ التفعيل...' : 'تفعيل الاشتراك' }}
               </button>
@@ -277,16 +324,21 @@
     </div>
 
     <!-- Extend Subscription Dialog -->
-    <div class="modal" :class="{ 'show': showExtendDialog }" @click="closeExtendDialog">
+    <div class="modal" :class="{ show: showExtendDialog }" @click="closeExtendDialog">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>تمديد الاشتراك</h3>
           <button class="close-btn" @click="closeExtendDialog">×</button>
         </div>
         <div class="modal-body">
-          <div class="company-info" v-if="selectedCompany">
+          <div v-if="selectedCompany" class="company-info">
             <p><strong>الشركة:</strong> {{ selectedCompany.companyName }}</p>
-            <p><strong>الحالة الحالية:</strong> <span :class="getStatusClass(selectedCompany.effectiveStatus)">{{ getStatusText(selectedCompany.effectiveStatus) }}</span></p>
+            <p>
+              <strong>الحالة الحالية:</strong>
+              <span :class="getStatusClass(selectedCompany.effectiveStatus)">{{
+                getStatusText(selectedCompany.effectiveStatus)
+              }}</span>
+            </p>
           </div>
           <form @submit.prevent="extendSubscription">
             <div class="form-group">
@@ -312,7 +364,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, reactive, onMounted } from 'vue'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://b2b-law-g2qr.onrender.com'
@@ -419,7 +471,7 @@ function openActivateDialog(company) {
   activateData.durationMonths = ''
   activateData.durationYears = ''
   activateData.lifetime = false
-  showActivateDialog.value
+  showActivateDialog.value = true
 }
 
 function closeActivateDialog() {
@@ -432,7 +484,7 @@ function openExtendDialog(company) {
   extendData.companyId = company.id
   extendData.extendMonths = ''
   extendData.extendYears = ''
-  showExtendDialog.value
+  showExtendDialog.value = true
 }
 
 function closeExtendDialog() {
@@ -442,22 +494,22 @@ function closeExtendDialog() {
 
 function getStatusClass(status) {
   const statusMap = {
-    'active': 'status-active',
-    'trial': 'status-trial',
-    'expired': 'status-expired',
-    'canceled': 'status-canceled',
-    'none': 'status-none'
+    active: 'status-active',
+    trial: 'status-trial',
+    expired: 'status-expired',
+    canceled: 'status-canceled',
+    none: 'status-none'
   }
   return statusMap[status] || ''
 }
 
 function getStatusText(status) {
   const statusMap = {
-    'active': 'نشط',
-    'trial': 'تجربة',
-    'expired': 'منتهي',
-    'canceled': 'ملغى',
-    'none': 'بدون اشتراك'
+    active: 'نشط',
+    trial: 'تجربة',
+    expired: 'منتهي',
+    canceled: 'ملغى',
+    none: 'بدون اشتراك'
   }
   return statusMap[status] || status
 }
@@ -492,13 +544,18 @@ async function createSubscriber() {
     }
 
     // Create subscription if not a basic trial
-    // NOTE: /api/auth/register automatically creates a trial subscription, 
+    // NOTE: /api/auth/register automatically creates a trial subscription,
     // but we can activate a different plan if selected.
     if (newSubscriber.subscriptionType !== 'trial') {
       const subscriptionBody = {
         companyId: companyId,
         planId: newSubscriber.planId,
-        durationMonths: newSubscriber.subscriptionType === 'monthly' ? 1 : newSubscriber.subscriptionType === 'yearly' ? 12 : null,
+        durationMonths:
+          newSubscriber.subscriptionType === 'monthly'
+            ? 1
+            : newSubscriber.subscriptionType === 'yearly'
+              ? 12
+              : null,
         lifetime: newSubscriber.subscriptionType === 'lifetime'
       }
       await apiRequest('POST', '/api/admin/subscriptions/activate', subscriptionBody)
@@ -539,9 +596,12 @@ async function suspendSubscription(company) {
   if (!confirm('هل ترغب بتعليق الاشتراك لهذا المشترك؟')) {
     return
   }
-  
+
   try {
-    await apiRequest('POST', '/api/admin/subscriptions/suspend', { companyId: company.id, reason: 'تعليق من لوحة الإدارة' })
+    await apiRequest('POST', '/api/admin/subscriptions/suspend', {
+      companyId: company.id,
+      reason: 'تعليق من لوحة الإدارة'
+    })
     alert('تم تعليق الاشتراك بنجاح')
     await fetchData()
   } catch (error) {
@@ -554,7 +614,7 @@ async function cancelSubscription(company) {
   if (!confirm('هل ترغب بحذف المشترك لايمكن استعادة بعد الحذف')) {
     return
   }
-  
+
   try {
     await apiRequest('DELETE', `/api/admin/subscriptions/${company.id}`)
     alert('تم الحذف بنجاح')
