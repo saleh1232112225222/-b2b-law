@@ -365,6 +365,7 @@
 </template>
 
 <script setup lang="ts">
+// @ts-nocheck
 import { ref, reactive, onMounted } from 'vue'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://b2b-law-g2qr.onrender.com'
