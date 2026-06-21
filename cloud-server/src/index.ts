@@ -355,7 +355,7 @@ async function seedSuperAdmin() {
       // Create the seeded owner admin with the configured bootstrap hash.
       await dbQuery(
         `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '${ADMIN_HASH}', 'admin', TRUE, TRUE, 'slaehmap@gmail.com', NOW())`,
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '${ADMIN_HASH}', 'admin', TRUE, FALSE, 'slaehmap@gmail.com', NOW())`,
         []
       )
       console.log('[SEED] Super Admin user created in owner company')
@@ -363,12 +363,12 @@ async function seedSuperAdmin() {
 
     // Always sync/re-sync the super admin's password hash
     await dbQuery(
-      `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com', is_active = TRUE, must_change_password = TRUE WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
+      `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com', is_active = TRUE, must_change_password = FALSE WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
       []
     )
     // Also fix any stale admin user (from old registrations with random company IDs)
     await dbQuery(
-      `UPDATE users SET password_hash = '${ADMIN_HASH}', is_active = TRUE, must_change_password = TRUE WHERE username = 'admin' AND password_hash IS DISTINCT FROM '${ADMIN_HASH}'`,
+      `UPDATE users SET password_hash = '${ADMIN_HASH}', is_active = TRUE, must_change_password = FALSE WHERE username = 'admin' AND password_hash IS DISTINCT FROM '${ADMIN_HASH}'`,
       []
     )
     console.log('[SEED] Super Admin password hash synced')
