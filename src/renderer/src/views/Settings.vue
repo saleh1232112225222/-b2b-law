@@ -946,18 +946,15 @@ const injectManualSnapshot = async (): Promise<void> => {
   injectingManualSnapshot.value = true
   try {
     const res = await (window as any).api.system.injectManualSnapshot()
-    if (res?.success === false && res?.message === 'تم الإلغاء') return
+    if (!res || (res?.success === false && res?.message === 'تم الإلغاء')) return
+    if (res === false) return
     if (!res?.success) {
       showSnackbar(res?.message || 'فشل حقن البيانات', 'error')
       return
     }
-    showSnackbar('تم حقن البيانات بنجاح', 'success')
+    showSnackbar('تم حقن البيانات بنجاح — جاري إعادة تحميل الصفحة...', 'success')
     await fetchInventory()
-    await Promise.all([
-      clientsStore.fetchClients(),
-      casesStore.fetchCases(),
-      sessionsStore.fetchSessions()
-    ])
+    setTimeout(() => window.location.reload(), 1200)
   } catch (e: unknown) {
     showSnackbar('خطأ في حقن البيانات: ' + (e as Error).message, 'error')
   } finally {

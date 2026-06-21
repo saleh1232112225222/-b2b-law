@@ -386,24 +386,37 @@ systemRouter.post(
 
             if (importMode === 'merge' && idIndex >= 0 && sanitized[idIndex]) {
               const tableCache = await getOrLoadIds(table)
-              if (tableCache.has(String(sanitized[idIndex]))) {
-                await client.query('RELEASE SAVEPOINT row_insert')
-                continue
+              const exists = tableCache.has(String(sanitized[idIndex]))
+
+              if (exists) {
+                const nonIdKeys = keys.filter((k) => k !== 'id')
+                if (nonIdKeys.length > 0) {
+                  const setClauses = nonIdKeys.map((k, i) => `${k} = $${i + 1}`).join(', ')
+                  const setValues = nonIdKeys.map((k) => sanitized[keys.indexOf(k)])
+                  await client.query(
+                    `UPDATE ${table} SET ${setClauses} WHERE id = $${nonIdKeys.length + 1}`,
+                    [...setValues, sanitized[idIndex]]
+                  )
+                }
+              } else {
+                await client.query(
+                  `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
+                  sanitized
+                )
+                tableCache.add(String(sanitized[idIndex]))
+              }
+            } else {
+              await client.query(
+                `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
+                sanitized
+              )
+              if (idIndex >= 0 && sanitized[idIndex]) {
+                const tableCache = await getOrLoadIds(table)
+                tableCache.add(String(sanitized[idIndex]))
               }
             }
-
-            await client.query(
-              `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
-              sanitized
-            )
             await client.query('RELEASE SAVEPOINT row_insert')
             counts[table].imported++
-
-            // Add new ID to cache
-            if (idIndex >= 0 && sanitized[idIndex]) {
-              const tableCache = await getOrLoadIds(table)
-              tableCache.add(String(sanitized[idIndex]))
-            }
           } catch (err) {
             await client.query('ROLLBACK TO SAVEPOINT row_insert')
             console.error(`[ImportSnapshot] FAILED row in ${table}:`, (err as Error).message)
