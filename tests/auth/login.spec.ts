@@ -1,17 +1,14 @@
-import { test, expect } from '@playwright/test';
+import { test, expect } from '@playwright/test'
+
+const USER = process.env.ADMIN_USER || 'admin'
+const PASS = process.env.ADMIN_PASS || 'admin1390'
 
 test('تسجيل دخول admin', async ({ page }) => {
-  await page.goto('https://b2b-law.netlify.app/login');
+  await page.goto('/login')
 
-  // إدخال اسم المستخدم
-  await page.fill('input[name="username"]', 'admin');
+  await page.fill('input[name="username"]', USER)
+  await page.fill('input[name="password"]', PASS)
+  await page.click('button[type="submit"]')
 
-  // إدخال كلمة المرور
-  await page.fill('input[name="password"]', 'admin1390');
-
-  // الضغط على زر الدخول
-  await page.click('button[type="submit"]');
-
-  // التأكد أنه دخل للوحة التحكم
-  await expect(page).toHaveURL(/dashboard/);
-});
+  await expect(page).toHaveURL(/dashboard/)
+})
