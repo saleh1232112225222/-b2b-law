@@ -105,11 +105,13 @@ export function createEntityRouter(config: EntityConfig): Router {
           }
         })
 
-        const countResult = await query(`SELECT COUNT(*) FROM ${table} ${whereClause}`, params)
-        const dataResult = await query(
-          `SELECT * FROM ${table} ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
-          [...params, limit, offset]
-        )
+        const [countResult, dataResult] = await Promise.all([
+          query(`SELECT COUNT(*) FROM ${table} ${whereClause}`, params),
+          query(
+            `SELECT * FROM ${table} ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+            [...params, limit, offset]
+          )
+        ])
 
         res.json({
           data: dataResult.rows,
