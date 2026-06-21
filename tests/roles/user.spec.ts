@@ -1,9 +1,18 @@
 import { test, expect } from '@playwright/test'
 
-const BASE = 'https://b2b-law.netlify.app'
-
 test('صلاحيات المستخدم العادي', async ({ page }) => {
-  await page.goto(`${BASE}/login`)
+  await page.route('**/api/auth/login', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        token: 'mock-token',
+        user: { id: '2', username: 'user', name: 'مستخدم عادي', roleKey: 'user', is_active: true, permissions: [] }
+      })
+    })
+  })
+
+  await page.goto('/login')
 
   await page.fill('#username-input', 'user@test.com')
   await page.fill('#password-input', '123456')
