@@ -302,54 +302,40 @@ router.beforeEach(async (to) => {
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
   const isTestBypass = localStorage.getItem('testBypass') === 'true'
 
-  // Unified auth guard for both web and desktop modes
   if (to.meta.requiresAuth && !isLoggedIn && !isTestBypass) {
     return '/login'
   }
 
-  // Check subscription status for web mode
-  if (to.meta.requiresAuth && isLoggedIn && typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
-    const sessionData = localStorage.getItem('web_currentUserSession')
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData)
+  // Parse session ONCE for all checks
+  let session: any = null
+  if (to.meta.requiresAuth && isLoggedIn) {
+    try {
+      const raw = localStorage.getItem('web_currentUserSession')
+      if (raw) session = JSON.parse(raw)
+    } catch {}
+  }
 
-        // If trial expired and no active subscription - allow access but in read-only mode
-        // Frontend will enforce read-only UI (hide add/edit/delete buttons)
-        if (
-          session.trialExpired &&
-          session.subscriptionStatus !== 'active' &&
-          session.subscriptionStatus !== 'lifetime'
-        ) {
-          // Store read-only flag for components to check
-          sessionStorage.setItem('app_readonly', 'true')
-        } else {
-          sessionStorage.removeItem('app_readonly')
-        }
-      } catch (e) {
-        console.error('Failed to parse session for subscription check:', e)
-      }
+  // Subscription status check (web mode)
+  if (session && typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    if (
+      session.trialExpired &&
+      session.subscriptionStatus !== 'active' &&
+      session.subscriptionStatus !== 'lifetime'
+    ) {
+      sessionStorage.setItem('app_readonly', 'true')
+    } else {
+      sessionStorage.removeItem('app_readonly')
     }
   }
 
-  // Admin Routes Guard - حماية صفحات الأدمن
+  // Admin Routes Guard
   if (to.path.startsWith('/admin')) {
-    const sessionData = localStorage.getItem('web_currentUserSession')
-    if (sessionData) {
-      try {
-        const session = JSON.parse(sessionData)
-        if (!isSuperAdmin(session)) {
-          return '/dashboard' // أعد توجيهه للوحة التحكم
-        }
-      } catch (e) {
-        console.error('Failed to parse session for admin check:', e)
-        return '/dashboard'
-      }
-    } else {
+    if (!session || !isSuperAdmin(session)) {
       return '/dashboard'
     }
   }
 
+  // Permission check
   const requiredPermissions = (
     (to.meta as any).permissions
       ? (to.meta as any).permissions
@@ -359,12 +345,6 @@ router.beforeEach(async (to) => {
   ) as string[]
 
   if (to.meta.requiresAuth && requiredPermissions.length > 0 && !isTestBypass) {
-    let session: any = null
-    try {
-      const raw = localStorage.getItem('web_currentUserSession')
-      if (raw) session = JSON.parse(raw)
-    } catch {}
-
     if (!session) {
       try {
         session = await (window as any)?.api?.auth?.getSession?.()
@@ -377,19 +357,6 @@ router.beforeEach(async (to) => {
           window.dispatchEvent(new Event('auth-changed'))
         }
       } catch {}
-    } else {
-      setTimeout(async () => {
-        try {
-          const freshSession = await (window as any)?.api?.auth?.getSession?.()
-          if (freshSession) {
-            localStorage.setItem('web_currentUserSession', JSON.stringify(freshSession))
-            localStorage.setItem(
-              'web_currentUser',
-              JSON.stringify({ username: freshSession.username, roleKey: freshSession.roleKey })
-            )
-          }
-        } catch {}
-      }, 0)
     }
 
     const can = (k: string) =>

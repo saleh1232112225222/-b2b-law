@@ -43,7 +43,14 @@ function setupResponsiveTables(): void {
 
 if (typeof window !== 'undefined') {
   document.addEventListener('DOMContentLoaded', setupResponsiveTables)
-  const observer = new MutationObserver(setupResponsiveTables)
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null
+  const observer = new MutationObserver(() => {
+    if (debounceTimer) return
+    debounceTimer = setTimeout(() => {
+      setupResponsiveTables()
+      debounceTimer = null
+    }, 300)
+  })
   observer.observe(document.body, { childList: true, subtree: true })
 }
 

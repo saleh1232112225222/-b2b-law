@@ -77,10 +77,11 @@ app.use((req, res, next) => {
   const start = Date.now()
   res.on('finish', () => {
     const duration = Date.now() - start
-    const statusSymbol = res.statusCode >= 200 && res.statusCode < 400 ? '✅' : '❌'
-    console.log(
-      `[USER_ACTION] ${statusSymbol} ${req.method} ${req.originalUrl} - Status: ${res.statusCode} (${duration}ms)`
-    )
+    if (res.statusCode >= 400 || duration > 2000) {
+      console.log(
+        `[REQUEST] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`
+      )
+    }
   })
   next()
 })
@@ -385,11 +386,16 @@ async function autoMigrate() {
   }
 }
 
-app.listen(PORT, '0.0.0.0', async () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`B2B-LAW Cloud Server running on port ${PORT}`)
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
-  await autoMigrate()
-  await seedSuperAdmin()
+
+  // Run migrations and seeding async — don't block server startup
+  Promise.all([autoMigrate(), seedSuperAdmin()]).then(() => {
+    console.log('[DB] Startup tasks completed')
+  }).catch((err) => {
+    console.error('[DB] Startup tasks failed:', err)
+  })
 
   // Marketing report once daily at 7 AM Saudi time
   let lastReportDate = ''
@@ -400,8 +406,7 @@ app.listen(PORT, '0.0.0.0', async () => {
       lastReportDate = today
       sendMarketingReport().catch(e => console.error('[MARKETING] Daily report error:', e))
     }
-  }, 60_000) // check every minute
-  // Also send one on startup (after 30s delay)
+  }, 60_000)
   setTimeout(() => {
     lastReportDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
     sendMarketingReport().catch(e => console.error('[MARKETING] Startup report error:', e))

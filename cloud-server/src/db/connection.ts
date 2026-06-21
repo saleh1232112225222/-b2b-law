@@ -37,9 +37,10 @@ try {
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL || 'postgresql://localhost:5432/b2b_law',
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
+  max: 5,
+  min: 1,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 8000,
   ssl: process.env.DATABASE_URL?.includes('render.com')
     ? { rejectUnauthorized: false }
     : false
