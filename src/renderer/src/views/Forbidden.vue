@@ -2,7 +2,7 @@
   <v-container fluid class="pa-6 fill-height d-flex align-center justify-center rtl">
     <v-row justify="center">
       <v-col cols="12" md="8" lg="6">
-        <v-card elevation="0" class="glass-card pa-10 text-center overflow-hidden relative">
+        <v-card elevation="0" class="glass-card pa-10 text-center overflow-hidden relative glass-card">
           <div class="decorative-top-error"></div>
 
           <div
@@ -25,7 +25,7 @@
             <v-btn
               variant="text"
               color="gold"
-              class="px-10 font-weight-black opacity-50 h-56"
+              class="px-10 font-weight-black opacity-50 h-56 premium-btn-gold-gradient"
               @click="goBack"
             >
               <LucideIcon name="arrow-right" :size="18" class="me-2" /> العودة للخلف
@@ -33,7 +33,7 @@
             <v-btn
               color="accent"
               size="large"
-              class="px-12 font-weight-black rounded-lg premium-lift h-56"
+              class="px-12 font-weight-black rounded-lg premium-lift h-56 premium-btn-gold-gradient"
               @click="goHome"
             >
               <LucideIcon name="layout-dashboard" :size="18" class="me-2" /> لوحة التحكم الرئيسية

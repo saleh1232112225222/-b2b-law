@@ -85,6 +85,7 @@
 
 <script setup lang="ts">
 import { ICONS } from '../../config/icons'
+import LucideIcon from './LucideIcon.vue'
 
 interface Item {
   id?: any

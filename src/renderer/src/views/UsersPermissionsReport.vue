@@ -21,7 +21,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -31,7 +31,7 @@
 
     <v-card
       elevation="0"
-      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden"
+      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden glass-card"
     >
       <!-- Actions Row -->
       <div class="d-flex flex-wrap justify-end mb-8 gap-3">
@@ -39,7 +39,7 @@
           color="accent"
           variant="flat"
           height="48"
-          class="rounded-xl px-8 font-weight-black premium-lift text-ebony"
+          class="rounded-xl px-8 font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
           :loading="loading"
           @click="load"
         >
@@ -52,7 +52,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="printPage"
         >
           <LucideIcon name="printer" :size="20" class="me-2 text-gold" /> طباعة
@@ -61,7 +61,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           :disabled="!data"
           @click="exportPdf"
         >
@@ -71,7 +71,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           :disabled="!data"
           @click="exportCsv"
         >
@@ -111,7 +111,7 @@
 
         <v-card
           elevation="0"
-          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-12"
+          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-12 glass-card"
         >
           <v-table density="comfortable" class="premium-table">
             <thead>
@@ -183,7 +183,7 @@
 
         <v-card
           elevation="0"
-          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden"
+          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden glass-card"
         >
           <v-table density="compact" class="glass-table">
             <thead>

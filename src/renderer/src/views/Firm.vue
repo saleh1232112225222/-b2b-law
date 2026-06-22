@@ -21,7 +21,7 @@
           variant="flat"
           height="56"
           size="large"
-          class="rounded-xl px-12 font-weight-black text-white premium-lift"
+          class="rounded-xl px-12 font-weight-black text-white premium-lift premium-btn-gold-gradient"
           :loading="saving"
           @click="handleSave"
         >
@@ -55,24 +55,23 @@
     <v-row v-else class="fill-height">
       <!-- Firm Information Card -->
       <v-col cols="12" md="8">
-        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden mb-6">
+        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden mb-6 glass-card">
           <div class="pa-6 border-b border-gold-alpha d-flex align-center bg-white">
             <LucideIcon name="building" :size="24" class="text-gold me-4" />
             <span class="text-h5 font-weight-black text-pure-black"
               >بيانات الهوية الرسمية للمكتب</span
             >
           </div>
-          <v-card-text class="pa-8">
+          <v-card-text class="pa-8 glass-card">
             <v-form ref="formRef" @submit.prevent="handleSave">
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black"
-                    >اسم المكتب / الكيان القانوني</v-label
+                  <label class="mb-2 font-weight-black text-gold">اسم المكتب / الكيان القانوني</v-label
                   >
                   <v-text-field
                     v-model="editItem.name"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="مكتب المحامي..."
                     :rules="[(v) => !!v || 'الاسم مطلوب']"
                     hide-details="auto"
@@ -84,13 +83,12 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black"
-                    >رقم الترخيص / السجل التجاري</v-label
+                  <label class="mb-2 font-weight-black text-gold">رقم الترخيص / السجل التجاري</v-label
                   >
                   <v-text-field
                     v-model="editItem.license_number"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="رقم الترخيص..."
                     hide-details="auto"
                   >
@@ -101,11 +99,11 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black">العنوان الجغرافي</v-label>
+                  <label class="mb-2 font-weight-black text-gold">العنوان الجغرافي</label>
                   <v-text-field
                     v-model="editItem.address"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="المدينة، الحي، الشارع..."
                     hide-details="auto"
                   >
@@ -116,13 +114,12 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black"
-                    >رقم الهاتف / التواصل</v-label
+                  <label class="mb-2 font-weight-black text-gold">رقم الهاتف / التواصل</v-label
                   >
                   <v-text-field
                     v-model="editItem.phone"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="05xxxxxxx"
                     hide-details="auto"
                   >
@@ -133,13 +130,12 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black"
-                    >البريد الإلكتروني الرسمي</v-label
+                  <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني الرسمي</v-label
                   >
                   <v-text-field
                     v-model="editItem.email"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="office@example.com"
                     hide-details="auto"
                   >
@@ -150,13 +146,12 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <v-label class="mb-3 font-weight-black text-pure-black"
-                    >الموقع الإلكتروني</v-label
+                  <label class="mb-2 font-weight-black text-gold">الموقع الإلكتروني</v-label
                   >
                   <v-text-field
                     v-model="editItem.website"
                     variant="outlined"
-                    class="h-large"
+                    class="h-large glass-input"
                     placeholder="https://www.lawfirm.com"
                     hide-details="auto"
                   >
@@ -173,12 +168,12 @@
 
       <!-- Logo & Branding -->
       <v-col cols="12" md="4">
-        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden mb-6">
+        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden mb-6 glass-card">
           <div class="pa-6 border-b border-gold-alpha d-flex align-center bg-white">
             <LucideIcon name="palette" :size="24" class="text-gold me-4" />
             <span class="text-h5 font-weight-black text-pure-black">الهوية البصرية</span>
           </div>
-          <v-card-text class="pa-8 text-center">
+          <v-card-text class="pa-8 text-center glass-card">
             <div class="mb-6 d-flex flex-column align-center">
               <v-avatar size="180" class="firm-logo-avatar mb-6">
                 <LucideIcon
@@ -199,7 +194,7 @@
                 color="gold"
                 height="56"
                 size="large"
-                class="rounded-xl px-12 font-weight-black text-pure-black premium-button-highlight"
+                class="rounded-xl px-12 font-weight-black text-pure-black premium-button-highlight premium-btn-gold-gradient"
                 @click="handlePickLogo"
               >
                 <LucideIcon name="upload" :size="20" class="me-3" /> تغيير الشعار الملكي
@@ -212,12 +207,12 @@
         </v-card>
 
         <!-- Social Media Links -->
-        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden">
+        <v-card elevation="0" class="bg-white rounded-2xl border-gold-alpha overflow-hidden glass-card">
           <div class="pa-6 border-b border-gold-alpha d-flex align-center bg-white">
             <LucideIcon name="share-2" :size="24" class="text-gold me-4" />
             <span class="text-h5 font-weight-black text-pure-black">التواصل والمنصات</span>
           </div>
-          <v-card-text class="pa-8">
+          <v-card-text class="pa-8 glass-card">
             <v-row dense>
               <v-col cols="12">
                 <v-text-field
@@ -225,7 +220,7 @@
                   label="X (تويتر)"
                   variant="outlined"
                   density="comfortable"
-                  class="mb-3 h-large"
+                  class="mb-3 h-large glass-input"
                   hide-details
                 >
                   <template #prepend-inner>
@@ -239,7 +234,7 @@
                   label="LinkedIn"
                   variant="outlined"
                   density="comfortable"
-                  class="mb-3 h-large"
+                  class="mb-3 h-large glass-input"
                   hide-details
                 >
                   <template #prepend-inner>
@@ -261,7 +256,7 @@
           variant="flat"
           height="64"
           width="400"
-          class="rounded-xl font-weight-black premium-lift text-ebony text-h6"
+          class="rounded-xl font-weight-black premium-lift text-ebony text-h6 premium-btn-gold-gradient"
           :loading="saving"
           @click="handleSave"
         >
@@ -281,7 +276,7 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
       <template #actions>
-        <v-btn variant="text" class="font-weight-black" @click="snackbar = false">فهمت</v-btn>
+        <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="snackbar = false">فهمت</v-btn>
       </template>
     </v-snackbar>
   </v-container>

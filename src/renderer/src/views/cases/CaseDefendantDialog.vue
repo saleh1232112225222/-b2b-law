@@ -8,7 +8,7 @@
     transition="dialog-bottom-transition"
     @update:model-value="$emit('update:modelValue', $event)"
   >
-    <v-card class="glass-card-noir border rounded-xl shadow-premium overflow-hidden">
+    <v-card class="glass-card-noir border rounded-xl shadow-premium overflow-hidden glass-card">
       <v-toolbar color="transparent" class="px-6 border-b" height="72">
         <div class="pa-3 rounded-xl glass-card border-accent me-4">
           <LucideIcon name="user-plus" :size="24" class="text-accent" />
@@ -17,18 +17,18 @@
           >إضافة خصم جديد للمنظومة</v-toolbar-title
         >
         <v-spacer />
-        <v-btn icon variant="tonal" class="rounded-lg" @click="$emit('update:modelValue', false)">
+        <v-btn icon variant="tonal" class="rounded-lg premium-btn-gold-gradient" @click="$emit('update:modelValue', false)">
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </v-toolbar>
-      <v-card-text class="pa-8 bg-transparent">
+      <v-card-text class="pa-8 bg-transparent glass-card">
         <DefendantForm ref="formRef" v-model="defendant" />
       </v-card-text>
       <v-divider class="opacity-10" />
-      <v-card-actions class="pa-6 bg-transparent">
+      <v-card-actions class="pa-6 bg-transparent glass-card">
         <v-btn
           variant="tonal"
-          class="px-6 font-weight-black rounded-xl"
+          class="px-6 font-weight-black rounded-xl premium-btn-gold-gradient"
           @click="$emit('update:modelValue', false)"
           >إلغاء</v-btn
         >
@@ -36,7 +36,7 @@
         <v-btn
           color="primary"
           variant="flat"
-          class="px-10 font-weight-black rounded-xl shadow-premium"
+          class="px-10 font-weight-black rounded-xl shadow-premium premium-btn-gold-gradient"
           :loading="saving"
           @click="onSave"
         >
@@ -50,6 +50,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import DefendantForm from '../../components/DefendantForm.vue'
+import LucideIcon from '../../components/common/LucideIcon.vue'
 
 const props = defineProps<{
   modelValue: boolean

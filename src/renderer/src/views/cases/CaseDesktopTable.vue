@@ -20,7 +20,7 @@
       <v-btn
         variant="text"
         color="accent"
-        class="px-0 font-weight-black text-subtitle-1"
+        class="px-0 font-weight-black text-subtitle-1 premium-btn-gold-gradient"
         :to="'/cases/' + item.id"
       >
         {{ item.case_number }}
@@ -33,7 +33,7 @@
             v-if="getCaseClientId(item)"
             variant="text"
             color="accent"
-            class="px-0 font-weight-bold text-body-2 case-parties-client"
+            class="px-0 font-weight-bold text-body-2 case-parties-client premium-btn-gold-gradient"
             :to="'/clients/' + getCaseClientId(item)"
             density="compact"
           >
@@ -144,7 +144,7 @@
               variant="tonal"
               color="primary"
               size="small"
-              class="rounded-lg glass-card shadow-sm"
+              class="rounded-lg glass-card shadow-sm premium-btn-gold-gradient"
             >
               <LucideIcon name="more-vertical" :size="18" />
             </v-btn>

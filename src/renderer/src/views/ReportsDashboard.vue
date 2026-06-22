@@ -19,7 +19,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover h-100"
+          class="rounded-lg px-6 font-weight-black premium-hover h-100 premium-btn-gold-gradient"
           @click="printPage"
         >
           <LucideIcon name="printer" :size="18" class="me-2" /> طباعة
@@ -27,7 +27,7 @@
         <v-btn
           color="accent"
           variant="flat"
-          class="rounded-lg px-6 font-weight-black premium-lift h-100"
+          class="rounded-lg px-6 font-weight-black premium-lift h-100 premium-btn-gold-gradient"
           @click="exportPdf"
         >
           <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير PDF العام
@@ -36,12 +36,12 @@
     </v-row>
 
     <!-- Main Grid -->
-    <v-card elevation="0" class="glass-card pa-8">
+    <v-card elevation="0" class="glass-card pa-8 glass-card">
       <v-row dense>
         <v-col v-for="report in reportCards" :key="report.path" cols="12" sm="6" md="4" lg="3">
           <v-card
             elevation="0"
-            class="glass-panel-light premium-hover pa-6 rounded-xl border border-gold opacity-10 cursor-pointer h-100 d-flex flex-column"
+            class="glass-panel-light premium-hover pa-6 rounded-xl border border-gold opacity-10 cursor-pointer h-100 d-flex flex-column glass-card"
             @click="$router.push(report.path)"
           >
             <div class="d-flex align-center mb-5">

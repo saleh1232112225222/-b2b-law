@@ -1,11 +1,14 @@
 <template>
   <v-form ref="formRef" v-model="internalFormValid">
     <v-row>
+      <!-- Name -->
       <v-col cols="12">
+        <v-label class="mb-2 font-weight-black">اسم الموكل بالكامل*</v-label>
         <v-text-field
           v-model="modelValue.name"
-          label="اسم الموكل بالكامل*"
+          placeholder="مثال: أحمد محمد علي"
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.ENTITY.CLIENT"
           :rules="[
             (v) => !!v || 'الاسم مطلوب',
@@ -14,43 +17,62 @@
           required
         ></v-text-field>
       </v-col>
+
+      <!-- Type -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">نوع الموكل*</v-label>
         <v-select
           v-model="modelValue.type"
           :items="['فرد', 'شركة', 'مؤسسة', 'جهة حكومية', 'أخرى']"
-          label="نوع الموكل*"
+          placeholder="اختر نوع الموكل..."
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.ENTITY.USER"
           :rules="[(v) => !!v || 'نوع الموكل مطلوب']"
           required
         ></v-select>
       </v-col>
+
+      <!-- ID Number -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">رقم الهوية / السجل التجاري</v-label>
         <v-text-field
           v-model="modelValue.id_number"
-          label="رقم الهوية / السجل التجاري"
+          placeholder="مثال: 1023456789"
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.ID_CARD"
         ></v-text-field>
       </v-col>
+
+      <!-- Phone -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">رقم الهاتف</v-label>
         <v-text-field
           v-model="modelValue.phone"
-          label="رقم الهاتف"
+          placeholder="مثال: 0501234567"
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.PHONE"
         ></v-text-field>
       </v-col>
+
+      <!-- Nationality -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">الجنسية</v-label>
         <v-combobox
           v-model="modelValue.nationality"
           :items="['سعودي', 'مصري', 'سوري', 'أردني', 'يمني', 'سوداني', 'باكستاني', 'هندي', 'أخرى']"
-          label="الجنسية"
+          placeholder="اختر الجنسية أو اكتب..."
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.ENTITY.USER"
         ></v-combobox>
       </v-col>
+
+      <!-- City -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">المدينة</v-label>
         <v-combobox
           v-model="modelValue.city"
           :items="[
@@ -63,41 +85,56 @@
             'نيوم',
             'أخرى'
           ]"
-          label="المدينة"
+          placeholder="اختر المدينة أو اكتب..."
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.MAP_PIN"
         ></v-combobox>
       </v-col>
+
+      <!-- Email -->
       <v-col cols="12" md="6">
+        <v-label class="mb-2 font-weight-black">البريد الإلكتروني</v-label>
         <v-text-field
           v-model="modelValue.email"
-          label="البريد الإلكتروني"
+          placeholder="مثال: client@example.com"
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.EMAIL"
           :rules="[(v) => !v || /.+@.+\..+/.test(v) || 'البريد غير صالح']"
         ></v-text-field>
       </v-col>
+
+      <!-- Address -->
       <v-col cols="12">
+        <v-label class="mb-2 font-weight-black">العنوان</v-label>
         <v-textarea
           v-model="modelValue.address"
-          label="العنوان"
+          placeholder="العنوان التفصيلي (الشارع، الحي، الرمز البريدي)"
           variant="outlined"
           rows="2"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.MAP_PIN"
         ></v-textarea>
       </v-col>
+
+      <!-- Birth Date -->
       <v-col cols="12">
+        <v-label class="mb-2 font-weight-black">تاريخ الميلاد (هجري/ميلادي)</v-label>
         <DualDatePicker
           v-model="modelValue.birth_date"
-          label="تاريخ الميلاد (هجري/ميلادي)"
           :icon="ICONS.UI.BIRTHDAY"
         />
       </v-col>
+
+      <!-- Notes -->
       <v-col cols="12">
+        <v-label class="mb-2 font-weight-black">ملاحظات</v-label>
         <v-text-field
           v-model="modelValue.notes"
-          label="ملاحظات"
+          placeholder="أي ملاحظات إضافية حول الموكل..."
           variant="outlined"
+          class="glass-input"
           :prepend-inner-icon="ICONS.UI.NOTE"
         ></v-text-field>
       </v-col>

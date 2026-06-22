@@ -1,6 +1,6 @@
 ﻿<template>
   <v-container fluid class="activity-log-container pa-6 rtl">
-    <v-card elevation="0" class="glass-card overflow-hidden">
+    <v-card elevation="0" class="glass-card overflow-hidden glass-card">
       <div class="glass-panel d-flex align-center py-4 px-6 border-b">
         <LucideIcon name="history" :size="24" class="text-accent me-3" />
         <span class="text-h5 font-weight-black text-gold">سجل النشاط</span>
@@ -8,7 +8,7 @@
         <v-btn
           variant="text"
           color="gold"
-          class="font-weight-black opacity-70"
+          class="font-weight-black opacity-70 premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-left" :size="18" class="me-2" /> رجوع
@@ -17,14 +17,14 @@
           v-if="canClearLogs"
           color="error"
           variant="tonal"
-          class="rounded-lg ms-2 font-weight-black"
+          class="rounded-lg ms-2 font-weight-black premium-btn-gold-gradient"
           @click="showClearDialog = true"
         >
           <LucideIcon name="trash-2" :size="18" class="me-2" /> تنظيف السجل
         </v-btn>
       </div>
 
-      <v-card-text class="pa-0">
+      <v-card-text class="pa-0 glass-card">
         <!-- Filters Area -->
         <v-expand-transition>
           <div v-if="showFilters" class="filters-panel pa-6 border-b glass-panel-light">
@@ -38,7 +38,7 @@
                   variant="outlined"
                   clearable
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                 ></v-select>
               </v-col>
               <v-col cols="12" sm="2">
@@ -50,7 +50,7 @@
                   variant="outlined"
                   clearable
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                 ></v-select>
               </v-col>
               <v-col cols="12" sm="3">
@@ -60,7 +60,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                   clearable
                 >
                   <template #prepend-inner>
@@ -76,7 +76,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="2">
@@ -87,7 +87,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -95,15 +95,15 @@
               <v-btn
                 variant="text"
                 color="gold"
-                class="me-2 opacity-70 font-weight-black"
+                class="me-2 opacity-70 font-weight-black premium-btn-gold-gradient"
                 @click="resetFilters"
               >
                 إعادة تعيين
               </v-btn>
-              <v-btn color="accent" class="rounded-lg px-6 font-weight-black" @click="loadLogs">
+              <v-btn color="accent" class="rounded-lg px-6 font-weight-black premium-btn-gold-gradient" @click="loadLogs">
                 تطبيق الفلاتر
               </v-btn>
-              <v-btn variant="tonal" color="gold" class="ms-2 font-weight-black" @click="exportPdf">
+              <v-btn variant="tonal" color="gold" class="ms-2 font-weight-black premium-btn-gold-gradient" @click="exportPdf">
                 <LucideIcon name="file-down" :size="18" class="me-2" /> تصدير PDF
               </v-btn>
             </div>
@@ -119,7 +119,7 @@
           <v-btn
             variant="text"
             :color="showFilters ? 'accent' : 'gold'"
-            class="opacity-70"
+            class="opacity-70 premium-btn-gold-gradient"
             @click="showFilters = !showFilters"
           >
             <LucideIcon :name="showFilters ? 'filter-x' : 'filter'" :size="20" />
@@ -205,7 +205,7 @@
                   {{ (log as ActivityLog).entity_name || '---' }}
                 </td>
                 <td class="text-center">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     variant="text"
                     density="comfortable"
                     color="accent"
@@ -230,7 +230,7 @@
               variant="outlined"
               hide-details
               style="width: 140px"
-              class="me-3 glass-input"
+              class="me-3 glass-input glass-input"
             />
             <v-pagination
               v-model="page"
@@ -247,16 +247,16 @@
 
     <!-- Details Modal -->
     <v-dialog v-model="detailsModal" width="90%" max-width="800" persistent scrollable>
-      <v-card class="glass-card overflow-hidden">
+      <v-card class="glass-card overflow-hidden glass-card">
         <div class="glass-panel d-flex align-center pa-4 px-6 border-b">
           <LucideIcon name="search-code" :size="24" class="text-accent me-3" />
           <span class="text-h6 font-weight-black text-gold">تفاصيل النشاط</span>
           <v-spacer></v-spacer>
-          <v-btn variant="text" density="comfortable" color="gold" @click="detailsModal = false">
+          <v-btn class="premium-btn-gold-gradient" variant="text" density="comfortable" color="gold" @click="detailsModal = false">
             <LucideIcon name="x" :size="20" />
           </v-btn>
         </div>
-        <v-card-text class="pa-6 modal-scrollable bg-primary-dark">
+        <v-card-text class="pa-6 modal-scrollable bg-primary-dark glass-card">
           <v-row dense>
             <v-col cols="12" sm="6">
               <div class="detail-row mb-4">
@@ -331,13 +331,13 @@
             >{{ formatMetadata(selectedLog?.metadata_json) }}</pre
           >
         </v-card-text>
-        <v-card-actions class="pa-6 glass-panel">
+        <v-card-actions class="pa-6 glass-panel glass-card">
           <v-btn
             color="accent"
             block
             variant="flat"
             height="48"
-            class="font-weight-black rounded-lg"
+            class="font-weight-black rounded-lg premium-btn-gold-gradient"
             @click="detailsModal = false"
             >إغلاق النافذة</v-btn
           >
@@ -347,12 +347,12 @@
 
     <!-- Clear Dialog -->
     <v-dialog v-model="showClearDialog" width="90%" max-width="500" persistent>
-      <v-card class="glass-card overflow-hidden">
+      <v-card class="glass-card overflow-hidden glass-card">
         <div class="bg-error pa-4 text-white d-flex align-center">
           <LucideIcon name="alert-triangle" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تأكيد تطهير السجلات</span>
         </div>
-        <v-card-text class="pa-8 text-center bg-primary-dark">
+        <v-card-text class="pa-8 text-center bg-primary-dark glass-card">
           <LucideIcon name="history" :size="64" class="text-error opacity-20 mb-4" />
           <p class="text-h6 font-weight-black text-white mb-2">أنت على وشك حذف السجلات نهائياً</p>
           <p class="text-body-2 text-gold opacity-70 mb-6 leading-relaxed">
@@ -366,18 +366,18 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input text-right"
+            class="glass-input text-right glass-input"
             autocomplete="off"
           />
         </v-card-text>
         <v-divider class="border-gold opacity-10"></v-divider>
-        <v-card-actions class="pa-6 bg-primary-dark d-flex flex-column gap-3">
+        <v-card-actions class="pa-6 bg-primary-dark d-flex flex-column gap-3 glass-card">
           <v-btn
             color="error"
             variant="flat"
             block
             height="52"
-            class="rounded-lg font-weight-black"
+            class="rounded-lg font-weight-black premium-btn-gold-gradient"
             :disabled="clearConfirm.trim() !== 'حذف' && clearConfirm.trim() !== 'DELETE'"
             @click="clearLogs"
           >
@@ -387,7 +387,7 @@
             variant="text"
             block
             height="48"
-            class="rounded-lg text-gold opacity-50 font-weight-black"
+            class="rounded-lg text-gold opacity-50 font-weight-black premium-btn-gold-gradient"
             @click="showClearDialog = false"
           >
             إلغاء وتراجع

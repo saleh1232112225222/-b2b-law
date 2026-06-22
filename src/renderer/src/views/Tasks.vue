@@ -1,552 +1,564 @@
 <template>
   <v-container fluid class="pa-6 pb-12 tasks-container">
-    <v-fade-transition hide-on-leave>
-      <div v-if="!pageLoading">
-        <!-- Header -->
-        <v-row dense class="mb-8 align-center px-4">
-          <v-col>
-            <div class="d-flex align-center">
-              <div
-                class="header-icon-box pa-4 rounded-xl glass-card-noir border-accent me-4 shadow-premium"
-              >
-                <LucideIcon name="clipboard-check" :size="32" class="text-accent" />
-              </div>
-              <div>
-                <h1 class="text-h5 font-weight-black text-gold tracking-tight">
-                  نظام المهام التنفيذية
-                </h1>
-                <p class="text-subtitle-1 text-gold opacity-60 font-weight-bold mt-1">
-                  تتبع، إسناد، ومراقبة سير العمليات القانونية والإدارية اليومية
-                </p>
-              </div>
-            </div>
-          </v-col>
-          <v-col cols="12" md="auto" class="d-flex justify-md-end">
-            <v-btn
-              color="primary"
-              variant="flat"
-              size="large"
-              class="font-weight-black rounded-xl px-8 shadow-premium premium-btn-glow w-100 w-md-auto"
-              height="56"
-              @click="openAddDialog"
-            >
-              <LucideIcon name="plus-circle" :size="20" class="me-2" />
-              إضافة مهمة تشغيلية
-            </v-btn>
-          </v-col>
-        </v-row>
-
-        <TaskStatsCards :stats="store.stats" :loading="store.loading" />
-
-        <!-- Search & Filters -->
-        <TaskFilterBar
-          v-model:search="search"
-          v-model:filter-status="filterStatus"
-          v-model:responsible-user-id="store.responsibleUserId"
-          :status-items="statusItems"
-          :assignable-users="assignableUsers"
-          :assignable-users-loading="assignableUsersLoading"
-          :loading="store.loading"
-          @refresh="store.refresh"
-        />
-
-        <!-- Priority Kanban-ish View -->
-        <v-row class="transition-all min-h-500">
-          <v-col v-for="priority in store.PRIORITIES" :key="priority" cols="12" md="4">
-            <v-card
-              elevation="0"
-              class="rounded-xl glass-card-noir border shadow-premium overflow-hidden h-100 d-flex flex-column border-top-accent"
-            >
-              <div
-                class="kanban-header pa-4 d-flex align-center justify-space-between"
-                :class="getHeaderBgClass(priority)"
-              >
-                <div class="d-flex align-center">
-                  <LucideIcon name="flame" :size="20" class="me-2 text-pure-black" />
-                  <span class="text-pure-black text-subtitle-2 font-weight-black"
-                    >أولوية {{ priority }}</span
-                  >
-                </div>
-                <v-chip
-                  size="x-small"
-                  color="white"
-                  class="font-weight-black text-pure-black px-3 rounded-lg"
-                  variant="flat"
-                >
-                  {{ safeLength(getTasksByPriority(priority)) }} /
-                  {{ store.totalByPriority[priority] }} مهمة
-                </v-chip>
-              </div>
-
-              <v-card-text class="pa-4 flex-grow-1 bg-noir-surface overflow-y-auto">
-                <v-skeleton-loader
-                  v-for="n in 3"
-                  v-if="store.loadingByPriority[priority]"
-                  :key="n"
-                  type="list-item-three-line"
-                  class="rounded-xl mb-3 border"
-                ></v-skeleton-loader>
-
+    <MobileTasks
+      v-if="isMobile"
+      :items="mobileTasks"
+      :loading="store.loading"
+      @edit="openEditDialog"
+      @add="openAddDialog"
+    />
+    <template v-else>
+      <v-fade-transition hide-on-leave>
+        <div v-if="!pageLoading">
+          <!-- Header -->
+          <v-row dense class="mb-8 align-center px-4">
+            <v-col>
+              <div class="d-flex align-center">
                 <div
-                  v-else-if="safeLength(getTasksByPriority(priority)) === 0"
-                  class="text-center pa-10 text-grey-lighten-1 d-flex flex-column align-center"
+                  class="header-icon-box pa-4 rounded-xl glass-card-noir border-accent me-4 shadow-premium"
                 >
-                  <v-avatar color="white" size="80" class="mb-4 shadow-sm border bg-primary-alpha">
-                    <LucideIcon name="clipboard-check" :size="40" class="text-primary" />
-                  </v-avatar>
-                  <div class="text-caption font-weight-black text-primary">
-                    أنجزت جميع المهام لهذا المسار
-                  </div>
+                  <LucideIcon name="clipboard-check" :size="32" class="text-accent" />
                 </div>
-
-                <TaskCard
-                  v-for="task in safeArray(getTasksByPriority(priority))"
-                  v-else
-                  :key="task.id"
-                  :task="task"
-                  :can-cancel="canCancel"
-                  :can-close="canClose"
-                  :can-archive="canArchive"
-                  :can-reopen="canReopen"
-                  @edit="openEditDialog($event)"
-                  @complete="confirmComplete($event)"
-                  @cancel="openActionDialog('cancel', $event)"
-                  @close="openActionDialog('close', $event)"
-                  @archive="archiveTask($event)"
-                  @reopen="openActionDialog('reopen', $event)"
-                />
-
-                <div v-if="store.hasMore(priority)" class="d-flex justify-center pt-2">
-                  <v-btn
-                    variant="tonal"
-                    color="primary"
-                    class="rounded-xl shadow-premium glass-card px-5"
-                    :loading="store.loadingByPriority[priority]"
-                    @click="store.loadMore(priority)"
-                  >
-                    <LucideIcon name="plus" :size="18" class="me-2" />
-                    <span class="font-weight-black">تحميل المزيد</span>
-                  </v-btn>
+                <div>
+                  <h1 class="text-h5 font-weight-black text-gold tracking-tight">
+                    نظام المهام التنفيذية
+                  </h1>
+                  <p class="text-subtitle-1 text-gold opacity-60 font-weight-bold mt-1">
+                    تتبع، إسناد، ومراقبة سير العمليات القانونية والإدارية اليومية
+                  </p>
                 </div>
-              </v-card-text>
-            </v-card>
-          </v-col>
-        </v-row>
-
-        <!-- Dialogs -->
-        <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
-          <v-card class="rounded-xl elevation-24 overflow-hidden modal-card">
-            <v-toolbar color="white" class="px-6 border-b" height="72">
-              <div class="pa-2 rounded-lg bg-accent-alpha me-4">
-                <LucideIcon
-                  :name="isEditing ? 'pencil' : 'list-plus'"
-                  :size="24"
-                  class="text-pure-black"
-                />
               </div>
-              <v-toolbar-title class="font-weight-black text-pure-black">
-                {{
-                  isEditing ? 'تعديل تفاصيل المهمة التشغيلية' : 'إسناد مهمة قانونية أو إدارية جديدة'
-                }}
-              </v-toolbar-title>
-              <v-spacer></v-spacer>
-              <v-btn icon variant="text" color="black" @click="showDialog = false">
-                <LucideIcon name="x" :size="24" />
+            </v-col>
+            <v-col cols="12" md="auto" class="d-flex justify-md-end">
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="large"
+                class="font-weight-black rounded-xl px-8 shadow-premium premium-btn-glow w-100 w-md-auto premium-btn-gold-gradient"
+                height="56"
+                @click="openAddDialog"
+              >
+                <LucideIcon name="plus-circle" :size="20" class="me-2" />
+                إضافة مهمة تشغيلية
               </v-btn>
-            </v-toolbar>
+            </v-col>
+          </v-row>
 
-            <v-card-text class="pa-8 bg-white modal-scrollable">
-              <v-form ref="formRef" v-model="formValid">
-                <v-row>
-                  <v-col cols="12">
-                    <v-card
+          <TaskStatsCards :stats="store.stats" :loading="store.loading" />
+
+          <!-- Search & Filters -->
+          <TaskFilterBar
+            v-model:search="search"
+            v-model:filter-status="filterStatus"
+            v-model:responsible-user-id="store.responsibleUserId"
+            :status-items="statusItems"
+            :assignable-users="safeArray(assignableUsers)"
+            :assignable-users-loading="assignableUsersLoading"
+            :loading="store.loading"
+            @refresh="store.refresh"
+          />
+
+          <!-- Priority Kanban-ish View -->
+          <v-row class="transition-all min-h-500">
+            <v-col v-for="priority in store.PRIORITIES" :key="priority" cols="12" md="4">
+              <v-card
+                elevation="0"
+                class="rounded-xl glass-card-noir border shadow-premium overflow-hidden h-100 d-flex flex-column border-top-accent glass-card"
+              >
+                <div
+                  class="kanban-header pa-4 d-flex align-center justify-space-between"
+                  :class="getHeaderBgClass(priority)"
+                >
+                  <div class="d-flex align-center">
+                    <LucideIcon name="flame" :size="20" class="me-2 text-pure-black" />
+                    <span class="text-pure-black text-subtitle-2 font-weight-black"
+                      >أولوية {{ priority }}</span
+                    >
+                  </div>
+                  <v-chip
+                    size="x-small"
+                    color="white"
+                    class="font-weight-black text-pure-black px-3 rounded-lg"
+                    variant="flat"
+                  >
+                    {{ safeLength(getTasksByPriority(priority)) }} /
+                    {{ store.totalByPriority[priority] }} مهمة
+                  </v-chip>
+                </div>
+
+                <v-card-text class="pa-4 flex-grow-1 bg-noir-surface overflow-y-auto glass-card">
+                  <v-skeleton-loader
+                    v-for="n in 3"
+                    v-if="store.loadingByPriority[priority]"
+                    :key="n"
+                    type="list-item-three-line"
+                    class="rounded-xl mb-3 border"
+                  ></v-skeleton-loader>
+
+                  <div
+                    v-else-if="safeLength(getTasksByPriority(priority)) === 0"
+                    class="text-center pa-10 text-grey-lighten-1 d-flex flex-column align-center"
+                  >
+                    <v-avatar
+                      color="white"
+                      size="80"
+                      class="mb-4 shadow-sm border bg-primary-alpha"
+                    >
+                      <LucideIcon name="clipboard-check" :size="40" class="text-primary" />
+                    </v-avatar>
+                    <div class="text-caption font-weight-black text-primary">
+                      أنجزت جميع المهام لهذا المسار
+                    </div>
+                  </div>
+
+                  <TaskCard
+                    v-for="task in safeArray(getTasksByPriority(priority))"
+                    v-else
+                    :key="task.id"
+                    :task="task"
+                    :can-cancel="canCancel"
+                    :can-close="canClose"
+                    :can-archive="canArchive"
+                    :can-reopen="canReopen"
+                    @edit="openEditDialog($event)"
+                    @complete="confirmComplete($event)"
+                    @cancel="openActionDialog('cancel', $event)"
+                    @close="openActionDialog('close', $event)"
+                    @archive="archiveTask($event)"
+                    @reopen="openActionDialog('reopen', $event)"
+                  />
+
+                  <div v-if="store.hasMore(priority)" class="d-flex justify-center pt-2">
+                    <v-btn
                       variant="tonal"
                       color="primary"
-                      class="rounded-xl pa-5 border-dashed-primary overflow-hidden"
+                      class="rounded-xl shadow-premium glass-card px-5 premium-btn-gold-gradient"
+                      :loading="store.loadingByPriority[priority]"
+                      @click="store.loadMore(priority)"
                     >
-                      <v-label
-                        class="mb-4 font-weight-black text-pure-black h5 d-flex align-center"
-                      >
-                        <LucideIcon name="link-2" :size="20" class="text-primary me-2" />
-                        إستراتيجية الربط والارتباط
-                      </v-label>
-                      <v-btn-toggle
-                        v-model="editItem.link_type"
+                      <LucideIcon name="plus" :size="18" class="me-2" />
+                      <span class="font-weight-black">تحميل المزيد</span>
+                    </v-btn>
+                  </div>
+                </v-card-text>
+              </v-card>
+            </v-col>
+          </v-row>
+
+          <!-- Dialogs -->
+          <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
+            <v-card class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
+              <v-toolbar color="white" class="px-6 border-b" height="72">
+                <div class="pa-2 rounded-lg bg-accent-alpha me-4">
+                  <LucideIcon
+                    :name="isEditing ? 'pencil' : 'list-plus'"
+                    :size="24"
+                    class="text-pure-black"
+                  />
+                </div>
+                <v-toolbar-title class="font-weight-black text-pure-black">
+                  {{
+                    isEditing
+                      ? 'تعديل تفاصيل المهمة التشغيلية'
+                      : 'إسناد مهمة قانونية أو إدارية جديدة'
+                  }}
+                </v-toolbar-title>
+                <v-spacer></v-spacer>
+                <v-btn class="premium-btn-gold-gradient" icon variant="text" color="black" @click="showDialog = false">
+                  <LucideIcon name="x" :size="24" />
+                </v-btn>
+              </v-toolbar>
+
+              <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
+                <v-form ref="formRef" v-model="formValid">
+                  <v-row>
+                    <v-col cols="12">
+                      <v-card
+                        variant="tonal"
                         color="primary"
-                        variant="flat"
-                        class="rounded-xl w-100 shadow-sm overflow-hidden mb-4 border d-flex"
-                        mandatory
-                        @update:model-value="
-                          () => ensureLinkOptionsLoaded(String(editItem.link_type || ''))
-                        "
+                        class="rounded-xl pa-5 border-dashed-primary overflow-hidden glass-card"
                       >
-                        <v-btn
-                          value="case"
-                          class="flex-grow-1 font-weight-black border-e text-pure-black"
-                          height="48"
-                          >مرتبط بقضية</v-btn
+                        <label class="mb-2 font-weight-black text-gold">
+                          <LucideIcon name="link-2" :size="20" class="text-primary me-2" />
+                          إستراتيجية الربط والارتباط
+                        </label>
+                        <v-btn-toggle
+                          v-model="editItem.link_type"
+                          color="primary"
+                          variant="flat"
+                          class="rounded-xl w-100 shadow-sm overflow-hidden mb-4 border d-flex premium-btn-gold-gradient"
+                          mandatory
+                          @update:model-value="
+                            () => ensureLinkOptionsLoaded(String(editItem.link_type || ''))
+                          "
                         >
-                        <v-btn
-                          value="client"
-                          class="flex-grow-1 font-weight-black border-e text-pure-black"
-                          height="48"
-                          >مرتبط بموكل</v-btn
-                        >
-                        <v-btn
-                          value="none"
-                          class="flex-grow-1 font-weight-black text-pure-black"
-                          height="48"
-                          >مهمة عامة</v-btn
-                        >
-                      </v-btn-toggle>
-
-                      <v-expand-transition>
-                        <div class="mt-4" style="min-height: 85px">
-                          <div v-if="editItem.link_type === 'case'">
-                            <v-label class="mb-2 font-weight-black text-pure-black"
-                              >اختيار ملف القضية المستهدف*</v-label
-                            >
-                            <v-autocomplete
-                              v-model="editItem.case_id"
-                              :items="safeArray(caseOptions)"
-                              item-title="display"
-                              item-value="id"
-                              variant="outlined"
-                              class="premium-select"
-                              no-data-text="لا يوجد قضايا حالياً"
-                              :rules="[(v) => !!v || 'القضية مطلوبة']"
-                              :custom-filter="arabicFilter"
-                              clearable
-                            >
-                              <template #prepend-inner>
-                                <LucideIcon name="gavel" :size="20" class="text-primary me-2" />
-                              </template>
-                            </v-autocomplete>
-                          </div>
-                          <div v-else-if="editItem.link_type === 'client'">
-                            <v-label class="mb-2 font-weight-black text-pure-black"
-                              >اختيار الموكل المسؤول*</v-label
-                            >
-                            <v-autocomplete
-                              v-model="editItem.client_id"
-                              :items="safeArray(clientOptions)"
-                              item-title="name"
-                              item-value="id"
-                              variant="outlined"
-                              class="premium-select"
-                              no-data-text="لا يوجد عملاء مسجلين"
-                              :rules="[(v) => !!v || 'العميل مطلوب']"
-                              :custom-filter="arabicFilter"
-                              clearable
-                            >
-                              <template #prepend-inner>
-                                <LucideIcon name="user-cog" :size="20" class="text-primary me-2" />
-                              </template>
-                            </v-autocomplete>
-                          </div>
-                          <div v-else-if="editItem.link_type === 'none'">
-                            <v-row dense>
-                              <v-col cols="12" md="8">
-                                <v-label class="mb-2 font-weight-black text-pure-black"
-                                  >جهة التنفيذ المستهدفة</v-label
-                                >
-                                <v-text-field
-                                  v-model="editItem.external_name"
-                                  variant="outlined"
-                                  class="premium-select"
-                                  placeholder="مثال: المحكمة الكبرى، مكتب الخبير، البريد..."
-                                >
-                                  <template #prepend-inner>
-                                    <LucideIcon
-                                      name="landmark"
-                                      :size="20"
-                                      class="text-primary me-2"
-                                    />
-                                  </template>
-                                </v-text-field>
-                              </v-col>
-                              <v-col cols="12" md="4">
-                                <v-select
-                                  v-model="editItem.owner_type"
-                                  :items="[
-                                    { title: 'مهمة داخلية للمكتب', value: 'office' },
-                                    { title: 'مهمة متابعة خارجية', value: 'external' }
-                                  ]"
-                                  label="نطاق المهمة"
-                                  variant="outlined"
-                                ></v-select>
-                              </v-col>
-                            </v-row>
-                          </div>
-                        </div>
-                      </v-expand-transition>
-                    </v-card>
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-label class="mb-2 font-weight-black text-pure-black">مسؤول المهمة</v-label>
-                    <v-select
-                      v-model="editItem.responsible_user_id"
-                      :items="assignableUsers"
-                      :item-title="getUserDisplayName"
-                      item-value="id"
-                      variant="outlined"
-                      class="premium-select"
-                      clearable
-                      :loading="assignableUsersLoading"
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="user-cog" :size="20" class="text-primary me-2" />
-                      </template>
-                    </v-select>
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >عنوان المهمة التشغيلي*</v-label
-                    >
-                    <v-text-field
-                      v-model="editItem.title"
-                      placeholder="مثال: تقديم لائحة جوابية، استخراج صك اعالة..."
-                      variant="outlined"
-                      class="premium-select"
-                      :rules="[(v) => !!v || 'عنوان المهمة مطلوب']"
-                      required
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="bookmark" :size="20" class="text-primary me-2" />
-                      </template>
-                    </v-text-field>
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >تفاصيل التنفيذ والملاحظات</v-label
-                    >
-                    <v-textarea
-                      v-model="editItem.description"
-                      variant="outlined"
-                      class="premium-select"
-                      rows="2"
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="file-search" :size="20" class="text-primary me-2" />
-                      </template>
-                    </v-textarea>
-                  </v-col>
-
-                  <v-col cols="12" md="6">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >درجة الاستعجال*</v-label
-                    >
-                    <v-select
-                      v-model="editItem.priority"
-                      :items="['عالية', 'متوسطة', 'منخفضة']"
-                      variant="outlined"
-                      class="premium-select"
-                      required
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="flame" :size="20" class="text-primary me-2" />
-                      </template>
-                    </v-select>
-                  </v-col>
-                  <v-col cols="12" md="6">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >موعد التسليم النهائي*</v-label
-                    >
-                    <DualDatePicker v-model="editItem.due_date" />
-                  </v-col>
-
-                  <v-col cols="12">
-                    <v-card
-                      variant="flat"
-                      class="rounded-xl pa-5 border bg-white shadow-sm overflow-hidden"
-                    >
-                      <v-label class="mb-4 font-weight-black text-pure-black d-flex align-center">
-                        <LucideIcon name="clipboard-check" :size="20" class="text-success me-2" />
-                        مخرجات العمل
-                      </v-label>
-
-                      <div
-                        v-if="!editItem.id"
-                        class="text-caption font-weight-black text-grey-darken-2"
-                      >
-                        احفظ المهمة أولاً لإضافة مخرجات العمل
-                      </div>
-
-                      <div v-else>
-                        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
                           <v-btn
-                            color="success"
-                            variant="flat"
-                            class="font-weight-black rounded-xl px-6 shadow-premium"
-                            :loading="taskDocsUploading"
-                            @click="uploadWorkOutput"
+                            value="case"
+                            class="flex-grow-1 font-weight-black border-e text-pure-black premium-btn-gold-gradient"
+                            height="48"
+                            >مرتبط بقضية</v-btn
                           >
-                            <LucideIcon name="upload" :size="18" class="me-2" />
-                            رفع مستند للمهمة
-                          </v-btn>
-
-                          <v-chip
-                            size="small"
-                            color="success"
-                            variant="tonal"
-                            class="font-weight-black rounded-lg"
+                          <v-btn
+                            value="client"
+                            class="flex-grow-1 font-weight-black border-e text-pure-black premium-btn-gold-gradient"
+                            height="48"
+                            >مرتبط بموكل</v-btn
                           >
-                            {{ safeLength(taskDocuments) }} مستند
-                          </v-chip>
-                        </div>
+                          <v-btn
+                            value="none"
+                            class="flex-grow-1 font-weight-black text-pure-black premium-btn-gold-gradient"
+                            height="48"
+                            >مهمة عامة</v-btn
+                          >
+                        </v-btn-toggle>
 
-                        <v-skeleton-loader
-                          v-if="taskDocsLoading"
-                          class="mt-4"
-                          type="list-item-two-line, list-item-two-line"
-                        />
-
-                        <div
-                          v-else-if="safeLength(taskDocuments) === 0"
-                          class="mt-4 text-caption font-weight-black text-grey-darken-2"
-                        >
-                          لا توجد مخرجات عمل مرتبطة بهذه المهمة
-                        </div>
-
-                        <v-list v-else class="mt-4 rounded-xl border" density="compact">
-                          <v-list-item v-for="doc in safeArray(taskDocuments)" :key="doc.id">
-                            <v-list-item-title class="font-weight-black">{{
-                              doc.name
-                            }}</v-list-item-title>
-                            <v-list-item-subtitle class="font-weight-bold">{{
-                              doc.created_at ? formatDate(String(doc.created_at)) : ''
-                            }}</v-list-item-subtitle>
-                            <template #append>
-                              <v-btn
-                                icon
-                                size="x-small"
-                                variant="tonal"
-                                color="primary"
-                                class="rounded-lg"
-                                @click="openWorkOutput(doc)"
+                        <v-expand-transition>
+                          <div class="mt-4" style="min-height: 85px">
+                            <div v-if="editItem.link_type === 'case'">
+                              <label class="mb-2 font-weight-black text-gold">اختيار ملف القضية المستهدف*</v-label
                               >
-                                <LucideIcon name="external-link" :size="14" />
-                              </v-btn>
-                            </template>
-                          </v-list-item>
-                        </v-list>
-                      </div>
-                    </v-card>
-                  </v-col>
+                              <v-autocomplete
+                                v-model="editItem.case_id"
+                                :items="safeArray(caseOptions)"
+                                item-title="display"
+                                item-value="id"
+                                variant="outlined"
+                                class="premium-select glass-input"
+                                no-data-text="لا يوجد قضايا حالياً"
+                                :rules="[(v) => !!v || 'القضية مطلوبة']"
+                                :custom-filter="arabicFilter"
+                                clearable
+                              >
+                                <template #prepend-inner>
+                                  <LucideIcon name="gavel" :size="20" class="text-primary me-2" />
+                                </template>
+                              </v-autocomplete>
+                            </div>
+                            <div v-else-if="editItem.link_type === 'client'">
+                              <label class="mb-2 font-weight-black text-gold">اختيار الموكل المسؤول*</v-label
+                              >
+                              <v-autocomplete
+                                v-model="editItem.client_id"
+                                :items="safeArray(clientOptions)"
+                                item-title="name"
+                                item-value="id"
+                                variant="outlined"
+                                class="premium-select glass-input"
+                                no-data-text="لا يوجد عملاء مسجلين"
+                                :rules="[(v) => !!v || 'العميل مطلوب']"
+                                :custom-filter="arabicFilter"
+                                clearable
+                              >
+                                <template #prepend-inner>
+                                  <LucideIcon
+                                    name="user-cog"
+                                    :size="20"
+                                    class="text-primary me-2"
+                                  />
+                                </template>
+                              </v-autocomplete>
+                            </div>
+                            <div v-else-if="editItem.link_type === 'none'">
+                              <v-row dense>
+                                <v-col cols="12" md="8">
+                                  <label class="mb-2 font-weight-black text-gold">جهة التنفيذ المستهدفة</v-label
+                                  >
+                                  <v-text-field
+                                    v-model="editItem.external_name"
+                                    variant="outlined"
+                                    class="premium-select glass-input"
+                                    placeholder="مثال: المحكمة الكبرى، مكتب الخبير، البريد..."
+                                  >
+                                    <template #prepend-inner>
+                                      <LucideIcon
+                                        name="landmark"
+                                        :size="20"
+                                        class="text-primary me-2"
+                                      />
+                                    </template>
+                                  </v-text-field>
+                                </v-col>
+                                <v-col cols="12" md="4">
+                                  <v-select class="glass-input"
+                                    v-model="editItem.owner_type"
+                                    :items="[
+                                      { title: 'مهمة داخلية للمكتب', value: 'office' },
+                                      { title: 'مهمة متابعة خارجية', value: 'external' }
+                                    ]"
+                                    label="نطاق المهمة"
+                                    variant="outlined"
+                                  ></v-select>
+                                </v-col>
+                              </v-row>
+                            </div>
+                          </div>
+                        </v-expand-transition>
+                      </v-card>
+                    </v-col>
 
-                  <v-col v-if="canViewTaskAudit" cols="12">
-                    <v-card
-                      variant="flat"
-                      class="rounded-xl pa-5 border bg-white shadow-sm overflow-hidden"
-                    >
-                      <v-label class="mb-4 font-weight-black text-pure-black d-flex align-center">
-                        <LucideIcon name="shield-check" :size="20" class="text-primary me-2" />
-                        سجل التدقيق
-                      </v-label>
-
-                      <div
-                        v-if="!editItem.id"
-                        class="text-caption font-weight-black text-grey-darken-2"
+                    <v-col cols="12" md="6">
+                      <label class="mb-2 font-weight-black text-gold">مسؤول المهمة</label>
+                      <v-select
+                        v-model="editItem.responsible_user_id"
+                        :items="assignableUsers"
+                        :item-title="getUserDisplayName"
+                        item-value="id"
+                        variant="outlined"
+                        class="premium-select glass-input"
+                        clearable
+                        :loading="assignableUsersLoading"
                       >
-                        احفظ المهمة أولاً لعرض سجل التدقيق
-                      </div>
+                        <template #prepend-inner>
+                          <LucideIcon name="user-cog" :size="20" class="text-primary me-2" />
+                        </template>
+                      </v-select>
+                    </v-col>
 
-                      <div v-else>
-                        <v-skeleton-loader
-                          v-if="taskAuditLoading"
-                          class="mt-2"
-                          type="list-item-two-line, list-item-two-line"
-                        />
+                    <v-col cols="12">
+                      <label class="mb-2 font-weight-black text-gold">عنوان المهمة التشغيلي*</v-label
+                      >
+                      <v-text-field
+                        v-model="editItem.title"
+                        placeholder="مثال: تقديم لائحة جوابية، استخراج صك اعالة..."
+                        variant="outlined"
+                        class="premium-select glass-input"
+                        :rules="[(v) => !!v || 'عنوان المهمة مطلوب']"
+                        required
+                      >
+                        <template #prepend-inner>
+                          <LucideIcon name="bookmark" :size="20" class="text-primary me-2" />
+                        </template>
+                      </v-text-field>
+                    </v-col>
+
+                    <v-col cols="12">
+                      <label class="mb-2 font-weight-black text-gold">تفاصيل التنفيذ والملاحظات</v-label
+                      >
+                      <v-textarea
+                        v-model="editItem.description"
+                        variant="outlined"
+                        class="premium-select"
+                        rows="2"
+                      >
+                        <template #prepend-inner>
+                          <LucideIcon name="file-search" :size="20" class="text-primary me-2" />
+                        </template>
+                      </v-textarea>
+                    </v-col>
+
+                    <v-col cols="12" md="6">
+                      <label class="mb-2 font-weight-black text-gold">درجة الاستعجال*</v-label
+                      >
+                      <v-select
+                        v-model="editItem.priority"
+                        :items="['عالية', 'متوسطة', 'منخفضة']"
+                        variant="outlined"
+                        class="premium-select glass-input"
+                        required
+                      >
+                        <template #prepend-inner>
+                          <LucideIcon name="flame" :size="20" class="text-primary me-2" />
+                        </template>
+                      </v-select>
+                    </v-col>
+                    <v-col cols="12" md="6">
+                      <label class="mb-2 font-weight-black text-gold">موعد التسليم النهائي*</v-label
+                      >
+                      <DualDatePicker v-model="editItem.due_date" />
+                    </v-col>
+
+                    <v-col cols="12">
+                      <v-card
+                        variant="flat"
+                        class="rounded-xl pa-5 border bg-white shadow-sm overflow-hidden glass-card"
+                      >
+                        <label class="mb-2 font-weight-black text-gold">
+                          <LucideIcon name="clipboard-check" :size="20" class="text-success me-2" />
+                          مخرجات العمل
+                        </label>
 
                         <div
-                          v-else-if="safeLength(taskAuditItems) === 0"
+                          v-if="!editItem.id"
                           class="text-caption font-weight-black text-grey-darken-2"
                         >
-                          لا توجد سجلات تدقيق لهذه المهمة
+                          احفظ المهمة أولاً لإضافة مخرجات العمل
                         </div>
 
-                        <v-list v-else class="mt-3 rounded-xl border" density="compact">
-                          <v-list-item v-for="row in safeArray(taskAuditItems)" :key="row.id">
-                            <v-list-item-title class="font-weight-black">
-                              {{ auditActionLabel(String(row.action_key || '')) }}
-                              <span v-if="row.actor_name"> — {{ row.actor_name }}</span>
-                            </v-list-item-title>
-                            <v-list-item-subtitle class="font-weight-bold">
-                              {{ row.created_at ? formatDate(String(row.created_at)) : '' }}
-                              <span v-if="auditStatusText(row)"> — {{ auditStatusText(row) }}</span>
-                            </v-list-item-subtitle>
-                          </v-list-item>
-                        </v-list>
-                      </div>
-                    </v-card>
-                  </v-col>
-                </v-row>
-              </v-form>
-            </v-card-text>
+                        <div v-else>
+                          <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                            <v-btn
+                              color="success"
+                              variant="flat"
+                              class="font-weight-black rounded-xl px-6 shadow-premium premium-btn-gold-gradient"
+                              :loading="taskDocsUploading"
+                              @click="uploadWorkOutput"
+                            >
+                              <LucideIcon name="upload" :size="18" class="me-2" />
+                              رفع مستند للمهمة
+                            </v-btn>
 
-            <v-divider></v-divider>
-            <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
-              <v-btn
-                variant="outlined"
-                color="gold"
-                size="large"
-                class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
-                @click="showDialog = false"
-                >إلغاء</v-btn
-              >
-              <v-spacer></v-spacer>
-              <v-btn
-                variant="outlined"
-                color="gold"
-                size="large"
-                class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
-                :disabled="!formValid"
-                :loading="saving"
-                @click="handleSave"
-              >
-                {{ isEditing ? 'تحديث المهمة' : 'اعتماد الإحالة' }}
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
+                            <v-chip
+                              size="small"
+                              color="success"
+                              variant="tonal"
+                              class="font-weight-black rounded-lg"
+                            >
+                              {{ safeLength(taskDocuments) }} مستند
+                            </v-chip>
+                          </div>
 
-        <!-- Success Snackbar -->
-        <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="pill" elevation="12">
-          <div class="d-flex align-center">
-            <LucideIcon
-              :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
-              :size="20"
-              class="me-2"
-            />
-            <span class="font-weight-black">{{ snackbarText }}</span>
-          </div>
-        </v-snackbar>
+                          <v-skeleton-loader
+                            v-if="taskDocsLoading"
+                            class="mt-4"
+                            type="list-item-two-line, list-item-two-line"
+                          />
 
-        <ConfirmDialog
-          v-model="confirmDialog.show"
-          :title="confirmDialog.title"
-          :message="confirmDialog.message"
-          :color="confirmDialog.color"
-          :confirm-button-color="confirmDialog.confirmButtonColor"
-          :icon="confirmDialog.icon"
-          :confirm-text="confirmDialog.confirmText"
-          :cancel-text="confirmDialog.cancelText"
-          :loading="confirmDialog.loading"
-          @confirm="confirmDialog.action"
-        />
+                          <div
+                            v-else-if="safeLength(taskDocuments) === 0"
+                            class="mt-4 text-caption font-weight-black text-grey-darken-2"
+                          >
+                            لا توجد مخرجات عمل مرتبطة بهذه المهمة
+                          </div>
 
-        <TaskActionDialog
-          v-model="actionDialog.show"
-          :title="actionDialogTitle"
-          :label="actionDialogLabel"
-          :loading="actionDialog.loading"
-          @confirm="confirmActionDialog"
-        />
-      </div>
-    </v-fade-transition>
+                          <v-list v-else class="mt-4 rounded-xl border" density="compact">
+                            <v-list-item v-for="doc in safeArray(taskDocuments)" :key="doc.id">
+                              <v-list-item-title class="font-weight-black">{{
+                                doc.name
+                              }}</v-list-item-title>
+                              <v-list-item-subtitle class="font-weight-bold">{{
+                                doc.created_at ? formatDate(String(doc.created_at)) : ''
+                              }}</v-list-item-subtitle>
+                              <template #append>
+                                <v-btn
+                                  icon
+                                  size="x-small"
+                                  variant="tonal"
+                                  color="primary"
+                                  class="rounded-lg premium-btn-gold-gradient"
+                                  @click="openWorkOutput(doc)"
+                                >
+                                  <LucideIcon name="external-link" :size="14" />
+                                </v-btn>
+                              </template>
+                            </v-list-item>
+                          </v-list>
+                        </div>
+                      </v-card>
+                    </v-col>
+
+                    <v-col v-if="canViewTaskAudit" cols="12">
+                      <v-card
+                        variant="flat"
+                        class="rounded-xl pa-5 border bg-white shadow-sm overflow-hidden glass-card"
+                      >
+                        <label class="mb-2 font-weight-black text-gold">
+                          <LucideIcon name="shield-check" :size="20" class="text-primary me-2" />
+                          سجل التدقيق
+                        </label>
+
+                        <div
+                          v-if="!editItem.id"
+                          class="text-caption font-weight-black text-grey-darken-2"
+                        >
+                          احفظ المهمة أولاً لعرض سجل التدقيق
+                        </div>
+
+                        <div v-else>
+                          <v-skeleton-loader
+                            v-if="taskAuditLoading"
+                            class="mt-2"
+                            type="list-item-two-line, list-item-two-line"
+                          />
+
+                          <div
+                            v-else-if="safeLength(taskAuditItems) === 0"
+                            class="text-caption font-weight-black text-grey-darken-2"
+                          >
+                            لا توجد سجلات تدقيق لهذه المهمة
+                          </div>
+
+                          <v-list v-else class="mt-3 rounded-xl border" density="compact">
+                            <v-list-item v-for="row in safeArray(taskAuditItems)" :key="row.id">
+                              <v-list-item-title class="font-weight-black">
+                                {{ auditActionLabel(String(row.action_key || '')) }}
+                                <span v-if="row.actor_name"> — {{ row.actor_name }}</span>
+                              </v-list-item-title>
+                              <v-list-item-subtitle class="font-weight-bold">
+                                {{ row.created_at ? formatDate(String(row.created_at)) : '' }}
+                                <span v-if="auditStatusText(row)">
+                                  — {{ auditStatusText(row) }}</span
+                                >
+                              </v-list-item-subtitle>
+                            </v-list-item>
+                          </v-list>
+                        </div>
+                      </v-card>
+                    </v-col>
+                  </v-row>
+                </v-form>
+              </v-card-text>
+
+              <v-divider></v-divider>
+              <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+                <v-btn
+                  variant="outlined"
+                  color="gold"
+                  size="large"
+                  class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
+                  @click="showDialog = false"
+                  >إلغاء</v-btn
+                >
+                <v-spacer></v-spacer>
+                <v-btn
+                  variant="outlined"
+                  color="gold"
+                  size="large"
+                  class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
+                  :disabled="!formValid"
+                  :loading="saving"
+                  @click="handleSave"
+                >
+                  {{ isEditing ? 'تحديث المهمة' : 'اعتماد الإحالة' }}
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <!-- Success Snackbar -->
+          <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="pill" elevation="12">
+            <div class="d-flex align-center">
+              <LucideIcon
+                :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
+                :size="20"
+                class="me-2"
+              />
+              <span class="font-weight-black">{{ snackbarText }}</span>
+            </div>
+          </v-snackbar>
+
+          <ConfirmDialog
+            v-model="confirmDialog.show"
+            :title="confirmDialog.title"
+            :message="confirmDialog.message"
+            :color="confirmDialog.color"
+            :confirm-button-color="confirmDialog.confirmButtonColor"
+            :icon="confirmDialog.icon"
+            :confirm-text="confirmDialog.confirmText"
+            :cancel-text="confirmDialog.cancelText"
+            :loading="confirmDialog.loading"
+            @confirm="confirmDialog.action"
+          />
+
+          <TaskActionDialog
+            v-model="actionDialog.show"
+            :title="actionDialogTitle"
+            :label="actionDialogLabel"
+            :loading="actionDialog.loading"
+            @confirm="confirmActionDialog"
+          />
+        </div>
+      </v-fade-transition>
+    </template>
   </v-container>
 </template>
 
@@ -568,13 +580,24 @@ import TaskStatsCards from './tasks/TaskStatsCards.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import TaskFilterBar from './tasks/TaskFilterBar.vue'
 import { usePermissions } from '../composables/usePermissions'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileTasks from '../components/mobile/MobileTasks.vue'
 
 const store = useTasksStore()
 const casesStore = useCasesStore()
 const clientsStore = useClientsStore()
 const route = useRoute()
 const router = useRouter()
+const { isMobile } = useMobileLayout()
 const clientOptions = computed(() => safeArray(clientsStore.clients))
+
+const mobileTasks = computed(() => {
+  const all: any[] = []
+  for (const p of ['عالية', 'متوسطة', 'منخفضة'] as const) {
+    all.push(...safeArray((store.itemsByPriority as any)[p]))
+  }
+  return all
+})
 
 const { search } = useSearch((val) => {
   store.setSearchQuery(val)

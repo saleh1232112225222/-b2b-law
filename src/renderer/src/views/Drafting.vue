@@ -19,7 +19,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-xl px-10 premium-lift h-56"
+          class="font-weight-black rounded-xl px-10 premium-lift h-56 premium-btn-gold-gradient"
           :loading="aiLoading"
           :disabled="!draftContent"
           @click="simulateAI"
@@ -32,7 +32,7 @@
     <v-row class="ga-6 ma-0">
       <!-- Templates Sidebar -->
       <v-col cols="12" md="4" class="pa-0">
-        <v-card elevation="0" class="glass-card overflow-hidden mb-6">
+        <v-card elevation="0" class="glass-card overflow-hidden mb-6 glass-card">
           <v-list density="comfortable" class="bg-transparent pa-4">
             <div
               class="text-tiny font-weight-black text-gold opacity-40 uppercase tracking-widest mb-4 px-4"
@@ -60,7 +60,7 @@
           </v-list>
         </v-card>
 
-        <v-card elevation="0" class="glass-panel-light pa-8 border-gold-alpha text-center">
+        <v-card elevation="0" class="glass-panel-light pa-8 border-gold-alpha text-center glass-card">
           <div class="bg-accent-alpha pa-3 rounded-xl d-inline-flex mb-4">
             <LucideIcon name="lightbulb" :size="28" class="text-gold" />
           </div>
@@ -76,7 +76,7 @@
       <v-col cols="12" md="8" class="pa-0">
         <v-card
           elevation="0"
-          class="glass-card overflow-hidden d-flex flex-column min-h-800 border-gold-alpha"
+          class="glass-card overflow-hidden d-flex flex-column min-h-800 border-gold-alpha glass-card"
         >
           <!-- Toolbar -->
           <div class="pa-3 glass-panel-light border-b border-gold-alpha d-flex align-center ga-2">
@@ -85,41 +85,41 @@
                 icon
                 variant="text"
                 size="small"
-                class="rounded-lg text-white opacity-60 hover-gold"
+                class="rounded-lg text-white opacity-60 hover-gold premium-btn-gold-gradient"
                 ><LucideIcon name="bold" :size="18"
               /></v-btn>
               <v-btn
                 icon
                 variant="text"
                 size="small"
-                class="rounded-lg text-white opacity-60 hover-gold"
+                class="rounded-lg text-white opacity-60 hover-gold premium-btn-gold-gradient"
                 ><LucideIcon name="italic" :size="18"
               /></v-btn>
               <v-btn
                 icon
                 variant="text"
                 size="small"
-                class="rounded-lg text-white opacity-60 hover-gold"
+                class="rounded-lg text-white opacity-60 hover-gold premium-btn-gold-gradient"
                 ><LucideIcon name="underline" :size="18"
               /></v-btn>
             </div>
 
             <div class="d-flex ga-1 px-4 border-l border-gold-alpha">
-              <v-btn icon variant="tonal" color="accent" size="small" class="rounded-lg"
+              <v-btn icon variant="tonal" color="accent" size="small" class="rounded-lg premium-btn-gold-gradient"
                 ><LucideIcon name="align-right" :size="18"
               /></v-btn>
               <v-btn
                 icon
                 variant="text"
                 size="small"
-                class="rounded-lg text-white opacity-60 hover-gold"
+                class="rounded-lg text-white opacity-60 hover-gold premium-btn-gold-gradient"
                 ><LucideIcon name="align-center" :size="18"
               /></v-btn>
               <v-btn
                 icon
                 variant="text"
                 size="small"
-                class="rounded-lg text-white opacity-60 hover-gold"
+                class="rounded-lg text-white opacity-60 hover-gold premium-btn-gold-gradient"
                 ><LucideIcon name="align-left" :size="18"
               /></v-btn>
             </div>
@@ -130,7 +130,7 @@
               <v-btn
                 color="gold"
                 variant="outlined"
-                class="rounded-lg font-weight-black px-6 h-40 border-gold-alpha"
+                class="rounded-lg font-weight-black px-6 h-40 border-gold-alpha premium-btn-gold-gradient"
                 @click="saveDraft"
               >
                 <LucideIcon name="save" :size="16" class="me-2" /> حفظ المسودة
@@ -138,7 +138,7 @@
               <v-btn
                 variant="flat"
                 color="white"
-                class="rounded-lg font-weight-black px-6 h-40 text-black"
+                class="rounded-lg font-weight-black px-6 h-40 text-black premium-btn-gold-gradient"
                 @click="printDraft"
               >
                 <LucideIcon name="printer" :size="16" class="me-2" /> طباعة / تصدير
@@ -147,7 +147,7 @@
           </div>
 
           <!-- Content -->
-          <v-card-text class="pa-12 flex-grow-1 position-relative">
+          <v-card-text class="pa-12 flex-grow-1 position-relative glass-card">
             <v-fade-transition hide-on-leave>
               <div
                 v-if="aiLoading"

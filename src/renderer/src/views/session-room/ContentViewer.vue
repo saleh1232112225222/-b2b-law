@@ -1,7 +1,7 @@
 <template>
   <v-col cols="12" md="8" style="height: 100%">
     <v-card
-      class="rounded-xl h-100 d-flex flex-column glass-card border shadow-premium overflow-hidden"
+      class="rounded-xl h-100 d-flex flex-column glass-card border shadow-premium overflow-hidden glass-card"
       elevation="0"
     >
       <div class="px-6 py-4 d-flex justify-space-between align-center glass-card-noir border-b">
@@ -18,7 +18,7 @@
             v-if="selected.type === 'pdf'"
             variant="flat"
             color="primary"
-            class="rounded-xl font-weight-black shadow-premium session-room-btn-zr1"
+            class="rounded-xl font-weight-black shadow-premium session-room-btn-zr1 premium-btn-gold-gradient"
             :disabled="!selected.file_path"
             @click="$emit('open-file', selected.file_path)"
           >
@@ -28,7 +28,7 @@
             v-if="selected.type === 'text'"
             variant="flat"
             color="primary"
-            class="rounded-xl font-weight-black shadow-premium session-room-btn-zr1"
+            class="rounded-xl font-weight-black shadow-premium session-room-btn-zr1 premium-btn-gold-gradient"
             :disabled="!selected.content"
             @click="$emit('copy', selected.content)"
           >
@@ -39,18 +39,18 @@
       <div class="flex-grow-1 overflow-hidden position-relative bg-noir-surface">
         <div v-if="selected.type === 'pdf'" class="h-100 d-flex flex-column">
           <div class="px-4 py-2 d-flex align-center ga-3 glass-card-noir border-b">
-            <v-btn icon size="x-small" variant="text" color="white"
+            <v-btn class="premium-btn-gold-gradient" icon size="x-small" variant="text" color="white"
               ><LucideIcon name="minus-circle" :size="16"
             /></v-btn>
             <div class="text-caption font-weight-black text-white">صفحة 1 / 1</div>
-            <v-btn icon size="x-small" variant="text" color="white"
+            <v-btn class="premium-btn-gold-gradient" icon size="x-small" variant="text" color="white"
               ><LucideIcon name="plus-circle" :size="16"
             /></v-btn>
             <v-divider vertical class="mx-2" color="white" />
-            <v-btn icon size="x-small" variant="text" color="white"
+            <v-btn class="premium-btn-gold-gradient" icon size="x-small" variant="text" color="white"
               ><LucideIcon name="search" :size="16"
             /></v-btn>
-            <v-btn
+            <v-btn class="premium-btn-gold-gradient"
               icon
               size="x-small"
               variant="text"

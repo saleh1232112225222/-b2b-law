@@ -6,26 +6,26 @@
     persistent
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="modal-card overflow-hidden">
+    <v-card class="modal-card overflow-hidden glass-card">
       <div class="modal-header-solid d-flex align-center py-5 px-8 bg-white border-b">
         <div class="bg-accent-alpha pa-2 rounded-lg me-4">
           <LucideIcon name="file-plus" :size="24" class="text-accent" />
         </div>
         <span class="text-h5 font-weight-black text-pure-black">إدراج ملحق للعقد</span>
         <v-spacer />
-        <v-btn variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
-      <v-card-text class="pa-8 bg-white">
-        <v-label class="mb-3 font-weight-black text-pure-black">سبب الإدراج (Required)</v-label>
+      <v-card-text class="pa-8 bg-white glass-card">
+        <label class="mb-2 font-weight-black text-gold">سبب الإدراج (Required)</label>
         <v-text-field
           v-model="reason"
           variant="outlined"
-          class="premium-input-solid mb-6"
+          class="premium-input-solid mb-6 glass-input"
           hide-details
         />
-        <v-label class="mb-3 font-weight-black text-pure-black">نص الملحق</v-label>
+        <label class="mb-2 font-weight-black text-gold">نص الملحق</label>
         <v-textarea
           v-model="content"
           variant="outlined"
@@ -35,11 +35,11 @@
         />
       </v-card-text>
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid">
+      <v-card-actions class="pa-8 modal-footer-solid glass-card">
         <v-btn
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
@@ -47,7 +47,7 @@
         <v-btn
           variant="flat"
           size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
           :disabled="!reason || !content"
           :loading="saving"
           @click="handleSave"

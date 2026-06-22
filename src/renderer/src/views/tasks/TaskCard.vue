@@ -3,7 +3,7 @@
     <v-card
       v-bind="props"
       elevation="0"
-      class="rounded-xl mb-4 pa-5 glass-card border transition-premium position-relative premium-hover"
+      class="rounded-xl mb-4 pa-5 glass-card border transition-premium position-relative premium-hover glass-card"
       :class="{ 'border-accent shadow-premium': isHovering }"
     >
       <div class="d-flex align-start">
@@ -69,7 +69,7 @@
             variant="tonal"
             color="primary"
             size="x-small"
-            class="rounded-lg glass-card"
+            class="rounded-lg glass-card premium-btn-gold-gradient"
             @click.stop="$emit('edit', task)"
           >
             <LucideIcon name="edit-3" :size="14" />
@@ -82,7 +82,7 @@
                 variant="tonal"
                 color="primary"
                 size="x-small"
-                class="rounded-lg glass-card"
+                class="rounded-lg glass-card premium-btn-gold-gradient"
                 @click.stop
               >
                 <LucideIcon name="more-vertical" :size="14" />

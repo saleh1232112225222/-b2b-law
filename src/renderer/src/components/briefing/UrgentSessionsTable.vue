@@ -112,6 +112,7 @@
 
 <script setup lang="ts">
 import { ICONS } from '../../config/icons'
+import LucideIcon from '../common/LucideIcon.vue'
 
 interface Session {
   id: string | number

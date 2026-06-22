@@ -2,7 +2,7 @@
   <v-container fluid class="pa-6 rtl">
     <!-- Navigation Buttons -->
     <div class="d-flex justify-space-between align-center mb-6">
-      <v-btn variant="outlined" to="/clients" class="font-weight-black return-btn-gold">
+      <v-btn variant="outlined" to="/clients" class="font-weight-black return-btn-gold premium-btn-gold-gradient">
         <LucideIcon name="arrow-right" :size="20" class="me-2" /> العودة للموكلين
       </v-btn>
 
@@ -10,7 +10,7 @@
         v-if="nextClientId"
         variant="outlined"
         :to="'/clients/' + nextClientId"
-        class="font-weight-black next-btn-gold"
+        class="font-weight-black next-btn-gold premium-btn-gold-gradient"
       >
         الموكل التالي <LucideIcon name="arrow-left" :size="20" class="ms-2" />
       </v-btn>
@@ -27,7 +27,7 @@
 
     <div v-else-if="client">
       <!-- Client Header Card -->
-      <v-card elevation="0" class="glass-card mb-8 overflow-hidden border-gold-alpha">
+      <v-card elevation="0" class="glass-card mb-8 overflow-hidden border-gold-alpha glass-card">
         <v-row no-gutters>
           <v-col cols="12" md="8" class="pa-8">
             <div class="d-flex align-center mb-4">
@@ -64,7 +64,7 @@
               color="accent"
               variant="elevated"
               size="large"
-              class="rounded-xl px-10 font-weight-black premium-lift h-56"
+              class="rounded-xl px-10 font-weight-black premium-lift h-56 premium-btn-gold-gradient"
               @click="openEditDialog"
             >
               <LucideIcon name="pencil" :size="18" class="me-3" /> تعديل الملف الشخصي
@@ -74,7 +74,7 @@
       </v-card>
 
       <!-- Main Content Tabs -->
-      <v-card elevation="0" class="glass-card border-gold-alpha">
+      <v-card elevation="0" class="glass-card border-gold-alpha glass-card">
         <v-tabs v-model="tab" color="accent" class="border-b border-gold opacity-10" grow>
           <v-tab value="overview" class="font-weight-black text-gold py-6">
             <LucideIcon name="info" :size="18" class="me-3" /> المعلومات الأساسية
@@ -157,7 +157,7 @@
               <v-col cols="12" md="6">
                 <v-card
                   elevation="0"
-                  class="pa-8 glass-panel-light rounded-xl h-100 border-gold-alpha"
+                  class="pa-8 glass-panel-light rounded-xl h-100 border-gold-alpha glass-card"
                 >
                   <div class="text-subtitle-1 font-weight-black text-gold mb-4 d-flex align-center">
                     <LucideIcon name="message-circle" :size="20" class="me-3 opacity-40" /> ملاحظات
@@ -195,7 +195,7 @@
                 <v-btn
                   variant="text"
                   color="accent"
-                  class="px-0 font-weight-black text-decoration-underline ltr-text"
+                  class="px-0 font-weight-black text-decoration-underline ltr-text premium-btn-gold-gradient"
                   density="compact"
                   :to="'/cases/' + item.id"
                 >
@@ -247,7 +247,7 @@
         to="/clients"
         color="accent"
         size="large"
-        class="rounded-xl px-10 font-weight-black premium-lift"
+        class="rounded-xl px-10 font-weight-black premium-lift premium-btn-gold-gradient"
       >
         العودة لقائمة الموكلين
       </v-btn>
@@ -255,8 +255,8 @@
 
     <!-- Edit Dialog -->
     <v-dialog v-model="showEditDialog" width="90%" max-width="850" persistent scrollable>
-      <v-card class="glass-card overflow-hidden">
-        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center">
+      <v-card class="glass-card overflow-hidden glass-card">
+        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center glass-card">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="user-cog" :size="20" class="text-gold" />
           </div>
@@ -266,23 +266,23 @@
             icon
             variant="text"
             size="small"
-            class="rounded-lg"
+            class="rounded-lg premium-btn-gold-gradient"
             @click="showEditDialog = false"
           >
             <LucideIcon name="x" :size="20" class="text-white" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <ClientForm v-model="editClientItem" v-model:valid="formValid" />
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha">
+        <v-card-actions class="pa-6 bg-black-alpha glass-card">
           <v-btn
             variant="text"
             color="white"
-            class="px-8 font-weight-black"
+            class="px-8 font-weight-black premium-btn-gold-gradient"
             @click="showEditDialog = false"
             >إلغاء</v-btn
           >
@@ -290,7 +290,7 @@
           <v-btn
             color="accent"
             variant="elevated"
-            class="px-12 rounded-lg font-weight-black premium-lift h-48"
+            class="px-12 rounded-lg font-weight-black premium-lift h-48 premium-btn-gold-gradient"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"

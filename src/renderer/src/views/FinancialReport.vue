@@ -21,7 +21,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -31,7 +31,7 @@
 
     <v-card
       elevation="0"
-      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden"
+      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden glass-card"
     >
       <!-- Filters Row -->
       <v-row dense class="mb-8 align-center">
@@ -44,7 +44,7 @@
             item-value="value"
             label="تصفية حسب القضية"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           >
@@ -59,7 +59,7 @@
             label="من تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -69,7 +69,7 @@
             label="إلى تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -79,7 +79,7 @@
             :items="types"
             label="نوع العملية"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           >
@@ -94,7 +94,7 @@
             variant="flat"
             block
             height="56"
-            class="rounded-xl font-weight-black premium-lift text-ebony"
+            class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
             :loading="loading"
             @click="load"
           >
@@ -109,7 +109,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="printPage"
         >
           <LucideIcon name="printer" :size="20" class="me-2 text-gold" /> طباعة
@@ -118,7 +118,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="exportPdf"
         >
           <LucideIcon name="file-text" :size="20" class="me-2 text-gold" /> تصدير PDF
@@ -127,7 +127,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="exportCsv"
         >
           <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير CSV
@@ -161,7 +161,7 @@
         <v-col cols="12" md="4">
           <v-card
             elevation="0"
-            class="glass-panel-light pa-6 rounded-xl text-center border border-success border-opacity-30"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-success border-opacity-30 glass-card"
           >
             <LucideIcon
               name="trending-up"
@@ -180,7 +180,7 @@
         <v-col cols="12" md="4">
           <v-card
             elevation="0"
-            class="glass-panel-light pa-6 rounded-xl text-center border border-error border-opacity-30"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-error border-opacity-30 glass-card"
           >
             <LucideIcon
               name="trending-down"
@@ -199,7 +199,7 @@
         <v-col cols="12" md="4">
           <v-card
             elevation="0"
-            class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-30"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-30 glass-card"
           >
             <LucideIcon name="wallet" :size="24" class="text-gold opacity-40 mb-3 mx-auto" />
             <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">
@@ -227,7 +227,7 @@
         <v-col cols="12" md="6">
           <v-card
             elevation="0"
-            class="glass-panel-light pa-6 rounded-xl border border-gold border-opacity-10 h-100"
+            class="glass-panel-light pa-6 rounded-xl border border-gold border-opacity-10 h-100 glass-card"
           >
             <div class="text-subtitle-2 font-weight-black text-success mb-4 d-flex align-center">
               <LucideIcon name="arrow-up-right" :size="16" class="me-2" />
@@ -245,7 +245,7 @@
         <v-col cols="12" md="6">
           <v-card
             elevation="0"
-            class="glass-panel-light pa-6 rounded-xl border border-gold border-opacity-10 h-100"
+            class="glass-panel-light pa-6 rounded-xl border border-gold border-opacity-10 h-100 glass-card"
           >
             <div class="text-subtitle-2 font-weight-black text-error mb-4 d-flex align-center">
               <LucideIcon name="arrow-down-right" :size="16" class="me-2" />
@@ -272,7 +272,7 @@
 
       <v-card
         elevation="0"
-        class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-8"
+        class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-8 glass-card"
       >
         <v-table density="comfortable" class="premium-table">
           <thead>
@@ -346,7 +346,7 @@
             size="small"
             variant="tonal"
             color="gold"
-            class="rounded-lg"
+            class="rounded-lg premium-btn-gold-gradient"
             :disabled="page <= 1"
             @click="prevPage"
           >
@@ -357,7 +357,7 @@
             size="small"
             variant="tonal"
             color="gold"
-            class="rounded-lg"
+            class="rounded-lg premium-btn-gold-gradient"
             :disabled="page >= totalPages"
             @click="nextPage"
           >

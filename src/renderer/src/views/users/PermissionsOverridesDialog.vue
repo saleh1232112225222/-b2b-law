@@ -6,16 +6,16 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden">
+    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden glass-card">
       <div class="bg-gold-gradient pa-4 d-flex align-center">
         <LucideIcon name="key" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">تخصيص صلاحيات المستخدم</span>
         <v-spacer />
-        <v-btn icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8">
+      <v-card-text class="pa-8 glass-card">
         <div class="glass-panel-light pa-4 rounded-xl mb-6 border border-gold border-opacity-20">
           <div class="text-subtitle-2 font-weight-black text-gold mb-1">تنبيه الصلاحيات:</div>
           <div class="text-body-2 text-white opacity-60">
@@ -27,7 +27,7 @@
           <v-btn
             color="success"
             variant="flat"
-            class="rounded-lg font-weight-black px-6"
+            class="rounded-lg font-weight-black px-6 premium-btn-gold-gradient"
             @click="handleBulkSet(true)"
           >
             <LucideIcon name="check-check" :size="18" class="me-2" /> سماح للكل
@@ -35,7 +35,7 @@
           <v-btn
             color="error"
             variant="flat"
-            class="rounded-lg font-weight-black px-6"
+            class="rounded-lg font-weight-black px-6 premium-btn-gold-gradient"
             @click="handleBulkSet(false)"
           >
             <LucideIcon name="octagon-x" :size="18" class="me-2" /> منع الكل
@@ -71,7 +71,7 @@
                     size="small"
                     :variant="getOverrideState(p.permission_key) === true ? 'flat' : 'tonal'"
                     color="success"
-                    class="font-weight-black"
+                    class="font-weight-black premium-btn-gold-gradient"
                     min-width="80"
                     @click="setOverride(p.permission_key, true)"
                     >سماح</v-btn
@@ -80,7 +80,7 @@
                     size="small"
                     :variant="getOverrideState(p.permission_key) === false ? 'flat' : 'tonal'"
                     color="error"
-                    class="font-weight-black"
+                    class="font-weight-black premium-btn-gold-gradient"
                     min-width="80"
                     @click="setOverride(p.permission_key, false)"
                     >منع</v-btn
@@ -91,12 +91,12 @@
           </tbody>
         </v-table>
       </v-card-text>
-      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10">
+      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10 glass-card">
         <v-spacer />
         <v-btn
           color="accent"
           variant="flat"
-          class="px-10 font-weight-black text-ebony rounded-lg"
+          class="px-10 font-weight-black text-ebony rounded-lg premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إغلاق وتاكيد</v-btn
         >

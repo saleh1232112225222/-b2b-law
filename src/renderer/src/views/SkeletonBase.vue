@@ -22,7 +22,7 @@
           color="primary"
           variant="flat"
           size="large"
-          class="font-weight-black rounded-xl px-8 shadow-premium premium-btn-glow"
+          class="font-weight-black rounded-xl px-8 shadow-premium premium-btn-glow premium-btn-gold-gradient"
           height="56"
         >
           <LucideIcon name="plus-circle" :size="20" class="me-2" />
@@ -32,14 +32,14 @@
     </v-row>
 
     <!-- Placeholder Table -->
-    <v-card elevation="0" class="glass-card border shadow-premium overflow-hidden">
+    <v-card elevation="0" class="glass-card border shadow-premium overflow-hidden glass-card">
       <v-data-table :headers="headers" :items="placeholderItems" class="bg-transparent" hover>
         <template #item.actions>
           <div class="d-flex justify-end ga-2">
-            <v-btn variant="tonal" color="primary" size="small" class="rounded-lg">
+            <v-btn variant="tonal" color="primary" size="small" class="rounded-lg premium-btn-gold-gradient">
               <LucideIcon name="pencil" :size="16" />
             </v-btn>
-            <v-btn variant="tonal" color="error" size="small" class="rounded-lg">
+            <v-btn variant="tonal" color="error" size="small" class="rounded-lg premium-btn-gold-gradient">
               <LucideIcon name="trash-2" :size="16" />
             </v-btn>
           </div>

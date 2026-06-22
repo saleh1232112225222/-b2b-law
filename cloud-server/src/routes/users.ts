@@ -28,6 +28,52 @@ usersRouter.get('/assignable', async (req: Request, res: Response) => {
   }
 })
 
+// 11. Self get recovery info
+usersRouter.get('/recovery-info',  async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const userId = req.auth!.userId
+    
+    const result = await query(
+      `SELECT recovery_email, security_question FROM users WHERE id = $1 AND company_id = $2`,
+      [userId, companyId]
+    )
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'User not found' })
+      return
+    }
+    res.json(result.rows[0])
+  } catch (err) {
+    console.error('[Users] Get self recovery info error:', err)
+    res.status(500).json({ error: 'Failed to get recovery info' })
+  }
+})
+
+// 12. Self update recovery info
+usersRouter.put('/recovery-info',  async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const userId = req.auth!.userId
+    const { email, question, answer } = req.body
+    
+    let answerHash: string | null = null
+    if (answer) {
+      answerHash = await bcrypt.hash(answer, 12)
+    }
+    
+    await query(
+      `UPDATE users 
+       SET recovery_email = $1, security_question = $2, security_answer_hash = COALESCE($3, security_answer_hash), updated_at = NOW() 
+       WHERE id = $4 AND company_id = $5`,
+      [email, question, answerHash, userId, companyId]
+    )
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[Users] Update self recovery info error:', err)
+    res.status(500).json({ error: 'Failed to update recovery info' })
+  }
+})
+
 usersRouter.use( (req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   requirePermission('manage_users')(req, res, next)
@@ -226,52 +272,6 @@ usersRouter.put('/:id/username',  async (req: Request, res: Response) => {
   } catch (err) {
     console.error('[Users] Update username error:', err)
     res.status(500).json({ error: 'Failed to update username' })
-  }
-})
-
-// 11. Self get recovery info
-usersRouter.get('/recovery-info',  async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const userId = req.auth!.userId
-    
-    const result = await query(
-      `SELECT recovery_email, security_question FROM users WHERE id = $1 AND company_id = $2`,
-      [userId, companyId]
-    )
-    if (result.rows.length === 0) {
-      res.status(404).json({ error: 'User not found' })
-      return
-    }
-    res.json(result.rows[0])
-  } catch (err) {
-    console.error('[Users] Get self recovery info error:', err)
-    res.status(500).json({ error: 'Failed to get recovery info' })
-  }
-})
-
-// 12. Self update recovery info
-usersRouter.put('/recovery-info',  async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const userId = req.auth!.userId
-    const { email, question, answer } = req.body
-    
-    let answerHash: string | null = null
-    if (answer) {
-      answerHash = await bcrypt.hash(answer, 12)
-    }
-    
-    await query(
-      `UPDATE users 
-       SET recovery_email = $1, security_question = $2, security_answer_hash = COALESCE($3, security_answer_hash), updated_at = NOW() 
-       WHERE id = $4 AND company_id = $5`,
-      [email, question, answerHash, userId, companyId]
-    )
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[Users] Update self recovery info error:', err)
-    res.status(500).json({ error: 'Failed to update recovery info' })
   }
 })
 

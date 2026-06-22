@@ -392,41 +392,55 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   return { data: [] }
 }
 
+function desktopInvoke<T>(channel: string, ...args: any[]): Promise<T> {
+  return window.ipcRenderer
+    ? window.ipcRenderer.invoke(channel, ...args)
+    : Promise.resolve([] as any)
+}
+
 function buildCrudApi(entity: string) {
   return {
     getAll: (params?: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:getAll`, params)
+        ? desktopInvoke(`${entity}:getAll`, params)
         : cloudRequest({ method: 'GET', url: `/${entity}/all`, params }),
     list: (params: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:list`, params)
+        ? desktopInvoke(`${entity}:list`, params)
         : cloudRequest<any>({ method: 'GET', url: `/${entity}`, params }).then((r) => r.data),
     count: (params?: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:count`, params)
+        ? desktopInvoke(`${entity}:count`, params)
         : cloudRequest<any>({ method: 'GET', url: `/${entity}/count`, params }).then(
             (r) => r.count
           ),
     getById: (id: string) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:getById`, id)
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke(`${entity}:getById`, id)
+          : Promise.resolve(null)
         : cloudRequest({ method: 'GET', url: `/${entity}/${id}` }),
     create: (data: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:create`, data)
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke(`${entity}:create`, data)
+          : Promise.resolve({})
         : cloudRequest({ method: 'POST', url: `/${entity}`, data }),
     update: (id: string, data: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:update`, id, data)
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke(`${entity}:update`, id, data)
+          : Promise.resolve({})
         : cloudRequest({ method: 'PUT', url: `/${entity}/${id}`, data }),
     delete: (id: string) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:delete`, id)
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke(`${entity}:delete`, id)
+          : Promise.resolve(undefined)
         : cloudRequest({ method: 'DELETE', url: `/${entity}/${id}` }),
     search: (query: string) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke(`${entity}:search`, query)
+        ? desktopInvoke(`${entity}:search`, query)
         : cloudRequest({ method: 'GET', url: `/${entity}/search`, params: { q: query } })
   }
 }
@@ -804,11 +818,15 @@ const api = {
     ...buildCrudApi('users'),
     listAssignable: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('users:listAssignable')
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke('users:listAssignable')
+          : Promise.resolve([])
         : cloudRequest({ method: 'GET', url: '/users/assignable' }),
     listActiveStaff: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('users:listActiveStaff')
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke('users:listActiveStaff')
+          : Promise.resolve([])
         : cloudRequest({ method: 'GET', url: '/users/active-staff' }),
     toggleActive: (userId: string, isActive: boolean) =>
       mode === 'desktop'

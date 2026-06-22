@@ -22,7 +22,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -33,7 +33,7 @@
     <!-- Filters Section (Hidden when printing) -->
     <v-card
       elevation="0"
-      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden mb-8 no-print"
+      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden mb-8 no-print glass-card"
     >
       <v-row dense class="align-center">
         <v-col cols="12" md="6">
@@ -42,7 +42,7 @@
             :items="courtTypes"
             label="اختر المحكمة من القائمة"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
             :menu-props="{ maxHeight: 300, zIndex: 9999 }"
@@ -58,7 +58,7 @@
             label="من تاريخ القيد"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           />
@@ -69,7 +69,7 @@
             label="إلى تاريخ القيد"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           />
@@ -80,7 +80,7 @@
             variant="flat"
             width="160"
             height="56"
-            class="rounded-xl font-weight-black premium-lift text-ebony"
+            class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
             :loading="loading"
             @click="loadReport"
           >
@@ -93,7 +93,7 @@
             variant="tonal"
             color="white"
             height="56"
-            class="rounded-xl px-6 font-weight-black premium-hover"
+            class="rounded-xl px-6 font-weight-black premium-hover premium-btn-gold-gradient"
             :disabled="loading || reportCases.length === 0"
             @click="printReport"
           >
@@ -104,7 +104,7 @@
             variant="tonal"
             color="white"
             height="56"
-            class="rounded-xl px-6 font-weight-black premium-hover"
+            class="rounded-xl px-6 font-weight-black premium-hover premium-btn-gold-gradient"
             :loading="loading"
             :disabled="loading || reportCases.length === 0"
             @click="exportPdf"
@@ -194,7 +194,7 @@
     </div>
 
     <!-- Table Section -->
-    <v-card
+    <v-card class="glass-card"
       v-if="reportCases.length > 0"
       elevation="0"
       class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-8 print-table-card"

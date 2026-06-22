@@ -8,7 +8,7 @@
   >
     <v-card
       flat
-      class="quick-actions-card d-flex flex-column"
+      class="quick-actions-card d-flex flex-column glass-card"
       :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
     >
       <div class="d-flex align-center pa-3 px-4">
@@ -18,7 +18,7 @@
         <span class="quick-actions-title">إجراءات سريعة</span>
       </div>
       <v-divider opacity="0.06"></v-divider>
-      <v-card-text class="pa-3 overflow-y-auto">
+      <v-card-text class="pa-3 overflow-y-auto glass-card">
         <v-row dense>
           <v-col v-for="action in quickActions" :key="action.title" cols="12" class="pa-1">
             <v-btn
@@ -26,7 +26,7 @@
               variant="tonal"
               color="accent"
               size="small"
-              class="quick-action-btn"
+              class="quick-action-btn premium-btn-gold-gradient"
               :to="action.to"
               @click="
                 action.to
@@ -42,7 +42,7 @@
       </v-card-text>
     </v-card>
 
-    <v-card flat class="quick-actions-card pa-3 shrink-0 text-center">
+    <v-card flat class="quick-actions-card pa-3 shrink-0 text-center glass-card">
       <div class="text-caption opacity-50 font-weight-bold">آخر تحديث: {{ lastRefreshTime }}</div>
     </v-card>
   </v-col>
@@ -111,6 +111,11 @@ const quickActions = [
   border-radius: 10px !important;
   min-height: 40px !important;
   transition: var(--transition-smooth) !important;
+  color: var(--text-primary) !important;
+}
+
+.quick-action-btn :deep(.lucide-icon) {
+  stroke: var(--text-primary) !important;
 }
 
 .quick-action-btn:hover {

@@ -1,10 +1,10 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20">
+  <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
     <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="building-2" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">بيانات المكتب</span>
     </div>
-    <v-card-text class="pa-4">
+    <v-card-text class="pa-4 glass-card">
       <v-row dense>
         <v-col cols="12">
           <v-text-field
@@ -13,7 +13,7 @@
             placeholder="اكتب اسم المكتب هنا"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input"
+            class="mb-3 glass-input glass-input"
             hide-details="auto"
             @update:model-value="emitField('officeName', $event)"
           ></v-text-field>
@@ -24,7 +24,7 @@
             label="العنوان"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input"
+            class="mb-3 glass-input glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmAddress', $event)"
           ></v-text-field>
@@ -35,7 +35,7 @@
             label="الهاتف"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input"
+            class="mb-3 glass-input glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmPhone', $event)"
           ></v-text-field>
@@ -46,7 +46,7 @@
             label="البريد الإلكتروني"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input"
+            class="mb-3 glass-input glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmEmail', $event)"
           ></v-text-field>
@@ -58,7 +58,7 @@
             label="المظهر"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input"
+            class="mb-3 glass-input glass-input"
             hide-details="auto"
             @update:model-value="emitField('theme', $event)"
           ></v-select>
@@ -69,7 +69,7 @@
         variant="flat"
         block
         size="large"
-        class="font-weight-black premium-lift mt-2"
+        class="font-weight-black premium-lift mt-2 premium-btn-gold-gradient"
         @click="$emit('save')"
       >
         <LucideIcon name="save" :size="18" class="me-2" /> حفظ بيانات المكتب

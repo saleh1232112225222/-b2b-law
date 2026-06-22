@@ -1,17 +1,17 @@
 <template>
   <v-dialog v-model="showVal" width="90%" max-width="800" scrollable>
-    <v-card class="bg-grey-lighten-4 overflow-hidden rounded-xl border-accent">
+    <v-card class="bg-grey-lighten-4 overflow-hidden rounded-xl border-accent glass-card">
       <div class="bg-white d-flex align-center py-5 px-8 border-b">
         <div class="bg-primary-alpha pa-2 rounded-lg me-4">
           <LucideIcon name="book-user" :size="24" class="text-primary" />
         </div>
         <span class="text-h5 font-weight-black text-grey-darken-4">معاينة بيانات الوكالة</span>
         <v-spacer />
-        <v-btn variant="text" color="grey-darken-3" icon @click="showVal = false"
+        <v-btn class="premium-btn-gold-gradient" variant="text" color="grey-darken-3" icon @click="showVal = false"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
-      <v-card-text class="pa-8 bg-grey-lighten-4">
+      <v-card-text class="pa-8 bg-grey-lighten-4 glass-card">
         <v-row dense>
           <v-col cols="12" md="6">
             <div class="detail-row mb-6">
@@ -96,13 +96,13 @@
         </v-row>
       </v-card-text>
       <v-divider class="border-grey-lighten-2" />
-      <v-card-actions class="pa-6 bg-grey-lighten-3">
+      <v-card-actions class="pa-6 bg-grey-lighten-3 glass-card">
         <v-spacer />
         <v-btn
           color="primary"
           variant="flat"
           size="large"
-          class="px-12 font-weight-black rounded-xl shadow-premium"
+          class="px-12 font-weight-black rounded-xl shadow-premium premium-btn-gold-gradient"
           @click="showVal = false"
           >إغلاق المعاينة</v-btn
         >

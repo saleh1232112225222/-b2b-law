@@ -52,7 +52,7 @@
       </v-list>
     </v-col>
     <v-col cols="12" md="6">
-      <v-card elevation="0" class="glass-card pa-6 h-100">
+      <v-card elevation="0" class="glass-card pa-6 h-100 glass-card">
         <div class="d-flex justify-space-between align-center mb-6">
           <div class="text-subtitle-1 font-weight-black text-visible-high">حالة القضية الحالية</div>
           <v-chip color="success" size="large" variant="flat" class="font-weight-black">{{

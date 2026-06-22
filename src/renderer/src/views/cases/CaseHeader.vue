@@ -18,7 +18,7 @@
         color="accent"
         variant="flat"
         size="large"
-        class="font-weight-black rounded-lg px-8 premium-lift text-primary-dark"
+        class="font-weight-black rounded-lg px-8 premium-lift text-primary-dark premium-btn-gold-gradient"
         height="56"
         @click="$emit('add')"
       >

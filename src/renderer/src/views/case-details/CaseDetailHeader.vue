@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-6 pa-6 premium-lift">
+  <v-card elevation="0" class="glass-card mb-6 pa-6 premium-lift glass-card">
     <v-row align="center">
       <v-col>
         <div class="d-flex align-center mb-2">
@@ -31,7 +31,7 @@
             v-if="caseItem.client_id"
             variant="text"
             color="accent"
-            class="px-0 font-weight-black text-body-2"
+            class="px-0 font-weight-black text-body-2 premium-btn-gold-gradient"
             :to="'/clients/' + caseItem.client_id"
             density="compact"
           >
@@ -47,7 +47,7 @@
           target="_blank"
           variant="tonal"
           color="primary"
-          class="rounded-lg font-weight-black"
+          class="rounded-lg font-weight-black premium-btn-gold-gradient"
           size="small"
         >
           <LucideIcon name="folder" :size="16" class="me-1" /> مجلد القضية
@@ -58,7 +58,7 @@
           target="_blank"
           variant="tonal"
           color="primary"
-          class="rounded-lg font-weight-black"
+          class="rounded-lg font-weight-black premium-btn-gold-gradient"
           size="small"
         >
           <LucideIcon name="external-link" :size="16" class="me-1" /> ناجز
@@ -66,7 +66,7 @@
         <v-btn
           color="gold"
           variant="tonal"
-          class="rounded-lg font-weight-black"
+          class="rounded-lg font-weight-black premium-btn-gold-gradient"
           :loading="generatingReport"
           @click="$emit('generateReport')"
         >
@@ -76,7 +76,7 @@
           v-if="canCreateContracts"
           color="gold"
           variant="tonal"
-          class="rounded-lg font-weight-black"
+          class="rounded-lg font-weight-black premium-btn-gold-gradient"
           :to="{ path: '/contracts', query: { case_id: caseItem.id, new_contract: '1' } }"
         >
           <LucideIcon name="file-signature" :size="18" class="me-2" /> عقد الأتعاب
@@ -84,7 +84,7 @@
         <v-btn
           color="accent"
           variant="flat"
-          class="rounded-lg font-weight-black text-primary-dark premium-lift"
+          class="rounded-lg font-weight-black text-primary-dark premium-lift premium-btn-gold-gradient"
           @click="$emit('edit')"
         >
           <LucideIcon name="pencil" :size="18" class="me-2" /> تعديل الملف

@@ -3,7 +3,7 @@
     <v-col v-for="card in cards" :key="card.label" cols="12" md="4">
       <v-card
         elevation="0"
-        class="rounded-xl pa-6 glass-card border shadow-premium overflow-hidden position-relative premium-hover"
+        class="rounded-xl pa-6 glass-card border shadow-premium overflow-hidden position-relative premium-hover glass-card"
       >
         <v-skeleton-loader
           v-if="loading"

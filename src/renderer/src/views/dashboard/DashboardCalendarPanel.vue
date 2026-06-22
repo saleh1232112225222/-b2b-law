@@ -7,10 +7,10 @@
             {{ calendarMonthLabel }}
           </div>
           <div class="d-flex align-center gap-1">
-            <v-btn variant="tonal" color="primary" icon size="x-small" @click="$emit('prev-month')">
+            <v-btn class="premium-btn-gold-gradient" variant="tonal" color="primary" icon size="x-small" @click="$emit('prev-month')">
               <LucideIcon name="chevron-right" :size="12" />
             </v-btn>
-            <v-btn variant="tonal" color="primary" icon size="x-small" @click="$emit('next-month')">
+            <v-btn class="premium-btn-gold-gradient" variant="tonal" color="primary" icon size="x-small" @click="$emit('next-month')">
               <LucideIcon name="chevron-left" :size="12" />
             </v-btn>
           </div>
@@ -42,10 +42,10 @@
       <v-col cols="12" sm="5" class="d-flex flex-column gap-1 overflow-hidden">
         <v-card
           elevation="0"
-          class="glass-card-light overflow-hidden flex-grow-1 d-flex flex-column"
+          class="glass-card-light overflow-hidden flex-grow-1 d-flex flex-column glass-card"
           min-height="100"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0">
+          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0 glass-card">
             <span class="text-tiny-v font-weight-black dashboard-title">
               {{ selectedDate }} &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp;
               {{ gregorianIsoToHijriIso(selectedDate) }}

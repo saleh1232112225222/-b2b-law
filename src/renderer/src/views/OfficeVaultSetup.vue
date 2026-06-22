@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-6 fill-height d-flex align-center justify-center rtl">
-    <v-card elevation="0" class="glass-card pa-8 w-100 max-w-600">
+    <v-card elevation="0" class="glass-card pa-8 w-100 max-w-600 glass-card">
       <div class="d-flex align-center mb-8">
         <div class="glass-panel-light pa-3 rounded-lg me-4">
           <LucideIcon name="folder-lock" :size="32" class="text-accent" />
@@ -24,11 +24,11 @@
         </span>
       </div>
 
-      <v-label class="mb-2 font-weight-black text-gold opacity-70">المسار الحالي للجهاز</v-label>
+      <label class="mb-2 font-weight-black text-gold">المسار الحالي للجهاز</label>
       <v-text-field
         :model-value="vaultRoot || 'لم يتم تحديد مسار بعد...'"
         variant="outlined"
-        class="glass-input ltr-text mb-8"
+        class="glass-input ltr-text mb-8 glass-input"
         readonly
       >
         <template #prepend-inner>
@@ -40,7 +40,7 @@
         <v-btn
           variant="text"
           color="gold"
-          class="px-8 font-weight-black opacity-50 h-56"
+          class="px-8 font-weight-black opacity-50 h-56 premium-btn-gold-gradient"
           @click="skip"
         >
           تخطي الآن
@@ -48,7 +48,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="px-12 font-weight-black rounded-lg premium-lift h-56"
+          class="px-12 font-weight-black rounded-lg premium-lift h-56 premium-btn-gold-gradient"
           @click="choose"
         >
           <LucideIcon name="folder-open" :size="20" class="me-2" /> اختيار المسار وتفعيل الخزانة

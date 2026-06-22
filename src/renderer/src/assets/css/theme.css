@@ -1,0 +1,72 @@
+/* src/assets/css/theme.css */
+
+:root {
+  /* Color palette */
+  --color-gold: #e9c349; /* Primary gold */
+  --color-gold-light: #f5d96e;
+  --color-gold-dark: #c5a332;
+  --color-accent: #ff6f61; /* Example accent */
+  --color-background: #ffffff;
+  --color-background-dark: #121212;
+
+  /* Glassmorphism */
+  --glass-bg-soft: rgba(255, 255, 255, 0.12);
+  --glass-blur: blur(12px);
+  --glass-border: rgba(255, 255, 255, 0.18);
+
+  /* Shadows */
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+
+  /* Transitions */
+  --transition-smooth: all 0.3s ease;
+
+  /* Typography (from Figma) */
+  --font-primary: 'Inter', sans-serif;
+  --font-secondary: 'Roboto', sans-serif;
+  --font-weight-bold: 800;
+  --font-weight-medium: 600;
+}
+
+[data-theme='dark'] {
+  --glass-bg-soft: rgba(0, 0, 0, 0.2);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --color-background: #101113; /* dark background from mockup */
+}
+
+/* Utility classes */
+.glass-card {
+  background: var(--glass-bg-soft) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition-smooth);
+}
+
+.glass-input .v-field__outline {
+  border-color: var(--color-gold) !important;
+}
+
+.glass-input input,
+.glass-input .v-field__input,
+.glass-input .v-select__selection-text {
+  color: var(--color-gold) !important;
+  font-weight: var(--font-weight-bold);
+  font-family: var(--font-primary) !important;
+}
+
+.premium-btn-gold-gradient {
+  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-dark)) !important;
+  color: #000 !important;
+  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+  border-radius: 12px !important;
+  box-shadow: var(--shadow-md) !important;
+  transition: var(--transition-smooth);
+}
+
+.premium-btn-gold-gradient:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--shadow-lg) !important;
+}

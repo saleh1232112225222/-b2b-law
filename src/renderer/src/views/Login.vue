@@ -9,7 +9,7 @@
     <v-row no-gutters class="fill-height z-10" align="center" justify="center">
       <v-col cols="12" sm="9" md="6" lg="4" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Login Card -->
-        <v-card class="premium-glass-card pa-10 w-100 rtl" elevation="0">
+        <v-card class="premium-glass-card pa-10 w-100 rtl glass-card" elevation="0">
           <!-- Card Glow Effect Corners -->
           <div class="corner-glow top-left"></div>
           <div class="corner-glow bottom-right"></div>
@@ -35,7 +35,7 @@
                 v-model="username"
                 placeholder="عنوان البريد الإلكتروني"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[(v) => !!v || 'اسم المستخدم مطلوب']"
                 required
@@ -51,7 +51,7 @@
                 placeholder="أدخل كلمة المرور"
                 type="password"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[(v) => !!v || 'كلمة المرور مطلوبة']"
                 required
@@ -68,7 +68,7 @@
               type="submit"
               block
               height="56"
-              class="premium-submit-btn mb-4"
+              class="premium-submit-btn mb-4 premium-btn-gold-gradient"
               :loading="loading"
               :disabled="!formValid"
             >
@@ -82,7 +82,7 @@
               </div>
 
               <!-- Google Sign-in Button -->
-              <v-btn block height="50" class="google-signin-btn mb-6" @click="handleGoogleLogin">
+              <v-btn block height="50" class="google-signin-btn mb-6 premium-btn-gold-gradient" @click="handleGoogleLogin">
                 <template #prepend>
                   <svg width="20" height="20" viewBox="0 0 48 48">
                     <path
@@ -136,12 +136,12 @@
 
         <!-- Recovery Modal -->
         <v-dialog v-model="recoveryDialog" max-width="500" persistent>
-          <v-card class="premium-glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4">
+          <v-card class="premium-glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4 glass-card">
             <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
               <LucideIcon name="shield-key" :size="24" class="me-3" />
               <span class="text-h6 font-weight-black">استعادة كلمة المرور</span>
               <v-spacer />
-              <v-btn
+              <v-btn class="premium-btn-gold-gradient"
                 icon
                 variant="text"
                 color="ebony"
@@ -152,7 +152,7 @@
               </v-btn>
             </div>
 
-            <v-card-text class="pa-8 rtl">
+            <v-card-text class="pa-8 rtl glass-card">
               <div v-if="recoveryStep === 1">
                 <div class="text-subtitle-1 text-gold mb-6 font-weight-bold">
                   الخطوة 1: التحقق من الهوية
@@ -163,7 +163,7 @@
                   <v-text-field
                     v-model="recoveryForm.username"
                     variant="outlined"
-                    class="premium-input"
+                    class="premium-input glass-input"
                     placeholder="أدخل اسم المستخدم"
                     hide-details
                   />
@@ -174,7 +174,7 @@
                   <v-text-field
                     v-model="recoveryForm.email"
                     variant="outlined"
-                    class="premium-input"
+                    class="premium-input glass-input"
                     placeholder="example@email.com"
                     hide-details
                   />
@@ -198,7 +198,7 @@
                   <v-text-field
                     v-model="recoveryForm.answer"
                     variant="outlined"
-                    class="premium-input"
+                    class="premium-input glass-input"
                     placeholder="اكتب الإجابة هنا..."
                     hide-details
                   />
@@ -209,7 +209,7 @@
                   <v-text-field
                     v-model="recoveryForm.newPassword"
                     variant="outlined"
-                    class="premium-input"
+                    class="premium-input glass-input"
                     type="password"
                     placeholder="أدخل كلمة المرور الجديدة"
                     hide-details
@@ -242,11 +242,11 @@
               </v-fade-transition>
             </v-card-text>
 
-            <v-card-actions v-if="recoveryStep !== 3" class="pa-8 pt-0 ga-3">
+            <v-card-actions v-if="recoveryStep !== 3" class="pa-8 pt-0 ga-3 glass-card">
               <v-btn
                 variant="text"
                 color="gold"
-                class="font-weight-black"
+                class="font-weight-black premium-btn-gold-gradient"
                 :disabled="recoveryLoading"
                 @click="recoveryDialog = false"
                 >إلغاء</v-btn
@@ -256,7 +256,7 @@
                 v-if="recoveryStep === 1"
                 color="gold"
                 variant="flat"
-                class="px-8 font-weight-black premium-lift"
+                class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
                 :loading="recoveryLoading"
                 :disabled="!recoveryForm.username || !recoveryForm.email"
                 @click="handleGetQuestion"
@@ -267,7 +267,7 @@
                 v-if="recoveryStep === 2"
                 color="gold"
                 variant="flat"
-                class="px-8 font-weight-black premium-lift"
+                class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
                 :loading="recoveryLoading"
                 :disabled="!recoveryForm.answer || !recoveryForm.newPassword"
                 @click="handleVerifyAndReset"
@@ -276,11 +276,11 @@
               </v-btn>
             </v-card-actions>
 
-            <v-card-actions v-else class="pa-8 pt-0 justify-center">
+            <v-card-actions v-else class="pa-8 pt-0 justify-center glass-card">
               <v-btn
                 color="gold"
                 variant="flat"
-                class="px-12 font-weight-black premium-lift"
+                class="px-12 font-weight-black premium-lift premium-btn-gold-gradient"
                 @click="recoveryDialog = false"
                 >إغلاق والعودة للدخول</v-btn
               >

@@ -9,7 +9,7 @@
     <v-row no-gutters class="fill-height z-10" align="center" justify="center">
       <v-col cols="12" sm="9" md="6" lg="5" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Card -->
-        <v-card class="premium-glass-card pa-10 w-100 rtl" elevation="0">
+        <v-card class="premium-glass-card pa-10 w-100 rtl glass-card" elevation="0">
           <!-- Card Glow Effect Corners -->
           <div class="corner-glow top-left"></div>
           <div class="corner-glow bottom-right"></div>
@@ -37,7 +37,7 @@
               عذراً، هذا الإصدار المحلي لا يدعم إنشاء حسابات جديدة مباشرة. التسجيل التلقائي متاح فقط
               لنسخة الويب السحابية.
             </v-alert>
-            <v-btn block height="50" class="premium-submit-btn" @click="router.push('/login')">
+            <v-btn block height="50" class="premium-submit-btn premium-btn-gold-gradient" @click="router.push('/login')">
               العودة لتسجيل الدخول
             </v-btn>
           </div>
@@ -76,7 +76,7 @@
                 v-model="otpCode"
                 placeholder="أدخل الرمز المكون من 6 أرقام"
                 variant="outlined"
-                class="premium-input text-center"
+                class="premium-input text-center glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'رمز التحقق مطلوب',
@@ -96,7 +96,7 @@
               type="submit"
               block
               height="56"
-              class="premium-submit-btn mb-4"
+              class="premium-submit-btn mb-4 premium-btn-gold-gradient"
               :loading="verificationLoading"
               :disabled="!verifyFormValid"
             >
@@ -120,7 +120,7 @@
                 v-model="companyName"
                 placeholder="أدخل اسم المكتب أو الشركة"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[(v) => !!v || 'اسم المكتب مطلوب']"
                 required
@@ -138,7 +138,7 @@
                 v-model="username"
                 placeholder="اسم المستخدم بالأحرف الإنجليزية"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'اسم المستخدم مطلوب',
@@ -161,7 +161,7 @@
                 v-model="email"
                 placeholder="example@email.com"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'البريد الإلكتروني مطلوب',
@@ -182,7 +182,7 @@
                 v-model="phone"
                 placeholder="05xxxxxxxx"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'رقم الجوال مطلوب',
@@ -205,7 +205,7 @@
                 placeholder="أدخل كلمة المرور"
                 type="password"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'كلمة المرور مطلوبة',
@@ -227,7 +227,7 @@
                 placeholder="أعد إدخال كلمة المرور"
                 type="password"
                 variant="outlined"
-                class="premium-input"
+                class="premium-input glass-input"
                 hide-details
                 :rules="[
                   (v) => !!v || 'تأكيد كلمة المرور مطلوب',
@@ -246,7 +246,7 @@
               type="submit"
               block
               height="56"
-              class="premium-submit-btn mb-6"
+              class="premium-submit-btn mb-6 premium-btn-gold-gradient"
               :loading="loading"
               :disabled="!formValid"
             >

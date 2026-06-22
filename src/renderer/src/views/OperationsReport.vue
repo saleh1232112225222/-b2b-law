@@ -20,7 +20,7 @@
           color="gold"
           variant="outlined"
           height="48"
-          class="rounded-xl px-6 font-weight-black premium-hover"
+          class="rounded-xl px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           :loading="loading"
           @click="load"
         >
@@ -33,7 +33,7 @@
               color="accent"
               variant="flat"
               height="48"
-              class="rounded-xl px-8 font-weight-black premium-lift text-ebony"
+              class="rounded-xl px-8 font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
               v-bind="props"
             >
               <LucideIcon name="download" :size="20" class="me-2" /> تصدير التقارير
@@ -87,7 +87,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card
           elevation="0"
-          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100"
+          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100 glass-card"
         >
           <div class="d-flex justify-space-between align-start mb-6">
             <div>
@@ -116,7 +116,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card
           elevation="0"
-          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100"
+          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100 glass-card"
         >
           <div class="d-flex justify-space-between align-start mb-6">
             <div>
@@ -147,7 +147,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card
           elevation="0"
-          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100"
+          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100 glass-card"
         >
           <div class="d-flex justify-space-between align-start mb-6">
             <div>
@@ -178,7 +178,7 @@
       <v-col cols="12" sm="6" md="3">
         <v-card
           elevation="0"
-          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100"
+          class="glass-card pa-6 rounded-xl border border-gold border-opacity-10 premium-hover h-100 glass-card"
         >
           <div class="d-flex justify-space-between align-start mb-6">
             <div>
@@ -204,7 +204,7 @@
       <v-col cols="12" md="8">
         <v-card
           elevation="0"
-          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100"
+          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100 glass-card"
         >
           <div
             class="glass-panel-light pa-6 border-b border-gold border-opacity-10 d-flex align-center"
@@ -296,7 +296,7 @@
       <v-col cols="12" md="4">
         <v-card
           elevation="0"
-          class="glass-card pa-8 rounded-xl border border-gold border-opacity-10 h-100"
+          class="glass-card pa-8 rounded-xl border border-gold border-opacity-10 h-100 glass-card"
         >
           <div class="d-flex align-center mb-6">
             <LucideIcon name="pie-chart" :size="20" class="text-gold me-3" />

@@ -23,7 +23,7 @@
         <v-btn
           variant="flat"
           color="accent"
-          class="rounded-lg font-weight-black px-6"
+          class="rounded-lg font-weight-black px-6 premium-btn-gold-gradient"
           elevation="4"
           :loading="printingReport"
           @click="generateBriefingPrint"
@@ -84,7 +84,7 @@
               <v-card
                 v-for="session in todaySessions"
                 :key="session.id"
-                class="agenda-card rounded-xl mb-4 overflow-hidden premium-hover bg-white"
+                class="agenda-card rounded-xl mb-4 overflow-hidden premium-hover bg-white glass-card"
                 elevation="2"
               >
                 <v-row no-gutters class="fill-height">
@@ -157,7 +157,7 @@
                       <v-btn
                         variant="tonal"
                         color="primary"
-                        class="font-weight-black rounded-lg"
+                        class="font-weight-black rounded-lg premium-btn-gold-gradient"
                         prepend-icon="mdi-folder-open"
                         @click="prepareSession(session)"
                       >
@@ -166,7 +166,7 @@
                       <v-btn
                         variant="flat"
                         color="accent"
-                        class="font-weight-black rounded-lg"
+                        class="font-weight-black rounded-lg premium-btn-gold-gradient"
                         prepend-icon="mdi-check-circle"
                         @click="openOutcomeModal(session)"
                       >
@@ -192,7 +192,7 @@
             <DailyProgress :model-value="completionRate" class="mb-6" />
 
             <!-- Frozen Alert Card -->
-            <v-card
+            <v-card class="glass-card"
               v-if="actionRequired.length > 0"
               class="rounded-xl border border-error bg-white shadow-premium pa-6 text-center"
               elevation="0"
@@ -219,7 +219,7 @@
             </v-card>
 
             <!-- Quick Enforcement -->
-            <v-card
+            <v-card class="glass-card"
               v-if="awaitingEnforcement.length > 0"
               class="mt-6 rounded-xl border-accent bg-white pa-4"
             >
@@ -268,7 +268,7 @@
             variant="text"
             color="accent"
             size="small"
-            class="font-weight-bold"
+            class="font-weight-bold premium-btn-gold-gradient"
             @click="router.push('/tasks')"
           >
             عرض الكل
@@ -278,7 +278,7 @@
         <v-row v-if="urgentTasks.length > 0" class="section-gap">
           <v-col v-for="task in urgentTasks" :key="task.id" cols="12" md="4">
             <v-card
-              class="rounded-xl border-s-lg border-warning bg-white shadow-premium pa-5 h-100 premium-lift"
+              class="rounded-xl border-s-lg border-warning bg-white shadow-premium pa-5 h-100 premium-lift glass-card"
               elevation="0"
             >
               <div class="d-flex justify-space-between align-start mb-3">
@@ -308,7 +308,7 @@
                   size="x-small"
                   variant="text"
                   color="accent"
-                  class="font-weight-bold"
+                  class="font-weight-bold premium-btn-gold-gradient"
                   :append-icon="ICONS.UI.CHEVRON_LEFT"
                   @click="router.push('/tasks')"
                   >التفاصيل</v-btn
@@ -330,7 +330,7 @@
       <v-window-item value="followup">
         <v-row>
           <v-col cols="12" md="6">
-            <v-card class="rounded-xl border bg-white shadow-sm overflow-hidden" elevation="0">
+            <v-card class="rounded-xl border bg-white shadow-sm overflow-hidden glass-card" elevation="0">
               <v-toolbar color="grey-lighten-4" flat height="48" class="px-4">
                 <LucideIcon :name="ICONS.STATUS.PENDING" color="primary" class="me-2" :size="20" />
                 <div class="text-subtitle-2 font-weight-black text-pure-black">
@@ -398,7 +398,7 @@
             variant="outlined"
             placeholder="اختر النتيجة من القائمة..."
             density="comfortable"
-            class="rounded-xl premium-select"
+            class="rounded-xl premium-select glass-input"
             hide-details
           ></v-select>
         </v-col>
@@ -410,7 +410,7 @@
             :items="['إعادة القيد', 'إغلاق نهائي']"
             variant="outlined"
             density="comfortable"
-            class="rounded-xl"
+            class="rounded-xl glass-input"
             hide-details
           >
             <template #prepend-inner>
@@ -426,7 +426,7 @@
             type="date"
             variant="outlined"
             density="comfortable"
-            class="rounded-xl"
+            class="rounded-xl glass-input"
             hide-details
           >
             <template #prepend-inner>
@@ -452,7 +452,7 @@
                 label="رقم الحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl"
+                class="rounded-xl glass-input"
                 hide-details
               >
                 <template #prepend-inner>
@@ -467,7 +467,7 @@
                 label="تاريخ الحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl"
+                class="rounded-xl glass-input"
                 hide-details
               />
             </v-col>
@@ -486,11 +486,11 @@
                 variant="outlined"
                 rounded="xl"
                 density="comfortable"
-                class="flex-wrap"
+                class="flex-wrap premium-btn-gold-gradient"
               >
-                <v-btn value="استئنافي" class="px-4">استئنافي</v-btn>
-                <v-btn value="قطعي" class="px-4">قطعي</v-btn>
-                <v-btn value="نهائي" class="px-4">نهائي</v-btn>
+                <v-btn value="استئنافي" class="px-4 premium-btn-gold-gradient">استئنافي</v-btn>
+                <v-btn value="قطعي" class="px-4 premium-btn-gold-gradient">قطعي</v-btn>
+                <v-btn value="نهائي" class="px-4 premium-btn-gold-gradient">نهائي</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -501,7 +501,7 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
               </div>
-              <v-btn-toggle
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentFavors"
                 mandatory
                 color="primary"
@@ -509,8 +509,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="الموكل" class="px-5">الموكل</v-btn>
-                <v-btn value="الخصم" class="px-5">الخصم</v-btn>
+                <v-btn value="الموكل" class="px-5 premium-btn-gold-gradient">الموكل</v-btn>
+                <v-btn value="الخصم" class="px-5 premium-btn-gold-gradient">الخصم</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -521,7 +521,7 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
               </div>
-              <v-btn-toggle
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentNeedsExecution"
                 mandatory
                 color="primary"
@@ -529,8 +529,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="نعم" class="px-5">نعم، يحتاج تنفيذ</v-btn>
-                <v-btn value="لا" class="px-5">لا، براءة أو منتهي</v-btn>
+                <v-btn value="نعم" class="px-5 premium-btn-gold-gradient">نعم، يحتاج تنفيذ</v-btn>
+                <v-btn value="لا" class="px-5 premium-btn-gold-gradient">لا، براءة أو منتهي</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -542,7 +542,7 @@
                 <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
                 للاعتراض على الحكم؟
               </div>
-              <v-btn-toggle
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentHasAppealGrounds"
                 mandatory
                 color="warning"
@@ -550,8 +550,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="نعم" class="px-5">نعم، يوجد أسباب</v-btn>
-                <v-btn value="لا" class="px-5">لا، الحكم صحيح</v-btn>
+                <v-btn value="نعم" class="px-5 premium-btn-gold-gradient">نعم، يوجد أسباب</v-btn>
+                <v-btn value="لا" class="px-5 premium-btn-gold-gradient">لا، الحكم صحيح</v-btn>
               </v-btn-toggle>
             </v-col>
             <v-col v-if="outcomeModal.judgmentHasAppealGrounds === 'نعم'" cols="12" class="mt-2">
@@ -561,7 +561,7 @@
                 label="تاريخ التبليغ بالحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl"
+                class="rounded-xl glass-input"
                 hide-details
               />
             </v-col>
@@ -579,7 +579,7 @@
                 :items="['مدنية', 'تجارية', 'عمالية', 'جنائية', 'إدارية', 'أحوال شخصية']"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl"
+                class="rounded-xl glass-input"
                 hide-details
                 placeholder="اختر نوع القضية..."
               />
@@ -632,7 +632,7 @@
     />
 
     <v-dialog v-model="enforcementConfirmDialog.show" max-width="450" persistent>
-      <v-card class="rounded-xl pa-6 text-center">
+      <v-card class="rounded-xl pa-6 text-center glass-card">
         <LucideIcon name="badge-check" color="success" :size="64" class="mb-4 mx-auto" />
         <h3 class="text-h5 font-weight-black mb-2 text-primary">تم إصدار حكم قطعي</h3>
         <p class="text-body-2 text-grey-darken-1 mb-8">
@@ -642,14 +642,14 @@
           <v-btn
             variant="text"
             color="grey"
-            class="flex-grow-1 font-weight-black"
+            class="flex-grow-1 font-weight-black premium-btn-gold-gradient"
             @click="handleEnforcementChoice(false)"
             >القضية منتهية</v-btn
           >
           <v-btn
             color="success"
             variant="flat"
-            class="flex-grow-1 font-weight-black rounded-lg"
+            class="flex-grow-1 font-weight-black rounded-lg premium-btn-gold-gradient"
             @click="handleEnforcementChoice(true)"
             >نعم، اذهب للتنفيذ</v-btn
           >
@@ -658,29 +658,29 @@
     </v-dialog>
 
     <v-dialog v-model="printPreviewDialog" width="90%" max-width="980" scrollable>
-      <v-card class="rounded-xl overflow-hidden">
+      <v-card class="rounded-xl overflow-hidden glass-card">
         <v-toolbar color="primary" height="64" class="px-4">
           <LucideIcon name="printer" :size="18" class="me-2 text-white" />
           <v-toolbar-title class="text-white font-weight-black">معاينة التقرير</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn icon variant="text" color="white" @click="printPreviewDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="white" @click="printPreviewDialog = false">
             <LucideIcon :name="ICONS.UI.CLOSE" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-0">
+        <v-card-text class="pa-0 glass-card">
           <iframe v-if="printPreviewHtml" class="print-preview-frame" :srcdoc="printPreviewHtml" />
           <div v-else class="pa-8 text-center text-grey-darken-1">لا توجد معاينة متاحة.</div>
         </v-card-text>
         <v-divider />
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-4 glass-card">
           <v-spacer />
-          <v-btn variant="text" class="font-weight-black" @click="printPreviewDialog = false"
+          <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="printPreviewDialog = false"
             >إغلاق</v-btn
           >
           <v-btn
             color="accent"
             variant="elevated"
-            class="font-weight-black"
+            class="font-weight-black premium-btn-gold-gradient"
             :loading="printingReport"
             @click="printFromPreview"
           >

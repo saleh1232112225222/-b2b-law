@@ -1,23 +1,22 @@
 <template>
   <v-dialog :model-value="show" max-width="500" @update:model-value="$emit('update:show', $event)">
-    <v-card class="glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4">
+    <v-card class="glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4 glass-card">
       <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
         <LucideIcon name="shield-alert" :size="24" class="me-3" />
         <span class="text-h6 font-weight-black">بيانات الاستعادة: {{ username }}</span>
         <v-spacer />
-        <v-btn icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8">
+      <v-card-text class="pa-8 glass-card">
         <div class="mb-4">
-          <v-label class="mb-2 font-weight-black text-gold opacity-60"
-            >البريد الإلكتروني للاستعادة (Identity Hint)</v-label
+          <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني للاستعادة (Identity Hint)</v-label
           >
           <v-text-field
             v-model="email"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             placeholder="example@email.com"
             hide-details
           >
@@ -27,11 +26,11 @@
           </v-text-field>
         </div>
         <div class="mb-4">
-          <v-label class="mb-2 font-weight-black text-gold opacity-60">السؤال السري</v-label>
+          <label class="mb-2 font-weight-black text-gold">السؤال السري</label>
           <v-text-field
             v-model="question"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             placeholder="ما هو اسم مدرستك الأولى؟"
             hide-details
           >
@@ -41,13 +40,12 @@
           </v-text-field>
         </div>
         <div class="mb-4">
-          <v-label class="mb-2 font-weight-black text-gold opacity-60"
-            >الإجابة السرية (اتركه فارغاً لعدم التغيير)</v-label
+          <label class="mb-2 font-weight-black text-gold">الإجابة السرية (اتركه فارغاً لعدم التغيير)</v-label
           >
           <v-text-field
             v-model="answer"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             placeholder="أدخل الإجابة الجديدة هنا"
             hide-details
             type="password"
@@ -66,11 +64,11 @@
           بصفتك مديراً، يمكنك تعيين هذه البيانات للموظف في حال نسيانها بالكامل.
         </v-alert>
       </v-card-text>
-      <v-card-actions class="pa-8 pt-0 ga-3">
+      <v-card-actions class="pa-8 pt-0 ga-3 glass-card">
         <v-btn
           variant="text"
           color="gold"
-          class="font-weight-black"
+          class="font-weight-black premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
@@ -78,7 +76,7 @@
         <v-btn
           color="gold"
           variant="flat"
-          class="px-8 font-weight-black premium-lift"
+          class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
           :loading="loading"
           @click="handleSave"
           >حفظ البيانات</v-btn

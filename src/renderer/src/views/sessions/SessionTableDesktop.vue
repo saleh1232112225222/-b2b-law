@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card min-h-500">
+  <v-card elevation="0" class="glass-card min-h-500 glass-card">
     <div class="table-scroll-wrapper">
       <v-data-table-server
         :items-per-page="itemsPerPage"
@@ -46,7 +46,7 @@
             <v-btn
               variant="text"
               color="gold"
-              class="px-0 text-body-1 font-weight-black hover-gold"
+              class="px-0 text-body-1 font-weight-black hover-gold premium-btn-gold-gradient"
               @click="$emit('edit', item)"
             >
               {{ item.date }} م
@@ -59,7 +59,7 @@
               color="accent"
               size="x-small"
               variant="flat"
-              class="rounded-md px-3 mt-2 font-weight-black premium-lift"
+              class="rounded-md px-3 mt-2 font-weight-black premium-lift premium-btn-gold-gradient"
               @click="$emit('open-najiz', item.meeting_link)"
             >
               <LucideIcon name="video" :size="12" class="me-2" /> انضمام مباشر
@@ -79,7 +79,7 @@
             v-if="item.client_id"
             variant="text"
             color="gold"
-            class="px-0 text-body-2 font-weight-black opacity-80 hover-gold"
+            class="px-0 text-body-2 font-weight-black opacity-80 hover-gold premium-btn-gold-gradient"
             :to="'/clients/' + item.client_id"
             density="compact"
           >
@@ -95,7 +95,7 @@
             v-if="item.case_id"
             variant="text"
             color="accent"
-            class="px-0 text-body-2 font-weight-black hover-gold"
+            class="px-0 text-body-2 font-weight-black hover-gold premium-btn-gold-gradient"
             :to="'/cases/' + item.case_id"
             density="compact"
           >
@@ -129,7 +129,7 @@
               variant="text"
               color="accent"
               size="small"
-              class="premium-hover"
+              class="premium-hover premium-btn-gold-gradient"
               @click="$emit('open-session-room', item)"
             >
               <LucideIcon name="swords" :size="20" />
@@ -140,7 +140,7 @@
               variant="text"
               color="primary"
               size="small"
-              class="premium-hover"
+              class="premium-hover premium-btn-gold-gradient"
               @click="$emit('open-session-room-new-window', item)"
             >
               <LucideIcon name="external-link" :size="18" />
@@ -156,7 +156,7 @@
               variant="text"
               color="gold"
               size="small"
-              class="premium-hover opacity-70"
+              class="premium-hover opacity-70 premium-btn-gold-gradient"
               @click="$emit('edit', item)"
             >
               <LucideIcon name="edit-3" :size="18" />
@@ -166,7 +166,7 @@
               variant="text"
               color="error"
               size="small"
-              class="premium-hover opacity-70"
+              class="premium-hover opacity-70 premium-btn-gold-gradient"
               @click="$emit('delete', item)"
             >
               <LucideIcon name="trash-2" :size="18" />

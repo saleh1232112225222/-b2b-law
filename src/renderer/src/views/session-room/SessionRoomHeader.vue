@@ -22,7 +22,7 @@
         v-if="!isNewWindow"
         variant="tonal"
         color="accent"
-        class="rounded-xl font-weight-black shadow-premium glass-card session-room-btn-zr1"
+        class="rounded-xl font-weight-black shadow-premium glass-card session-room-btn-zr1 premium-btn-gold-gradient"
         height="56"
         @click="$emit('open-new-window')"
       >
@@ -31,7 +31,7 @@
       <v-btn
         variant="tonal"
         color="primary"
-        class="rounded-xl font-weight-black shadow-premium glass-card session-room-btn-zr1"
+        class="rounded-xl font-weight-black shadow-premium glass-card session-room-btn-zr1 premium-btn-gold-gradient"
         height="56"
         @click="$emit('go-back')"
       >
@@ -40,7 +40,7 @@
       <v-btn
         variant="flat"
         color="primary"
-        class="rounded-xl font-weight-black shadow-premium premium-btn-glow session-room-btn-zr1"
+        class="rounded-xl font-weight-black shadow-premium premium-btn-glow session-room-btn-zr1 premium-btn-gold-gradient"
         height="56"
         @click="$emit('open-picker')"
       >
@@ -50,7 +50,7 @@
         v-if="hasActiveSession"
         variant="flat"
         color="error"
-        class="rounded-xl font-weight-black px-8 shadow-premium session-room-btn-zr1"
+        class="rounded-xl font-weight-black px-8 shadow-premium session-room-btn-zr1 premium-btn-gold-gradient"
         height="56"
         @click="$emit('open-outcome')"
       >

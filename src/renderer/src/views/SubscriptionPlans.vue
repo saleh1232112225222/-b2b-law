@@ -21,7 +21,7 @@
           v-if="isTrialExpired"
           color="warning"
           variant="elevated"
-          class="ms-4 font-weight-black"
+          class="ms-4 font-weight-black premium-btn-gold-gradient"
           @click="openPlans"
         >
           اشترك الآن
@@ -49,7 +49,7 @@
     <v-card
       v-if="currentSub"
       elevation="0"
-      class="bg-white pa-6 mb-8 border-gold-alpha rounded-2xl"
+      class="bg-white pa-6 mb-8 border-gold-alpha rounded-2xl glass-card"
     >
       <v-row dense align="center">
         <v-col cols="12" md="8">
@@ -92,7 +92,7 @@
             v-if="currentSub.isExpired"
             color="accent"
             size="large"
-            class="font-weight-black rounded-xl px-8"
+            class="font-weight-black rounded-xl px-8 premium-btn-gold-gradient"
           >
             اشترك الآن
           </v-btn>
@@ -101,7 +101,7 @@
             variant="outlined"
             color="gold"
             size="large"
-            class="font-weight-black rounded-xl px-8"
+            class="font-weight-black rounded-xl px-8 premium-btn-gold-gradient"
             @click="openPlans"
           >
             تغيير الخطة
@@ -120,7 +120,7 @@
       <v-col v-for="plan in plans" :key="plan.id" cols="12" md="6" lg="4">
         <v-card
           elevation="0"
-          class="plan-card bg-white border-gold-alpha rounded-2xl overflow-hidden"
+          class="plan-card bg-white border-gold-alpha rounded-2xl overflow-hidden glass-card"
           :class="{ 'plan-featured': plan.interval === 'year' }"
         >
           <div
@@ -161,7 +161,7 @@
               block
               color="accent"
               size="large"
-              class="mt-6 font-weight-black rounded-xl"
+              class="mt-6 font-weight-black rounded-xl premium-btn-gold-gradient"
               :loading="processingPlan === plan.id"
               @click="selectPlan(plan)"
             >
@@ -174,17 +174,17 @@
 
     <!-- Payment Dialog -->
     <v-dialog v-model="showPaymentDialog" max-width="520" persistent>
-      <v-card class="rounded-2xl">
+      <v-card class="rounded-2xl glass-card">
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="credit-card" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تأكيد الدفع</span>
           <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="showPaymentDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showPaymentDialog = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-6 rtl">
+        <v-card-text class="pa-6 rtl glass-card">
           <div class="text-h5 font-weight-black text-center mb-4">{{ selectedPlan?.name_ar }}</div>
 
           <div
@@ -206,7 +206,7 @@
             block
             color="accent"
             size="x-large"
-            class="font-weight-black rounded-xl mb-3"
+            class="font-weight-black rounded-xl mb-3 premium-btn-gold-gradient"
             :loading="processingPayment"
             @click="processPayment"
           >
@@ -223,7 +223,7 @@
 
     <!-- Success Dialog -->
     <v-dialog v-model="showSuccessDialog" max-width="440" persistent>
-      <v-card class="rounded-2xl text-center pa-8">
+      <v-card class="rounded-2xl text-center pa-8 glass-card">
         <LucideIcon name="check-circle-2" :size="64" class="text-success mb-4" />
         <h2 class="text-h5 font-weight-black mb-2">تم التفعيل بنجاح!</h2>
         <p class="text-body-1 text-grey-darken-1 mb-6">
@@ -232,7 +232,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-xl px-12"
+          class="font-weight-black rounded-xl px-12 premium-btn-gold-gradient"
           @click="closeSuccessDialog"
         >
           الذهاب للوحة التحكم
@@ -246,6 +246,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useLicensingStore } from '../stores/licensing'
+import LucideIcon from '../components/common/LucideIcon.vue'
 
 const router = useRouter()
 const licensingStore = useLicensingStore()

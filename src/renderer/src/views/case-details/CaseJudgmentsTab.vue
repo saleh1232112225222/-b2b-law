@@ -4,7 +4,7 @@
       color="accent"
       variant="flat"
       size="small"
-      class="mb-6 rounded-lg font-weight-black text-primary-dark"
+      class="mb-6 rounded-lg font-weight-black text-primary-dark premium-btn-gold-gradient"
       @click="$emit('add')"
     >
       <LucideIcon name="plus" :size="16" class="me-2" /> تسجيل حكم
@@ -66,7 +66,7 @@
               variant="text"
               color="accent"
               size="x-small"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               @click="$emit('amend', j.id)"
             >
               <LucideIcon name="file-edit" :size="16" />

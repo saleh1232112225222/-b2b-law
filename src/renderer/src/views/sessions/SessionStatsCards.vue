@@ -1,7 +1,7 @@
 <template>
   <v-row class="mb-8" dense>
     <v-col cols="12" md="4">
-      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
+      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift glass-card">
         <v-skeleton-loader
           v-if="loading"
           type="list-item-two-line"
@@ -17,7 +17,7 @@
       </v-card>
     </v-col>
     <v-col cols="12" md="4">
-      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
+      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift glass-card">
         <v-skeleton-loader
           v-if="loading"
           type="list-item-two-line"
@@ -33,7 +33,7 @@
       </v-card>
     </v-col>
     <v-col cols="12" md="4">
-      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift">
+      <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden premium-lift glass-card">
         <v-skeleton-loader
           v-if="loading"
           type="list-item-two-line"

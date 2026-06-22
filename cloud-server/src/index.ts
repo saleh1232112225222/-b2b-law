@@ -55,6 +55,7 @@ import { tasksRouter } from './routes/tasks'
 import { marketingRouter } from './routes/marketing'
 import { subscriptionRouter } from './routes/subscriptions'
 import { adminSubscriptionRouter } from './routes/adminSubscriptions'
+import { sessionsRouter } from './routes/sessions'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -99,6 +100,7 @@ app.use('/api/cases', casesRouter)
 app.use('/api/contracts', contractsRouter)
 app.use('/api/session-outcomes', sessionOutcomesRouter)
 app.use('/api/tasks', tasksRouter)
+app.use('/api/sessions', sessionsRouter)
 app.use('/api/subscriptions', subscriptionRouter)
 app.use('/api/admin/subscriptions', adminSubscriptionRouter)
 app.use('/api', marketingRouter);
@@ -141,6 +143,7 @@ for (const entity of entityTables) {
   if (entity.name === 'permissions') continue
   if (entity.name === 'cases') continue
   if (entity.name === 'contracts') continue
+  if (entity.name === 'sessions') continue
 
   let readPermission = ''
   let writePermission = ''
@@ -365,11 +368,6 @@ async function seedSuperAdmin() {
     // Always sync/re-sync the super admin's password hash
     await dbQuery(
       `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com', is_active = TRUE, must_change_password = FALSE WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
-      []
-    )
-    // Also fix any stale admin user (from old registrations with random company IDs)
-    await dbQuery(
-      `UPDATE users SET password_hash = '${ADMIN_HASH}', is_active = TRUE, must_change_password = FALSE WHERE username = 'admin' AND password_hash IS DISTINCT FROM '${ADMIN_HASH}'`,
       []
     )
     console.log('[SEED] Super Admin password hash synced')

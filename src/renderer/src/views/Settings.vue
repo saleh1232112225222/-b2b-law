@@ -22,7 +22,7 @@
       <v-col cols="12" md="6">
         <SettingsOfficeCard v-model="settings" @save="saveSettings" />
 
-        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20">
+        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
           <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
             <LucideIcon name="crown" :size="20" class="text-gold me-3" />
             <span class="text-subtitle-1 font-weight-black text-primary">الاشتراك والترخيص</span>
@@ -71,7 +71,7 @@
             <v-btn
               block
               color="accent"
-              class="font-weight-black rounded-xl mt-2"
+              class="font-weight-black rounded-xl mt-2 premium-btn-gold-gradient"
               @click="$router.push('/subscription')"
             >
               <LucideIcon name="crown" :size="18" class="me-2" />
@@ -83,18 +83,18 @@
 
       <!-- Row 2: Data & Sync -->
       <v-col cols="12" md="6">
-        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20">
+        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
           <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
             <LucideIcon name="cloud-cog" :size="20" class="text-primary me-3" />
             <span class="text-subtitle-1 font-weight-black text-primary">المزامنة السحابية</span>
           </div>
-          <v-card-text class="pa-4">
+          <v-card-text class="pa-4 glass-card">
             <v-text-field
               v-model="gasUrl"
               label="رابط المزامنة (Google Apps Script)"
               variant="outlined"
               density="compact"
-              class="mb-3 glass-input"
+              class="mb-3 glass-input glass-input"
               hide-details="auto"
               @update:model-value="onGasUrlInput"
             ></v-text-field>
@@ -104,7 +104,7 @@
                   variant="outlined"
                   color="gold"
                   block
-                  class="font-weight-black"
+                  class="font-weight-black premium-btn-gold-gradient"
                   size="small"
                   :loading="testingSync"
                   @click="testConnection"
@@ -116,7 +116,7 @@
                   color="accent"
                   variant="flat"
                   block
-                  class="font-weight-black"
+                  class="font-weight-black premium-btn-gold-gradient"
                   size="small"
                   :loading="syncingCloud"
                   @click="handleCloudSync"
@@ -128,7 +128,7 @@
                   color="gold"
                   variant="tonal"
                   block
-                  class="font-weight-black"
+                  class="font-weight-black premium-btn-gold-gradient"
                   size="small"
                   @click="openSyncSheet"
                   >فتح الشيت</v-btn
@@ -143,7 +143,7 @@
                 variant="tonal"
                 size="small"
                 color="gold"
-                class="font-weight-black px-4"
+                class="font-weight-black px-4 premium-btn-gold-gradient"
                 @click="copySyncScript"
               >
                 <LucideIcon name="code" :size="14" class="me-1" />
@@ -156,7 +156,7 @@
             </div>
             <v-row dense>
               <v-col cols="6">
-                <v-btn
+                <v-btn class="premium-btn-gold-gradient"
                   variant="outlined"
                   color="gold"
                   block
@@ -167,7 +167,7 @@
                 >
               </v-col>
               <v-col cols="6">
-                <v-btn
+                <v-btn class="premium-btn-gold-gradient"
                   color="error"
                   variant="tonal"
                   block
@@ -187,10 +187,10 @@
             >
               <div class="text-tiny font-weight-bold">جاهز: {{ restorePreview.updatedAt }}</div>
               <div class="d-flex ga-1 mt-1">
-                <v-btn size="x-small" variant="tonal" color="gold" @click="showRestoreInFolder"
+                <v-btn class="premium-btn-gold-gradient" size="x-small" variant="tonal" color="gold" @click="showRestoreInFolder"
                   >فتح</v-btn
                 >
-                <v-btn size="x-small" variant="tonal" color="gold" @click="exportRestoreFile"
+                <v-btn class="premium-btn-gold-gradient" size="x-small" variant="tonal" color="gold" @click="exportRestoreFile"
                   >تصدير</v-btn
                 >
               </div>
@@ -198,14 +198,14 @@
           </v-card-text>
         </v-card>
 
-        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20">
+        <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
           <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
             <LucideIcon name="database" :size="20" class="text-primary me-3" />
             <span class="text-subtitle-1 font-weight-black text-primary"
               >النسخ الاحتياطي والأمان</span
             >
           </div>
-          <v-card-text class="pa-4">
+          <v-card-text class="pa-4 glass-card">
             <v-row dense class="mb-4">
               <v-col cols="6">
                 <v-btn
@@ -213,7 +213,7 @@
                   variant="outlined"
                   block
                   size="small"
-                  class="font-weight-black settings-data-btn"
+                  class="font-weight-black settings-data-btn premium-btn-gold-gradient"
                   @click="exportBackup"
                   >تصدير قاعدة البيانات</v-btn
                 >
@@ -224,7 +224,7 @@
                   variant="outlined"
                   block
                   size="small"
-                  class="font-weight-black settings-data-btn"
+                  class="font-weight-black settings-data-btn premium-btn-gold-gradient"
                   @click="importBackup"
                   >استيراد نسخة</v-btn
                 >
@@ -237,7 +237,7 @@
                   variant="outlined"
                   block
                   size="small"
-                  class="font-weight-black settings-data-btn"
+                  class="font-weight-black settings-data-btn premium-btn-gold-gradient"
                   :loading="savingManualSnapshot"
                   @click="exportManualSnapshot"
                   >حفظ البيانات</v-btn
@@ -249,7 +249,7 @@
                   variant="outlined"
                   block
                   size="small"
-                  class="font-weight-black settings-data-btn"
+                  class="font-weight-black settings-data-btn premium-btn-gold-gradient"
                   :loading="injectingManualSnapshot"
                   @click="injectManualSnapshot"
                   >حقن البيانات</v-btn
@@ -262,12 +262,12 @@
               variant="outlined"
               density="compact"
               readonly
-              class="mb-4 glass-input"
+              class="mb-4 glass-input glass-input"
               hide-details="auto"
             >
               <template #append-inner>
                 <div class="d-flex ga-1">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     variant="text"
                     size="small"
                     color="gold"
@@ -275,7 +275,7 @@
                     @click="chooseCasesRootFolder"
                     >تغيير</v-btn
                   >
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     variant="text"
                     size="small"
                     color="gold"
@@ -292,7 +292,7 @@
                 variant="tonal"
                 color="gold"
                 size="small"
-                class="flex-grow-1"
+                class="flex-grow-1 premium-btn-gold-gradient"
                 @click="exportSupportBundle"
                 >تقرير دعم</v-btn
               >
@@ -300,7 +300,7 @@
                 variant="tonal"
                 color="gold"
                 size="small"
-                class="flex-grow-1"
+                class="flex-grow-1 premium-btn-gold-gradient"
                 @click="captureScreenshot"
                 >لقطة شاشة</v-btn
               >
@@ -321,7 +321,7 @@
               color="error"
               variant="flat"
               size="small"
-              class="font-weight-black"
+              class="font-weight-black premium-btn-gold-gradient"
               @click="handleClear"
               >تنفيذ</v-btn
             >
@@ -331,8 +331,8 @@
 
       <!-- Row 3: Preferences & PDPL -->
       <v-col cols="12">
-        <v-card elevation="0" class="glass-card border border-gold border-opacity-20">
-          <v-card-text class="pa-4 d-flex align-center flex-wrap ga-4">
+        <v-card elevation="0" class="glass-card border border-gold border-opacity-20 glass-card">
+          <v-card-text class="pa-4 d-flex align-center flex-wrap ga-4 glass-card">
             <div class="d-flex align-center ga-3 border-l border-gold border-opacity-20 pe-4">
               <LucideIcon name="timer" :size="20" class="text-primary" />
               <span class="text-body-2 font-weight-black text-primary">سياسة الاحتفاظ:</span>
@@ -343,7 +343,7 @@
                 density="compact"
                 hide-details
                 style="width: 80px"
-                class="glass-input-compact"
+                class="glass-input-compact glass-input"
               ></v-text-field>
               <span class="text-caption text-gold font-weight-bold">يوم</span>
             </div>
@@ -366,7 +366,7 @@
                 density="compact"
                 hide-details
                 style="width: 70px"
-                class="glass-input-compact"
+                class="glass-input-compact glass-input"
               ></v-text-field>
               <span
                 v-if="settings.taskNotificationsEnabled"
@@ -382,7 +382,7 @@
                 color="gold"
                 variant="tonal"
                 size="small"
-                class="font-weight-black"
+                class="font-weight-black premium-btn-gold-gradient"
                 @click="exportPerformanceReport"
                 >تقرير أداء</v-btn
               >
@@ -396,17 +396,17 @@
 
     <!-- Google Apps Script Instructions Dialog -->
     <v-dialog v-model="showGasInstructions" max-width="700">
-      <v-card class="glass-card overflow-hidden border-gold border-2">
+      <v-card class="glass-card overflow-hidden border-gold border-2 glass-card">
         <div class="pa-6 d-flex align-center bg-gold-gradient text-ebony">
           <LucideIcon name="globe" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تعليمات إعداد مزامنة قوقل</span>
           <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="showGasInstructions = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showGasInstructions = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <div class="mb-6 glass-panel-light pa-4 rounded-lg border border-gold border-opacity-20">
             <div class="text-subtitle-1 font-weight-black text-gold mb-3">
               طريقة الإعداد السريع:
@@ -432,13 +432,13 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-8 pt-0">
+        <v-card-actions class="pa-8 pt-0 glass-card">
           <v-btn
             color="gold"
             variant="flat"
             block
             size="large"
-            class="font-weight-black premium-lift"
+            class="font-weight-black premium-lift premium-btn-gold-gradient"
             @click="showGasInstructions = false"
             >فهمت، سأقوم بالإعداد الآن</v-btn
           >
@@ -447,12 +447,12 @@
     </v-dialog>
 
     <v-dialog v-model="showRestoreDialog" max-width="800" persistent scrollable>
-      <v-card class="glass-card overflow-hidden border-gold border-2">
+      <v-card class="glass-card overflow-hidden border-gold border-2 glass-card">
         <div class="pa-6 d-flex align-center bg-gold-gradient text-ebony">
           <LucideIcon name="download-cloud" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">استعادة نسخة احتياطية</span>
           <v-spacer />
-          <v-btn
+          <v-btn class="premium-btn-gold-gradient"
             icon
             variant="text"
             color="ebony"
@@ -463,7 +463,7 @@
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <div class="d-flex align-center justify-space-between mb-4">
             <div class="text-subtitle-1 font-weight-black text-gold">تقدم الاستعادة</div>
             <div class="text-h6 font-weight-black text-accent">{{ restoreProgress.percent }}%</div>
@@ -515,11 +515,11 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-8 pt-0 gap-3">
+        <v-card-actions class="pa-8 pt-0 gap-3 glass-card">
           <v-btn
             variant="text"
             color="gold"
-            class="font-weight-black"
+            class="font-weight-black premium-btn-gold-gradient"
             :disabled="restoringBackup"
             @click="showRestoreDialog = false"
             >إغلاق</v-btn
@@ -528,7 +528,7 @@
           <v-btn
             color="gold"
             variant="flat"
-            class="px-10 font-weight-black premium-lift"
+            class="px-10 font-weight-black premium-lift premium-btn-gold-gradient"
             :loading="restoringBackup"
             @click="startBackupRestore"
             >بدء الاستعادة</v-btn
@@ -539,17 +539,17 @@
 
     <!-- Najiz Progress Dialog -->
     <v-dialog v-model="showNajizDialog" max-width="920" persistent>
-      <v-card class="glass-card overflow-hidden border-gold border-2">
+      <v-card class="glass-card overflow-hidden border-gold border-2 glass-card">
         <div class="pa-6 d-flex align-center bg-gold-gradient text-ebony">
           <LucideIcon name="globe" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">مزامنة ناجز — التقدم</span>
           <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="showNajizDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showNajizDialog = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <v-row dense class="mb-8">
             <v-col cols="12" md="6">
               <div class="text-body-1 text-gold font-weight-black mb-1">المرحلة الحالية</div>
@@ -602,12 +602,12 @@
           </div>
         </v-card-text>
 
-        <v-card-actions class="pa-8 pt-0">
+        <v-card-actions class="pa-8 pt-0 glass-card">
           <v-spacer />
           <v-btn
             color="gold"
             variant="flat"
-            class="px-8 font-weight-black premium-lift"
+            class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
             @click="showNajizDialog = false"
             >إغلاق النافذة</v-btn
           >
@@ -626,7 +626,7 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
       <template #actions>
-        <v-btn icon variant="text" @click="snackbar = false">
+        <v-btn class="premium-btn-gold-gradient" icon variant="text" @click="snackbar = false">
           <LucideIcon name="x" :size="18" />
         </v-btn>
       </template>
@@ -634,16 +634,16 @@
 
     <!-- Performance Report Dialog -->
     <v-dialog v-model="showPerfReportDialog" max-width="700">
-      <v-card class="glass-card border-gold border-2 overflow-hidden">
+      <v-card class="glass-card border-gold border-2 overflow-hidden glass-card">
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="activity" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تقرير أداء النظام</span>
           <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="showPerfReportDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showPerfReportDialog = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <div class="mb-4 text-subtitle-2 text-gold font-weight-black">
             البيانات التقنية (JSON):
           </div>
@@ -653,13 +653,13 @@
             >{{ JSON.stringify(perfReportData, null, 2) }}</pre
           >
         </v-card-text>
-        <v-card-actions class="pa-8 pt-0">
+        <v-card-actions class="pa-8 pt-0 glass-card">
           <v-btn
             color="gold"
             variant="flat"
             block
             size="large"
-            class="font-weight-black"
+            class="font-weight-black premium-btn-gold-gradient"
             @click="savePerfReportToFile"
             >حفظ التقرير كملف</v-btn
           >

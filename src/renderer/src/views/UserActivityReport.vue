@@ -21,7 +21,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -31,7 +31,7 @@
 
     <v-card
       elevation="0"
-      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden"
+      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden glass-card"
     >
       <!-- Filters Row -->
       <v-row dense class="mb-8 align-center">
@@ -44,7 +44,7 @@
             item-value="value"
             label="اختر المستخدم للمراقبة"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           >
@@ -59,7 +59,7 @@
             label="من تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -69,7 +69,7 @@
             label="إلى تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -79,7 +79,7 @@
             variant="flat"
             block
             height="56"
-            class="rounded-xl font-weight-black premium-lift text-ebony"
+            class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
             :loading="loading"
             @click="load"
           >
@@ -94,7 +94,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="printPage"
         >
           <LucideIcon name="printer" :size="20" class="me-2 text-gold" /> طباعة
@@ -103,7 +103,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="exportPdf"
         >
           <LucideIcon name="file-text" :size="20" class="me-2 text-gold" /> تصدير PDF
@@ -112,7 +112,7 @@
           variant="tonal"
           color="white"
           height="48"
-          class="rounded-xl px-6 font-weight-black"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="exportCsv"
         >
           <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير CSV
@@ -141,7 +141,7 @@
 
       <v-card
         elevation="0"
-        class="glass-panel-light pa-6 rounded-xl mb-12 border border-gold border-opacity-10"
+        class="glass-panel-light pa-6 rounded-xl mb-12 border border-gold border-opacity-10 glass-card"
       >
         <v-skeleton-loader
           v-if="loading"
@@ -162,7 +162,7 @@
 
       <v-card
         elevation="0"
-        class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden"
+        class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden glass-card"
       >
         <v-table density="comfortable" class="premium-table">
           <thead>

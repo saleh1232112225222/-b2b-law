@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-4 pa-4">
+  <v-card elevation="0" class="glass-card mb-4 pa-4 glass-card">
     <v-row dense align="center">
       <v-col cols="12" md="4">
         <v-text-field
@@ -8,7 +8,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select text-white"
+          class="rounded-xl premium-select text-white glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -24,7 +24,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
           @update:model-value="$emit('update:status', $event)"
         >
           <template #prepend-inner>
@@ -40,7 +40,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
           @update:model-value="$emit('update:priority', $event)"
         >
           <template #prepend-inner>
@@ -58,7 +58,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
           clearable
           :loading="loading"
           @update:model-value="$emit('update:responsibleUserId', $event)"
@@ -73,7 +73,7 @@
         <v-btn
           variant="tonal"
           color="accent"
-          class="rounded-lg px-4 h-48 premium-lift"
+          class="rounded-lg px-4 h-48 premium-lift premium-btn-gold-gradient"
           :loading="loading"
           @click="$emit('refresh')"
         >

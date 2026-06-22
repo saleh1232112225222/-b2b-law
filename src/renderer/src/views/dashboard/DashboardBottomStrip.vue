@@ -4,16 +4,16 @@
       <v-col cols="12" md="6">
         <v-card
           elevation="0"
-          class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card"
+          class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card glass-card"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0">
+          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0 glass-card">
             <span class="font-weight-black text-tiny-v dashboard-title">المهام المعلقة</span>
             <v-btn
               variant="text"
               color="accent"
               to="/tasks"
               size="x-small"
-              class="font-weight-bold"
+              class="font-weight-bold premium-btn-gold-gradient"
               @click="$emit('navigate', '/tasks')"
               >الكل</v-btn
             >
@@ -51,9 +51,9 @@
       <v-col cols="12" md="6">
         <v-card
           elevation="0"
-          class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card border-error-alpha"
+          class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card border-error-alpha glass-card"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center shrink-0">
+          <v-card-title class="pa-1 px-2 d-flex align-center shrink-0 glass-card">
             <LucideIcon name="alert-triangle" :size="12" class="text-error me-2 pulse-icon" />
             <span class="font-weight-black text-tiny-v dashboard-title">تنبيهات عاجلة</span>
           </v-card-title>

@@ -1,7 +1,7 @@
 <template>
   <v-row class="mb-4" dense>
     <v-col cols="12" md="6">
-      <v-card elevation="0" class="glass-card pa-6 premium-lift overflow-hidden">
+      <v-card elevation="0" class="glass-card pa-6 premium-lift overflow-hidden glass-card">
         <v-skeleton-loader v-if="loading" type="list-item-two-line" class="bg-transparent" />
         <div v-else>
           <div
@@ -21,7 +21,7 @@
       </v-card>
     </v-col>
     <v-col cols="12" md="6">
-      <v-card elevation="0" class="glass-card pa-6 premium-lift overflow-hidden">
+      <v-card elevation="0" class="glass-card pa-6 premium-lift overflow-hidden glass-card">
         <div
           class="text-caption font-weight-black text-gold opacity-60 mb-2 uppercase tracking-widest"
         >

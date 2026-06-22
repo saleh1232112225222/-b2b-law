@@ -85,42 +85,42 @@
     >
       <v-row dense>
         <v-col cols="12">
-          <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
+          <label class="mb-2 font-weight-black text-gold">
             <LucideIcon name="help-circle" :size="18" class="me-2" /> ما هي نتيجة الجلسة النهائية؟
-          </v-label>
+          </label>
           <v-select
             v-model="outcomeModal.result"
             :items="SESSION_OUTCOMES"
             variant="outlined"
             placeholder="اختر النتيجة من القائمة..."
             density="comfortable"
-            class="rounded-xl premium-select"
+            class="rounded-xl premium-select glass-input"
             hide-details
           />
         </v-col>
         <v-col v-if="outcomeModal.result === 'شطب الدعوى / انقطاع'" cols="12" class="mt-4">
-          <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
+          <label class="mb-2 font-weight-black text-gold">
             <LucideIcon name="alert-triangle" :size="18" class="me-2" /> قرار الشطب / الانقطاع
-          </v-label>
+          </label>
           <v-select
             v-model="outcomeModal.dismissalDecision"
             :items="['إعادة القيد', 'إغلاق نهائي']"
             variant="outlined"
             density="comfortable"
-            class="rounded-xl premium-select"
+            class="rounded-xl premium-select glass-input"
             hide-details
           />
         </v-col>
         <v-col v-if="outcomeModal.result === 'تبليغ / إجراء إداري'" cols="12" class="mt-4">
-          <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
+          <label class="mb-2 font-weight-black text-gold">
             <LucideIcon name="calendar" :size="18" class="me-2" /> بيانات التبليغ
-          </v-label>
+          </label>
           <v-text-field
             v-model="outcomeModal.serviceDate"
             type="date"
             variant="outlined"
             density="comfortable"
-            class="rounded-xl premium-select"
+            class="rounded-xl premium-select glass-input"
             hide-details
           />
         </v-col>
@@ -131,9 +131,9 @@
           cols="12"
           class="mt-4"
         >
-          <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
+          <label class="mb-2 font-weight-black text-gold">
             <LucideIcon name="file-text" :size="18" class="me-2" /> بيانات الحكم القضائي
-          </v-label>
+          </label>
           <v-row dense>
             <v-col cols="6">
               <v-text-field
@@ -141,7 +141,7 @@
                 label="رقم الحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl premium-select"
+                class="rounded-xl premium-select glass-input"
                 hide-details
               />
             </v-col>
@@ -152,7 +152,7 @@
                 label="تاريخ الحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl premium-select"
+                class="rounded-xl premium-select glass-input"
                 hide-details
               />
             </v-col>
@@ -161,9 +161,9 @@
           <!-- سؤال ذكي: درجة الحكم -->
           <v-row v-if="outcomeModal.result === 'صدور حكم قطعي'" dense class="mt-2">
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-warning d-flex align-center">
+              <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> درجة الحكم:
-              </v-label>
+              </label>
               <v-btn-toggle
                 v-model="outcomeModal.judgmentDegree"
                 mandatory
@@ -171,11 +171,11 @@
                 variant="outlined"
                 rounded="xl"
                 density="comfortable"
-                class="flex-wrap"
+                class="flex-wrap premium-btn-gold-gradient"
               >
-                <v-btn value="استئنافي" class="px-4">استئنافي</v-btn>
-                <v-btn value="قطعي" class="px-4">قطعي</v-btn>
-                <v-btn value="نهائي" class="px-4">نهائي</v-btn>
+                <v-btn value="استئنافي" class="px-4 premium-btn-gold-gradient">استئنافي</v-btn>
+                <v-btn value="قطعي" class="px-4 premium-btn-gold-gradient">قطعي</v-btn>
+                <v-btn value="نهائي" class="px-4 premium-btn-gold-gradient">نهائي</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -183,10 +183,10 @@
           <!-- سؤال ذكي: لصالح من؟ -->
           <v-row dense class="mt-3">
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
+              <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
-              </v-label>
-              <v-btn-toggle
+              </label>
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentFavors"
                 mandatory
                 color="primary"
@@ -194,8 +194,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="الموكل" class="px-5">الموكل</v-btn>
-                <v-btn value="الخصم" class="px-5">الخصم</v-btn>
+                <v-btn value="الموكل" class="px-5 premium-btn-gold-gradient">الموكل</v-btn>
+                <v-btn value="الخصم" class="px-5 premium-btn-gold-gradient">الخصم</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -203,10 +203,10 @@
           <!-- سؤال ذكي: هل يحتاج تنفيذ؟ (لصالح الموكل) -->
           <v-row v-if="outcomeModal.judgmentFavors === 'الموكل'" dense class="mt-3">
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
+              <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
-              </v-label>
-              <v-btn-toggle
+              </label>
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentNeedsExecution"
                 mandatory
                 color="primary"
@@ -214,8 +214,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="نعم" class="px-5">نعم، يحتاج تنفيذ</v-btn>
-                <v-btn value="لا" class="px-5">لا، براءة أو منتهي</v-btn>
+                <v-btn value="نعم" class="px-5 premium-btn-gold-gradient">نعم، يحتاج تنفيذ</v-btn>
+                <v-btn value="لا" class="px-5 premium-btn-gold-gradient">لا، براءة أو منتهي</v-btn>
               </v-btn-toggle>
             </v-col>
           </v-row>
@@ -223,11 +223,11 @@
           <!-- سؤال ذكي: هل يوجد أسباب اعتراض؟ (لصالح الخصم) -->
           <v-row v-if="outcomeModal.judgmentFavors === 'الخصم'" dense class="mt-3">
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-warning d-flex align-center">
+              <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
                 للاعتراض على الحكم؟
-              </v-label>
-              <v-btn-toggle
+              </label>
+              <v-btn class="premium-btn-gold-gradient"-toggle
                 v-model="outcomeModal.judgmentHasAppealGrounds"
                 mandatory
                 color="warning"
@@ -235,8 +235,8 @@
                 rounded="xl"
                 density="comfortable"
               >
-                <v-btn value="نعم" class="px-5">نعم، يوجد أسباب</v-btn>
-                <v-btn value="لا" class="px-5">لا، الحكم صحيح</v-btn>
+                <v-btn value="نعم" class="px-5 premium-btn-gold-gradient">نعم، يوجد أسباب</v-btn>
+                <v-btn value="لا" class="px-5 premium-btn-gold-gradient">لا، الحكم صحيح</v-btn>
               </v-btn-toggle>
             </v-col>
             <v-col v-if="outcomeModal.judgmentHasAppealGrounds === 'نعم'" cols="12" class="mt-2">
@@ -246,7 +246,7 @@
                 label="تاريخ التبليغ بالحكم"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl premium-select"
+                class="rounded-xl premium-select glass-input"
                 hide-details
               />
             </v-col>
@@ -255,16 +255,16 @@
           <!-- سؤال ذكي: نوع القضية -->
           <v-row dense class="mt-3">
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-primary d-flex align-center">
+              <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="folder" :size="16" class="me-1" /> نوع القضية (لحساب المدة
                 النظامية)
-              </v-label>
+              </label>
               <v-select
                 v-model="outcomeModal.caseType"
                 :items="['مدنية', 'تجارية', 'عمالية', 'جنائية', 'إدارية', 'أحوال شخصية']"
                 variant="outlined"
                 density="comfortable"
-                class="rounded-xl premium-select"
+                class="rounded-xl premium-select glass-input"
                 hide-details
                 placeholder="اختر نوع القضية..."
               />
@@ -272,12 +272,12 @@
           </v-row>
         </v-col>
         <v-col cols="12" class="mt-4">
-          <v-label class="mb-3 font-weight-black text-primary d-flex align-center">
+          <label class="mb-2 font-weight-black text-gold">
             <LucideIcon name="message-square" :size="18" class="me-2" />
             {{
               outcomeModal.result === 'أخرى' ? 'سبب النتيجة (مطلوب)' : 'ملاحظات إضافية (اختياري)'
             }}
-          </v-label>
+          </label>
           <v-textarea
             v-model="outcomeModal.notes"
             rows="3"
@@ -946,6 +946,26 @@ onMounted(async () => {
   }
   :deep(.v-row[style*='72vh']) {
     height: auto !important;
+  }
+}
+
+/* Mobile: larger touch targets for form controls */
+@media (max-width: 480px) {
+  :deep(.v-btn-toggle .v-btn) {
+    min-height: 44px !important;
+    font-size: 0.85rem !important;
+  }
+  :deep(.v-field__input) {
+    min-height: 44px !important;
+  }
+  :deep(.v-input) {
+    --v-input-control-height: 44px;
+  }
+  :deep(.v-select .v-field__input) {
+    min-height: 44px !important;
+  }
+  :deep(.v-textarea .v-field__input) {
+    min-height: 88px !important;
   }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="rounded-xl mb-8 pa-5 glass-card-noir border shadow-premium">
+  <v-card elevation="0" class="rounded-xl mb-8 pa-5 glass-card-noir border shadow-premium glass-card">
     <v-row dense align="center">
       <v-col cols="12" md="4">
         <v-text-field
@@ -8,7 +8,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -26,7 +26,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
         >
           <template #prepend-inner>
             <LucideIcon name="filter" :size="18" class="text-primary me-2" />
@@ -44,7 +44,7 @@
           density="comfortable"
           hide-details
           clearable
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
           :loading="assignableUsersLoading"
           @update:model-value="$emit('refresh')"
         >
@@ -58,7 +58,7 @@
         <v-btn
           variant="tonal"
           color="primary"
-          class="rounded-xl shadow-premium glass-card px-4 h-48"
+          class="rounded-xl shadow-premium glass-card px-4 h-48 premium-btn-gold-gradient"
           :loading="loading"
           @click="$emit('refresh')"
         >

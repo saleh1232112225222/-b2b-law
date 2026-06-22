@@ -5,23 +5,23 @@
     persistent
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden">
+    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden glass-card">
       <div class="bg-gold-gradient pa-4 d-flex align-center">
         <LucideIcon name="user-plus" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">إضافة مستخدم جديد للنظام</span>
         <v-spacer />
-        <v-btn icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8">
+      <v-card-text class="pa-8 glass-card">
         <v-row dense>
           <v-col cols="12">
             <v-text-field
               v-model="form.username"
               label="اسم المستخدم (Username)"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               hide-details
             >
               <template #prepend-inner>
@@ -34,7 +34,7 @@
               v-model="form.full_name"
               label="الاسم الكامل"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               hide-details
             >
               <template #prepend-inner>
@@ -48,7 +48,7 @@
               :items="roles"
               label="الدور الوظيفي"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               hide-details
             >
               <template #prepend-inner>
@@ -62,7 +62,7 @@
               label="كلمة المرور الأولية"
               type="password"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               hide-details
             >
               <template #prepend-inner>
@@ -73,19 +73,19 @@
         </v-row>
       </v-card-text>
       <v-divider class="border-gold opacity-10" />
-      <v-card-actions class="pa-6">
+      <v-card-actions class="pa-6 glass-card">
         <v-spacer />
         <v-btn
           variant="text"
           color="gold"
-          class="px-6 font-weight-black"
+          class="px-6 font-weight-black premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
         <v-btn
           color="accent"
           variant="flat"
-          class="px-10 font-weight-black text-ebony rounded-lg"
+          class="px-10 font-weight-black text-ebony rounded-lg premium-btn-gold-gradient"
           @click="handleCreate"
           >تأكيد الإضافة</v-btn
         >

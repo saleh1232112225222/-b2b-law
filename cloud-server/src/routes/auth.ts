@@ -143,17 +143,18 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     })
 
     // Notify the admin of successful login
-    try {
-      const emailResult = await query('SELECT email FROM companies WHERE id = $1', [user.company_id])
-      const companyEmail = emailResult.rows[0]?.email || 'غير متوفر'
-      await sendEmail({
-        to: 'slaehmap@gmail.com',
-        subject: `🔑 تسجيل دخول جديد: ${user.full_name || username}`,
-        text: `مرحباً أستاذ صالح،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- البريد الإلكتروني للاسترداد: ${user.recovery_email || 'غير متوفر'}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+    query('SELECT email FROM companies WHERE id = $1', [user.company_id])
+      .then(emailResult => {
+        const companyEmail = emailResult.rows[0]?.email || 'غير متوفر'
+        return sendEmail({
+          to: 'slaehmap@gmail.com',
+          subject: `🔑 تسجيل دخول جديد: ${user.full_name || username}`,
+          text: `مرحباً أستاذ صالح،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- البريد الإلكتروني للاسترداد: ${user.recovery_email || 'غير متوفر'}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+        })
       })
-    } catch (e) {
-      console.error('Failed to notify admin of manual login:', e)
-    }
+      .catch(e => {
+        console.error('Failed to notify admin of manual login:', e)
+      })
 
     const permissions = await getUserPermissions(user.company_id, user.id, user.role_key)
 
@@ -372,29 +373,25 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       )
 
       // Notify the admin of Google signup completion
-      try {
-        await notifyAdminOfNewRegistration({
-          name: googleName,
-          email: googleEmail,
-          method: 'Google',
-          trialExpiresAt
-        })
-      } catch (e) {
+      notifyAdminOfNewRegistration({
+        name: googleName,
+        email: googleEmail,
+        method: 'Google',
+        trialExpiresAt
+      }).catch(e => {
         console.error('Failed to notify admin of Google signup:', e)
-      }
+      })
 
       userResult = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
     } else {
       // Existing user logging in via Google
-      try {
-        await sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
-          text: `مرحباً أستاذ صالح،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
-        })
-      } catch (e) {
+      sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
+        text: `مرحباً أستاذ صالح،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+      }).catch(e => {
         console.error('Failed to notify admin of Google login:', e)
-      }
+      })
     }
     const user = userResult.rows[0]
     const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
@@ -436,50 +433,44 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       return
     }
 
-    // 1. Verify username uniqueness globally
-    const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
-    if (checkUser.rows.length > 0) {
-      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - اسم المستخدم موجود مسبقاً')
-      try {
-        await sendEmail({
+      // 1. Verify username uniqueness globally
+      const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
+      if (checkUser.rows.length > 0) {
+        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - اسم المستخدم موجود مسبقاً')
+        sendEmail({
           to: 'slaehmap@gmail.com',
           subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
-        })
-      } catch (e) {}
-      res.status(400).json({ error: 'UsernameAlreadyExists' })
-      return
-    }
+        }).catch(() => {})
+        res.status(400).json({ error: 'UsernameAlreadyExists' })
+        return
+      }
 
-    // 2. Verify email uniqueness globally across companies
-    const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
-    if (checkEmail.rows.length > 0) {
-      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - البريد الإلكتروني موجود مسبقاً')
-      try {
-        await sendEmail({
+      // 2. Verify email uniqueness globally across companies
+      const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
+      if (checkEmail.rows.length > 0) {
+        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - البريد الإلكتروني موجود مسبقاً')
+        sendEmail({
           to: 'slaehmap@gmail.com',
           subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-        })
-      } catch (e) {}
-      res.status(400).json({ error: 'EmailAlreadyExists' })
-      return
-    }
+        }).catch(() => {})
+        res.status(400).json({ error: 'EmailAlreadyExists' })
+        return
+      }
 
-    // 3. Verify phone uniqueness globally across companies
-    const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
-    if (checkPhone.rows.length > 0) {
-      await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - رقم الهاتف موجود مسبقاً')
-      try {
-        await sendEmail({
+      // 3. Verify phone uniqueness globally across companies
+      const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
+      if (checkPhone.rows.length > 0) {
+        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - رقم الهاتف موجود مسبقاً')
+        sendEmail({
           to: 'slaehmap@gmail.com',
           subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-        })
-      } catch (e) {}
-      res.status(400).json({ error: 'PhoneAlreadyExists' })
-      return
-    }
+        }).catch(() => {})
+        res.status(400).json({ error: 'PhoneAlreadyExists' })
+        return
+      }
 
     const companyId = uuidv4()
     const trialExpiresAt = new Date()
@@ -560,15 +551,13 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     }, companyId)
 
     // Notify the admin of new registration attempt (before OTP verification)
-    try {
-      await sendEmail({
-        to: 'slaehmap@gmail.com',
-        subject: `⏳ محاولة تسجيل جديدة في B2B Lawyer - ${companyName}`,
-        text: `مرحباً أستاذ صالح،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n- رمز التفعيل (OTP): ${otpCode}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
-      })
-    } catch (e) {
+    sendEmail({
+      to: 'slaehmap@gmail.com',
+      subject: `⏳ محاولة تسجيل جديدة في B2B Lawyer - ${companyName}`,
+      text: `مرحباً أستاذ صالح،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n- رمز التفعيل (OTP): ${otpCode}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
+    }).catch(e => {
       console.error('Failed to notify admin of registration attempt:', e)
-    }
+    })
 
     // If SMTP is not available, return OTP in response so the frontend can show it
     // This enables registration when email is not configured
@@ -620,21 +609,23 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
     await logActivity(username, 'VERIFY_SUCCESS', 'auth', 'تم تفعيل الحساب', { companyId }, companyId)
 
     // Notify the admin of manual signup verification completion
-    try {
-      const infoRes = await query('SELECT name, email, phone, trial_expires_at FROM companies WHERE id = $1', [companyId])
-      if (infoRes.rows.length > 0) {
-        const { name, email, phone, trial_expires_at } = infoRes.rows[0]
-        await notifyAdminOfNewRegistration({
-          name,
-          email,
-          phone,
-          method: 'Manual',
-          trialExpiresAt: new Date(trial_expires_at)
-        })
-      }
-    } catch (e) {
-      console.error('Failed to notify admin of manual signup verification:', e)
-    }
+    query('SELECT name, email, phone, trial_expires_at FROM companies WHERE id = $1', [companyId])
+      .then(infoRes => {
+        if (infoRes.rows.length > 0) {
+          const { name, email, phone, trial_expires_at } = infoRes.rows[0]
+          return notifyAdminOfNewRegistration({
+            name,
+            email,
+            phone,
+            method: 'Manual',
+            trialExpiresAt: new Date(trial_expires_at)
+          })
+        }
+        return Promise.resolve()
+      })
+      .catch(e => {
+        console.error('Failed to notify admin of manual signup verification:', e)
+      })
 
     res.json({ success: true, message: 'Account verified successfully' })
   } catch (err) {

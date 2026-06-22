@@ -1,7 +1,7 @@
 <template>
   <v-col cols="12" md="4" style="height: 100%">
     <v-card
-      class="rounded-xl h-100 d-flex flex-column glass-card border shadow-premium overflow-hidden"
+      class="rounded-xl h-100 d-flex flex-column glass-card border shadow-premium overflow-hidden glass-card"
       elevation="0"
     >
       <div class="px-6 py-4 d-flex justify-space-between align-center glass-card-noir border-b">
@@ -10,7 +10,7 @@
             variant="flat"
             color="error"
             size="small"
-            class="rounded-xl font-weight-black px-4 shadow-sm"
+            class="rounded-xl font-weight-black px-4 shadow-sm premium-btn-gold-gradient"
             height="32"
             @click="$emit('clear')"
           >
@@ -24,7 +24,7 @@
           variant="tonal"
           color="accent"
           size="small"
-          class="rounded-lg shadow-sm"
+          class="rounded-lg shadow-sm premium-btn-gold-gradient"
           :disabled="!note"
           @click="$emit('copy', note)"
         >
@@ -46,7 +46,7 @@
         <v-btn
           color="success"
           variant="flat"
-          class="rounded-xl font-weight-black flex-grow-1 shadow-premium"
+          class="rounded-xl font-weight-black flex-grow-1 shadow-premium premium-btn-gold-gradient"
           height="48"
           :disabled="!activeSessionId"
           @click="$emit('save')"
@@ -56,7 +56,7 @@
         <v-btn
           variant="tonal"
           color="error"
-          class="rounded-xl shadow-premium px-8 font-weight-black"
+          class="rounded-xl shadow-premium px-8 font-weight-black premium-btn-gold-gradient"
           height="48"
           @click="$emit('clear')"
         >

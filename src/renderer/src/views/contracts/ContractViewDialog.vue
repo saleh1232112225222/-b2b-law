@@ -7,19 +7,19 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="modal-card overflow-hidden">
+    <v-card class="modal-card overflow-hidden glass-card">
       <div class="modal-header-solid d-flex align-center py-5 px-8 bg-white border-b">
         <div class="bg-accent-alpha pa-2 rounded-lg me-4">
           <LucideIcon name="file-text" :size="24" class="text-accent" />
         </div>
         <span class="text-h5 font-weight-black text-pure-black">استعراض وتدقيق العقد</span>
         <v-spacer />
-        <v-btn variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable">
+      <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
         <div v-if="viewLoading" class="text-center py-12">
           <v-progress-circular indeterminate color="accent" />
           <div class="mt-4 font-weight-black text-gold">جاري تحميل بيانات العقد...</div>
@@ -96,7 +96,7 @@
                 <v-btn
                   color="accent"
                   variant="flat"
-                  class="font-weight-black text-ebony"
+                  class="font-weight-black text-ebony premium-btn-gold-gradient"
                   :loading="linkCaseSaving"
                   @click="saveLinkCase"
                   >حفظ الربط</v-btn
@@ -147,7 +147,7 @@
                 size="small"
                 variant="tonal"
                 color="accent"
-                class="rounded-lg font-weight-black"
+                class="rounded-lg font-weight-black premium-btn-gold-gradient"
                 @click="$emit('add-participant')"
                 ><LucideIcon name="user-plus" :size="16" class="me-2" />إضافة طرف</v-btn
               >
@@ -177,13 +177,13 @@
                     :items="signatureStatusOptions"
                     density="compact"
                     variant="outlined"
-                    class="glass-input-compact"
+                    class="glass-input-compact glass-input"
                     hide-details
                     @update:model-value="$emit('save-signature', p.id)"
                   />
                 </td>
                 <td class="text-center">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     icon
                     variant="tonal"
                     color="error"
@@ -229,7 +229,7 @@
               size="small"
               variant="tonal"
               color="accent"
-              class="rounded-lg font-weight-black"
+              class="rounded-lg font-weight-black premium-btn-gold-gradient"
               @click="$emit('add-amendment')"
               ><LucideIcon name="file-plus" :size="16" class="me-2" />إدراج ملحق</v-btn
             >
@@ -255,11 +255,11 @@
       </v-card-text>
 
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
         <v-btn
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إغلاق</v-btn
         >

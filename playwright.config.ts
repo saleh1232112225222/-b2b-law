@@ -11,13 +11,13 @@ export default defineConfig({
   reporter: 'html',
   use: {
     baseURL: 'https://b2b-law.netlify.app',
-    headless: true,
+    headless: true
   },
   projects: [
     // 1. Setup project
     {
       name: 'setup',
-      testMatch: /auth\.setup\.ts/,
+      testMatch: /auth\.setup\.ts/
     },
     // 2. Main tests project using chromium
     {
@@ -28,10 +28,10 @@ export default defineConfig({
         video: 'retain-on-failure',
         trace: 'retain-on-failure',
         // Use saved storage state
-        storageState: 'playwright/.auth/admin.json',
+        storageState: 'playwright/.auth/admin.json'
       },
       dependencies: ['setup'],
-      testIgnore: /auth\.setup\.ts/,
+      testIgnore: /auth\.setup\.ts/
     }
   ]
 })

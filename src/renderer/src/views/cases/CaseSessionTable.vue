@@ -1,5 +1,5 @@
 <template>
-  <v-card variant="flat" class="rounded-xl glass-card border overflow-hidden">
+  <v-card variant="flat" class="rounded-xl glass-card border overflow-hidden glass-card">
     <div
       class="py-4 px-6 text-subtitle-2 font-weight-black text-primary d-flex align-center glass-card-noir border-0 border-b"
     >
@@ -8,7 +8,7 @@
       <v-spacer />
       <v-progress-circular v-if="loading" indeterminate size="18" width="2" color="accent" />
     </div>
-    <v-card-text class="pa-0">
+    <v-card-text class="pa-0 glass-card">
       <v-table density="compact" class="bg-transparent">
         <thead>
           <tr>

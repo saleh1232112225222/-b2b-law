@@ -12,7 +12,7 @@
       color="accent"
       variant="flat"
       size="small"
-      class="mb-6 rounded-lg font-weight-black text-primary-dark"
+      class="mb-6 rounded-lg font-weight-black text-primary-dark premium-btn-gold-gradient"
       :disabled="blocked"
       @click="$emit('add')"
     >
@@ -61,7 +61,7 @@
               color="accent"
               size="x-small"
               variant="tonal"
-              class="rounded-lg px-3 font-weight-black"
+              class="rounded-lg px-3 font-weight-black premium-btn-gold-gradient"
               @click="openLink(s.meeting_link)"
             >
               <LucideIcon name="video" :size="14" class="me-1" /> انضمام

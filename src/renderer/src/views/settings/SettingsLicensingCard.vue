@@ -1,10 +1,10 @@
 <template>
-  <v-card elevation="0" class="glass-card border border-gold border-opacity-20">
+  <v-card elevation="0" class="glass-card border border-gold border-opacity-20 glass-card">
     <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="file-key" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">تراخيص النظام</span>
     </div>
-    <v-card-text class="pa-4">
+    <v-card-text class="pa-4 glass-card">
       <div
         v-if="trialInfo"
         class="mb-4 glass-panel-light pa-3 rounded-lg border border-gold border-opacity-20"
@@ -38,11 +38,11 @@
         readonly
         variant="filled"
         density="compact"
-        class="mb-3 glass-input font-mono"
+        class="mb-3 glass-input font-mono glass-input"
         hide-details="auto"
       >
         <template #append-inner>
-          <v-btn
+          <v-btn class="premium-btn-gold-gradient"
             icon
             variant="text"
             color="gold"
@@ -59,7 +59,7 @@
           label="مفتاح التنشيط"
           variant="outlined"
           density="compact"
-          class="mb-4 glass-input font-mono text-center"
+          class="mb-4 glass-input font-mono text-center glass-input"
           hide-details="auto"
           @update:model-value="$emit('update:modelValue', $event)"
         ></v-text-field>
@@ -68,7 +68,7 @@
           variant="flat"
           block
           size="large"
-          class="font-weight-black premium-lift"
+          class="font-weight-black premium-lift premium-btn-gold-gradient"
           :loading="activating"
           @click="$emit('activate')"
         >
@@ -89,7 +89,7 @@
         color="error"
         size="x-small"
         block
-        class="mt-1 font-weight-bold"
+        class="mt-1 font-weight-bold premium-btn-gold-gradient"
         @click="$emit('reset-activation')"
         >إلغاء التنشيط (للاختبار)</v-btn
       >

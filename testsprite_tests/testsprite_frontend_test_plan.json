@@ -1,0 +1,211 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Login with valid credentials",
+    "description": "Verify that admin user can log in with correct username and password",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Navigate to login page at /#/login",
+      "Enter 'admin' in the username input field",
+      "Enter 'admin123' in the password input field",
+      "Click the login submit button",
+      "Verify redirect to dashboard page"
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Login with invalid credentials shows error",
+    "description": "Verify error message appears when login credentials are wrong",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      "Navigate to login page at /#/login",
+      "Enter 'wronguser' in username field",
+      "Enter 'wrongpass' in password field",
+      "Click login submit button",
+      "Verify error message is displayed"
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Dashboard loads with summary cards",
+    "description": "Verify the main dashboard displays case statistics and charts after login",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Log in with admin / admin123",
+      "Verify redirect to dashboard page",
+      "Check that dashboard cards are visible",
+      "Verify charts render correctly",
+      "Check navigation sidebar is present"
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Theme toggle between dark and light",
+    "description": "Verify the theme toggle button switches between dark and light mode",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Locate the theme toggle button in the header",
+      "Click the theme toggle button",
+      "Verify the UI switches to light mode",
+      "Click the theme toggle button again",
+      "Verify the UI switches back to dark mode"
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Navigate to Clients page",
+    "description": "Verify clients list page loads and displays data",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Clients menu item in sidebar",
+      "Verify clients list page loads",
+      "Check search/filter input is visible",
+      "Verify add client button is present"
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Navigate to Cases page",
+    "description": "Verify cases list page loads with all controls",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Cases menu item in sidebar",
+      "Verify cases list page loads",
+      "Check case filters and search are present",
+      "Verify add case button is visible"
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Navigate to Sessions page",
+    "description": "Verify court sessions page loads with calendar view",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Sessions menu item in sidebar",
+      "Verify sessions page loads",
+      "Check calendar or list view is displayed",
+      "Verify add session button is present"
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Navigate to Documents page",
+    "description": "Verify document management page loads",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Documents menu item in sidebar",
+      "Verify documents page loads",
+      "Check document upload button is present",
+      "Verify document search/filter controls"
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Navigate to Tasks page",
+    "description": "Verify task board page loads with columns",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Tasks menu item in sidebar",
+      "Verify tasks page loads",
+      "Check task board columns are displayed",
+      "Verify add task button is present"
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Navigate to Reports dashboard",
+    "description": "Verify reports dashboard loads with all report type cards",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Click on Reports menu item in sidebar",
+      "Verify reports dashboard loads",
+      "Check report type cards are displayed",
+      "Verify at least one report card is clickable"
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Navigate to Settings page",
+    "description": "Verify settings page loads with configuration options",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Navigate to Settings page",
+      "Verify settings form is displayed",
+      "Check profile and configuration sections"
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Sidebar navigation menu displays correctly",
+    "description": "Verify all main navigation items are present in sidebar",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Observe the sidebar navigation menu",
+      "Verify Dashboard menu item is present",
+      "Verify Clients menu item is present",
+      "Verify Cases menu item is present",
+      "Verify Sessions menu item is present",
+      "Verify Documents menu item is present"
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "POA (Power of Attorney) page loads",
+    "description": "Verify Power of Attorney management page loads",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      "Log in with admin / admin123",
+      "Navigate to POA page",
+      "Verify POA list is displayed",
+      "Check add POA button is present"
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Employees page loads and displays data",
+    "description": "Verify employee management page loads correctly",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      "Log in with admin / admin123",
+      "Navigate to Employees page",
+      "Verify employee list is displayed",
+      "Check add employee button is present"
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Finance page loads with financial data",
+    "description": "Verify finance management page loads with charts",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      "Log in with admin / admin123",
+      "Navigate to Finance page",
+      "Verify finance page loads",
+      "Check financial summary or charts are displayed"
+    ]
+  }
+]

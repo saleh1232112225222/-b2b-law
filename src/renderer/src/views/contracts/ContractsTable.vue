@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card overflow-hidden">
+  <v-card elevation="0" class="glass-card overflow-hidden glass-card">
     <div class="glass-panel px-6 pt-2">
       <v-tabs
         :model-value="tab"
@@ -13,7 +13,7 @@
       </v-tabs>
     </div>
     <v-divider class="border-gold opacity-10" />
-    <v-card-text class="pa-8">
+    <v-card-text class="pa-8 glass-card">
       <v-alert
         v-if="!can('view_contracts')"
         type="error"
@@ -32,7 +32,7 @@
               density="comfortable"
               placeholder="بحث برقم العقد، العنوان، أو اسم الطرف..."
               hide-details
-              class="glass-input"
+              class="glass-input glass-input"
               clearable
               @update:model-value="$emit('update:search', $event)"
             >
@@ -46,7 +46,7 @@
             <v-btn
               variant="text"
               color="gold"
-              class="rounded-lg opacity-70"
+              class="rounded-lg opacity-70 premium-btn-gold-gradient"
               :loading="loading"
               @click="$emit('reload')"
             >
@@ -123,7 +123,7 @@
                     size="small"
                     variant="tonal"
                     color="accent"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="$emit('view', c.id)"
                   >
                     <LucideIcon name="eye" :size="16" />
@@ -135,7 +135,7 @@
                     size="small"
                     variant="tonal"
                     color="success"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="$emit('approve', c.id)"
                   >
                     <LucideIcon name="check" :size="16" />
@@ -147,7 +147,7 @@
                     size="small"
                     variant="tonal"
                     color="grey"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="$emit('archive', c.id)"
                   >
                     <LucideIcon name="archive" :size="16" />

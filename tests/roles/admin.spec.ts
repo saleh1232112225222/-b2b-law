@@ -20,7 +20,29 @@ test('مدخل النظام يرى جميع الصفحات', async ({ page }) =>
   test.setTimeout(60000)
   await login(page)
 
-  const pages = ['/dashboard', '/clients', '/defendants', '/poa', '/cases', '/sessions', '/tasks', '/documents', '/drafting', '/memoranda', '/finance', '/contracts', '/enforcement', '/communications', '/employees', '/settings', '/users', '/reports', '/archive', '/search', '/firm']
+  const pages = [
+    '/dashboard',
+    '/clients',
+    '/defendants',
+    '/poa',
+    '/cases',
+    '/sessions',
+    '/tasks',
+    '/documents',
+    '/drafting',
+    '/memoranda',
+    '/finance',
+    '/contracts',
+    '/enforcement',
+    '/communications',
+    '/employees',
+    '/settings',
+    '/users',
+    '/reports',
+    '/archive',
+    '/search',
+    '/firm'
+  ]
 
   for (const p of pages) {
     await page.goto(`/#${p}`, { waitUntil: 'load', timeout: 15000 })

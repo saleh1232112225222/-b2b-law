@@ -26,7 +26,7 @@
     </v-row>
 
     <!-- Main Content Tabs -->
-    <v-card elevation="0" class="glass-card overflow-hidden">
+    <v-card elevation="0" class="glass-card overflow-hidden glass-card">
       <v-tabs v-model="tab" color="gold" grow height="64" class="glass-tabs">
         <v-tab value="enforcement" class="text-subtitle-1 font-weight-black">
           <LucideIcon name="scale" :size="20" class="me-3" /> ملفات التنفيذ القضائي
@@ -38,7 +38,7 @@
 
       <v-divider class="border-gold opacity-10" />
 
-      <v-card-text class="pa-8">
+      <v-card-text class="pa-8 glass-card">
         <v-window v-model="tab">
           <!-- Enforcement Tab -->
           <v-window-item value="enforcement">
@@ -50,7 +50,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                   clearable
                   @update:model-value="loadEnforcement"
                 >
@@ -67,7 +67,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                   @update:model-value="loadEnforcement"
                 >
                   <template #prepend-inner>
@@ -80,7 +80,7 @@
                 <v-btn
                   variant="text"
                   color="gold"
-                  class="rounded-lg font-weight-black opacity-50 h-56"
+                  class="rounded-lg font-weight-black opacity-50 h-56 premium-btn-gold-gradient"
                   :loading="loadingEnforcement"
                   @click="loadEnforcement"
                 >
@@ -89,7 +89,7 @@
 
                 <v-btn
                   color="accent"
-                  class="rounded-lg font-weight-black px-8 premium-lift h-56"
+                  class="rounded-lg font-weight-black px-8 premium-lift h-56 premium-btn-gold-gradient"
                   @click="
                     () => {
                       selectedRequestForEdit = null
@@ -118,7 +118,7 @@
 
             <v-card
               elevation="0"
-              class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha"
+              class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha glass-card"
             >
               <v-table class="bg-transparent premium-table" hover>
                 <thead>
@@ -219,7 +219,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                   clearable
                   @update:model-value="loadCollections"
                 >
@@ -235,7 +235,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input"
+                  class="glass-input glass-input"
                   @update:model-value="loadCollections"
                 >
                   <template #prepend-inner>
@@ -248,7 +248,7 @@
                 <v-btn
                   variant="text"
                   color="gold"
-                  class="rounded-lg font-weight-black opacity-50 h-56"
+                  class="rounded-lg font-weight-black opacity-50 h-56 premium-btn-gold-gradient"
                   :loading="loadingCollections"
                   @click="loadCollections"
                 >
@@ -260,7 +260,7 @@
             <!-- Collections Summary -->
             <v-row class="mb-10 ga-0">
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100">
+                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-accent-alpha">
                       <LucideIcon name="clipboard-list" :size="24" class="text-accent" />
@@ -277,7 +277,7 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100">
+                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-gold-alpha">
                       <LucideIcon name="wallet" :size="24" class="text-gold" />
@@ -295,7 +295,7 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100">
+                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-success-alpha">
                       <LucideIcon name="check-circle-2" :size="24" class="text-success" />
@@ -313,7 +313,7 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100">
+                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-error-alpha">
                       <LucideIcon name="clock-alert" :size="24" class="text-error" />
@@ -334,7 +334,7 @@
 
             <v-card
               elevation="0"
-              class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha"
+              class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha glass-card"
             >
               <v-table class="bg-transparent premium-table" hover>
                 <thead>

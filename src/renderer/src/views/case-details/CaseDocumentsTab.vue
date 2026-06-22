@@ -5,7 +5,7 @@
         color="accent"
         variant="flat"
         size="small"
-        class="rounded-lg font-weight-black text-primary-dark"
+        class="rounded-lg font-weight-black text-primary-dark premium-btn-gold-gradient"
         @click="$emit('upload')"
       >
         <LucideIcon name="upload" :size="16" class="me-2" /> رفع مستند
@@ -36,7 +36,7 @@
             variant="text"
             size="small"
             color="accent"
-            class="rounded-lg"
+            class="rounded-lg premium-btn-gold-gradient"
             @click.stop="$emit('open', doc.file_path)"
           >
             <LucideIcon name="external-link" :size="16" />
@@ -45,7 +45,7 @@
             variant="text"
             size="small"
             color="error"
-            class="rounded-lg ms-2"
+            class="rounded-lg ms-2 premium-btn-gold-gradient"
             @click.stop="$emit('remove', doc)"
           >
             <LucideIcon name="trash-2" :size="16" />

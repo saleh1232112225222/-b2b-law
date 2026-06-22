@@ -3,13 +3,13 @@
     <v-col cols="12" md="4">
       <v-card
         elevation="0"
-        class="glass-card-light overflow-hidden dashboard-sessions-today dashboard-bottom-inner-card"
+        class="glass-card-light overflow-hidden dashboard-sessions-today dashboard-bottom-inner-card glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
           <div class="font-weight-black text-tiny-v dashboard-title">
             جلسات اليوم ({{ safeArray(todaySessions).length }})
           </div>
-          <v-btn icon variant="text" size="x-small" @click="$emit('navigate', '/sessions')"
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" size="x-small" @click="$emit('navigate', '/sessions')"
             ><LucideIcon name="external-link" :size="10"
           /></v-btn>
         </v-card-title>
@@ -34,9 +34,9 @@
     <v-col cols="12" md="4">
       <v-card
         elevation="0"
-        class="glass-card-light overflow-hidden dashboard-sessions-tomorrow dashboard-bottom-inner-card"
+        class="glass-card-light overflow-hidden dashboard-sessions-tomorrow dashboard-bottom-inner-card glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
           <div class="font-weight-black text-tiny-v dashboard-title">
             جلسات غداً ({{ safeArray(tomorrowSessions).length }})
           </div>
@@ -62,13 +62,13 @@
     <v-col cols="12" md="4">
       <v-card
         elevation="0"
-        class="glass-card-light overflow-hidden dashboard-agency-alerts dashboard-bottom-inner-card border-warning-alpha"
+        class="glass-card-light overflow-hidden dashboard-agency-alerts dashboard-bottom-inner-card border-warning-alpha glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
           <div class="font-weight-black text-tiny-v dashboard-title">
             تنبيهات الوكالات ({{ safeLength(agencyAlerts) }})
           </div>
-          <v-btn icon variant="text" size="x-small" @click="$emit('navigate', '/clients')"
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" size="x-small" @click="$emit('navigate', '/clients')"
             ><LucideIcon name="users" :size="10"
           /></v-btn>
         </v-card-title>
@@ -116,7 +116,7 @@
                     size="x-small"
                     variant="text"
                     color="accent"
-                    class="opacity-60 hover-opacity-100"
+                    class="opacity-60 hover-opacity-100 premium-btn-gold-gradient"
                     style="width: 20px; height: 20px"
                     @click.stop="$emit('open-agency', ag)"
                   >

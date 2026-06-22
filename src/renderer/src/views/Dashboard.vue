@@ -1,145 +1,153 @@
 <template>
-  <v-container fluid class="dashboard-viewport" :class="{ 'dashboard-viewport--mobile': isMobile }">
-    <DashboardKpiCards :stats="stats" :is-mobile="isMobile" @navigate="$router.push($event)" />
+  <MobileDashboard v-if="isMobile" />
+  <template v-else>
+    <v-container fluid class="dashboard-viewport">
+      <DashboardKpiCards :stats="stats" :is-mobile="isMobile" @navigate="$router.push($event)" />
 
-    <v-row v-if="loading" class="mt-3">
-      <v-col cols="12" lg="8">
-        <v-skeleton-loader type="list-item-avatar-two-line@3, table@2" class="rounded-xl mb-4" />
-      </v-col>
-      <v-col cols="12" lg="4">
-        <v-skeleton-loader type="list-item-two-line@3, list-item-three-line@4" class="rounded-xl" />
-      </v-col>
-    </v-row>
+      <v-row v-if="loading" class="mt-3">
+        <v-col cols="12" lg="8">
+          <v-skeleton-loader type="list-item-avatar-two-line@3, table@2" class="rounded-xl mb-4" />
+        </v-col>
+        <v-col cols="12" lg="4">
+          <v-skeleton-loader
+            type="list-item-two-line@3, list-item-three-line@4"
+            class="rounded-xl"
+          />
+        </v-col>
+      </v-row>
 
-    <v-row
-      v-else
-      class="dashboard-grid mt-2"
-      :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
-      dense
-      :style="{ '--dashboard-bottom-h': bottomStripHeight + 'px' }"
-    >
-      <v-col
-        cols="12"
-        md="9"
-        class="d-flex flex-column"
-        style="gap: 12px"
-        :class="{ 'overflow-hidden h-100': !isMobile }"
+      <v-row
+        v-else
+        class="dashboard-grid mt-2"
+        :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
+        dense
+        :style="{ '--dashboard-bottom-h': bottomStripHeight + 'px' }"
       >
-        <v-card
-          flat
-          class="dashboard-panel-card d-flex flex-column"
-          :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
+        <v-col
+          cols="12"
+          md="9"
+          class="d-flex flex-column"
+          style="gap: 12px"
+          :class="{ 'overflow-hidden h-100': !isMobile }"
         >
-          <div
-            class="dashboard-panel-header d-flex align-center justify-space-between shrink-0 pa-3 px-4"
+          <v-card
+            flat
+            class="dashboard-panel-card d-flex flex-column glass-card"
+            :class="{ 'flex-grow-1 overflow-hidden': !isMobile }"
           >
-            <div class="d-flex align-center">
-              <div class="panel-icon-wrapper me-3">
-                <LucideIcon name="sliders-horizontal" :size="18" class="panel-icon" />
+            <div
+              class="dashboard-panel-header d-flex align-center justify-space-between shrink-0 pa-3 px-4"
+            >
+              <div class="d-flex align-center">
+                <div class="panel-icon-wrapper me-3">
+                  <LucideIcon name="sliders-horizontal" :size="18" class="panel-icon" />
+                </div>
+                <span class="panel-title">لوحة التحليل والتقويم</span>
               </div>
-              <span class="panel-title">لوحة التحليل والتقويم</span>
+              <v-tabs v-model="topPanelTab" density="compact" color="primary" class="panel-tabs">
+                <v-tab value="calendar" class="font-weight-bold px-3 panel-tab">التقويم</v-tab>
+                <v-tab value="charts" class="font-weight-bold px-3 panel-tab"
+                  >الرسوم البيانية</v-tab
+                >
+                <v-tab value="metrics" class="font-weight-bold px-3 panel-tab">المؤشرات</v-tab>
+              </v-tabs>
             </div>
-            <v-tabs v-model="topPanelTab" density="compact" color="primary" class="panel-tabs">
-              <v-tab value="calendar" class="font-weight-bold px-3 panel-tab">التقويم</v-tab>
-              <v-tab value="charts" class="font-weight-bold px-3 panel-tab">الرسوم البيانية</v-tab>
-              <v-tab value="metrics" class="font-weight-bold px-3 panel-tab">المؤشرات</v-tab>
-            </v-tabs>
-          </div>
-          <v-divider opacity="0.06"></v-divider>
-          <v-card-text class="pa-2 flex-grow-1 overflow-y-auto">
-            <v-window v-model="topPanelTab" class="mb-1" style="min-height: 150px">
-              <DashboardCalendarPanel
-                :calendar-month-label="calendarMonthLabel"
-                :calendar-cells="calendarCells"
-                :selected-date="selectedDate"
-                :important-dates-by-day="importantDatesByDay"
-                :selected-important-dates="selectedImportantDates"
-                :week-days="weekDays"
-                :is-mobile="isMobile"
-                @prev-month="prevMonth"
-                @next-month="nextMonth"
-                @select-date="selectDate($event)"
-              />
-              <v-window-item value="charts">
-                <DashboardChartsPanel
-                  :pie-labels="pieLabels"
-                  :pie-data="pieData"
-                  :pie-colors="pieColors"
-                  :trend-labels="trendLabels"
-                  :trend-values="trendValues"
+            <v-divider opacity="0.06"></v-divider>
+            <v-card-text class="pa-2 flex-grow-1 overflow-y-auto glass-card">
+              <v-window v-model="topPanelTab" class="mb-1" style="min-height: 150px">
+                <DashboardCalendarPanel
+                  :calendar-month-label="calendarMonthLabel"
+                  :calendar-cells="calendarCells"
+                  :selected-date="selectedDate"
+                  :important-dates-by-day="importantDatesByDay"
+                  :selected-important-dates="selectedImportantDates"
+                  :week-days="weekDays"
+                  :is-mobile="isMobile"
+                  @prev-month="prevMonth"
+                  @next-month="nextMonth"
+                  @select-date="selectDate($event)"
                 />
-              </v-window-item>
-            </v-window>
+                <v-window-item value="charts">
+                  <DashboardChartsPanel
+                    :pie-labels="pieLabels"
+                    :pie-data="pieData"
+                    :pie-colors="pieColors"
+                    :trend-labels="trendLabels"
+                    :trend-values="trendValues"
+                  />
+                </v-window-item>
+              </v-window>
 
-            <DashboardSessionsAlerts
-              :today-sessions="sessionsStore.todaySessions"
-              :tomorrow-sessions="sessionsStore.tomorrowSessions"
-              :agency-alerts="agencyAlerts"
-              :session-headers-compact="sessionHeadersCompact"
-              :is-mobile="isMobile"
-              @open-agency="openEditAgency($event)"
-              @navigate="$router.push($event)"
-            />
-          </v-card-text>
-        </v-card>
+              <DashboardSessionsAlerts
+                :today-sessions="sessionsStore.todaySessions"
+                :tomorrow-sessions="sessionsStore.tomorrowSessions"
+                :agency-alerts="agencyAlerts"
+                :session-headers-compact="sessionHeadersCompact"
+                :is-mobile="isMobile"
+                @open-agency="openEditAgency($event)"
+                @navigate="$router.push($event)"
+              />
+            </v-card-text>
+          </v-card>
 
-        <DashboardBottomStrip
-          ref="bottomStripRef"
-          :dashboard-tasks="dashboardTasks"
-          :alerts="alerts"
+          <DashboardBottomStrip
+            ref="bottomStripRef"
+            :dashboard-tasks="dashboardTasks"
+            :alerts="alerts"
+            :is-mobile="isMobile"
+            @navigate="$router.push($event)"
+          />
+        </v-col>
+
+        <DashboardQuickActions
+          :last-refresh-time="lastRefreshTime"
           :is-mobile="isMobile"
           @navigate="$router.push($event)"
+          @action="handleQuickAction($event)"
         />
-      </v-col>
+      </v-row>
 
-      <DashboardQuickActions
-        :last-refresh-time="lastRefreshTime"
+      <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        :timeout="snackbar.timeout"
+        location="top"
+        class="font-weight-black"
+      >
+        {{ snackbar.text }}
+        <template #actions>
+          <v-btn class="premium-btn-gold-gradient" variant="text" icon @click="snackbar.show = false">
+            <LucideIcon name="x" :size="16" />
+          </v-btn>
+        </template>
+      </v-snackbar>
+
+      <DashboardAgencyDialog
+        :agency-edit-dialog="agencyEditDialog"
+        :clients="clientsStore.clients"
         :is-mobile="isMobile"
-        @navigate="$router.push($event)"
-        @action="handleQuickAction($event)"
+        @save="handleAgencySave($event)"
+        @close="agencyEditDialog.show = false"
       />
-    </v-row>
 
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      :timeout="snackbar.timeout"
-      location="top"
-      class="font-weight-black"
-    >
-      {{ snackbar.text }}
-      <template #actions>
-        <v-btn variant="text" icon @click="snackbar.show = false">
-          <LucideIcon name="x" :size="16" />
-        </v-btn>
-      </template>
-    </v-snackbar>
-
-    <DashboardAgencyDialog
-      :agency-edit-dialog="agencyEditDialog"
-      :clients="clientsStore.clients"
-      :is-mobile="isMobile"
-      @save="handleAgencySave($event)"
-      @close="agencyEditDialog.show = false"
-    />
-
-    <ConfirmDialog
-      v-model="confirmDialog.show"
-      :title="confirmDialog.title"
-      :message="confirmDialog.message"
-      :color="confirmDialog.color"
-      :icon="confirmDialog.icon"
-      :confirm-text="confirmDialog.confirmText"
-      :cancel-text="confirmDialog.cancelText"
-      :loading="confirmDialog.loading"
-      @confirm="confirmDialog.action"
-    />
-  </v-container>
+      <ConfirmDialog
+        v-model="confirmDialog.show"
+        :title="confirmDialog.title"
+        :message="confirmDialog.message"
+        :color="confirmDialog.color"
+        :icon="confirmDialog.icon"
+        :confirm-text="confirmDialog.confirmText"
+        :cancel-text="confirmDialog.cancelText"
+        :loading="confirmDialog.loading"
+        @confirm="confirmDialog.action"
+      />
+    </v-container>
+  </template>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useDisplay } from 'vuetify'
+import { ref, computed, onMounted, onUnmounted, watch, defineAsyncComponent } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { Alert } from '../types'
 import { useClientsStore } from '../stores/clients'
 import { useCasesStore } from '../stores/cases'
@@ -147,8 +155,14 @@ import { useSessionsStore } from '../stores/sessions'
 import { useTasksStore } from '../stores/tasks'
 import { useAgenciesStore } from '../stores/agencies'
 import { safeArray, safeLength } from '../utils/safe'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import { setFabAction, clearFabAction } from '../composables/useFabAction'
 
 import LucideIcon from '../components/common/LucideIcon.vue'
+
+const MobileDashboard = defineAsyncComponent(
+  () => import('../components/mobile/MobileDashboard.vue')
+)
 import DashboardKpiCards from './dashboard/DashboardKpiCards.vue'
 import DashboardCalendarPanel from './dashboard/DashboardCalendarPanel.vue'
 import DashboardChartsPanel from './dashboard/DashboardChartsPanel.vue'
@@ -169,10 +183,9 @@ const sessionsStore = useSessionsStore()
 const tasksStore = useTasksStore()
 const agenciesStore = useAgenciesStore()
 
-const { mobile } = useDisplay()
-const isMobile = computed(
-  () => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768)
-)
+const { isMobile } = useMobileLayout()
+const route = useRoute()
+const router = useRouter()
 
 const handleQuickAction = (action: string) => {
   if (action === 'snapshot') handleSnapshotExport()
@@ -532,6 +545,7 @@ onMounted(async () => {
 
   void refreshMonthSessions()
 
+  setFabAction('mdi-plus', () => router.push('/sessions?new=1'), route.path)
   stampRefresh()
   refreshTimer = setInterval(() => {
     void runAutoRefresh(false)
@@ -539,6 +553,7 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
+  clearFabAction()
   bottomStripObserver?.disconnect()
   bottomStripObserver = null
   if (refreshTimer) clearInterval(refreshTimer)
@@ -710,7 +725,7 @@ const fetchData = async () => {
 .panel-title {
   font-weight: 800;
   font-size: 0.95rem;
-  color: var(--text-primary);
+  color: #d4af37;
 }
 
 .panel-tabs .v-tab {

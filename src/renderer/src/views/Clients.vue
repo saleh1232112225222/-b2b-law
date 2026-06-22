@@ -4,23 +4,22 @@
     <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
-          <div class="bg-white pa-4 rounded-xl me-5 border-gold-alpha">
-            <LucideIcon name="users" :size="36" class="text-gold" />
+          <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
+            <LucideIcon name="users" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-black text-pure-black mb-1">إدارة ملفات الموكلين</h1>
-            <p class="text-subtitle-1 text-pure-black font-weight-black">
+            <h1 class="text-h5 font-weight-black text-gold mb-1">إدارة ملفات الموكلين</h1>
+            <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
               القاعدة المركزية لبيانات الموكلين، الشركات، والجهات الحكومية
             </p>
           </div>
         </div>
       </v-col>
-      <v-col cols="12" md="auto" class="d-flex justify-md-end">
+      <v-col cols="auto">
         <v-btn
           color="accent"
           size="large"
-          height="56"
-          class="font-weight-black rounded-xl px-12 premium-lift"
+          class="font-weight-black rounded-lg px-8 premium-lift h-100 premium-btn-gold-gradient"
           @click="openAddDialog"
         >
           <LucideIcon name="user-plus" :size="20" class="me-3" /> إضافة موكل جديد
@@ -29,11 +28,11 @@
     </v-row>
 
     <!-- Stats Summary -->
-    <v-row class="mb-8" dense>
-      <v-col cols="12" md="3">
+    <v-row class="mb-6" dense>
+      <v-col cols="12" md="4">
         <v-card
           elevation="0"
-          class="bg-white pa-6 position-relative overflow-hidden premium-lift border-gold-alpha rounded-2xl"
+          class="glass-card pa-6 position-relative overflow-hidden premium-hover border-gold border-opacity-10 rounded-xl glass-card"
         >
           <v-skeleton-loader
             v-if="store.loading"
@@ -41,14 +40,14 @@
             class="bg-transparent"
           ></v-skeleton-loader>
           <div v-else class="d-flex align-center">
-            <div class="bg-white pa-3 rounded-lg me-4 border-gold-alpha">
+            <div class="glass-panel-light pa-3 rounded-lg me-4 border-gold border-opacity-20">
               <LucideIcon name="users" :size="24" class="text-gold" />
             </div>
             <div>
-              <div class="text-tiny font-weight-black text-pure-black mb-1">
+              <div class="text-caption font-weight-black text-gold opacity-60 mb-1">
                 إجمالي الموكلين المسجلين
               </div>
-              <div class="text-h5 font-weight-black text-pure-black">
+              <div class="text-h4 font-weight-black text-white">
                 {{ valWithDefault(store.total, 0) }}
               </div>
             </div>
@@ -63,218 +62,84 @@
       </v-col>
     </v-row>
 
-    <!-- Search & Filters -->
-    <v-card elevation="0" class="bg-white mb-8 pa-6 border-gold-alpha rounded-2xl">
-      <v-row dense align="center">
-        <v-col cols="12" md="5">
-          <v-text-field
-            v-model="searchQuery"
-            placeholder="بحث بالاسم، رقم الهاتف، أو البريد الإلكتروني..."
-            variant="outlined"
-            density="comfortable"
-            hide-details
-            class="h-large"
-            clearable
-          >
-            <template #prepend-inner>
-              <LucideIcon name="search" :size="20" class="text-gold me-2" />
-            </template>
-          </v-text-field>
-        </v-col>
-        <v-col cols="12" md="3">
-          <v-select
-            v-model="filterType"
-            label="تصفية حسب نوع الموكل"
-            :items="['الكل', 'فرد', 'شركة', 'مؤسسة', 'جهة حكومية', 'أخرى']"
-            variant="outlined"
-            density="comfortable"
-            hide-details
-            class="h-large"
-          >
-            <template #prepend-inner>
-              <LucideIcon name="filter" :size="20" class="text-gold me-2" />
-            </template>
-          </v-select>
-        </v-col>
-        <v-spacer />
-        <v-col cols="auto">
-          <v-btn
-            variant="outlined"
-            color="gold"
-            height="48"
-            class="rounded-lg premium-button-highlight"
-            @click="store.fetchClients()"
-          >
-            <LucideIcon name="refresh-cw" :size="20" class="text-pure-black" />
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card>
-
-    <!-- Data Table -->
-    <!-- Data Table / Cards -->
-    <v-card
-      elevation="0"
-      class="bg-white border-gold-alpha overflow-hidden rounded-2xl table-to-cards"
-    >
-      <div
-        v-if="isMobile"
-        class="mobile-cards-list pa-4 bg-transparent overflow-y-auto"
-        style="height: calc(100vh - 430px)"
-      >
-        <v-skeleton-loader
-          v-if="store.loading"
-          type="card@3"
-          class="bg-transparent"
-        ></v-skeleton-loader>
-        <div
-          v-else-if="safeArray(store.clients).length === 0"
-          class="text-center py-8 opacity-50 text-black"
+    <!-- Search & Filter Controls -->
+    <v-row dense class="mb-6 align-center">
+      <!-- Search Input -->
+      <v-col cols="12" md="6">
+        <v-text-field
+          v-model="searchQuery"
+          placeholder="بحث بالاسم، رقم الهاتف، أو البريد الإلكتروني..."
+          variant="outlined"
+          density="comfortable"
+          clearable
+          class="glass-input search-input glass-input"
+          hide-details
         >
-          لا يوجد موكلين مطابقين للبحث
-        </div>
-        <div v-else class="d-flex flex-column ga-4">
-          <v-card
-            v-for="item in safeArray(store.clients)"
-            :key="item.id"
-            elevation="0"
-            class="bg-grey-lighten-4 pa-4 rounded-xl border border-gold-alpha premium-lift position-relative"
-          >
-            <!-- Card Header -->
-            <div class="d-flex justify-space-between align-center mb-3">
-              <div class="d-flex align-center py-1">
-                <v-avatar color="accent" size="32" class="me-3 font-weight-black text-black">
-                  {{ item.name ? item.name.charAt(0) : '؟' }}
-                </v-avatar>
-                <v-btn
-                  variant="text"
-                  color="primary"
-                  class="px-0 font-weight-black text-subtitle-1 hover-gold"
-                  :to="'/clients/' + item.id"
-                  density="compact"
-                >
-                  {{ item.name }}
-                </v-btn>
-              </div>
+          <template #prepend-inner>
+            <LucideIcon name="search" :size="20" class="text-gold opacity-50" />
+          </template>
+        </v-text-field>
+      </v-col>
 
-              <div class="d-flex align-center ga-2">
-                <v-chip
-                  :color="getClientTypeColor(item.type)"
-                  variant="flat"
-                  size="x-small"
-                  class="font-weight-black px-3 rounded-lg"
-                >
-                  {{ valWithDefault(item.type, 'فرد') }}
-                </v-chip>
+      <!-- Client Type Filter -->
+      <v-col cols="12" md="6">
+        <v-select
+          v-model="filterType"
+          label="تصفية حسب نوع الموكل"
+          :items="['الكل', 'فرد', 'شركة', 'مؤسسة', 'جهة حكومية', 'أخرى']"
+          variant="outlined"
+          density="comfortable"
+          hide-details
+          class="glass-input search-input glass-input"
+        >
+          <template #prepend-inner>
+            <LucideIcon name="filter" :size="20" class="text-gold opacity-50" />
+          </template>
+        </v-select>
+      </v-col>
+    </v-row>
 
-                <!-- Actions -->
-                <div class="d-flex ga-1">
-                  <v-btn
-                    icon
-                    variant="text"
-                    color="accent"
-                    size="x-small"
-                    class="rounded-lg"
-                    :to="'/clients/' + item.id"
-                  >
-                    <LucideIcon name="eye" :size="16" />
-                  </v-btn>
-                  <v-btn
-                    icon
-                    variant="text"
-                    color="gold"
-                    size="x-small"
-                    class="rounded-lg"
-                    @click="openEditDialog(item)"
-                  >
-                    <LucideIcon name="pencil" :size="16" />
-                  </v-btn>
-                  <v-btn
-                    icon
-                    variant="text"
-                    color="error"
-                    size="x-small"
-                    class="rounded-lg"
-                    @click="confirmDelete(item)"
-                  >
-                    <LucideIcon name="trash-2" :size="16" />
-                  </v-btn>
-                </div>
-              </div>
-            </div>
-
-            <!-- Client Info -->
-            <div class="d-flex flex-wrap ga-x-4 ga-y-2 border-t pt-3 border-gold-alpha">
-              <div class="d-flex align-center ga-1 text-caption">
-                <LucideIcon name="phone" :size="14" class="text-gold" />
-                <span class="text-text-muted">رقم الجوال:</span>
-                <span class="text-pure-black font-weight-black ltr-text">{{
-                  item.phone || '-'
-                }}</span>
-              </div>
-              <div class="d-flex align-center ga-1 text-caption">
-                <LucideIcon name="mail" :size="14" class="text-gold" />
-                <span class="text-text-muted">البريد:</span>
-                <span class="text-primary font-weight-bold" style="word-break: break-all">{{
-                  item.email || '-'
-                }}</span>
-              </div>
-              <div class="d-flex align-center ga-1 text-caption">
-                <LucideIcon name="calendar" :size="14" class="text-gold" />
-                <span class="text-text-muted">تاريخ الانضمام:</span>
-                <span class="text-pure-black font-weight-black">{{
-                  formatDate(item.created_at)
-                }}</span>
-              </div>
-            </div>
-          </v-card>
-        </div>
-
-        <!-- Mobile Pagination Controls -->
-        <div class="d-flex align-center justify-space-between mt-4">
-          <v-btn
-            variant="tonal"
-            color="primary"
-            size="small"
-            class="rounded-lg px-4 font-weight-black"
-            :disabled="store.page <= 1"
-            @click="onMobilePagePrev"
-          >
-            السابق
-          </v-btn>
-          <span class="text-caption text-text-muted">
-            صفحة {{ store.page }} من {{ Math.ceil(store.total / store.pageSize) }}
-          </span>
-          <v-btn
-            variant="tonal"
-            color="primary"
-            size="small"
-            class="rounded-lg px-4 font-weight-black"
-            :disabled="store.page >= Math.ceil(store.total / store.pageSize)"
-            @click="onMobilePageNext"
-          >
-            التالي
-          </v-btn>
-        </div>
-      </div>
-
+    <!-- Data Table (Desktop) -->
+    <v-card
+      v-if="!isMobile"
+      elevation="0"
+      class="glass-card overflow-hidden rounded-xl glass-card"
+    >
       <v-data-table-server
-        v-else
         :headers="headers"
-        :items="safeArray(store.clients)"
+        :items="filteredClients"
         :loading="store.loading"
         :items-length="store.total"
-        class="bg-transparent premium-table clients-table-compact"
+        class="bg-transparent clients-table-compact"
         fixed-header
         height="calc(100vh - 430px)"
         hover
-        density="compact"
+        density="comfortable"
         :items-per-page-options="[10, 25, 50, 100]"
         items-per-page-text="عدد الموكلين لكل صفحة:"
         no-data-text="لا يوجد موكلين مطابقين للبحث"
         loading-text="جاري مزامنة بيانات الموكلين..."
         @update:options="onTableUpdate"
       >
+        <template #[`header.name`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+        <template #[`header.type`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+        <template #[`header.phone`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+        <template #[`header.email`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+        <template #[`header.created_at`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+        <template #[`header.actions`]="{ column }">
+          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+        </template>
+
         <template #[`item.name`]="{ item }">
           <div class="d-flex align-center py-1">
             <v-avatar color="accent" size="32" class="me-3 font-weight-black text-black">
@@ -282,8 +147,8 @@
             </v-avatar>
             <v-btn
               variant="text"
-              color="primary"
-              class="px-0 font-weight-black text-h6 hover-gold"
+              color="white"
+              class="px-0 font-weight-black text-body-2 hover-gold premium-btn-gold-gradient"
               :to="'/clients/' + item.id"
               density="compact"
             >
@@ -297,57 +162,60 @@
             :color="getClientTypeColor(item.type)"
             variant="flat"
             size="x-small"
-            class="font-weight-black px-3 rounded-lg"
+            class="font-weight-black px-3 rounded-lg text-black"
           >
             {{ valWithDefault(item.type, 'فرد') }}
           </v-chip>
         </template>
 
         <template #[`item.phone`]="{ item }">
-          <span class="font-weight-black text-visible-high ltr-text">{{ item.phone || '-' }}</span>
+          <span class="font-weight-black text-white ltr-text">{{ item.phone || '-' }}</span>
         </template>
 
         <template #[`item.email`]="{ item }">
-          <span class="text-caption text-primary font-weight-bold">{{ item.email || '-' }}</span>
+          <span class="text-caption text-white opacity-80 font-weight-bold">{{ item.email || '-' }}</span>
         </template>
 
         <template #[`item.created_at`]="{ item }">
-          <span class="text-tiny font-weight-black text-primary">{{
+          <span class="text-tiny font-weight-black text-white opacity-70">{{
             formatDate(item.created_at)
           }}</span>
         </template>
 
         <template #[`item.actions`]="{ item }">
-          <div class="d-flex justify-center ga-1">
+          <div class="d-flex justify-center ga-2">
             <v-btn
               icon
               variant="text"
               color="accent"
               size="small"
-              class="rounded-lg hover-op-1"
+              class="premium-hover opacity-70 premium-btn-gold-gradient"
               :to="'/clients/' + item.id"
             >
-              <LucideIcon name="eye" :size="16" />
+              <LucideIcon name="eye" :size="18" />
+              <v-tooltip activator="parent" location="top">ملف الموكل</v-tooltip>
             </v-btn>
             <v-btn
               icon
               variant="text"
               color="gold"
               size="small"
-              class="rounded-lg hover-op-1"
+              class="premium-hover opacity-70 premium-btn-gold-gradient"
               @click="openEditDialog(item)"
             >
-              <LucideIcon name="pencil" :size="16" />
+              <LucideIcon name="edit-3" :size="18" />
+              <v-tooltip activator="parent" location="top">تعديل الموكل</v-tooltip>
             </v-btn>
             <v-btn
               icon
               variant="text"
               color="error"
               size="small"
-              class="rounded-lg hover-op-1"
+              class="premium-hover opacity-70 premium-btn-gold-gradient"
               @click="confirmDelete(item)"
             >
-              <LucideIcon name="trash-2" :size="16" />
+              <LucideIcon name="trash-2" :size="18" />
+              <v-tooltip activator="parent" location="top">حذف الموكل</v-tooltip>
             </v-btn>
           </div>
         </template>
@@ -358,114 +226,191 @@
       </v-data-table-server>
     </v-card>
 
+    <!-- Clients Mobile Cards View (inline, matching POA.vue style) -->
+    <div v-else>
+      <div v-if="store.loading" class="d-flex flex-column gap-4">
+        <v-skeleton-loader
+          v-for="n in 4"
+          :key="n"
+          type="card"
+          class="glass-card mb-4 rounded-xl bg-transparent"
+        />
+      </div>
+
+      <div
+        v-else-if="filteredClients.length === 0"
+        class="text-center py-12 glass-card rounded-xl"
+      >
+        <LucideIcon name="users" :size="48" class="text-gold opacity-30 mb-4" />
+        <div class="text-h6 text-gold opacity-50 font-weight-black">
+          لا يوجد موكلون مطابقون للبحث
+        </div>
+      </div>
+
+      <div v-else class="mobile-cards-container d-flex flex-column gap-4">
+        <v-card
+          v-for="item in filteredClients"
+          :key="item.id"
+          class="glass-card mb-4 rounded-xl border-gold border-opacity-10 overflow-hidden premium-hover glass-card"
+          elevation="0"
+        >
+          <!-- Card Header -->
+          <div
+            class="d-flex align-center justify-space-between pa-4 border-b border-gold border-opacity-10"
+          >
+            <div class="d-flex align-center">
+              <v-avatar color="accent" size="36" class="me-3 font-weight-black text-black">
+                {{ item.name ? item.name.charAt(0) : '؟' }}
+              </v-avatar>
+              <div>
+                <v-btn
+                  variant="text"
+                  color="white"
+                  class="px-0 py-0 font-weight-black text-body-1 hover-gold h-auto min-width-0 premium-btn-gold-gradient"
+                  :to="'/clients/' + item.id"
+                >
+                  {{ item.name }}
+                </v-btn>
+              </div>
+            </div>
+
+            <!-- Type Chip -->
+            <v-chip
+              :color="getClientTypeColor(item.type)"
+              variant="flat"
+              size="small"
+              class="font-weight-black rounded-lg px-3 text-black"
+            >
+              {{ item.type || 'فرد' }}
+            </v-chip>
+          </div>
+
+          <!-- Card Body -->
+          <v-card-text class="pa-4 text-white glass-card">
+            <v-row dense class="mb-2">
+              <v-col cols="6">
+                <span class="text-caption text-gold opacity-50 d-block mb-1">رقم الجوال</span>
+                <span class="text-caption font-weight-black text-white ltr-text">
+                  {{ item.phone || '-' }}
+                </span>
+              </v-col>
+              <v-col cols="6">
+                <span class="text-caption text-gold opacity-50 d-block mb-1">المدينة</span>
+                <span class="text-caption font-weight-black text-white">
+                  {{ item.city || '-' }}
+                </span>
+              </v-col>
+            </v-row>
+
+            <v-row dense>
+              <v-col cols="6">
+                <span class="text-caption text-gold opacity-50 d-block mb-1">البريد الإلكتروني</span>
+                <span class="text-caption font-weight-black text-white text-truncate d-block" style="max-width: 150px;">
+                  {{ item.email || '-' }}
+                </span>
+              </v-col>
+              <v-col cols="6">
+                <span class="text-caption text-gold opacity-50 d-block mb-1">الجنسية</span>
+                <span class="text-caption font-weight-black text-white">
+                  {{ item.nationality || '-' }}
+                </span>
+              </v-col>
+            </v-row>
+          </v-card-text>
+
+          <!-- Card Actions -->
+          <div
+            class="d-flex border-t border-gold border-opacity-10 bg-black bg-opacity-20 pa-2 justify-space-around"
+          >
+            <v-btn
+              variant="text"
+              color="accent"
+              size="small"
+              class="font-weight-black rounded-lg premium-btn-gold-gradient"
+              :to="'/clients/' + item.id"
+            >
+              <LucideIcon name="eye" :size="16" class="me-1" /> ملف الموكل
+            </v-btn>
+            <v-btn
+              variant="text"
+              color="gold"
+              size="small"
+              class="font-weight-black rounded-lg premium-btn-gold-gradient"
+              @click="openEditDialog(item)"
+            >
+              <LucideIcon name="edit-3" :size="16" class="me-1" /> تعديل
+            </v-btn>
+            <v-btn
+              variant="text"
+              color="error"
+              size="small"
+              class="font-weight-black rounded-lg premium-btn-gold-gradient"
+              @click="confirmDelete(item)"
+            >
+              <LucideIcon name="trash-2" :size="16" class="me-1" /> حذف
+            </v-btn>
+          </div>
+        </v-card>
+      </div>
+    </div>
+
     <!-- Dialogs -->
-    <v-dialog v-model="showDialog" max-width="850" persistent scrollable>
-      <v-card class="modal-card overflow-hidden">
-        <v-card-title class="pa-6 modal-header-solid d-flex align-center">
-          <div class="bg-accent-alpha pa-2 rounded-lg me-3">
+    <v-dialog
+      v-model="showDialog"
+      width="90%"
+      max-width="850"
+      persistent
+      scrollable
+      :fullscreen="isMobile"
+      :transition="isMobile ? 'dialog-bottom-transition' : 'dialog-transition'"
+    >
+      <v-card class="poa-dialog-card overflow-hidden glass-card">
+        <div class="poa-dialog-header d-flex align-center py-5 px-8">
+          <div class="glass-panel-light pa-2 rounded-lg me-4 border-gold border-opacity-20">
             <LucideIcon
               :name="isEditing ? 'user-cog' : 'user-plus'"
-              :size="20"
-              class="text-primary"
+              :size="24"
+              class="text-accent"
             />
           </div>
-          <span class="text-h6 font-weight-black text-pure-black">
+          <span class="text-h5 font-weight-black text-gold">
             {{ isEditing ? 'تعديل بيانات الموكل' : 'تسجيل موكل جديد' }}
           </span>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="showDialog = false">
-            <LucideIcon name="x" :size="20" class="text-primary" />
+          <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="showDialog = false">
+            <LucideIcon name="x" :size="24" />
           </v-btn>
-        </v-card-title>
+        </div>
 
-        <v-card-text class="pa-8 bg-white">
-          <ClientForm ref="clientFormRef" v-model="editItem" v-model:valid="formValid" />
+        <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body glass-card">
+          <div class="poa-form">
+            <ClientForm ref="clientFormRef" v-model="editItem" v-model:valid="formValid" />
+          </div>
         </v-card-text>
 
-        <v-divider class="border-gold" />
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+        <v-divider class="border-gold opacity-10"></v-divider>
+        <v-card-actions class="pa-8 poa-dialog-footer d-flex flex-column align-center gap-3 glass-card">
           <v-btn
             variant="flat"
             size="large"
-            class="px-8 font-weight-black premium-button-highlight action-btn-unified"
-            @click="showDialog = false"
-            >إلغاء</v-btn
-          >
-          <v-spacer />
-          <v-btn
-            variant="flat"
-            size="large"
-            class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+            class="w-100 font-weight-black premium-btn-gold-gradient h-56 premium-btn-gold-gradient"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"
           >
             {{ isEditing ? 'حفظ التعديلات' : 'تأكيد التسجيل' }}
           </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
-
-    <!-- Delete Confirmation -->
-    <v-dialog v-model="showDeleteDialog" max-width="500" persistent>
-      <v-card class="modal-card overflow-hidden">
-        <v-card-title class="pa-6 modal-header-solid d-flex align-center">
-          <LucideIcon name="alert-triangle" :size="24" class="me-3 text-error" />
-          <span class="text-h6 font-weight-black text-pure-black">تأكيد الحذف النهائي</span>
-          <v-spacer />
-          <v-btn icon variant="text" size="small" @click="showDeleteDialog = false">
-            <LucideIcon name="x" :size="20" class="text-primary" />
-          </v-btn>
-        </v-card-title>
-
-        <v-card-text class="pa-8 bg-white text-center">
-          <div class="text-body-1 mb-6 text-pure-black font-weight-black leading-relaxed">
-            هل أنت متأكد من حذف الموكل وجميع السجلات المرتبطة به؟ لا يمكن التراجع عن هذا الإجراء.
-          </div>
-          <div
-            class="pa-4 rounded-lg font-weight-black text-h6 bg-grey-lighten-4 border-gold-alpha text-error mb-6"
-          >
-            {{ itemToDelete?.name }}
-          </div>
-          <div class="text-tiny text-error opacity-70 font-weight-black italic">
-            تحذير: سيتم مسح كافة ملفات القضية والمستندات المرتبطة بهذا الموكل.
-          </div>
-        </v-card-text>
-
-        <v-card-actions class="pa-8 modal-footer-solid ga-3">
           <v-btn
-            variant="flat"
-            size="large"
-            class="px-8 font-weight-black premium-button-highlight action-btn-unified"
-            @click="showDeleteDialog = false"
-            >تراجع</v-btn
+            variant="text"
+            color="white"
+            class="text-body-1 font-weight-bold text-cancel-link mt-2 premium-btn-gold-gradient"
+            @click="showDialog = false"
           >
-          <v-spacer />
-          <v-btn
-            color="error"
-            variant="elevated"
-            size="large"
-            class="px-12 font-weight-black rounded-xl premium-lift h-56"
-            :loading="deleting"
-            @click="handleDelete"
-          >
-            حذف شامل
+            إلغاء
           </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-
-    <!-- Feedback -->
-    <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
-      <div class="d-flex align-center">
-        <LucideIcon
-          :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
-          :size="18"
-          class="me-3"
-        />
-        <span class="font-weight-black">{{ snackbarText }}</span>
-      </div>
-    </v-snackbar>
 
     <!-- Global Confirmation -->
     <PremiumConfirm
@@ -483,7 +428,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useDisplay } from 'vuetify'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import { setFabAction, clearFabAction } from '../composables/useFabAction'
 import { useRoute, useRouter } from 'vue-router'
 import { useClientsStore } from '../stores/clients'
 import { useSearch } from '../composables/useSearch'
@@ -498,24 +444,7 @@ const route = useRoute()
 const router = useRouter()
 const filterType = ref('الكل')
 
-const { mobile } = useDisplay()
-const isMobile = computed(
-  () => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768)
-)
-
-const onMobilePagePrev = (): void => {
-  if (store.page > 1) {
-    store.page--
-    store.fetchClients()
-  }
-}
-
-const onMobilePageNext = (): void => {
-  if (store.page < Math.ceil(store.total / store.pageSize)) {
-    store.page++
-    store.fetchClients()
-  }
-}
+const { isMobile } = useMobileLayout()
 
 const showDialog = ref(false)
 const isEditing = ref(false)
@@ -523,13 +452,8 @@ const formValid = ref(false)
 const clientFormRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
 const saving = ref(false)
 
-const showDeleteDialog = ref(false)
 const deleting = ref(false)
 const itemToDelete = ref<Client | null>(null)
-
-const snackbar = ref(false)
-const snackbarText = ref('')
-const snackbarColor = ref('success')
 
 // --- Confirmation Dialog State ---
 const confirmDialog = ref({
@@ -593,6 +517,12 @@ const defaultItem: Partial<Client> = {
 
 const editItem = ref<Partial<Client>>({ ...defaultItem })
 
+const filteredClients = computed(() => {
+  const list = safeArray(store.clients)
+  if (!filterType.value || filterType.value === 'الكل') return list
+  return list.filter((item: Client) => item.type === filterType.value)
+})
+
 const onTableUpdate = (options: { page: number; itemsPerPage: number }): void => {
   store.page = options.page
   store.pageSize = options.itemsPerPage
@@ -611,11 +541,13 @@ onMounted(() => {
     openAddDialog()
     router.replace({ path: route.path, query: {} })
   }
+  setFabAction('mdi-account-plus', openAddDialog, route.path)
 })
 
 onUnmounted(() => {
   store.q = ''
   if (searchQuery) searchQuery.value = ''
+  clearFabAction()
 })
 
 const openAddDialog = (): void => {
@@ -719,32 +651,23 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
   snackbarColor.value = color
   snackbar.value = true
 }
+
+const snackbar = ref(false)
+const snackbarText = ref('')
+const snackbarColor = ref('success')
 </script>
 
 <style scoped>
 .h-56 {
   height: 56px !important;
 }
-.h-48 {
-  height: 48px !important;
-}
 
 .hover-gold:hover {
   color: #e9c349 !important;
 }
-.hover-op-1:hover {
-  opacity: 1 !important;
-}
 
 .bg-accent-alpha {
   background: rgba(var(--v-theme-accent), 0.1) !important;
-}
-.bg-black-alpha {
-  background: rgba(0, 0, 0, 0.2) !important;
-}
-
-.border-gold-alpha {
-  border: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
 .ltr-text {
@@ -752,18 +675,19 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
   display: inline-block;
 }
 
-.premium-table :deep(th) {
+.clients-table-compact :deep(th) {
   background: rgba(233, 195, 73, 0.05) !important;
   color: #e9c349 !important;
   font-weight: 900 !important;
   text-transform: uppercase;
   letter-spacing: 1px;
-  font-size: 0.95rem !important;
+  font-size: 0.75rem !important;
   border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
-.premium-table :deep(td) {
+.clients-table-compact :deep(td) {
   border-bottom: 1px solid rgba(233, 195, 73, 0.05) !important;
+  color: #ffffff !important;
 }
 
 .clients-table-compact :deep(.v-data-table__td),
@@ -773,6 +697,26 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
 
 .clients-table-compact :deep(.v-data-table__td) {
   font-size: 0.9rem !important;
+}
+
+.modal-scrollable {
+  max-height: calc(100vh - 280px);
+  overflow-y: auto;
+}
+
+/* Styled scrollbar for dialog content */
+.modal-scrollable::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-scrollable::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+}
+.modal-scrollable::-webkit-scrollbar-thumb {
+  background: rgba(233, 195, 73, 0.3);
+  border-radius: 3px;
+}
+.modal-scrollable::-webkit-scrollbar-thumb:hover {
+  background: rgba(233, 195, 73, 0.6);
 }
 
 .premium-button-highlight {
@@ -797,72 +741,173 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
   opacity: 1 !important;
 }
 
-.modal-footer-solid {
-  background: #ffffff !important;
-  opacity: 1 !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
-}
-
 .action-btn-unified {
   min-width: 180px !important;
 }
 
-/* ---- Mobile responsive ---- */
-@media (max-width: 768px) {
-  .v-container.pa-6.pb-12.rtl {
-    padding: 12px !important;
-  }
+.search-input :deep(.v-field) {
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(233, 195, 73, 0.15) !important;
+  transition: all 0.3s ease;
+}
 
-  .v-row.mb-8.align-center .v-col:first-child {
-    flex: 1 1 auto;
-  }
+.search-input :deep(.v-field--focused) {
+  border-color: rgba(233, 195, 73, 0.6) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
 
-  .v-row.mb-8.align-center .v-col-md-auto {
-    flex: 0 0 100%;
-    margin-top: 12px;
-  }
+.search-input :deep(input),
+.search-input :deep(.v-select__selection-text) {
+  color: #ffffff !important;
+  font-weight: 800;
+}
 
-  .v-row.mb-8.align-center .v-col-md-auto .v-btn {
-    width: 100%;
-    justify-content: center;
-  }
+.glass-toggle {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(233, 195, 73, 0.15) !important;
+}
 
-  .bg-white.pa-4.rounded-xl {
-    width: 48px !important;
-    height: 48px !important;
-    padding: 12px !important;
-  }
+.border-accent {
+  border-color: var(--v-theme-accent) !important;
+}
 
-  .bg-white.pa-4.rounded-xl :deep(.lucide-icon) {
-    width: 24px !important;
-    height: 24px !important;
-  }
+.text-gold {
+  color: #e9c349 !important;
+}
 
-  .text-h5 {
-    font-size: 1.1rem !important;
-  }
+.text-accent {
+  color: var(--v-theme-accent) !important;
+}
 
-  .text-subtitle-1 {
-    font-size: 0.85rem !important;
-  }
+.gap-2 {
+  gap: 8px;
+}
 
-  .bg-white.mb-8.pa-6 {
-    padding: 12px !important;
-  }
+.gap-4 {
+  gap: 16px;
+}
 
-  .bg-white.mb-8.pa-6 .v-row .v-col {
+/* Glass Dialog Styling matching Figma mockups */
+.poa-dialog-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  border-radius: 24px !important;
+}
+
+.poa-dialog-header {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.15) !important;
+}
+
+.poa-dialog-footer {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-top: 1px solid rgba(233, 195, 73, 0.15) !important;
+}
+
+.poa-form :deep(.v-label) {
+  color: #e9c349 !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 6px !important;
+}
+
+.poa-form :deep(.v-field) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  transition: all 0.3s ease;
+}
+
+.poa-form :deep(.v-field__outline) {
+  display: none !important;
+}
+
+.poa-form :deep(.v-field--focused) {
+  border-color: #e9c349 !important;
+  box-shadow: 0 0 12px rgba(233, 195, 73, 0.2) !important;
+}
+
+.poa-form :deep(input),
+.poa-form :deep(textarea),
+.poa-form :deep(.v-select__selection-text) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.poa-form :deep(.v-field__prepend-inner .v-icon),
+.poa-form :deep(.v-field__append-inner .v-icon) {
+  color: #e9c349 !important;
+  opacity: 1 !important;
+}
+
+.mobile-cards-container {
+  padding-bottom: 24px;
+}
+
+.premium-btn-gold-gradient {
+  background: linear-gradient(135deg, #e9c349 0%, #c49a21 100%) !important;
+  color: #0d1527 !important;
+  font-weight: 900 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 6px 20px rgba(233, 195, 73, 0.25) !important;
+  transition: all 0.3s ease !important;
+}
+
+.premium-btn-gold-gradient:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(233, 195, 73, 0.4) !important;
+}
+
+.premium-btn-gold-gradient.v-btn--disabled {
+  background: rgba(233, 195, 73, 0.3) !important;
+  color: rgba(255, 255, 255, 0.3) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
+.text-cancel-link {
+  color: rgba(255, 255, 255, 0.6) !important;
+  text-decoration: none;
+  text-transform: none;
+}
+
+.text-cancel-link:hover {
+  color: #e9c349 !important;
+}
+
+/* Mobile (<=1023px only) */
+@media (max-width: 1023px) {
+  :deep(.v-row.mb-8.align-center > .v-col-auto) {
     flex: 0 0 100% !important;
     max-width: 100% !important;
-  }
-
-  .bg-white.mb-8.pa-6 .v-row .v-col-auto {
-    flex: 0 0 auto;
     margin-top: 8px;
   }
-
-  .clients-table-compact {
-    height: auto !important;
-    max-height: none !important;
+  :deep(.v-row.mb-8.align-center > .v-col-auto .v-btn) {
+    width: 100% !important;
+  }
+  :deep(.v-dialog > .v-overlay__content) {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    margin: 8px !important;
+  }
+  :deep(.v-card-text.pa-8) {
+    padding: 12px !important;
+  }
+  :deep(.v-card-actions.pa-8) {
+    padding: 12px !important;
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+  }
+  :deep(.v-card-actions .v-spacer) {
+    display: none !important;
+  }
+  :deep(.v-card-actions .v-btn) {
+    flex: 1 1 auto !important;
+    min-width: 100px !important;
   }
 }
 </style>

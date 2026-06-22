@@ -19,7 +19,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -27,7 +27,7 @@
       </v-col>
     </v-row>
 
-    <v-card elevation="0" class="glass-card pa-8 mb-8 border-gold border-opacity-30 border-2">
+    <v-card elevation="0" class="glass-card pa-8 mb-8 border-gold border-opacity-30 border-2 glass-card">
       <v-row dense class="align-center">
         <v-col cols="12" md="8">
           <v-autocomplete
@@ -36,7 +36,7 @@
             :loading="loadingCases"
             label="ابحث برقم القضية أو اسم الموكل..."
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
             :menu-props="{ maxHeight: 420, zIndex: 9999 }"
@@ -54,7 +54,7 @@
             height="56"
             color="accent"
             variant="flat"
-            class="rounded-xl font-weight-black premium-lift text-ebony"
+            class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
             :loading="loading"
             :disabled="!caseId"
             @click="loadInquiry"
@@ -70,12 +70,12 @@
       <!-- 1. Basic Data -->
       <v-card
         elevation="0"
-        class="glass-card overflow-hidden mb-6 border-gold border-opacity-20 border-2"
+        class="glass-card overflow-hidden mb-6 border-gold border-opacity-20 border-2 glass-card"
       >
         <div class="bg-gold-gradient pa-4 text-center font-weight-black text-ebony text-h6">
           بيانات الدعوى الأساسية
         </div>
-        <v-card-text class="pa-0">
+        <v-card-text class="pa-0 glass-card">
           <v-table density="comfortable" class="glass-table">
             <tbody>
               <tr>
@@ -131,7 +131,7 @@
       <div v-for="section in expandableSections" :key="section.key" class="mb-4">
         <v-card
           elevation="0"
-          class="glass-card overflow-hidden border-gold border-opacity-10 border-1 transition-all"
+          class="glass-card overflow-hidden border-gold border-opacity-10 border-1 transition-all glass-card"
           :class="{ 'border-opacity-40': section.open }"
         >
           <!-- Trigger Bar -->
@@ -155,7 +155,7 @@
           <v-expand-transition>
             <div v-show="section.open">
               <v-divider class="border-gold opacity-10" />
-              <v-card-text class="pa-8">
+              <v-card-text class="pa-8 glass-card">
                 <!-- Topic -->
                 <div
                   v-if="section.key === 'subject'"
@@ -486,7 +486,7 @@
         <v-btn
           color="accent"
           size="x-large"
-          class="rounded-xl px-12 font-weight-black premium-lift text-ebony"
+          class="rounded-xl px-12 font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="check-circle" :size="24" class="me-2" /> إنهاء العرض والمراجعة

@@ -38,6 +38,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { ICONS } from '../config/icons'
+import LucideIcon from './common/LucideIcon.vue'
 import { convertToHijri } from '../utils/hijri'
 
 const props = defineProps({

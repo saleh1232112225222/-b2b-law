@@ -6,16 +6,16 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden">
+    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden glass-card">
       <div class="bg-gold-gradient pa-4 d-flex align-center">
         <LucideIcon name="scope" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">إدارة نطاق العمل (Scope)</span>
         <v-spacer />
-        <v-btn icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8">
+      <v-card-text class="pa-8 glass-card">
         <div class="text-body-2 text-gold opacity-60 mb-6 font-weight-bold">
           اربط المستخدم بقضايا أو عملاء محددين للتحكم في الوصول الدقيق للبيانات.
         </div>
@@ -26,7 +26,7 @@
               :items="scopeTypes"
               label="نوع النطاق"
               variant="outlined"
-              class="glass-input"
+              class="glass-input glass-input"
               hide-details
             />
           </v-col>
@@ -58,7 +58,7 @@
               :items="accessLevels"
               label="المستوى"
               variant="outlined"
-              class="glass-input"
+              class="glass-input glass-input"
               hide-details
             />
           </v-col>
@@ -68,7 +68,7 @@
               variant="flat"
               block
               height="56"
-              class="rounded-lg font-weight-black text-ebony"
+              class="rounded-lg font-weight-black text-ebony premium-btn-gold-gradient"
               @click="addScope"
               >إضافة</v-btn
             >
@@ -118,7 +118,7 @@
                     >
                   </td>
                   <td class="text-center">
-                    <v-btn
+                    <v-btn class="premium-btn-gold-gradient"
                       icon
                       variant="tonal"
                       color="error"
@@ -174,7 +174,7 @@
                     >
                   </td>
                   <td class="text-center">
-                    <v-btn
+                    <v-btn class="premium-btn-gold-gradient"
                       icon
                       variant="tonal"
                       color="error"
@@ -190,12 +190,12 @@
           </v-col>
         </v-row>
       </v-card-text>
-      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10">
+      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10 glass-card">
         <v-spacer />
         <v-btn
           color="gold"
           variant="flat"
-          class="px-10 font-weight-black text-ebony rounded-lg"
+          class="px-10 font-weight-black text-ebony rounded-lg premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >حفظ وإغلاق</v-btn
         >

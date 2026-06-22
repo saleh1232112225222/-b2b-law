@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card overflow-hidden border-gold border-opacity-20 border-2">
+  <v-card elevation="0" class="glass-card overflow-hidden border-gold border-opacity-20 border-2 glass-card">
     <v-table density="comfortable" class="glass-table">
       <thead>
         <tr>
@@ -30,7 +30,7 @@
               :items="roles"
               density="compact"
               variant="outlined"
-              class="glass-input-compact"
+              class="glass-input-compact glass-input"
               hide-details
               :model-value="u.role_key"
               @update:model-value="(val) => $emit('set-role', u.id, String(val))"
@@ -55,7 +55,7 @@
             <div class="d-flex align-center justify-center gap-2">
               <v-tooltip :text="u.is_active ? 'تعطيل الدخول' : 'تفعيل الدخول'" location="top">
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"
@@ -69,7 +69,7 @@
               </v-tooltip>
               <v-tooltip text="تعديل اسم المستخدم" location="top">
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"
@@ -83,7 +83,7 @@
               </v-tooltip>
               <v-tooltip text="إدارة الصلاحيات التفصيلية" location="top">
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"
@@ -97,7 +97,7 @@
               </v-tooltip>
               <v-tooltip text="إدارة بيانات استعادة الحساب" location="top">
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"
@@ -111,7 +111,7 @@
               </v-tooltip>
               <v-tooltip text="تحديد نطاق العمل (قضايا/عملاء)" location="top">
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"
@@ -129,7 +129,7 @@
                 location="top"
               >
                 <template #activator="{ props }">
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-bind="props"
                     icon
                     size="small"

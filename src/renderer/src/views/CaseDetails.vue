@@ -1,14 +1,14 @@
 ﻿<template>
   <v-container fluid class="pa-6">
     <div class="d-flex justify-space-between align-center mb-4">
-      <v-btn variant="outlined" to="/cases" class="font-weight-black return-btn-gold">
+      <v-btn variant="outlined" to="/cases" class="font-weight-black return-btn-gold premium-btn-gold-gradient">
         <LucideIcon name="arrow-right" :size="18" class="me-2" /> العودة للقضايا
       </v-btn>
       <v-btn
         v-if="nextCaseId"
         variant="outlined"
         :to="'/cases/' + nextCaseId"
-        class="font-weight-black next-btn-gold"
+        class="font-weight-black next-btn-gold premium-btn-gold-gradient"
       >
         القضية التالية <LucideIcon name="arrow-left" :size="18" class="ms-2" />
       </v-btn>
@@ -31,7 +31,7 @@
         @edit="openEditDialog"
       />
 
-      <v-card elevation="0" class="glass-panel overflow-hidden">
+      <v-card elevation="0" class="glass-panel overflow-hidden glass-card">
         <v-tabs v-model="tab" bg-color="transparent" class="border-b" grow color="accent">
           <v-tab value="overview" class="font-weight-black"
             ><LucideIcon name="info" :size="18" class="me-2" /> نظرة عامة</v-tab

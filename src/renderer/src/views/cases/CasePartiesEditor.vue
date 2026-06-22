@@ -10,7 +10,7 @@
           size="large"
           variant="tonal"
           color="primary"
-          class="font-weight-black rounded-xl px-6"
+          class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
           @click="addParty('client')"
         >
           <LucideIcon name="plus" :size="20" class="me-2" /> إضافة موكل
@@ -19,7 +19,7 @@
           size="large"
           variant="tonal"
           color="accent"
-          class="font-weight-black rounded-xl px-6"
+          class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
           @click="addParty('opponent')"
         >
           <LucideIcon name="plus" :size="20" class="me-2" /> إضافة خصم
@@ -51,7 +51,7 @@
         variant="tonal"
         color="error"
         size="small"
-        class="position-absolute rounded-lg glass-card"
+        class="position-absolute rounded-lg glass-card premium-btn-gold-gradient"
         style="top: 12px; left: 12px; z-index: 2"
         @click="removeParty(idx)"
       >
@@ -71,7 +71,7 @@
             density="compact"
             hide-details
             readonly
-            class="premium-select"
+            class="premium-select glass-input"
           >
             <template #prepend-inner>
               <LucideIcon
@@ -85,7 +85,7 @@
 
         <template v-if="party.party_type === 'client'">
           <v-col cols="12" md="5">
-            <v-autocomplete
+            <v-autocomplete class="glass-input"
               :model-value="party.client_id"
               :items="clients"
               item-title="name"
@@ -108,7 +108,7 @@
         <template v-else>
           <v-col cols="12" md="5">
             <div class="d-flex ga-4 align-center">
-              <v-autocomplete
+              <v-autocomplete class="glass-input"
                 :model-value="party.defendant_id"
                 :items="defendants"
                 item-title="name"
@@ -131,7 +131,7 @@
                 size="small"
                 variant="tonal"
                 color="primary"
-                class="rounded-lg h-40 px-3"
+                class="rounded-lg h-40 px-3 premium-btn-gold-gradient"
                 @click="$emit('quickAddDefendant', idx)"
               >
                 <LucideIcon name="user-plus" :size="18" />
@@ -148,7 +148,7 @@
             variant="outlined"
             density="compact"
             hide-details
-            class="premium-select"
+            class="premium-select glass-input"
             @update:model-value="(val: string) => updateParty(idx, { role: val })"
           >
             <template #prepend-inner>
@@ -164,7 +164,7 @@
             variant="outlined"
             density="compact"
             hide-details
-            class="premium-select"
+            class="premium-select glass-input"
             @update:model-value="(val: string) => updateParty(idx, { phone: val })"
           >
             <template #prepend-inner>

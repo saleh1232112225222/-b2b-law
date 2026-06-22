@@ -20,7 +20,11 @@ test('عناصر لوحة التحكم الأساسية ظاهرة', async ({ pa
   await login(page)
   await page.waitForTimeout(3000)
 
-  const chartVisibility = await page.locator('canvas').first().isVisible({ timeout: 5000 }).catch(() => false)
+  const chartVisibility = await page
+    .locator('canvas')
+    .first()
+    .isVisible({ timeout: 5000 })
+    .catch(() => false)
   console.log('  Chart visible:', chartVisibility)
 
   if (chartVisibility) {

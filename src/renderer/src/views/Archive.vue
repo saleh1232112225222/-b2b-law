@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input"
+          class="glass-input glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -33,7 +33,7 @@
     </v-row>
 
     <!-- Content Section -->
-    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden">
+    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
       <v-tabs v-model="tab" color="accent" grow class="border-b border-gold opacity-10">
         <v-tab value="case" class="font-weight-black text-gold py-6">
           <LucideIcon name="briefcase" :size="18" class="me-3" /> القضايا
@@ -99,7 +99,7 @@
                 variant="elevated"
                 color="accent"
                 size="small"
-                class="rounded-lg px-6 font-weight-black premium-lift"
+                class="rounded-lg px-6 font-weight-black premium-lift premium-btn-gold-gradient"
                 @click="restoreItem(item as any)"
               >
                 <LucideIcon name="refresh-cw" :size="14" class="me-2" /> استعادة

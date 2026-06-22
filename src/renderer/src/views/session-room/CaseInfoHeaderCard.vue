@@ -1,5 +1,5 @@
 <template>
-  <v-card class="rounded-xl overflow-hidden mb-4 glass-card shadow-premium border" elevation="0">
+  <v-card class="rounded-xl overflow-hidden mb-4 glass-card shadow-premium border glass-card" elevation="0">
     <div class="px-6 py-4 d-flex justify-space-between align-center glass-card-noir border-b">
       <div style="min-width: 0">
         <div class="d-flex align-center ga-3">
@@ -7,7 +7,7 @@
             variant="tonal"
             color="accent"
             size="small"
-            class="rounded-lg font-weight-black shadow-sm"
+            class="rounded-lg font-weight-black shadow-sm premium-btn-gold-gradient"
             @click="$emit('show-poa')"
           >
             <LucideIcon name="book-user" :size="16" class="me-2" /> معاينة الوكالة
@@ -19,7 +19,7 @@
             variant="tonal"
             color="primary"
             size="x-small"
-            class="rounded-lg font-weight-black px-3"
+            class="rounded-lg font-weight-black px-3 premium-btn-gold-gradient"
             height="28"
             :disabled="!hasClient"
             @click="$emit('go-to-client')"
@@ -32,7 +32,7 @@
             size="x-small"
             variant="text"
             color="primary"
-            class="rounded-lg opacity-60"
+            class="rounded-lg opacity-60 premium-btn-gold-gradient"
             :disabled="!header.clientName"
             @click="$emit('copy', header.clientName)"
           >
@@ -99,7 +99,7 @@
         <v-btn
           color="primary"
           variant="flat"
-          class="rounded-xl font-weight-black shadow-premium px-6 session-room-btn-zr1"
+          class="rounded-xl font-weight-black shadow-premium px-6 session-room-btn-zr1 premium-btn-gold-gradient"
           height="56"
           :disabled="!header.najizUrl"
           @click="$emit('copy', header.najizUrl)"
@@ -109,7 +109,7 @@
         <v-btn
           variant="tonal"
           color="success"
-          class="rounded-xl shadow-premium px-6 font-weight-black session-room-btn-zr1"
+          class="rounded-xl shadow-premium px-6 font-weight-black session-room-btn-zr1 premium-btn-gold-gradient"
           height="56"
           :disabled="!header.najizUrl"
           @click="$emit('open-external', header.najizUrl)"

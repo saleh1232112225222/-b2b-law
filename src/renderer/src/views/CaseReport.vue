@@ -21,7 +21,7 @@
         <v-btn
           variant="outlined"
           color="gold"
-          class="rounded-lg px-6 font-weight-black premium-hover"
+          class="rounded-lg px-6 font-weight-black premium-hover premium-btn-gold-gradient"
           @click="$router.push('/reports')"
         >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
@@ -31,7 +31,7 @@
 
     <v-card
       elevation="0"
-      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden"
+      class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden glass-card"
     >
       <!-- Filters Row -->
       <v-row dense class="mb-8 align-center">
@@ -44,7 +44,7 @@
             item-value="value"
             label="اختر القضية للمعاينة"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
             clearable
           >
@@ -59,7 +59,7 @@
             label="من تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -69,7 +69,7 @@
             label="إلى تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             hide-details
           />
         </v-col>
@@ -79,7 +79,7 @@
             variant="flat"
             width="160"
             height="56"
-            class="rounded-xl font-weight-black premium-lift text-ebony"
+            class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
             :loading="loading"
             :disabled="!caseId"
             @click="load"
@@ -93,7 +93,7 @@
             variant="tonal"
             color="white"
             height="56"
-            class="rounded-xl px-6 font-weight-black"
+            class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
             :loading="printPreviewLoading"
             :disabled="!caseId || loading"
             @click="printPage"
@@ -104,7 +104,7 @@
             variant="tonal"
             color="white"
             height="56"
-            class="rounded-xl px-6 font-weight-black"
+            class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
             :loading="exporting"
             :disabled="!caseId || loading"
             @click="exportPdf"
@@ -115,7 +115,7 @@
             variant="tonal"
             color="white"
             height="56"
-            class="rounded-xl px-6 font-weight-black"
+            class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
             :disabled="!report"
             @click="exportExcel"
           >
@@ -162,7 +162,7 @@
           <v-col cols="12" md="4">
             <v-card
               elevation="0"
-              class="glass-panel-light pa-6 rounded-xl h-100 border border-gold border-opacity-30"
+              class="glass-panel-light pa-6 rounded-xl h-100 border border-gold border-opacity-30 glass-card"
             >
               <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-2">
                 بيانات القضية الأساسية
@@ -214,7 +214,7 @@
               <v-col cols="12" md="4">
                 <v-card
                   elevation="0"
-                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10"
+                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card"
                 >
                   <LucideIcon
                     name="calendar-days"
@@ -232,7 +232,7 @@
               <v-col cols="12" md="4">
                 <v-card
                   elevation="0"
-                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10"
+                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card"
                 >
                   <LucideIcon
                     name="trending-up"
@@ -251,7 +251,7 @@
               <v-col cols="12" md="4">
                 <v-card
                   elevation="0"
-                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10"
+                  class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card"
                 >
                   <LucideIcon
                     name="banknote"
@@ -275,7 +275,7 @@
           <v-col cols="12">
             <v-card
               elevation="0"
-              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden"
+              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden glass-card"
             >
               <div
                 class="glass-panel-light pa-4 border-b border-gold border-opacity-10 d-flex align-center"
@@ -370,7 +370,7 @@
 
         <v-card
           elevation="0"
-          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-6"
+          class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-6 glass-card"
         >
           <v-table density="comfortable" class="premium-table">
             <thead>
@@ -422,7 +422,7 @@
               size="small"
               variant="tonal"
               color="gold"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               :disabled="report.timeline.pageInfo?.page <= 1"
               @click="prevTimelinePage"
             >
@@ -433,7 +433,7 @@
               size="small"
               variant="tonal"
               color="gold"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               :disabled="
                 report.timeline.pageInfo?.page >=
                 Math.ceil(
@@ -453,7 +453,7 @@
           <v-col cols="12" md="6">
             <v-card
               elevation="0"
-              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100"
+              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100 glass-card"
             >
               <div
                 class="glass-panel-light pa-4 border-b border-gold border-opacity-10 d-flex align-center"
@@ -508,7 +508,7 @@
           <v-col cols="12" md="6">
             <v-card
               elevation="0"
-              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100"
+              class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden h-100 glass-card"
             >
               <div
                 class="glass-panel-light pa-4 border-b border-gold border-opacity-10 d-flex align-center"
@@ -578,18 +578,18 @@
     </v-card>
 
     <v-dialog v-model="printPreviewDialog" width="90%" max-width="980" scrollable>
-      <v-card class="rounded-xl overflow-hidden">
+      <v-card class="rounded-xl overflow-hidden glass-card">
         <v-toolbar color="primary" height="64" class="px-4">
           <LucideIcon name="printer" :size="18" class="me-2 text-white" />
           <v-toolbar-title class="text-white font-weight-black"
             >معاينة الطباعة (A4)</v-toolbar-title
           >
           <v-spacer></v-spacer>
-          <v-btn icon variant="text" color="white" @click="printPreviewDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="white" @click="printPreviewDialog = false">
             <LucideIcon name="x" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-0">
+        <v-card-text class="pa-0 glass-card">
           <div v-if="printPreviewLoading" class="pa-10 text-center">
             <v-progress-circular indeterminate color="primary" />
             <div class="mt-4 text-grey-darken-1 font-weight-black">جاري تجهيز المعاينة...</div>
@@ -604,15 +604,15 @@
           </div>
         </v-card-text>
         <v-divider />
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-4 glass-card">
           <v-spacer />
-          <v-btn variant="text" class="font-weight-black" @click="printPreviewDialog = false"
+          <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="printPreviewDialog = false"
             >إغلاق</v-btn
           >
           <v-btn
             color="accent"
             variant="elevated"
-            class="font-weight-black"
+            class="font-weight-black premium-btn-gold-gradient"
             :loading="printingReport"
             :disabled="printPreviewLoading || !printPreviewHtml"
             @click="printFromPreview"

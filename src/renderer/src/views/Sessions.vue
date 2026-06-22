@@ -26,7 +26,7 @@
               color="accent"
               :size="isMobile ? 'default' : 'large'"
               :block="isMobile"
-              class="font-weight-black rounded-lg premium-lift"
+              class="font-weight-black rounded-lg premium-lift premium-btn-gold-gradient"
               :class="isMobile ? '' : 'px-8 h-100'"
               @click="openAddDialog"
             >
@@ -63,16 +63,13 @@
           @open-session-room-new-window="openSessionRoomInNewWindow"
           @open-najiz="openNajiz"
         />
-        <SessionCardMobile
+        <MobileSessions
           v-else
-          v-model:model-value="serverOptions.page"
-          :sessions="safeArray(store.sessions)"
+          :items="safeArray(store.sessions)"
           :loading="store.loading"
-          :total-sessions="store.totalSessions"
-          :items-per-page="itemsPerPage"
           @edit="openEditDialog"
+          @add="openAddDialog"
           @delete="confirmDelete"
-          @open-session-room="openSessionRoom"
         />
       </div>
 
@@ -124,7 +121,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
+import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionsStore } from '../stores/sessions'
 import { useCasesStore } from '../stores/cases'
@@ -133,11 +130,12 @@ import { safeArray, safeLength, valWithDefault } from '../utils/safe'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import LucideIcon from '../components/common/LucideIcon.vue'
-import { useDisplay } from 'vuetify'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import { setFabAction, clearFabAction } from '../composables/useFabAction'
+import MobileSessions from '../components/mobile/MobileSessions.vue'
 import SessionStatsCards from './sessions/SessionStatsCards.vue'
 import SessionFilters from './sessions/SessionFilters.vue'
 import SessionTableDesktop from './sessions/SessionTableDesktop.vue'
-import SessionCardMobile from './sessions/SessionCardMobile.vue'
 import SessionFormDialog from './sessions/SessionFormDialog.vue'
 
 const route = useRoute()
@@ -145,11 +143,7 @@ const router = useRouter()
 const store = useSessionsStore()
 const casesStore = useCasesStore()
 
-const { smAndDown } = useDisplay()
-const isMobile = computed(() => {
-  if (typeof window !== 'undefined' && window.innerWidth <= 1023) return true
-  return smAndDown.value
-})
+const { isMobile } = useMobileLayout()
 
 const pageLoading = ref(true)
 
@@ -287,6 +281,11 @@ onMounted(async () => {
   } finally {
     pageLoading.value = false
   }
+  setFabAction('mdi-calendar-plus', openAddDialog, route.path)
+})
+
+onUnmounted(() => {
+  clearFabAction()
 })
 
 const assignableUsers = ref<any[]>([])

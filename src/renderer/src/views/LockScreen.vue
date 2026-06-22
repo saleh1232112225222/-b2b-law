@@ -2,12 +2,12 @@
   <v-container fluid class="fill-height pa-0 lock-bg">
     <v-row class="fill-height" no-gutters>
       <v-col cols="12" class="d-flex align-center justify-center">
-        <v-card class="pa-6" max-width="420" width="100%" elevation="10">
+        <v-card class="pa-6 glass-card" max-width="420" width="100%" elevation="10">
           <div class="text-h6 mb-2">التطبيق مقفل</div>
           <div class="text-body-2 mb-4">أدخل كلمة المرور للمتابعة</div>
 
           <v-form @submit.prevent="handleUnlock">
-            <v-text-field
+            <v-text-field class="glass-input"
               v-model="password"
               type="password"
               label="كلمة المرور"
@@ -20,11 +20,11 @@
             </v-alert>
 
             <div class="d-flex gap-2 mt-4">
-              <v-btn color="primary" type="submit" :loading="loading" block>فتح القفل</v-btn>
+              <v-btn class="premium-btn-gold-gradient" color="primary" type="submit" :loading="loading" block>فتح القفل</v-btn>
             </div>
 
             <div class="d-flex justify-end mt-3">
-              <v-btn variant="text" color="error" :disabled="loading" @click="handleLogout"
+              <v-btn class="premium-btn-gold-gradient" variant="text" color="error" :disabled="loading" @click="handleLogout"
                 >تسجيل خروج</v-btn
               >
             </div>

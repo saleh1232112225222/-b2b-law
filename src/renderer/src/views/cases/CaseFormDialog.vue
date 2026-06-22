@@ -11,7 +11,7 @@
   >
     <v-card
       ref="cardEl"
-      class="glass-panel overflow-hidden"
+      class="glass-panel overflow-hidden glass-card"
       :class="{ 'is-dragging': drag.active }"
       :style="dragStyle"
     >
@@ -26,7 +26,7 @@
           icon
           variant="tonal"
           color="error"
-          class="rounded-lg"
+          class="rounded-lg premium-btn-gold-gradient"
           @click="$emit('cancel')"
         >
           <LucideIcon name="x" :size="24" />
@@ -40,7 +40,7 @@
           color="accent"
           variant="flat"
           size="large"
-          class="font-weight-black rounded-lg px-10 premium-lift text-primary-dark"
+          class="font-weight-black rounded-lg px-10 premium-lift text-primary-dark premium-btn-gold-gradient"
           height="50"
           :loading="saving"
           @click="$emit('save')"
@@ -49,16 +49,16 @@
         </v-btn>
       </v-toolbar>
 
-      <v-card-text class="pa-8 bg-transparent">
+      <v-card-text class="pa-8 bg-transparent glass-card">
         <v-form ref="formRef" v-model="localFormValid">
           <v-row>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">رقم القضية*</v-label>
+              <label class="mb-2 font-weight-black text-gold">رقم القضية*</label>
               <v-text-field
                 v-model="item.case_number"
                 placeholder="مثال: 1445/78291"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :loading="caseNumberChecking"
                 :error-messages="caseNumberError ? [caseNumberError] : []"
                 :rules="[(v: any) => !!v || 'رقم القضية مطلوب']"
@@ -70,8 +70,8 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">مسؤول القضية</v-label>
-              <v-select
+              <label class="mb-2 font-weight-black text-gold">مسؤول القضية</label>
+              <v-select class="glass-input"
                 v-model="item.responsible_user_id"
                 :items="assignableUsers"
                 :item-title="(u: any) => u?.full_name || u?.username || ''"
@@ -102,12 +102,12 @@
             <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
 
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">التصنيف الرئيسي*</v-label>
+              <label class="mb-2 font-weight-black text-gold">التصنيف الرئيسي*</label>
               <v-select
                 v-model="item.main_classification"
                 :items="mainClassifications"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :rules="[(v: any) => !!v || 'التصنيف الرئيسي مطلوب']"
                 required
                 @update:model-value="onMainChange"
@@ -118,12 +118,12 @@
               </v-select>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">التصنيف الفرعي*</v-label>
+              <label class="mb-2 font-weight-black text-gold">التصنيف الفرعي*</label>
               <v-select
                 v-model="item.sub_classification"
                 :items="subClassifications"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :disabled="!item.main_classification"
                 :rules="[(v: any) => !!v || 'التصنيف الفرعي مطلوب']"
                 required
@@ -135,12 +135,12 @@
               </v-select>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">نوع الدعوى*</v-label>
+              <label class="mb-2 font-weight-black text-gold">نوع الدعوى*</label>
               <v-select
                 v-model="item.case_type"
                 :items="caseTypeOptions"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :disabled="!item.sub_classification"
                 :rules="[(v: any) => !!v || 'نوع الدعوى مطلوب']"
                 required
@@ -152,11 +152,11 @@
             </v-col>
 
             <v-col cols="12" md="8">
-              <v-label class="mb-2 font-weight-bold text-primary">موضوع الدعوى*</v-label>
+              <label class="mb-2 font-weight-black text-gold">موضوع الدعوى*</label>
               <v-text-field
                 v-model="item.subject"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :rules="[(v: any) => !!v || 'الموضوع مطلوب']"
                 required
               >
@@ -166,7 +166,7 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">طلب المدعي</v-label>
+              <label class="mb-2 font-weight-black text-gold">طلب المدعي</label>
               <v-textarea
                 v-model="item.plaintiff_requests"
                 variant="outlined"
@@ -181,7 +181,7 @@
             </v-col>
 
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">المحكمة المختصة*</v-label>
+              <label class="mb-2 font-weight-black text-gold">المحكمة المختصة*</label>
               <v-combobox
                 v-model="item.court"
                 :items="COURT_TYPES"
@@ -196,11 +196,11 @@
               </v-combobox>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">الدائرة القضائية</v-label>
+              <label class="mb-2 font-weight-black text-gold">الدائرة القضائية</label>
               <v-text-field
                 v-model="item.circuit"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="مثال: الدائرة الأولى"
               >
                 <template #prepend-inner
@@ -220,7 +220,7 @@
                 <v-btn
                   variant="tonal"
                   color="accent"
-                  class="font-weight-black rounded-xl px-6"
+                  class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
                   :disabled="caseNumberChecking || !!caseNumberError"
                   @click="$emit('addSession')"
                 >
@@ -230,12 +230,12 @@
             </v-col>
 
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">المرحلة التقاضية</v-label>
+              <label class="mb-2 font-weight-black text-gold">المرحلة التقاضية</label>
               <v-select
                 v-model="item.phase"
                 :items="CASE_PHASES"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
               >
                 <template #prepend-inner
                   ><LucideIcon name="trending-up" :size="20" class="text-primary me-2"
@@ -247,12 +247,12 @@
             </v-col>
 
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">الحالة التشغيلية*</v-label>
+              <label class="mb-2 font-weight-black text-gold">الحالة التشغيلية*</label>
               <v-select
                 v-model="item.status"
                 :items="CASE_STATUSES"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 required
               >
                 <template #prepend-inner
@@ -261,12 +261,12 @@
               </v-select>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">درجة الأولوية*</v-label>
+              <label class="mb-2 font-weight-black text-gold">درجة الأولوية*</label>
               <v-select
                 v-model="item.priority"
                 :items="PRIORITIES"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 required
               >
                 <template #prepend-inner
@@ -275,7 +275,7 @@
               </v-select>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">تاريخ القيد*</v-label>
+              <label class="mb-2 font-weight-black text-gold">تاريخ القيد*</label>
               <DualDatePicker v-model="item.registration_date" />
             </v-col>
 
@@ -287,11 +287,11 @@
               </div>
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-bold text-primary">صفة الموكل</v-label>
+              <label class="mb-2 font-weight-black text-gold">صفة الموكل</label>
               <v-text-field
                 v-model="item.client_role"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="مثال: مدعي"
               >
                 <template #prepend-inner
@@ -300,7 +300,7 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" md="8">
-              <v-label class="mb-2 font-weight-bold text-primary">التقييم الفني</v-label>
+              <label class="mb-2 font-weight-black text-gold">التقييم الفني</label>
               <v-textarea
                 v-model="item.assessment"
                 variant="outlined"
@@ -314,7 +314,7 @@
               </v-textarea>
             </v-col>
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-bold text-primary">ملاحظات عامة</v-label>
+              <label class="mb-2 font-weight-black text-gold">ملاحظات عامة</label>
               <v-textarea
                 v-model="item.notes"
                 variant="outlined"
@@ -335,11 +335,11 @@
               </div>
             </v-col>
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-bold text-primary">رابط مجلد القضية</v-label>
+              <label class="mb-2 font-weight-black text-gold">رابط مجلد القضية</label>
               <v-text-field
                 v-model="item.folder_link"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="ضع رابط المجلد هنا للوصول السريع..."
               >
                 <template #prepend-inner
@@ -348,11 +348,11 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-bold text-primary">رابط القضية في ناجز</v-label>
+              <label class="mb-2 font-weight-black text-gold">رابط القضية في ناجز</label>
               <v-text-field
                 v-model="item.najiz_url"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="https://najiz.sa/..."
               >
                 <template #prepend-inner
@@ -365,11 +365,11 @@
       </v-card-text>
 
       <v-divider />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
         <v-btn
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight"
+          class="px-8 font-weight-black premium-button-highlight premium-btn-gold-gradient"
           @click="$emit('cancel')"
           >إلغاء</v-btn
         >
@@ -377,7 +377,7 @@
         <v-btn
           variant="flat"
           size="large"
-          class="px-12 font-weight-black premium-button-highlight h-56"
+          class="px-12 font-weight-black premium-button-highlight h-56 premium-btn-gold-gradient"
           :disabled="!canSubmit"
           :loading="saving"
           @click="$emit('save')"

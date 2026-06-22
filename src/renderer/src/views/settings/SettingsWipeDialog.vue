@@ -6,13 +6,13 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card
-      class="pa-0 border-error border-4 rounded-xl shadow-2xl overflow-hidden"
+      class="pa-0 border-error border-4 rounded-xl shadow-2xl overflow-hidden glass-card"
       style="background: #ffffff !important"
     >
       <div class="pa-6 bg-error text-white d-flex align-center font-weight-black">
         <LucideIcon name="alert-octagon" :size="28" class="me-3" /> تأكيد المسح الشامل
       </div>
-      <v-card-text class="pa-8 bg-white">
+      <v-card-text class="pa-8 bg-white glass-card">
         <p class="text-h6 mb-4 font-weight-black text-black">
           تحذير: سيتم حذف بيانات القضايا والمعاملات نهائياً.
         </p>
@@ -27,20 +27,20 @@
           variant="outlined"
           hide-details
           color="error"
-          class="mb-4"
+          class="mb-4 glass-input"
           style="--v-field-label-color: #000000; color: #000000"
           autocomplete="off"
         ></v-text-field>
       </v-card-text>
-      <v-card-actions class="pa-6 pt-0 gap-3">
-        <v-btn variant="text" color="gold" class="font-weight-black" @click="handleCancel"
+      <v-card-actions class="pa-6 pt-0 gap-3 glass-card">
+        <v-btn variant="text" color="gold" class="font-weight-black premium-btn-gold-gradient" @click="handleCancel"
           >تراجع</v-btn
         >
         <v-spacer></v-spacer>
         <v-btn
           color="error"
           variant="flat"
-          class="px-8 font-weight-black premium-lift"
+          class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
           :disabled="wipeConfirmInput !== 'مسح' && wipeConfirmInput !== 'DELETE'"
           :loading="clearing"
           @click="handleConfirm"

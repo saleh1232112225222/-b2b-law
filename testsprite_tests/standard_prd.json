@@ -1,0 +1,44 @@
+{
+  "productName": "B2B Lawyer Pro",
+  "description": "Legal case management system for Saudi law firms with Arabic RTL UI",
+  "features": [
+    {
+      "category": "Authentication",
+      "items": ["Login with username/password", "Google OAuth", "Password recovery", "Session management"]
+    },
+    {
+      "category": "Dashboard",
+      "items": ["Analytics dashboard", "Case statistics", "Financial charts", "Activity timeline"]
+    },
+    {
+      "category": "Client Management",
+      "items": ["Client CRUD", "Search and filter", "Client profiles", "Document association"]
+    },
+    {
+      "category": "Case Management",
+      "items": ["Case creation", "Status tracking", "Timeline", "Session scheduling"]
+    },
+    {
+      "category": "Document Management",
+      "items": ["Upload documents", "Search documents", "File vault", "Document organization"]
+    },
+    {
+      "category": "Task Management",
+      "items": ["Task board", "Drag and drop", "Priority levels", "Team assignment"]
+    },
+    {
+      "category": "Reports",
+      "items": ["Case reports", "Financial reports", "Session reports", "User activity reports"]
+    },
+    {
+      "category": "Theme",
+      "items": ["Dark mode", "Light mode", "Gold/navy color scheme", "Arabic RTL"]
+    }
+  ],
+  "techStack": {
+    "frontend": ["Vue 3", "Vuetify 3", "Tailwind CSS", "Pinia", "vue-router", "Chart.js"],
+    "backend": ["Express", "Drizzle ORM", "PostgreSQL"],
+    "testing": ["Vitest", "Playwright"],
+    "build": ["Vite", "TypeScript"]
+  }
+}

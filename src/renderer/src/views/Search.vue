@@ -16,14 +16,14 @@
       </v-col>
     </v-row>
 
-    <v-card elevation="0" class="glass-card pa-6 mb-10">
+    <v-card elevation="0" class="glass-card pa-6 mb-10 glass-card">
       <v-text-field
         v-model="searchQuery"
         placeholder="اكتب ما تبحث عنه هنا (رقم قضية، اسم موكل، محتوى مذكرة)..."
         variant="outlined"
         hide-details
         clearable
-        class="glass-input text-h6"
+        class="glass-input text-h6 glass-input"
         :loading="loading"
         @update:model-value="performSearch"
       >
@@ -40,7 +40,7 @@
       <v-col v-for="res in safeArray(results)" :key="res.id" cols="12" md="6" lg="4">
         <v-card
           elevation="0"
-          class="glass-card pa-5 premium-lift border-gold-alpha cursor-pointer h-100"
+          class="glass-card pa-5 premium-lift border-gold-alpha cursor-pointer h-100 glass-card"
           :to="getRoute(res)"
         >
           <div class="d-flex align-center">

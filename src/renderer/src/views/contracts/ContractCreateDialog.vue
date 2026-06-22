@@ -7,14 +7,14 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="modal-card overflow-hidden">
+    <v-card class="modal-card overflow-hidden glass-card">
       <div class="modal-header-solid d-flex align-center py-5 px-8 bg-white border-b">
         <div class="bg-accent-alpha pa-2 rounded-lg me-4">
           <LucideIcon name="file-plus" :size="24" class="text-accent" />
         </div>
         <span class="text-h5 font-weight-black text-pure-black">تحرير عقد قانوني جديد</span>
         <v-spacer />
-        <v-btn variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
@@ -26,29 +26,29 @@
         </v-tabs>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable">
+      <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
         <v-form ref="createForm" v-model="createValid">
           <v-row>
             <v-col cols="12" md="8">
-              <v-label class="mb-2 font-weight-black text-pure-black">عنوان العقد*</v-label>
+              <label class="mb-2 font-weight-black text-gold">عنوان العقد*</label>
               <v-text-field
                 v-model="draft.title"
                 variant="outlined"
                 placeholder="مثال: عقد توظيف محامي أول"
                 :rules="[required]"
                 hide-details="auto"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
               />
             </v-col>
             <v-col cols="12" md="4">
-              <v-label class="mb-2 font-weight-black text-pure-black">القالب</v-label>
+              <label class="mb-2 font-weight-black text-gold">القالب</label>
               <v-select
                 v-model="draft.template_id"
                 :items="templateOptions"
                 item-title="title"
                 item-value="value"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 clearable
                 hide-details
                 @update:model-value="applyTemplate"
@@ -57,43 +57,43 @@
 
             <template v-if="createType === 'employment'">
               <v-col cols="12">
-                <v-label class="mb-2 font-weight-black text-pure-black">نوع العقد</v-label>
+                <label class="mb-2 font-weight-black text-gold">نوع العقد</label>
                 <v-radio-group v-model="draft.is_fixed_term" inline hide-details>
                   <v-radio :label="'محدد المدة'" :value="true" color="accent" />
                   <v-radio :label="'غير محدد المدة'" :value="false" color="accent" />
                 </v-radio-group>
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">الموظف*</v-label>
+                <label class="mb-2 font-weight-black text-gold">الموظف*</label>
                 <v-select
                   v-model="draft.employee_user_id"
                   :items="employeeOptions"
                   item-title="title"
                   item-value="value"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[required]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="6" md="3">
-                <v-label class="mb-2 font-weight-black text-pure-black">تاريخ البداية</v-label>
+                <label class="mb-2 font-weight-black text-gold">تاريخ البداية</label>
                 <v-text-field
                   v-model="draft.start_date"
                   type="date"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   hide-details
                 />
               </v-col>
               <v-col cols="6" md="2">
-                <v-label class="mb-2 font-weight-black text-pure-black">المدة (سنوات)</v-label>
+                <label class="mb-2 font-weight-black text-gold">المدة (سنوات)</label>
                 <v-text-field
                   v-model="draft.term_years"
                   type="number"
                   min="1"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   hide-details
                 />
               </v-col>
@@ -101,7 +101,7 @@
                 <v-btn
                   variant="text"
                   color="accent"
-                  class="mt-4"
+                  class="mt-4 premium-btn-gold-gradient"
                   @click="
                     draft.end_date = draft.start_date
                       ? new Date(
@@ -118,48 +118,48 @@
                 </v-btn>
               </v-col>
               <v-col cols="12" md="3">
-                <v-label class="mb-2 font-weight-black text-pure-black">تاريخ النهاية</v-label>
+                <label class="mb-2 font-weight-black text-gold">تاريخ النهاية</label>
                 <v-text-field
                   v-model="draft.end_date"
                   type="date"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[endAfterStart]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="4">
-                <v-label class="mb-2 font-weight-black text-pure-black">الراتب الشهري*</v-label>
+                <label class="mb-2 font-weight-black text-gold">الراتب الشهري*</label>
                 <v-text-field
                   v-model="draft.salary_amount"
                   type="number"
                   prefix="SAR"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[positive]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="3">
-                <v-label class="mb-2 font-weight-black text-pure-black">اليوم المستحق</v-label>
+                <label class="mb-2 font-weight-black text-gold">اليوم المستحق</label>
                 <v-text-field
                   v-model="draft.salary_due_day"
                   type="number"
                   min="1"
                   max="28"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[dueDayRule]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="3">
-                <v-label class="mb-2 font-weight-black text-pure-black">تاريخ العقد*</v-label>
+                <label class="mb-2 font-weight-black text-gold">تاريخ العقد*</label>
                 <v-text-field
                   v-model="draft.contract_date"
                   type="date"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[required]"
                   hide-details="auto"
                 />
@@ -168,27 +168,27 @@
 
             <template v-else>
               <v-col cols="12">
-                <v-label class="mb-2 font-weight-black text-pure-black">نوع العقد</v-label>
+                <label class="mb-2 font-weight-black text-gold">نوع العقد</label>
                 <v-radio-group v-model="draft.is_fixed_term" inline hide-details>
                   <v-radio :label="'محدد المدة'" :value="true" color="accent" />
                   <v-radio :label="'غير محدد المدة'" :value="false" color="accent" />
                 </v-radio-group>
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">الموكل*</v-label>
+                <label class="mb-2 font-weight-black text-gold">الموكل*</label>
                 <v-select
                   v-model="draft.client_id"
                   :items="clientOptions"
                   item-title="title"
                   item-value="value"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[required]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">القضية (اختياري)</v-label>
+                <label class="mb-2 font-weight-black text-gold">القضية (اختياري)</label>
                 <v-combobox
                   v-model="draft.case_id"
                   :items="caseOptions"
@@ -201,48 +201,48 @@
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">المحامي الممثل*</v-label>
+                <label class="mb-2 font-weight-black text-gold">المحامي الممثل*</label>
                 <v-select
                   v-model="draft.representative_user_id"
                   :items="representativeOptions"
                   item-title="title"
                   item-value="value"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[required]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">إجمالي الأتعاب*</v-label>
+                <label class="mb-2 font-weight-black text-gold">إجمالي الأتعاب*</label>
                 <v-text-field
                   v-model="draft.total_amount"
                   type="number"
                   prefix="SAR"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[positive]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">تاريخ الاتفاقية*</v-label>
+                <label class="mb-2 font-weight-black text-gold">تاريخ الاتفاقية*</label>
                 <v-text-field
                   v-model="draft.contract_date"
                   type="date"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   :rules="[required]"
                   hide-details="auto"
                 />
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-pure-black">تاريخ بداية العمل</v-label>
+                <label class="mb-2 font-weight-black text-gold">تاريخ بداية العمل</label>
                 <v-text-field
                   v-model="draft.start_date"
                   type="date"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   hide-details
                 />
               </v-col>
@@ -267,7 +267,7 @@
                       v-model="fee1.title"
                       label="عنوان الدفعة الأولى"
                       variant="outlined"
-                      class="premium-input-solid"
+                      class="premium-input-solid glass-input"
                       hide-details
                     />
                   </v-col>
@@ -278,13 +278,12 @@
                       label="المبلغ"
                       prefix="SAR"
                       variant="outlined"
-                      class="premium-input-solid"
+                      class="premium-input-solid glass-input"
                       hide-details
                     />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >توضع تلقائياً في تاريخ البداية</v-label
+                    <label class="mb-2 font-weight-black text-gold">توضع تلقائياً في تاريخ البداية</v-label
                     >
                   </v-col>
                   <v-col cols="12" md="5">
@@ -292,7 +291,7 @@
                       v-model="fee2.title"
                       label="عنوان الدفعة الثانية"
                       variant="outlined"
-                      class="premium-input-solid"
+                      class="premium-input-solid glass-input"
                       hide-details
                     />
                   </v-col>
@@ -303,13 +302,12 @@
                       label="المبلغ"
                       prefix="SAR"
                       variant="outlined"
-                      class="premium-input-solid"
+                      class="premium-input-solid glass-input"
                       hide-details
                     />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-label class="mb-2 font-weight-black text-pure-black"
-                      >توضع تلقائياً في تاريخ النهاية</v-label
+                    <label class="mb-2 font-weight-black text-gold">توضع تلقائياً في تاريخ النهاية</v-label
                     >
                   </v-col>
                 </v-row>
@@ -327,7 +325,7 @@
                     v-model="partyDraft.kind"
                     :items="partyKindOptions"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                 </v-col>
@@ -339,7 +337,7 @@
                     item-title="title"
                     item-value="value"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                   <v-select
@@ -349,7 +347,7 @@
                     item-title="title"
                     item-value="value"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                   <v-select
@@ -359,7 +357,7 @@
                     item-title="title"
                     item-value="value"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                   <v-text-field
@@ -367,7 +365,7 @@
                     v-model="partyDraft.display_name"
                     placeholder="الاسم الحر"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                 </v-col>
@@ -378,7 +376,7 @@
                     item-title="title"
                     item-value="value"
                     variant="outlined"
-                    class="premium-input-solid"
+                    class="premium-input-solid glass-input"
                     hide-details
                   />
                 </v-col>
@@ -386,7 +384,7 @@
                   <v-btn
                     color="accent"
                     variant="flat"
-                    class="font-weight-black text-ebony rounded-lg"
+                    class="font-weight-black text-ebony rounded-lg premium-btn-gold-gradient"
                     @click="addExtraParty"
                     >إضافة</v-btn
                   >
@@ -409,7 +407,7 @@
                     <td class="font-weight-black">{{ p.display_name }}</td>
                     <td>{{ roleLabel(p.role_key) }}</td>
                     <td class="text-center">
-                      <v-btn
+                      <v-btn class="premium-btn-gold-gradient"
                         icon
                         variant="tonal"
                         color="error"
@@ -424,7 +422,7 @@
             </v-col>
 
             <v-col cols="12" class="mt-6">
-              <v-label class="mb-2 font-weight-black text-pure-black">نص العقد*</v-label>
+              <label class="mb-2 font-weight-black text-gold">نص العقد*</label>
               <v-textarea
                 v-model="draft.text_content"
                 variant="outlined"
@@ -438,11 +436,11 @@
         </v-form>
       </v-card-text>
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
         <v-btn
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
@@ -450,7 +448,7 @@
         <v-btn
           variant="flat"
           size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
           :disabled="!createValid"
           :loading="saving"
           @click="handleCreate"

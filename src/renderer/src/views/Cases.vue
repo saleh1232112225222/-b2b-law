@@ -15,7 +15,7 @@
           :status="store.status"
           :priority="store.priority"
           :responsible-user-id="store.responsibleUserId"
-          :assignable-users="assignableUsers"
+          :assignable-users="safeArray(assignableUsers)"
           :loading="store.loading"
           @update:status="onStatusChange"
           @update:priority="onPriorityChange"
@@ -23,18 +23,14 @@
           @refresh="store.fetchCases"
         />
 
-        <v-card elevation="0" class="glass-panel overflow-hidden min-h-500 table-to-cards">
-          <CaseMobileList
+        <v-card elevation="0" class="glass-panel overflow-hidden min-h-500 table-to-cards glass-card">
+          <MobileCases
             v-if="isMobile"
             :items="safeArray(store.cases)"
             :loading="store.loading"
-            :is-mobile="true"
-            :page="store.page"
-            :total-pages="Math.ceil(store.total / store.pageSize)"
             @edit="openEditDialog"
+            @add="openAddDialog"
             @delete="confirmDelete"
-            @page-prev="onMobilePagePrev"
-            @page-next="onMobilePageNext"
           />
           <CaseDesktopTable
             v-else
@@ -60,7 +56,7 @@
           :can-submit="canSubmit"
           :clients="safeArray(clientsStore.clients)"
           :defendants="safeArray(defendantsStore.defendants)"
-          :assignable-users="assignableUsers"
+          :assignable-users="safeArray(assignableUsers)"
           @update:edit-item="editItem = $event"
           @add-session="openAddSessionFromCaseForm"
           @save="handleSave"
@@ -121,7 +117,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
-import { useDisplay } from 'vuetify'
 import { useRoute, useRouter } from 'vue-router'
 import { useCasesStore } from '../stores/cases'
 import { useClientsStore } from '../stores/clients'
@@ -136,22 +131,21 @@ import PremiumConfirm from '../components/common/PremiumConfirm.vue'
 import CaseHeader from './cases/CaseHeader.vue'
 import CaseStatsCards from './cases/CaseStatsCards.vue'
 import CaseFilters from './cases/CaseFilters.vue'
-import CaseMobileList from './cases/CaseMobileList.vue'
 import CaseDesktopTable from './cases/CaseDesktopTable.vue'
 import CaseFormDialog from './cases/CaseFormDialog.vue'
 import CaseDeleteDialog from './cases/CaseDeleteDialog.vue'
 import CaseAddSessionDialog from './cases/CaseAddSessionDialog.vue'
 import CaseDefendantDialog from './cases/CaseDefendantDialog.vue'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import { setFabAction, clearFabAction } from '../composables/useFabAction'
+import MobileCases from '../components/mobile/MobileCases.vue'
 
 const store = useCasesStore()
 const clientsStore = useClientsStore()
 const defendantsStore = useDefendantsStore()
 const route = useRoute()
 const router = useRouter()
-const { mobile } = useDisplay()
-const isMobile = computed(
-  () => mobile.value || (typeof window !== 'undefined' && window.innerWidth <= 768)
-)
+const { isMobile } = useMobileLayout()
 
 const pageLoading = ref(false)
 const showDialog = ref(false)
@@ -594,11 +588,13 @@ onMounted((): void => {
         router.replace({ path: route.path, query: {} })
       })
   }
+  setFabAction('mdi-file-plus', openAddDialog, route.path)
 })
 
 onUnmounted(() => {
   store.q = ''
   if (search) search.value = ''
+  clearFabAction()
 })
 </script>
 

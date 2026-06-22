@@ -19,7 +19,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-xl px-8 premium-lift h-56"
+          class="font-weight-black rounded-xl px-8 premium-lift h-56 premium-btn-gold-gradient"
           @click="openAddDialog"
         >
           <LucideIcon name="user-plus" :size="20" class="me-2" /> إضافة خصم جديد
@@ -32,7 +32,7 @@
       <v-col cols="12" md="3">
         <v-card
           elevation="0"
-          class="glass-card pa-6 border-gold-alpha position-relative overflow-hidden"
+          class="glass-card pa-6 border-gold-alpha position-relative overflow-hidden glass-card"
         >
           <v-skeleton-loader
             v-if="store.loading"
@@ -63,7 +63,7 @@
     </v-row>
 
     <!-- Filters Bar -->
-    <v-card elevation="0" class="glass-card mb-8 pa-6 border-gold-alpha">
+    <v-card elevation="0" class="glass-card mb-8 pa-6 border-gold-alpha glass-card">
       <v-row dense align="center">
         <v-col cols="12" md="4">
           <v-text-field
@@ -72,7 +72,7 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input"
+            class="glass-input glass-input"
             clearable
           >
             <template #prepend-inner>
@@ -88,7 +88,7 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input"
+            class="glass-input glass-input"
           >
             <template #prepend-inner>
               <LucideIcon name="filter" :size="18" class="text-primary" />
@@ -117,7 +117,7 @@
             icon
             variant="text"
             color="gold"
-            class="rounded-lg hover-gold opacity-60"
+            class="rounded-lg hover-gold opacity-60 premium-btn-gold-gradient"
             @click="store.fetchDefendants()"
           >
             <LucideIcon name="refresh-cw" :size="20" />
@@ -127,7 +127,7 @@
     </v-card>
 
     <!-- Data Table -->
-    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden">
+    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
       <v-data-table-server
         :headers="headers"
         :items="safeArray(filteredDefendants)"
@@ -173,7 +173,7 @@
               size="small"
               variant="text"
               color="accent"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               @click="openPreviewDialog(item)"
             >
               <LucideIcon name="eye" :size="16" />
@@ -183,7 +183,7 @@
               size="small"
               variant="text"
               color="gold"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               @click="openEditDialog(item)"
             >
               <LucideIcon name="pencil" :size="16" />
@@ -194,7 +194,7 @@
               size="small"
               variant="text"
               color="success"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               @click="confirmRestore(item)"
             >
               <LucideIcon name="rotate-ccw" :size="16" />
@@ -205,7 +205,7 @@
               size="small"
               variant="text"
               color="error"
-              class="rounded-lg"
+              class="rounded-lg premium-btn-gold-gradient"
               @click="confirmDelete(item)"
             >
               <LucideIcon name="trash-2" :size="16" />
@@ -224,7 +224,7 @@
             <v-btn
               color="accent"
               variant="outlined"
-              class="mt-4 px-8 font-weight-black rounded-lg"
+              class="mt-4 px-8 font-weight-black rounded-lg premium-btn-gold-gradient"
               @click="openAddDialog"
             >
               تسجيل أول خصم
@@ -236,8 +236,8 @@
 
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
-      <v-card class="glass-card overflow-hidden">
-        <v-card-title class="pa-6 border-b border-primary d-flex align-center">
+      <v-card class="glass-card overflow-hidden glass-card">
+        <v-card-title class="pa-6 border-b border-primary d-flex align-center glass-card">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon
               :name="isEditing ? 'user-cog' : 'user-plus'"
@@ -249,21 +249,21 @@
             {{ isEditing ? 'تعديل ملف الخصم' : 'تسجيل خصم جديد' }}
           </span>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="showDialog = false">
+          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="showDialog = false">
             <LucideIcon name="x" :size="20" class="text-primary" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <DefendantForm ref="defendantFormRef" v-model="editItem" />
         </v-card-text>
 
         <v-divider class="border-gold" />
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
           <v-btn
             variant="flat"
             size="large"
-            class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+            class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
             @click="showDialog = false"
             >إلغاء</v-btn
           >
@@ -271,7 +271,7 @@
           <v-btn
             variant="flat"
             size="large"
-            class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+            class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
             :loading="saving"
             @click="handleSave"
           >
@@ -283,8 +283,8 @@
 
     <!-- Preview Dialog -->
     <v-dialog v-model="previewDialog" width="90%" max-width="800" scrollable>
-      <v-card class="glass-card overflow-hidden">
-        <v-card-title class="pa-6 border-b border-gold d-flex align-center">
+      <v-card class="glass-card overflow-hidden glass-card">
+        <v-card-title class="pa-6 border-b border-gold d-flex align-center glass-card">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="eye" :size="20" class="text-gold" />
           </div>
@@ -292,12 +292,12 @@
             >معاينة تفصيلية لملف الخصم</span
           >
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="previewDialog = false">
+          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="previewDialog = false">
             <LucideIcon name="x" :size="20" class="text-primary" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-10">
+        <v-card-text class="pa-10 glass-card">
           <v-row class="ga-y-8">
             <v-col cols="12" md="6">
               <div
@@ -392,11 +392,11 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha ga-3">
+        <v-card-actions class="pa-6 bg-black-alpha ga-3 glass-card">
           <v-btn
             variant="text"
             color="white"
-            class="px-6 font-weight-black"
+            class="px-6 font-weight-black premium-btn-gold-gradient"
             @click="previewDialog = false"
             >إغلاق</v-btn
           >
@@ -404,7 +404,7 @@
           <v-btn
             color="accent"
             variant="elevated"
-            class="px-10 rounded-lg font-weight-black premium-lift h-48"
+            class="px-10 rounded-lg font-weight-black premium-lift h-48 premium-btn-gold-gradient"
             @click="handleEditFromPreview"
           >
             <LucideIcon name="pencil" :size="16" class="me-2" /> تعديل البيانات

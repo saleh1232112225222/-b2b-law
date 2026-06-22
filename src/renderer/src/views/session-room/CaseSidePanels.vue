@@ -2,7 +2,7 @@
   <v-row dense class="mb-4" style="height: 30vh">
     <v-col cols="12" md="2" class="d-flex flex-column ga-2">
       <v-card
-        class="rounded-xl pa-4 flex-grow-1 cursor-pointer transition-premium glass-card border shadow-sm"
+        class="rounded-xl pa-4 flex-grow-1 cursor-pointer transition-premium glass-card border shadow-sm glass-card"
         elevation="0"
         :style="{ borderRight: '6px solid var(--gold-royal)' }"
         :class="{ 'bg-primary-alpha border-accent': selected.category === 'الموضوع' }"
@@ -14,7 +14,7 @@
         </div>
       </v-card>
       <v-card
-        class="rounded-xl pa-4 flex-grow-1 cursor-pointer transition-premium glass-card border shadow-sm"
+        class="rounded-xl pa-4 flex-grow-1 cursor-pointer transition-premium glass-card border shadow-sm glass-card"
         elevation="0"
         :style="{ borderRight: '6px solid var(--warning)' }"
         :class="{ 'bg-orange-lighten-5 border-orange': selected.category === 'الطلبات' }"
@@ -30,7 +30,7 @@
     </v-col>
     <v-col cols="12" md="3" style="height: 100%">
       <v-card
-        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium"
+        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium glass-card"
         elevation="0"
       >
         <div
@@ -47,7 +47,7 @@
             v-for="d in docs"
             :key="d.id"
             elevation="0"
-            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border"
+            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border glass-card"
             :class="{
               'bg-primary-alpha border-accent shadow-premium':
                 selected.type === 'pdf' && selected.file_path === d.file_path
@@ -66,7 +66,7 @@
     </v-col>
     <v-col cols="12" md="3" style="height: 100%">
       <v-card
-        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium"
+        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium glass-card"
         elevation="0"
       >
         <div
@@ -86,7 +86,7 @@
             v-for="(s, idx) in caseSessions"
             :key="s.id"
             elevation="0"
-            class="rounded-xl pa-3 mb-3 cursor-pointer d-flex align-center justify-space-between transition-premium glass-card border"
+            class="rounded-xl pa-3 mb-3 cursor-pointer d-flex align-center justify-space-between transition-premium glass-card border glass-card"
             :class="{
               'bg-primary-alpha border-accent shadow-premium': selected.session_id === s.id
             }"
@@ -101,7 +101,7 @@
               </div>
             </div>
             <div class="d-flex align-center ga-1">
-              <v-btn
+              <v-btn class="premium-btn-gold-gradient"
                 icon
                 size="x-small"
                 variant="text"
@@ -111,7 +111,7 @@
               >
                 <LucideIcon name="link" :size="14" />
               </v-btn>
-              <v-btn
+              <v-btn class="premium-btn-gold-gradient"
                 icon
                 size="x-small"
                 variant="text"
@@ -128,7 +128,7 @@
     </v-col>
     <v-col cols="12" md="2" style="height: 100%">
       <v-card
-        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium"
+        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium glass-card"
         elevation="0"
       >
         <div
@@ -145,7 +145,7 @@
             v-for="m in memos"
             :key="m.id"
             elevation="0"
-            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border"
+            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border glass-card"
             :class="{
               'bg-primary-alpha border-accent shadow-premium':
                 selected.type === 'pdf' && selected.file_path === m.file_path
@@ -164,7 +164,7 @@
     </v-col>
     <v-col cols="12" md="2" style="height: 100%">
       <v-card
-        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium"
+        class="rounded-xl overflow-hidden d-flex flex-column h-100 glass-card border shadow-premium glass-card"
         elevation="0"
       >
         <div
@@ -181,7 +181,7 @@
             v-for="j in judgments"
             :key="j.id"
             elevation="0"
-            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border-dashed-primary"
+            class="rounded-xl pa-3 mb-3 cursor-pointer transition-premium glass-card border-dashed-primary glass-card"
             :class="{
               'bg-primary-alpha border-accent shadow-premium': selected.category === 'الحكم'
             }"

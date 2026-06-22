@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input"
+          class="glass-input glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -34,7 +34,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-xl px-8 premium-lift h-56"
+          class="font-weight-black rounded-xl px-8 premium-lift h-56 premium-btn-gold-gradient"
           @click="openAddDialog"
         >
           <LucideIcon name="plus-circle" :size="20" class="me-2" /> إضافة سجل تواصل
@@ -43,7 +43,7 @@
     </v-row>
 
     <!-- Communications Table -->
-    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden">
+    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
       <v-data-table
         :headers="headers"
         :items="safeArray(store.communications)"
@@ -108,7 +108,7 @@
               variant="text"
               color="gold"
               size="small"
-              class="rounded-lg opacity-40 hover-op-1"
+              class="rounded-lg opacity-40 hover-op-1 premium-btn-gold-gradient"
               @click="openEditDialog(item as any)"
             >
               <LucideIcon name="pencil" :size="16" />
@@ -118,7 +118,7 @@
               variant="text"
               color="error"
               size="small"
-              class="rounded-lg opacity-40 hover-op-1"
+              class="rounded-lg opacity-40 hover-op-1 premium-btn-gold-gradient"
               @click="confirmDelete(item as any)"
             >
               <LucideIcon name="trash-2" :size="16" />
@@ -140,8 +140,8 @@
 
     <!-- Add/Edit Communication Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card class="glass-card overflow-hidden">
-        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center">
+      <v-card class="glass-card overflow-hidden glass-card">
+        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center glass-card">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon
               :name="isEditing ? 'message-square' : 'plus-circle'"
@@ -153,12 +153,12 @@
             {{ isEditing ? 'تعديل بروتوكول التواصل' : 'توثيق سجل تواصل جديد' }}
           </span>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="showDialog = false">
+          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="showDialog = false">
             <LucideIcon name="x" :size="20" class="text-white" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
             <v-row dense>
               <v-col cols="12" md="6">
@@ -174,7 +174,7 @@
                   ]"
                   label="وسيلة التواصل القانوني*"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="اختر وسيلة التواصل"
                   :rules="[(v) => !!v || 'نوع التواصل مطلوب للتوثيق']"
                   required
@@ -192,7 +192,7 @@
                   v-model="editItem.subject"
                   label="موضوع التواصل / خلاصة الغرض*"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="مثال: تبليغ بموعد جلسة، استلام مستندات..."
                   :rules="[(v) => !!v || 'الموضوع أساسي للبحث والفرز']"
                   required
@@ -210,7 +210,7 @@
                   item-value="id"
                   label="الموكل المعني"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   no-data-text="لا يوجد موكلون مسجلون"
                   placeholder="ابحث عن موكل..."
                   clearable
@@ -228,7 +228,7 @@
                   item-value="id"
                   label="مرتبط بالقضية رقم"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   no-data-text="لا توجد قضايا نشطة"
                   placeholder="ابحث عن قضية..."
                   clearable
@@ -257,11 +257,11 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha">
+        <v-card-actions class="pa-6 bg-black-alpha glass-card">
           <v-btn
             variant="text"
             color="white"
-            class="px-6 font-weight-black"
+            class="px-6 font-weight-black premium-btn-gold-gradient"
             @click="showDialog = false"
             >إلغاء</v-btn
           >
@@ -269,7 +269,7 @@
           <v-btn
             color="accent"
             variant="elevated"
-            class="px-10 rounded-lg font-weight-black premium-lift h-48"
+            class="px-10 rounded-lg font-weight-black premium-lift h-48 premium-btn-gold-gradient"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"

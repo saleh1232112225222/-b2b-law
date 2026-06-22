@@ -17,7 +17,7 @@
       <v-btn
         color="accent"
         size="large"
-        class="font-weight-black rounded-lg px-8 premium-lift h-100"
+        class="font-weight-black rounded-lg px-8 premium-lift h-100 premium-btn-gold-gradient"
         :disabled="!can('create_contracts')"
         @click="$emit('create')"
       >

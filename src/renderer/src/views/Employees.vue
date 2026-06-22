@@ -20,7 +20,7 @@
     <!-- Stats Section -->
     <v-row class="mb-8" dense>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100">
+        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100 glass-card">
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4 bg-accent-alpha">
               <LucideIcon name="users" :size="24" class="text-accent" />
@@ -33,7 +33,7 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100">
+        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100 glass-card">
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4 bg-gold-alpha">
               <LucideIcon name="scale" :size="24" class="text-gold" />
@@ -46,7 +46,7 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100">
+        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100 glass-card">
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4 bg-success-alpha">
               <LucideIcon name="user-check" :size="24" class="text-success" />
@@ -59,7 +59,7 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100">
+        <v-card elevation="0" class="glass-card pa-5 border-gold-premium h-100 glass-card">
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4 bg-error-alpha border-gold-alpha">
               <LucideIcon name="user-minus" :size="24" class="text-error" />
@@ -74,8 +74,8 @@
     </v-row>
 
     <!-- Main Table Section -->
-    <v-card elevation="0" class="glass-card overflow-hidden border-gold-premium">
-      <v-card-title class="pa-6 d-flex align-center border-b border-gold-alpha flex-wrap ga-4">
+    <v-card elevation="0" class="glass-card overflow-hidden border-gold-premium glass-card">
+      <v-card-title class="pa-6 d-flex align-center border-b border-gold-alpha flex-wrap ga-4 glass-card">
         <div class="d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3 border-gold-alpha">
             <LucideIcon name="contact-2" :size="20" class="text-gold" />
@@ -92,7 +92,7 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input min-width-300"
+            class="glass-input min-width-300 glass-input"
             clearable
           >
             <template #prepend-inner>
@@ -102,7 +102,7 @@
 
           <v-btn
             color="accent"
-            class="rounded-lg font-weight-black px-6 premium-lift h-48 border-gold-premium"
+            class="rounded-lg font-weight-black px-6 premium-lift h-48 border-gold-premium premium-btn-gold-gradient"
             @click="openDialog()"
           >
             <LucideIcon name="user-plus" :size="18" class="me-2 text-gold" />
@@ -222,7 +222,7 @@
                     size="small"
                     variant="text"
                     color="success"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="viewPerformance(emp)"
                   >
                     <LucideIcon name="trending-up" :size="16" />
@@ -233,7 +233,7 @@
                     size="small"
                     variant="text"
                     color="gold"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="openCreateUserDialog(emp)"
                   >
                     <LucideIcon name="key-round" :size="16" />
@@ -243,7 +243,7 @@
                     size="small"
                     variant="text"
                     color="accent"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="openDialog(emp)"
                   >
                     <LucideIcon name="pencil" :size="16" />
@@ -253,7 +253,7 @@
                     size="small"
                     variant="text"
                     color="error"
-                    class="rounded-lg"
+                    class="rounded-lg premium-btn-gold-gradient"
                     @click="confirmDelete(emp)"
                   >
                     <LucideIcon name="trash-2" :size="16" />
@@ -268,7 +268,7 @@
 
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="dialog" max-width="800" persistent>
-      <v-card class="rounded-xl elevation-24 overflow-hidden modal-card">
+      <v-card class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
         <v-toolbar color="white" class="px-6 border-b" height="72">
           <div class="bg-gold-alpha pa-2 rounded-lg me-3">
             <LucideIcon :name="isEdit ? 'user-cog' : 'user-plus'" :size="20" class="text-gold" />
@@ -277,12 +277,12 @@
             {{ isEdit ? 'تعديل بيانات الموظف' : 'إضافة موظف جديد للمؤسسة' }}
           </v-toolbar-title>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="dialog = false">
+          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="dialog = false">
             <LucideIcon name="x" :size="20" class="text-pure-black" />
           </v-btn>
         </v-toolbar>
 
-        <v-card-text class="pa-8 bg-white">
+        <v-card-text class="pa-8 bg-white glass-card">
           <v-form ref="form" v-model="formValid" validate-on="input">
             <v-alert
               v-if="error"
@@ -303,7 +303,7 @@
                   v-model="editedItem.name"
                   label="الاسم الكامل"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   required
                   :rules="[(v) => !!v || 'الاسم مطلوب']"
                 />
@@ -313,7 +313,7 @@
                   v-model="editedItem.national_id"
                   label="رقم الهوية / الإقامة"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -322,7 +322,7 @@
                   :items="['سعودي', 'مقيم']"
                   label="الجنسية"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -330,7 +330,7 @@
                   v-model="editedItem.phone"
                   label="رقم الجوال"
                   variant="outlined"
-                  class="glass-input text-ltr"
+                  class="glass-input text-ltr glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -338,7 +338,7 @@
                   v-model="editedItem.job_title"
                   label="المسمى الوظيفي"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="مدير قانوني، محامي، إلخ..."
                 />
               </v-col>
@@ -348,7 +348,7 @@
                   :items="['محامي', 'محامي متدرب', 'سكرتير', 'عامل', 'متعاقد']"
                   label="تصنيف الموظف"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -356,7 +356,7 @@
                   v-model.number="editedItem.salary"
                   label="الراتب الشهري"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   type="number"
                   suffix="ر.س"
                 />
@@ -366,7 +366,7 @@
                   v-model.number="editedItem.hourly_rate"
                   label="أجر الساعة"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   type="number"
                   suffix="ر.س"
                 />
@@ -381,7 +381,7 @@
                   ]"
                   label="الحالة الوظيفية"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12">
@@ -389,7 +389,7 @@
                   v-model="editedItem.qualification"
                   label="المؤهلات والخبرات"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -397,7 +397,7 @@
                   v-model="editedItem.license_number"
                   label="رقم الترخيص المهني"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -405,19 +405,19 @@
                   v-model="editedItem.contract_number"
                   label="رقم العقد"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                 />
               </v-col>
             </v-row>
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="pa-8 modal-footer-solid">
+        <v-card-actions class="pa-8 modal-footer-solid glass-card">
           <v-btn
             color="gold"
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
+            class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
             @click="dialog = false"
             >إلغاء</v-btn
           >
@@ -426,7 +426,7 @@
             color="gold"
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
+            class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
             :loading="saving"
             @click="save"
           >
@@ -438,7 +438,7 @@
 
     <!-- Create User Dialog -->
     <v-dialog v-model="userDialog" max-width="500">
-      <v-card class="rounded-xl elevation-24 overflow-hidden modal-card">
+      <v-card class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
         <v-toolbar color="white" class="px-6 border-b" height="72">
           <div class="bg-gold-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="key-round" :size="20" class="text-gold" />
@@ -447,11 +447,11 @@
             >تفعيل حساب النظام</v-toolbar-title
           >
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg" @click="userDialog = false">
+          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="userDialog = false">
             <LucideIcon name="x" :size="20" class="text-pure-black" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-8 bg-white">
+        <v-card-text class="pa-8 bg-white glass-card">
           <div class="mb-8 text-center glass-panel-light pa-4 rounded-xl border-gold-alpha">
             <div class="text-h6 font-weight-black text-gold mb-1">{{ targetEmployee?.name }}</div>
             <div class="text-tiny text-pure-black opacity-60 font-weight-black">
@@ -476,7 +476,7 @@
               v-model="newUser.username"
               label="اسم المستخدم"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               required
               :rules="[(v) => !!v || 'مطلوب']"
             >
@@ -489,7 +489,7 @@
               label="كلمة المرور المؤقتة"
               type="password"
               variant="outlined"
-              class="glass-input mb-4"
+              class="glass-input mb-4 glass-input"
               required
               :rules="[(v) => !!v || 'مطلوب', (v) => v.length >= 6 || '6 أحرف على الأقل']"
             >
@@ -506,18 +506,18 @@
               ]"
               label="مستوى الصلاحية"
               variant="outlined"
-              class="glass-input"
+              class="glass-input glass-input"
               required
               :rules="[(v) => !!v || 'مطلوب']"
             />
           </v-form>
         </v-card-text>
-        <v-card-actions class="pa-8 modal-footer-solid">
+        <v-card-actions class="pa-8 modal-footer-solid glass-card">
           <v-btn
             color="gold"
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
+            class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
             @click="userDialog = false"
             >إلغاء</v-btn
           >
@@ -526,7 +526,7 @@
             color="gold"
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black btn1-unified action-btn-unified h-56"
+            class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
             :loading="userSaving"
             @click="createUserAccount"
           >

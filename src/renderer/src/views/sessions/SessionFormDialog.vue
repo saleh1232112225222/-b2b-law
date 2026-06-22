@@ -7,25 +7,25 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="modal-card overflow-hidden">
-      <div class="modal-header-solid d-flex align-center py-5 px-8">
+    <v-card class="session-dialog-card overflow-hidden glass-card">
+      <div class="session-dialog-header d-flex align-center py-5 px-8">
         <div class="bg-accent-alpha pa-2 rounded-lg me-4">
           <LucideIcon
             :name="isEditing ? 'edit-3' : 'calendar-plus'"
             :size="24"
-            class="text-primary"
+            class="text-accent"
           />
         </div>
-        <span class="text-h5 font-weight-black text-pure-black">{{
+        <span class="text-h5 font-weight-black text-gold">{{
           isEditing ? 'تعديل بيانات الجلسة المجدولة' : 'إدراج موعد جلسة قضائية جديد'
         }}</span>
         <v-spacer />
-        <v-btn variant="text" color="primary" icon @click="$emit('update:show', false)">
+        <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="$emit('update:show', false)">
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable">
+      <v-card-text class="pa-8 modal-scrollable session-form glass-card">
         <v-form ref="formRef" v-model="formValid">
           <v-row>
             <v-col v-if="caseBlockStatus.is_blocked" cols="12">
@@ -45,7 +45,7 @@
                     color="white"
                     variant="flat"
                     size="small"
-                    class="font-weight-black rounded-md text-error premium-lift"
+                    class="font-weight-black rounded-md text-error premium-lift premium-btn-gold-gradient"
                     @click="$router.push('/briefing')"
                     >توجه للوحة القيادة</v-btn
                   >
@@ -54,8 +54,7 @@
             </v-col>
 
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-pure-black"
-                >ملف القضية المستهدفة*</v-label
+              <label class="mb-2 font-weight-black text-gold">ملف القضية المستهدفة*</v-label
               >
               <v-autocomplete
                 v-model="editItem.case_id"
@@ -64,7 +63,7 @@
                 item-value="id"
                 placeholder="ابحث عن رقم القضية أو اسم العميل..."
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 :rules="[(v: any) => !!v || 'القضية مطلوبة لربط الموعد']"
                 :custom-filter="arabicFilter"
                 no-data-text="لا يوجد قضايا حالياً"
@@ -77,14 +76,14 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black">مسؤول الجلسة</v-label>
+              <label class="mb-2 font-weight-black text-gold">مسؤول الجلسة</label>
               <v-select
                 v-model="editItem.responsible_user_id"
                 :items="assignableUsers"
                 :item-title="getUserDisplayName"
                 item-value="id"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 clearable
                 :loading="assignableUsersLoading"
               >
@@ -95,16 +94,16 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black">تاريخ الجلسة*</v-label>
+              <label class="mb-2 font-weight-black text-gold">تاريخ الجلسة*</label>
               <DualDatePicker v-model="editItem.date" />
             </v-col>
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black">وقت انعقاد الجلسة</v-label>
+              <label class="mb-2 font-weight-black text-gold">وقت انعقاد الجلسة</label>
               <v-text-field
                 v-model="editItem.time"
                 type="time"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
               >
                 <template #prepend-inner>
                   <LucideIcon name="clock" :size="20" class="text-primary" />
@@ -113,14 +112,13 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black"
-                >القاعة / الدائرة القضائية</v-label
+              <label class="mb-2 font-weight-black text-gold">القاعة / الدائرة القضائية</v-label
               >
               <v-text-field
                 v-model="editItem.court_room"
                 placeholder="مثال: القاعة الخامسة، الدائرة السادسة"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
               >
                 <template #prepend-inner>
                   <LucideIcon name="landmark" :size="20" class="text-primary" />
@@ -129,12 +127,12 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black">نوع الجلسة*</v-label>
+              <label class="mb-2 font-weight-black text-gold">نوع الجلسة*</label>
               <v-select
                 v-model="editItem.type"
                 :items="SESSION_TYPES"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 required
               >
                 <template #prepend-inner>
@@ -143,12 +141,12 @@
               </v-select>
             </v-col>
             <v-col cols="12" md="6">
-              <v-label class="mb-2 font-weight-black text-pure-black">حالة الموعد*</v-label>
+              <label class="mb-2 font-weight-black text-gold">حالة الموعد*</label>
               <v-select
                 v-model="editItem.status"
                 :items="SESSION_STATUSES"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 required
               >
                 <template #prepend-inner>
@@ -158,14 +156,13 @@
             </v-col>
 
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-pure-black"
-                >رابط الجلسة الرقمية (ناجز / تيمز)</v-label
+              <label class="mb-2 font-weight-black text-gold">رابط الجلسة الرقمية (ناجز / تيمز)</v-label
               >
               <v-text-field
                 v-model="editItem.meeting_link"
                 placeholder="https://..."
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 hint="سيتم تفعيل زر 'الانضمام المباشر' في الأجندة عند إضافة الرابط"
                 persistent-hint
               >
@@ -176,8 +173,7 @@
             </v-col>
 
             <v-col cols="12">
-              <v-label class="mb-2 font-weight-black text-pure-black"
-                >ملاحظات ووقائع الجلسة</v-label
+              <label class="mb-2 font-weight-black text-gold">ملاحظات ووقائع الجلسة</v-label
               >
               <v-textarea
                 v-model="editItem.notes"
@@ -192,13 +188,12 @@
             </v-col>
 
             <v-col v-if="editItem.status === 'تمت' || editItem.status === 'مؤجلة'" cols="12">
-              <v-label class="mb-2 font-weight-black text-accent"
-                >قرار اللجنة / سبب التأجيل</v-label
+              <label class="mb-2 font-weight-black text-gold">قرار اللجنة / سبب التأجيل</v-label
               >
               <v-text-field
                 v-model="editItem.result"
                 variant="outlined"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
                 color="accent"
               >
                 <template #prepend-inner>
@@ -214,11 +209,11 @@
         </v-form>
       </v-card-text>
       <v-divider class="border-gold" style="opacity: 0.1" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+      <v-card-actions class="pa-8 session-dialog-footer glass-card">
         <v-btn
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
@@ -226,7 +221,7 @@
         <v-btn
           variant="flat"
           size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
           :disabled="!formValid || caseBlockStatus.is_blocked"
           :loading="saving"
           @click="handleSave"
@@ -367,3 +362,75 @@ const arabicFilter = (item: any, query: string): boolean => {
   )
 }
 </script>
+
+<style scoped>
+.session-dialog-card {
+  background: rgba(15, 23, 42, 0.95) !important;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  border-radius: 24px !important;
+}
+
+.session-dialog-header {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.15) !important;
+}
+
+.session-dialog-footer {
+  background: rgba(0, 0, 0, 0.2) !important;
+  border-top: 1px solid rgba(233, 195, 73, 0.15) !important;
+}
+
+.session-form :deep(.v-label) {
+  color: #e9c349 !important;
+  font-weight: 800 !important;
+  font-size: 0.95rem !important;
+  margin-bottom: 6px !important;
+}
+
+.session-form :deep(.v-field) {
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 14px !important;
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  transition: all 0.3s ease;
+}
+
+.session-form :deep(.v-field--focused) {
+  border-color: #e9c349 !important;
+  box-shadow: 0 0 12px rgba(233, 195, 73, 0.2) !important;
+}
+
+.session-form :deep(input),
+.session-form :deep(textarea),
+.session-form :deep(.v-select__selection-text) {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+.premium-button-highlight {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+.premium-button-highlight:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+  border-color: rgba(233, 195, 73, 0.8) !important;
+}
+
+.premium-button-highlight.v-btn--disabled {
+  background: #f5f5f5 !important;
+  color: #9e9e9e !important;
+  border-color: #e0e0e0 !important;
+  opacity: 1 !important;
+}
+
+.action-btn-unified {
+  min-width: 180px !important;
+}
+</style>

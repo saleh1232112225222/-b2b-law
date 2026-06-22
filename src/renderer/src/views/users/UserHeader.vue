@@ -17,7 +17,7 @@
       <v-btn
         color="accent"
         variant="flat"
-        class="rounded-lg px-6 font-weight-black premium-lift text-ebony"
+        class="rounded-lg px-6 font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
         height="56"
         @click="$emit('create')"
       >

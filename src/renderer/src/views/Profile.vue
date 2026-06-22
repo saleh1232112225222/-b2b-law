@@ -18,7 +18,7 @@
         <!-- User Info Card -->
         <v-card
           elevation="0"
-          class="glass-card rounded-2xl mb-8 overflow-hidden border border-gold border-opacity-20 premium-lift"
+          class="glass-card rounded-2xl mb-8 overflow-hidden border border-gold border-opacity-20 premium-lift glass-card"
         >
           <div class="profile-hero-banner"></div>
           <div class="profile-hero-body pa-8">
@@ -26,7 +26,7 @@
               <div class="profile-hero-meta">
                 <div class="d-flex align-center gap-2 mb-2">
                   <div class="text-h5 font-weight-black text-white">{{ user?.username }}</div>
-                  <v-btn
+                  <v-btn class="premium-btn-gold-gradient"
                     v-if="user?.roleKey === 'admin'"
                     icon
                     variant="text"
@@ -77,7 +77,7 @@
         </v-card>
 
         <!-- Change Password Card -->
-        <v-card elevation="0" class="glass-card rounded-2xl border border-gold border-opacity-20">
+        <v-card elevation="0" class="glass-card rounded-2xl border border-gold border-opacity-20 glass-card">
           <div
             class="glass-panel-light pa-6 border-b border-gold border-opacity-10 d-flex align-center"
           >
@@ -91,17 +91,16 @@
             >
           </div>
 
-          <v-card-text class="pa-8">
+          <v-card-text class="pa-8 glass-card">
             <v-form ref="passwordForm" v-model="isFormValid" @submit.prevent="handleUpdatePassword">
               <div class="mb-6">
-                <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                  >كلمة المرور الحالية</v-label
+                <label class="mb-2 font-weight-black text-gold">كلمة المرور الحالية</v-label
                 >
                 <v-text-field
                   v-model="passwordData.oldPassword"
                   type="password"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   :rules="[rules.required]"
                   placeholder="أدخل كلمة المرور الحالية للتحقق"
                   hide-details="auto"
@@ -113,14 +112,13 @@
               </div>
 
               <div class="mb-4">
-                <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                  >كلمة المرور الجديدة</v-label
+                <label class="mb-2 font-weight-black text-gold">كلمة المرور الجديدة</v-label
                 >
                 <v-text-field
                   v-model="passwordData.newPassword"
                   type="password"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   :rules="[rules.required, rules.min]"
                   placeholder="أدخل كلمة المرور الجديدة المعقدة"
                   hide-details="auto"
@@ -150,14 +148,13 @@
               </div>
 
               <div class="mb-10">
-                <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                  >تأكيد كلمة المرور الجديدة</v-label
+                <label class="mb-2 font-weight-black text-gold">تأكيد كلمة المرور الجديدة</v-label
                 >
                 <v-text-field
                   v-model="passwordData.confirmPassword"
                   type="password"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   :rules="[rules.required, rules.match]"
                   placeholder="أعد إدخال كلمة المرور الجديدة للتأكيد"
                   hide-details="auto"
@@ -178,7 +175,7 @@
                   block
                   :loading="submitting"
                   :disabled="!isFormValid"
-                  class="rounded-xl font-weight-black premium-lift text-ebony"
+                  class="rounded-xl font-weight-black premium-lift text-ebony premium-btn-gold-gradient"
                 >
                   <LucideIcon name="refresh-cw" :size="20" class="me-3" /> تحديث كلمة المرور
                 </v-btn>
@@ -190,7 +187,7 @@
         <!-- Recovery Settings Card -->
         <v-card
           elevation="0"
-          class="glass-card rounded-2xl border border-gold border-opacity-20 mt-8"
+          class="glass-card rounded-2xl border border-gold border-opacity-20 mt-8 glass-card"
         >
           <div
             class="glass-panel-light pa-6 border-b border-gold border-opacity-10 d-flex align-center"
@@ -205,20 +202,19 @@
             >
           </div>
 
-          <v-card-text class="pa-8">
+          <v-card-text class="pa-8 glass-card">
             <div class="text-body-2 text-gold opacity-60 mb-8 font-weight-bold">
               قم بتعيين سؤال سري وبريد إلكتروني احتياطي لتتمكن من استعادة حسابك ذاتياً في حال فقدان
               كلمة المرور.
             </div>
 
             <div class="mb-6">
-              <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                >البريد الإلكتروني للاستعادة</v-label
+              <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني للاستعادة</v-label
               >
               <v-text-field
                 v-model="recoveryData.email"
                 variant="outlined"
-                class="glass-input"
+                class="glass-input glass-input"
                 placeholder="example@email.com"
                 hide-details
               >
@@ -231,13 +227,12 @@
             <v-row dense>
               <v-col cols="12" sm="6">
                 <div class="mb-6">
-                  <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                    >سؤال الأمان المخصص</v-label
+                  <label class="mb-2 font-weight-black text-gold">سؤال الأمان المخصص</v-label
                   >
                   <v-text-field
                     v-model="recoveryData.question"
                     variant="outlined"
-                    class="glass-input"
+                    class="glass-input glass-input"
                     placeholder="ما هو اسم مدرستك الأولى؟"
                     hide-details
                   >
@@ -249,14 +244,13 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="mb-6">
-                  <v-label class="mb-3 font-weight-black text-gold opacity-60"
-                    >إجابة السؤال (تشفير آمن)</v-label
+                  <label class="mb-2 font-weight-black text-gold">إجابة السؤال (تشفير آمن)</v-label
                   >
                   <v-text-field
                     v-model="recoveryData.answer"
                     type="password"
                     variant="outlined"
-                    class="glass-input"
+                    class="glass-input glass-input"
                     placeholder="أدخل الإجابة هنا..."
                     hide-details
                   >
@@ -276,7 +270,7 @@
                 height="56"
                 block
                 :loading="updatingRecovery"
-                class="rounded-xl font-weight-black premium-lift"
+                class="rounded-xl font-weight-black premium-lift premium-btn-gold-gradient"
                 @click="handleUpdateRecovery"
               >
                 <LucideIcon name="save" :size="20" class="me-3" /> حفظ بيانات الاستعادة
@@ -289,21 +283,21 @@
 
     <!-- Edit Username Dialog -->
     <v-dialog v-model="showUsernameDialog" max-width="500">
-      <v-card class="glass-card border-gold border-2 overflow-hidden rounded-2xl">
+      <v-card class="glass-card border-gold border-2 overflow-hidden rounded-2xl glass-card">
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="user-edit" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تعديل اسم المستخدم</span>
           <v-spacer />
-          <v-btn icon variant="text" color="ebony" @click="showUsernameDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showUsernameDialog = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
-        <v-card-text class="pa-8">
-          <v-label class="mb-3 font-weight-black text-gold opacity-60">اسم المستخدم الجديد</v-label>
+        <v-card-text class="pa-8 glass-card">
+          <label class="mb-2 font-weight-black text-gold">اسم المستخدم الجديد</label>
           <v-text-field
             v-model="newUsername"
             variant="outlined"
-            class="glass-input"
+            class="glass-input glass-input"
             :rules="[rules.required, rules.usernameMin]"
             placeholder="أدخل اسم المستخدم الجديد"
             hide-details="auto"
@@ -322,11 +316,11 @@
             سيتم استخدامه في تسجيل الدخول القادم.
           </v-alert>
         </v-card-text>
-        <v-card-actions class="pa-8 pt-0 ga-3">
+        <v-card-actions class="pa-8 pt-0 ga-3 glass-card">
           <v-btn
             variant="text"
             color="gold"
-            class="font-weight-black"
+            class="font-weight-black premium-btn-gold-gradient"
             @click="showUsernameDialog = false"
             >إلغاء</v-btn
           >
@@ -334,7 +328,7 @@
           <v-btn
             color="gold"
             variant="flat"
-            class="px-8 font-weight-black premium-lift"
+            class="px-8 font-weight-black premium-lift premium-btn-gold-gradient"
             :loading="updatingUsername"
             :disabled="!newUsername || newUsername.length < 3 || newUsername === user?.username"
             @click="handleUpdateUsername"
@@ -356,7 +350,7 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
       <template #actions>
-        <v-btn variant="text" class="font-weight-black" @click="snackbar = false">فهمت</v-btn>
+        <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="snackbar = false">فهمت</v-btn>
       </template>
     </v-snackbar>
   </v-container>

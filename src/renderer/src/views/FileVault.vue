@@ -1,220 +1,234 @@
 <template>
   <v-container fluid class="pa-6 rtl">
-    <!-- Header -->
-    <v-row dense class="mb-8 align-center">
-      <v-col>
-        <div class="d-flex align-center">
-          <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
-            <LucideIcon name="folder-lock" :size="36" class="text-accent" />
+    <MobileFileVault
+      v-if="isMobile"
+      :items="safeArray(assets)"
+      :loading="loadingAssets"
+      :uploading="uploading"
+      :loading-lookups="loadingLookups"
+      :entity-type="entityType"
+      :entity-id="entityId"
+      :entity-options="entityOptions"
+      @add="upload"
+      @upload="upload"
+      @update:entity-type="entityType = $event as any"
+      @update:entity-id="entityId = $event"
+    />
+    <template v-else>
+      <!-- Header -->
+      <v-row dense class="mb-8 align-center">
+        <v-col>
+          <div class="d-flex align-center">
+            <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
+              <LucideIcon name="folder-lock" :size="36" class="text-accent" />
+            </div>
+            <div>
+              <h1 class="text-h5 font-weight-black text-gold mb-1">خزانة المكتب الرقمية</h1>
+              <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+                إدارة الأصول الرقمية والمستندات المؤرشفة بأمان عالي
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">خزانة المكتب الرقمية</h1>
-            <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
-              إدارة الأصول الرقمية والمستندات المؤرشفة بأمان عالي
-            </p>
-          </div>
-        </div>
-      </v-col>
-      <v-col cols="auto">
-        <v-btn
-          variant="text"
-          color="gold"
-          class="font-weight-black opacity-50 px-6"
-          @click="$router.push('/reports')"
-        >
-          <LucideIcon name="arrow-right" :size="18" class="me-2" /> العودة للتقارير
-        </v-btn>
-      </v-col>
-    </v-row>
-
-    <v-card elevation="0" class="glass-card pa-8 mb-10">
-      <div
-        class="glass-panel-light pa-5 rounded-lg border-gold-thin mb-8 d-flex align-start bg-gold-light-alpha"
-      >
-        <LucideIcon name="info" :size="20" class="text-black me-3 mt-1 flex-shrink-0" />
-        <span class="text-body-2 text-black font-weight-black leading-relaxed">
-          يتم تشفير وحفظ كافة الملفات داخل مسار خزانة المكتب المحلي على هذا الجهاز. لضمان أمان
-          البيانات القانونية، لا يمكن تغيير المسار إلا من خلال صلاحيات المسؤول النظامي.
-        </span>
-      </div>
-
-      <v-row dense class="mb-2 align-end pb-1">
-        <v-col cols="12" md="9">
-          <v-label class="mb-2 font-weight-black text-black text-tiny">مسار التخزين النشط</v-label>
-          <v-text-field
-            :model-value="vaultRoot"
-            variant="outlined"
-            readonly
-            class="glass-input ltr-text"
-            density="comfortable"
-            hide-details
-          >
-            <template #prepend-inner>
-              <LucideIcon name="hard-drive" :size="20" class="text-gold opacity-50" />
-            </template>
-          </v-text-field>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="auto">
           <v-btn
-            variant="flat"
-            block
-            height="48"
-            class="rounded-lg font-weight-black premium-lift border-gold-button text-black bg-white"
-            @click="chooseRoot"
+            variant="text"
+            color="gold"
+            class="font-weight-black opacity-50 px-6 premium-btn-gold-gradient"
+            @click="$router.push('/reports')"
           >
-            <LucideIcon name="settings-2" :size="20" class="me-2" /> إدارة المسار
+            <LucideIcon name="arrow-right" :size="18" class="me-2" /> العودة للتقارير
           </v-btn>
         </v-col>
       </v-row>
-    </v-card>
 
-    <v-row>
-      <!-- Upload Section -->
-      <v-col cols="12" lg="4">
-        <v-card elevation="0" class="glass-card pa-6 h-100">
-          <div class="text-h6 font-weight-black text-gold mb-8 d-flex align-center">
-            <div class="glass-panel-light pa-2 rounded-lg me-3">
-              <LucideIcon name="upload-cloud" :size="20" class="text-accent" />
+      <v-card elevation="0" class="glass-card pa-8 mb-10 glass-card">
+        <div
+          class="glass-panel-light pa-5 rounded-lg border-gold-thin mb-8 d-flex align-start bg-gold-light-alpha"
+        >
+          <LucideIcon name="info" :size="20" class="text-black me-3 mt-1 flex-shrink-0" />
+          <span class="text-body-2 text-black font-weight-black leading-relaxed">
+            يتم تشفير وحفظ كافة الملفات داخل مسار خزانة المكتب المحلي على هذا الجهاز. لضمان أمان
+            البيانات القانونية، لا يمكن تغيير المسار إلا من خلال صلاحيات المسؤول النظامي.
+          </span>
+        </div>
+
+        <v-row dense class="mb-2 align-end pb-1">
+          <v-col cols="12" md="9">
+            <label class="mb-2 font-weight-black text-gold">مسار التخزين النشط</v-label
+            >
+            <v-text-field
+              :model-value="vaultRoot"
+              variant="outlined"
+              readonly
+              class="glass-input ltr-text glass-input"
+              density="comfortable"
+              hide-details
+            >
+              <template #prepend-inner>
+                <LucideIcon name="hard-drive" :size="20" class="text-gold opacity-50" />
+              </template>
+            </v-text-field>
+          </v-col>
+          <v-col cols="12" md="3">
+            <v-btn
+              variant="flat"
+              block
+              height="48"
+              class="rounded-lg font-weight-black premium-lift border-gold-button text-black bg-white premium-btn-gold-gradient"
+              @click="chooseRoot"
+            >
+              <LucideIcon name="settings-2" :size="20" class="me-2" /> إدارة المسار
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-card>
+
+      <v-row>
+        <!-- Upload Section -->
+        <v-col cols="12" lg="4">
+          <v-card elevation="0" class="glass-card pa-6 h-100 glass-card">
+            <div class="text-h6 font-weight-black text-gold mb-8 d-flex align-center">
+              <div class="glass-panel-light pa-2 rounded-lg me-3">
+                <LucideIcon name="upload-cloud" :size="20" class="text-accent" />
+              </div>
+              رفع وربط مستند جديد
             </div>
-            رفع وربط مستند جديد
-          </div>
 
-          <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-            >نوع الارتباط القضائي</v-label
-          >
-          <v-select
-            v-model="entityType"
-            :items="entityTypes"
-            variant="outlined"
-            class="glass-input mb-4"
-          ></v-select>
+            <label class="mb-2 font-weight-black text-gold">نوع الارتباط القضائي</v-label
+            >
+            <v-select
+              v-model="entityType"
+              :items="entityTypes"
+              variant="outlined"
+              class="glass-input mb-4 glass-input"
+            ></v-select>
 
-          <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-            >تحديد المرجع المستهدف</v-label
-          >
-          <v-select
-            v-model="entityId"
-            :items="entityOptions"
-            :loading="loadingLookups"
-            item-title="title"
-            item-value="value"
-            placeholder="اختر من القائمة..."
-            variant="outlined"
-            class="glass-input mb-4"
-            clearable
-          >
-            <template #loader>
-              <v-progress-linear indeterminate color="accent" height="2"></v-progress-linear>
-            </template>
-          </v-select>
+            <label class="mb-2 font-weight-black text-gold">تحديد المرجع المستهدف</v-label
+            >
+            <v-select
+              v-model="entityId"
+              :items="entityOptions"
+              :loading="loadingLookups"
+              item-title="title"
+              item-value="value"
+              placeholder="اختر من القائمة..."
+              variant="outlined"
+              class="glass-input mb-4 glass-input"
+              clearable
+            >
+              <template #loader>
+                <v-progress-linear indeterminate color="accent" height="2"></v-progress-linear>
+              </template>
+            </v-select>
 
-          <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-            >تصنيف المستند (اختياري)</v-label
-          >
-          <v-text-field
-            v-model="docType"
-            placeholder="مثال: توكيل، لائحة، حكم"
-            variant="outlined"
-            class="glass-input mb-8"
-          ></v-text-field>
+            <label class="mb-2 font-weight-black text-gold">تصنيف المستند (اختياري)</v-label
+            >
+            <v-text-field
+              v-model="docType"
+              placeholder="مثال: توكيل، لائحة، حكم"
+              variant="outlined"
+              class="glass-input mb-8 glass-input"
+            ></v-text-field>
 
-          <v-btn
-            color="accent"
-            block
-            height="56"
-            class="rounded-lg font-weight-black premium-lift"
-            :loading="uploading"
-            @click="upload"
-          >
-            <LucideIcon name="upload" :size="20" class="me-3" /> تنفيذ عملية الرفع
-          </v-btn>
-        </v-card>
-      </v-col>
+            <v-btn
+              color="accent"
+              block
+              height="56"
+              class="rounded-lg font-weight-black premium-lift premium-btn-gold-gradient"
+              :loading="uploading"
+              @click="upload"
+            >
+              <LucideIcon name="upload" :size="20" class="me-3" /> تنفيذ عملية الرفع
+            </v-btn>
+          </v-card>
+        </v-col>
 
-      <!-- Assets List Section -->
-      <v-col cols="12" lg="8">
-        <v-card elevation="0" class="glass-card overflow-hidden h-100">
-          <div class="glass-panel px-8 py-5 border-b d-flex align-center">
-            <LucideIcon name="history" :size="20" class="text-accent me-3" />
-            <span class="text-h6 font-weight-black text-gold">آخر الأصول الرقمية المرتبطة</span>
-          </div>
+        <!-- Assets List Section -->
+        <v-col cols="12" lg="8">
+          <v-card elevation="0" class="glass-card overflow-hidden h-100 glass-card">
+            <div class="glass-panel px-8 py-5 border-b d-flex align-center">
+              <LucideIcon name="history" :size="20" class="text-accent me-3" />
+              <span class="text-h6 font-weight-black text-gold">آخر الأصول الرقمية المرتبطة</span>
+            </div>
 
-          <v-data-table
-            :items="safeArray(assets)"
-            :loading="loadingAssets"
-            class="bg-transparent file-table"
-            density="comfortable"
-            hover
-            no-data-text="لا توجد ملفات مؤرشفة لهذا المرجع حالياً"
-          >
-            <template #loading>
-              <v-skeleton-loader type="table-row@8" class="bg-transparent"></v-skeleton-loader>
-            </template>
+            <v-data-table
+              :items="safeArray(assets)"
+              :loading="loadingAssets"
+              class="bg-transparent file-table"
+              density="comfortable"
+              hover
+              no-data-text="لا توجد ملفات مؤرشفة لهذا المرجع حالياً"
+            >
+              <template #loading>
+                <v-skeleton-loader type="table-row@8" class="bg-transparent"></v-skeleton-loader>
+              </template>
 
-            <template #headers>
-              <tr class="glass-panel-light">
-                <th class="text-right font-weight-black text-black pa-4">اسم الملف</th>
-                <th class="text-right font-weight-black text-black pa-4">التصنيف</th>
-                <th class="text-right font-weight-black text-black pa-4">بواسطة</th>
-                <th class="text-center font-weight-black text-black pa-4">الإجراءات</th>
-              </tr>
-            </template>
+              <template #headers>
+                <tr class="glass-panel-light">
+                  <th class="text-right font-weight-black text-black pa-4">اسم الملف</th>
+                  <th class="text-right font-weight-black text-black pa-4">التصنيف</th>
+                  <th class="text-right font-weight-black text-black pa-4">بواسطة</th>
+                  <th class="text-center font-weight-black text-black pa-4">الإجراءات</th>
+                </tr>
+              </template>
 
-            <template #item="{ item }">
-              <tr class="hover-row">
-                <td class="pa-4">
-                  <div class="d-flex align-center">
-                    <div class="glass-panel-light pa-2 rounded-lg me-3">
-                      <LucideIcon name="file-text" :size="18" class="text-white opacity-40" />
+              <template #item="{ item }">
+                <tr class="hover-row">
+                  <td class="pa-4">
+                    <div class="d-flex align-center">
+                      <div class="glass-panel-light pa-2 rounded-lg me-3">
+                        <LucideIcon name="file-text" :size="18" class="text-white opacity-40" />
+                      </div>
+                      <span
+                        class="text-body-2 font-weight-black text-white text-truncate"
+                        style="max-width: 300px"
+                      >
+                        {{ (item as any).original_name }}
+                      </span>
                     </div>
-                    <span
-                      class="text-body-2 font-weight-black text-white text-truncate"
-                      style="max-width: 300px"
-                    >
-                      {{ (item as any).original_name }}
+                  </td>
+                  <td class="pa-4">
+                    <v-chip size="x-small" color="gold" variant="tonal" class="font-weight-black">
+                      {{ (item as any).doc_type || 'غير محدد' }}
+                    </v-chip>
+                  </td>
+                  <td class="pa-4">
+                    <span class="text-tiny font-weight-black text-white opacity-40">
+                      {{ (item as any).uploaded_by || '---' }}
                     </span>
-                  </div>
-                </td>
-                <td class="pa-4">
-                  <v-chip size="x-small" color="gold" variant="tonal" class="font-weight-black">
-                    {{ (item as any).doc_type || 'غير محدد' }}
-                  </v-chip>
-                </td>
-                <td class="pa-4">
-                  <span class="text-tiny font-weight-black text-white opacity-40">
-                    {{ (item as any).uploaded_by || '---' }}
-                  </span>
-                </td>
-                <td class="pa-4 text-center">
-                  <div class="d-flex justify-center ga-1">
-                    <v-btn
-                      icon
-                      variant="text"
-                      color="accent"
-                      size="small"
-                      class="opacity-50 hover-opacity-100"
-                      @click="openFile((item as any).id)"
-                    >
-                      <LucideIcon name="external-link" :size="16" />
-                    </v-btn>
-                    <v-btn
-                      icon
-                      variant="text"
-                      color="error"
-                      size="small"
-                      class="opacity-50 hover-opacity-100"
-                      @click="deleteFile((item as any).id)"
-                    >
-                      <LucideIcon name="trash-2" :size="16" />
-                    </v-btn>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </v-data-table>
-        </v-card>
-      </v-col>
-    </v-row>
+                  </td>
+                  <td class="pa-4 text-center">
+                    <div class="d-flex justify-center ga-1">
+                      <v-btn
+                        icon
+                        variant="text"
+                        color="accent"
+                        size="small"
+                        class="opacity-50 hover-opacity-100 premium-btn-gold-gradient"
+                        @click="openFile((item as any).id)"
+                      >
+                        <LucideIcon name="external-link" :size="16" />
+                      </v-btn>
+                      <v-btn
+                        icon
+                        variant="text"
+                        color="error"
+                        size="small"
+                        class="opacity-50 hover-opacity-100 premium-btn-gold-gradient"
+                        @click="deleteFile((item as any).id)"
+                      >
+                        <LucideIcon name="trash-2" :size="16" />
+                      </v-btn>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </v-data-table>
+          </v-card>
+        </v-col>
+      </v-row>
+    </template>
 
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
       <div class="d-flex align-center">
@@ -230,9 +244,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { computed, ref, watch, onMounted, onUnmounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { safeArray } from '../utils/safe'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import { setFabAction, clearFabAction } from '../composables/useFabAction'
+import MobileFileVault from '../components/mobile/MobileFileVault.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+
+const { isMobile } = useMobileLayout()
+const route = useRoute()
 
 interface VaultAsset {
   id: string
@@ -413,6 +434,11 @@ onMounted(() => {
   loadRoot()
   loadLookups()
   loadAssets()
+  setFabAction('mdi-upload', upload, route.path)
+})
+
+onUnmounted(() => {
+  clearFabAction()
 })
 </script>
 

@@ -1,0 +1,26 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "https://b2b-law.netlify.app",
+      "localStorage": [
+        {
+          "name": "web_isLoggedIn",
+          "value": "true"
+        },
+        {
+          "name": "web_currentUser",
+          "value": "{\"username\":\"admin\",\"roleKey\":\"admin\"}"
+        },
+        {
+          "name": "b2b_cloud_token",
+          "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIwMWVlOWViNi03NjM0LTQ0ZWUtOWNlOS1iZWU3MzJjZWMzZDEiLCJjb21wYW55SWQiOiIwMDAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJ1c2VybmFtZSI6ImFkbWluIiwicm9sZUtleSI6ImFkbWluIiwidHJpYWxFeHBpcmVkIjpmYWxzZSwic3Vic2NyaXB0aW9uU3RhdHVzIjoidHJpYWwiLCJpYXQiOjE3ODIwNDM3NDIsImV4cCI6MTc4MjEzMDE0Mn0.K6GLT5pD9JddK5MRnmZQ13yORCl-i9WNT3xwtCxKWUw"
+        },
+        {
+          "name": "web_currentUserSession",
+          "value": "{\"userId\":\"01ee9eb6-7634-44ee-9ce9-bee732cec3d1\",\"username\":\"admin\",\"roleKey\":\"admin\",\"companyId\":\"00000000-0000-0000-0000-000000000000\",\"permissions\":[\"view_cases\",\"create_cases\",\"edit_cases\",\"view_sessions\",\"create_sessions\",\"edit_sessions\",\"view_tasks\",\"create_tasks\",\"edit_tasks\",\"cancel_tasks\",\"close_tasks\",\"reopen_tasks\",\"view_task_audit\",\"view_clients\",\"create_clients\",\"edit_clients\",\"view_defendants\",\"create_defendants\",\"edit_defendants\",\"view_documents\",\"create_documents\",\"view_finances\",\"create_finances\",\"view_contracts\",\"create_contracts\",\"view_enforcement\",\"create_enforcement\",\"view_employees\",\"manage_settings\",\"view_activity_logs\",\"manage_users\",\"export_reports\",\"view_files\"],\"trialExpired\":false,\"subscriptionStatus\":\"trial\",\"mustChangePassword\":false}"
+        }
+      ]
+    }
+  ]
+}

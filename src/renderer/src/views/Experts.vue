@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input"
+          class="glass-input glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -34,7 +34,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-lg px-8 premium-lift h-56"
+          class="font-weight-black rounded-lg px-8 premium-lift h-56 premium-btn-gold-gradient"
           @click="openAddDialog"
         >
           <LucideIcon name="user-plus" :size="20" class="me-2" /> إضافة خبير جديد
@@ -43,7 +43,7 @@
     </v-row>
 
     <!-- Experts Table Card -->
-    <v-card elevation="0" class="glass-card overflow-hidden">
+    <v-card elevation="0" class="glass-card overflow-hidden glass-card">
       <v-data-table
         :headers="headers"
         :items="safeArray(store.experts)"
@@ -102,7 +102,7 @@
               variant="text"
               color="accent"
               size="small"
-              class="opacity-60 hover-opacity-100"
+              class="opacity-60 hover-opacity-100 premium-btn-gold-gradient"
               @click="openEditDialog(item as any)"
             >
               <LucideIcon name="pencil" :size="18" />
@@ -113,7 +113,7 @@
               variant="text"
               color="error"
               size="small"
-              class="opacity-60 hover-opacity-100"
+              class="opacity-60 hover-opacity-100 premium-btn-gold-gradient"
               @click="confirmDelete(item as any)"
             >
               <LucideIcon name="trash-2" :size="18" />
@@ -140,10 +140,10 @@
       scrollable
       transition="dialog-bottom-transition"
     >
-      <v-card class="glass-card overflow-hidden rtl">
+      <v-card class="glass-card overflow-hidden rtl glass-card">
         <div class="decorative-top-gold"></div>
 
-        <v-card-title class="pa-8 d-flex align-center">
+        <v-card-title class="pa-8 d-flex align-center glass-card">
           <div class="glass-panel-light pa-3 rounded-xl me-4">
             <LucideIcon
               :name="isEditing ? 'user-cog' : 'user-plus'"
@@ -160,24 +160,23 @@
             </div>
           </div>
           <v-spacer></v-spacer>
-          <v-btn icon variant="text" color="gold" @click="showDialog = false">
+          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="gold" @click="showDialog = false">
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </v-card-title>
 
         <v-divider class="border-gold opacity-10" />
 
-        <v-card-text class="pa-8">
+        <v-card-text class="pa-8 glass-card">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
             <v-row>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >الاسم الكامل للخبير*</v-label
+                <label class="mb-2 font-weight-black text-gold">الاسم الكامل للخبير*</v-label
                 >
                 <v-text-field
                   v-model="editItem.name"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="د. أحمد المحمدي"
                   :rules="[(v) => !!v || 'الاسم الكامل مطلوب']"
                 >
@@ -187,13 +186,12 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >التخصص المهني*</v-label
+                <label class="mb-2 font-weight-black text-gold">التخصص المهني*</v-label
                 >
                 <v-text-field
                   v-model="editItem.specialty"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="محاسب قانوني، خبير هندسي..."
                   :rules="[(v) => !!v || 'التخصص مطلوب للتصنيف']"
                 >
@@ -203,13 +201,12 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >رقم التواصل (جوال)*</v-label
+                <label class="mb-2 font-weight-black text-gold">رقم التواصل (جوال)*</v-label
                 >
                 <v-text-field
                   v-model="editItem.phone"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="05xxxxxxxx"
                   :rules="[(v) => !!v || 'رقم الجوال ضروري للتواصل']"
                 >
@@ -219,13 +216,12 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >البريد الإلكتروني</v-label
+                <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني</v-label
                 >
                 <v-text-field
                   v-model="editItem.email"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="example@domain.com"
                 >
                   <template #prepend-inner>
@@ -234,8 +230,7 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >الارتباط بملف قضية حالي</v-label
+                <label class="mb-2 font-weight-black text-gold">الارتباط بملف قضية حالي</v-label
                 >
                 <v-autocomplete
                   v-model="editItem.case_id"
@@ -243,7 +238,7 @@
                   item-title="case_number"
                   item-value="id"
                   variant="outlined"
-                  class="glass-input"
+                  class="glass-input glass-input"
                   placeholder="ابحث عن رقم القضية..."
                   :custom-filter="arabicFilter"
                   clearable
@@ -254,8 +249,7 @@
                 </v-autocomplete>
               </v-col>
               <v-col cols="12">
-                <v-label class="mb-2 font-weight-black text-gold opacity-70 text-tiny"
-                  >ملاحظات وتقييم أداء</v-label
+                <label class="mb-2 font-weight-black text-gold">ملاحظات وتقييم أداء</v-label
                 >
                 <v-textarea
                   v-model="editItem.notes"
@@ -275,11 +269,11 @@
 
         <v-divider class="border-gold opacity-10" />
 
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
           <v-btn
             variant="flat"
             size="large"
-            class="px-8 font-weight-black premium-button-highlight action-btn-unified"
+            class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
             @click="showDialog = false"
           >
             إلغاء الأمر
@@ -288,7 +282,7 @@
           <v-btn
             variant="flat"
             size="large"
-            class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56"
+            class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"
