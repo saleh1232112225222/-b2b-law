@@ -169,73 +169,86 @@
     </v-dialog>
 
     <!-- Global Trial Expired / Read-Only Warning Dialog -->
-    <v-dialog v-model="licensingStore.showWarningDialog" max-width="500" persistent>
-      <v-card class="rounded-xl border-gold-thin premium-shadow-lg text-center pa-8 glass-card">
-        <v-avatar color="amber-lighten-4" size="80" class="mb-6">
-          <v-icon icon="mdi-shield-alert" :size="42" color="amber-darken-3" />
-        </v-avatar>
-
-        <h2 class="text-h5 font-weight-black text-pure-black mb-3">
-          عذراً، انتهت الفترة التجريبية
-        </h2>
-
-        <p class="text-body-1 text-grey-darken-3 mb-6 leading-relaxed">
-          عذراً، انتهت الفترة التجريبية المجانية لـ
-          <strong>برنامج المحامي المحترف (30 يوماً)</strong>.
-          <br />
-          تم تفعيل <strong>"وضع الاطلاع والقراءة فقط"</strong> للحفاظ على سلامة بياناتك وتصفحها بشكل
-          كامل. <br /><br />
-          يمكنك مواصلة العمل بكامل الصلاحيات وتفعيل النسخة بالاتصال بنا مباشرة أو زيارة موقعنا
-          الإلكتروني.
-        </p>
-
-        <v-card variant="tonal" color="primary" class="rounded-xl pa-5 mb-6 text-start glass-card">
-          <div class="text-subtitle-2 font-weight-black mb-3 d-flex align-center">
-            <v-icon icon="mdi-headset" :size="18" class="me-2 text-gold" />
-            قنوات الدعم الفني والمبيعات المباشرة:
+    <v-dialog v-model="licensingStore.showWarningDialog" max-width="520" persistent>
+      <v-card class="rounded-2xl overflow-hidden glass-card">
+        <!-- Header gradient -->
+        <div class="pa-8 text-center bg-gold-gradient">
+          <v-avatar color="white" size="72" class="mb-4 shadow-lg">
+            <v-icon icon="mdi-party-popper" :size="38" color="amber-darken-3" />
+          </v-avatar>
+          <h2 class="text-h5 font-weight-black text-ebony mb-1">
+            شكراً لاستخدام B2B-LAW
+          </h2>
+          <div class="text-body-2 text-ebony opacity-80">
+            تجربتك المجانية انتهت، لكن رحلتك معنا تبدأ الآن!
           </div>
+        </div>
 
-          <div class="d-flex flex-column gap-3">
-            <v-btn
-              variant="elevated"
-              color="success"
-              class="justify-start text-body-2 font-weight-black rounded-lg text-white"
-              href="https://wa.me/966567905696"
-              target="_blank"
-            >
-              <template #prepend>
-                <v-icon icon="mdi-whatsapp" :size="18" class="me-2" />
-              </template>
-              التواصل عبر الواتساب: 0567905696
-            </v-btn>
+        <v-card-text class="pa-6">
+          <v-alert
+            type="info"
+            variant="tonal"
+            color="primary"
+            class="mb-5 rounded-xl"
+            prominent
+          >
+            <div class="text-body-2">
+              بياناتك <strong>محفوظة ومؤمنة</strong> — استأنف العمل فوراً بالاشتراك في الخطة المناسبة.
+            </div>
+          </v-alert>
 
-            <v-btn
-              variant="outlined"
-              color="primary"
-              class="justify-start text-body-2 font-weight-black rounded-lg"
-              href="https://saleh-lawyer.com/"
-              target="_blank"
-            >
-              <template #prepend>
-                <v-icon icon="mdi-web" :size="18" class="me-2" />
-              </template>
-              زيارة موقعنا: saleh-lawyer.com
-            </v-btn>
-          </div>
-        </v-card>
-
-        <div class="d-flex gap-3">
+          <!-- CTA Buttons -->
           <v-btn
             block
-            color="grey-darken-1"
-            variant="text"
-            height="50"
-            class="rounded-lg font-weight-bold"
-            @click="licensingStore.showWarningDialog = false"
+            color="accent"
+            size="x-large"
+            class="font-weight-black rounded-xl mb-3 premium-btn-gold-gradient text-white"
+            @click="goToSubscription"
           >
-            متابعة التصفح (للاطلاع فقط)
+            <v-icon icon="mdi-crown" :size="22" class="me-2" />
+            تفعيل الاشتراك الآن
           </v-btn>
-        </div>
+
+          <v-btn
+            block
+            variant="outlined"
+            color="primary"
+            size="large"
+            class="font-weight-bold rounded-xl mb-4"
+            href="https://wa.me/966567905696"
+            target="_blank"
+          >
+            <v-icon icon="mdi-whatsapp" :size="18" class="me-2" />
+            التواصل مع المبيعات
+          </v-btn>
+
+          <div class="text-center">
+            <v-btn
+              variant="text"
+              color="grey"
+              size="small"
+              class="font-weight-bold"
+              @click="goToSubscription"
+            >
+              <v-icon icon="mdi-compare" :size="16" class="me-1" />
+              مقارنة الباقات
+            </v-btn>
+          </div>
+
+          <v-divider class="my-4" />
+
+          <div class="text-center">
+            <v-btn
+              variant="text"
+              color="grey-darken-1"
+              class="font-weight-bold"
+              @click="licensingStore.showWarningDialog = false"
+            >
+              متابعة التصفح المجاني
+              <v-icon icon="mdi-arrow-left" :size="16" class="me-1" />
+            </v-btn>
+          </div>
+        </v-card-text>
       </v-card>
     </v-dialog>
 
@@ -331,6 +344,11 @@ const supportWhatsAppHref = computed(() => {
   if (!intl.startsWith('966') && intl.length === 9) intl = `966${intl}`
   return `https://wa.me/${intl}`
 })
+
+const goToSubscription = () => {
+  licensingStore.showWarningDialog = false
+  router.push('/subscription')
+}
 
 const toggleTheme = () => {
   isDark.value = !isDark.value

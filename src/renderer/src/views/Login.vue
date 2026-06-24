@@ -467,7 +467,7 @@ const handleLogin = async () => {
       e?.response?.data?.message === 'TrialExpired' ||
       errData === 'TrialExpiredWriteForbidden'
     ) {
-      error.value = 'انتهت الفترة التجريبية. سيتم تحويلك لصفحة الاشتراك.'
+      error.value = 'مرحباً بعودتك! بياناتك محفوظة — جاري تحويلك لتفعيل الاشتراك.'
       setTimeout(() => {
         router.push('/subscription')
       }, 2000)

@@ -271,8 +271,8 @@
 
   <v-banner
     v-if="isTrialExpired && !isLoginPage"
-    color="error"
-    icon="mdi-lock-alert"
+    color="warning"
+    icon="mdi-crown"
     class="readonly-banner"
     stacked
     dense
@@ -280,14 +280,13 @@
     <template #text>
       <div class="d-flex align-center justify-space-between w-100">
         <div>
-          <strong>انتهت فترة التجربة المجانية</strong>
-          <span class="ms-2">— يمكنك التصفح والقراءة فقط. </span>
+          <strong> بياناتك محفوظة — فعّل الاشتراك للاستمرار </strong>
+          <span class="ms-2">— يمكنك التصفح الآن، والاشتراك يمنحك صلاحيات كاملة. </span>
           <router-link
             to="/subscription"
-            class="text-white text-decoration-underline font-weight-bold"
-            >اشترك الآن</router-link
+            class="text-decoration-underline font-weight-bold"
+            >تفعيل الاشتراك</router-link
           >
-          <span> للاستمرار في إضافة وتعديل البيانات.</span>
         </div>
       </div>
     </template>
@@ -298,24 +297,24 @@
       <v-alert
         v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated && !isTrialExpired"
         type="warning"
-        variant="flat"
+        variant="tonal"
         density="comfortable"
-        icon="shield-alert"
-        class="mb-6 rounded-xl border-warning-glow premium-shadow-sm font-weight-black text-caption"
+        icon="mdi-crown"
+        class="mb-6 rounded-xl"
         prominent
       >
         <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
           <div class="d-flex align-center">
-            <LucideIcon name="shield-alert" :size="20" class="me-2" />
-            <span>انتهت الفترة التجريبية. يمكنك تصفح البيانات فقط.</span>
+            <LucideIcon name="crown" :size="20" class="me-2 text-gold" />
+            <span>لقد استكشفت B2B-LAW! بياناتك محفوظة — فعّل الاشتراك للوصول الكامل.</span>
           </div>
           <v-btn
-            color="amber-darken-3"
+            color="accent"
             size="small"
-            class="rounded-lg text-white font-weight-bold"
+            class="rounded-lg text-white font-weight-bold premium-btn-gold-gradient"
             @click="router.push('/subscription')"
           >
-            اشترك الآن
+            تفعيل الاشتراك
           </v-btn>
         </div>
       </v-alert>

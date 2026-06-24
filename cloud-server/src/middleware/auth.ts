@@ -106,7 +106,7 @@ export async function authMiddleware(
     if (isExpired && req.method !== 'GET' && !isExcludedPath) {
       res.status(403).json({
         error: 'TrialExpiredWriteForbidden',
-        message: 'انتهت الفترة التجريبية. يرجى الاشتراك للاستمرار في الإضافة والتعديل.',
+        message: 'بياناتك محفوظة. يرجى الاشتراك للوصول الكامل وتفعيل جميع الصلاحيات.',
         subscriptionUrl: '/subscription'
       })
       return

@@ -3,28 +3,28 @@
     <!-- Expired Trial Hero Banner -->
     <v-alert
       v-if="isTrialExpired"
-      type="warning"
+      type="info"
       variant="tonal"
       border="start"
       class="mb-6 rounded-xl"
       prominent
+      color="primary"
     >
       <div class="d-flex align-center">
         <div class="flex-grow-1">
-          <div class="text-h6 font-weight-black mb-1">انتهت فترة التجربة المجانية</div>
+          <div class="text-h6 font-weight-black mb-1">بياناتك محفوظة ومؤمنة</div>
           <div class="text-body-2">
-            يمكنك الوصول للبيانات بشكل قراءة فقط. للاشتراك في خطة مدفوعة والمتابعة، اختر الخطة
-            المناسبة أدناه.
+            فعّل اشتراكك الآن للوصول الكامل لجميع الصلاحيات والإدارة الكاملة لبياناتك.
           </div>
         </div>
         <v-btn
           v-if="isTrialExpired"
-          color="warning"
+          color="accent"
           variant="elevated"
           class="ms-4 font-weight-black premium-btn-gold-gradient"
           @click="openPlans"
         >
-          اشترك الآن
+          تفعيل الاشتراك
         </v-btn>
       </div>
     </v-alert>

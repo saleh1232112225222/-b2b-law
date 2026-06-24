@@ -75,7 +75,7 @@ export const useLicensingStore = defineStore('licensing', () => {
               message: data.isActive
                 ? `اشتراك نشط - ${data.planNameAr || data.planName || 'مدفوع'}`
                 : data.isExpired
-                  ? 'انتهت الفترة التجريبية'
+                  ? 'بياناتك محفوظة — فعّل الاشتراك للاستمرار'
                   : `فترة تجريبية - ${data.daysLeft} يوم متبقي`,
               isActivated: data.status === 'active'
             }
