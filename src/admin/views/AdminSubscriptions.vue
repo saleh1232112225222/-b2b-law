@@ -15,16 +15,28 @@
           </div>
         </div>
 
-        <v-btn
-          color="gold"
-          size="x-large"
-          class="font-weight-bold rounded-lg text-ebony"
-          elevation="2"
-          prepend-icon="mdi-plus"
-          @click="openAddSubscriberDialog"
-        >
-          إضافة مشترك جديد
-        </v-btn>
+        <div class="d-flex gap-4">
+          <v-btn
+            color="secondary"
+            size="x-large"
+            class="font-weight-bold rounded-lg mr-4"
+            elevation="2"
+            prepend-icon="mdi-file-chart"
+            @click="openReportDialog"
+          >
+            توليد التقرير
+          </v-btn>
+          <v-btn
+            color="gold"
+            size="x-large"
+            class="font-weight-bold rounded-lg text-ebony"
+            elevation="2"
+            prepend-icon="mdi-plus"
+            @click="openAddSubscriberDialog"
+          >
+            إضافة مشترك جديد
+          </v-btn>
+        </div>
       </v-card-text>
     </v-card>
 
@@ -361,6 +373,69 @@
         </div>
       </div>
     </div>
+
+    <!-- Report Generation Dialog -->
+    <v-dialog v-model="showReportDialog" max-width="500px">
+      <v-card class="rounded-xl border-gold border-1">
+        <v-card-title class="bg-gold-gradient text-ebony pa-4 d-flex align-center">
+          <v-icon icon="mdi-file-chart" class="me-2"></v-icon>
+          <span class="text-h6 font-weight-bold">توليد تقرير المستخدمين</span>
+          <v-spacer></v-spacer>
+          <v-btn icon="mdi-close" variant="text" @click="showReportDialog = false"></v-btn>
+        </v-card-title>
+
+        <v-card-text class="pa-6">
+          <v-form @submit.prevent="sendReport">
+            <v-text-field
+              v-model="reportData.email"
+              label="البريد الإلكتروني للارسال"
+              variant="outlined"
+              color="gold"
+              prepend-inner-icon="mdi-email"
+              type="email"
+              required
+              class="mb-4"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="reportData.scheduleDate"
+              label="تاريخ ووقت الإرسال (اختياري لجدولة الإرسال)"
+              type="datetime-local"
+              variant="outlined"
+              color="gold"
+              prepend-inner-icon="mdi-calendar-clock"
+              class="mb-4"
+              hint="إذا تركته فارغاً سيتم إرسال التقرير فوراً"
+              persistent-hint
+            ></v-text-field>
+
+            <div class="d-flex flex-column gap-3 mt-6">
+              <v-btn
+                color="gold"
+                type="submit"
+                size="large"
+                class="text-ebony font-weight-bold w-100"
+                :loading="isSendingReport"
+                prepend-icon="mdi-send"
+              >
+                إرسال التقرير (بريد إلكتروني)
+              </v-btn>
+
+              <v-btn
+                color="secondary"
+                size="large"
+                class="font-weight-bold w-100"
+                prepend-icon="mdi-printer"
+                :loading="isPrintingReport"
+                @click="printReport"
+              >
+                طباعة التقرير الآن
+              </v-btn>
+            </div>
+          </v-form>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -404,11 +479,19 @@ const availablePlans = ref([])
 const showAddSubscriberDialog = ref(false)
 const showActivateDialog = ref(false)
 const showExtendDialog = ref(false)
+const showReportDialog = ref(false)
 
 const selectedCompany = ref(null)
 const isCreatingSubscriber = ref(false)
 const isActivating = ref(false)
 const isExtending = ref(false)
+const isSendingReport = ref(false)
+const isPrintingReport = ref(false)
+
+const reportData = reactive({
+  email: 'slaehmap@gmail.com',
+  scheduleDate: ''
+})
 
 const newSubscriber = reactive({
   fullName: '',
@@ -657,6 +740,60 @@ function resetNewSubscriber() {
   newSubscriber.email = ''
   newSubscriber.phone = ''
   newSubscriber.subscriptionType = 'trial'
+}
+
+function openReportDialog() {
+  reportData.scheduleDate = ''
+  showReportDialog.value = true
+}
+
+async function sendReport() {
+  isSendingReport.value = true
+  try {
+    const response = await apiRequest('POST', '/api/admin/subscriptions/report/send', {
+      email: reportData.email,
+      scheduleDate: reportData.scheduleDate || null
+    })
+    alert(response.data?.message || 'تمت العملية بنجاح')
+    showReportDialog.value = false
+  } catch (error) {
+    console.error('Failed to send report:', error)
+    alert('حدث خطأ أثناء إرسال التقرير')
+  } finally {
+    isSendingReport.value = false
+  }
+}
+
+async function printReport() {
+  isPrintingReport.value = true
+  try {
+    const token = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token')
+    const response = await fetch(`${API_BASE}/api/admin/subscriptions/report/html`, {
+      headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) }
+    })
+
+    if (!response.ok) throw new Error('Failed to fetch report HTML')
+
+    const html = await response.text()
+
+    const printWindow = window.open('', '_blank')
+    if (printWindow) {
+      printWindow.document.write(html)
+      printWindow.document.close()
+      // Wait for content to load then print
+      printWindow.onload = function () {
+        printWindow.focus()
+        printWindow.print()
+      }
+    } else {
+      alert('الرجاء السماح بفتح النوافذ المنبثقة (Pop-ups)')
+    }
+  } catch (error) {
+    console.error('Failed to print report:', error)
+    alert('حدث خطأ أثناء تحميل التقرير للطباعة')
+  } finally {
+    isPrintingReport.value = false
+  }
 }
 </script>
 

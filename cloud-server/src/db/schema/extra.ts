@@ -147,3 +147,12 @@ export const userClientAccess = pgTable('user_client_access', {
 }, (table) => ({
   unqUserClientAccess: { columns: [table.companyId, table.userId, table.clientId] }
 }))
+
+export const scheduledReports = pgTable('scheduled_reports', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  targetEmail: text('target_email').notNull(),
+  reportType: text('report_type').default('users_report'),
+  sendAt: timestamp('send_at', { withTimezone: true }).notNull(),
+  status: text('status').default('pending'), // 'pending', 'sent', 'failed'
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})

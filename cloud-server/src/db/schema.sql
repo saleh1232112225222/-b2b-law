@@ -612,3 +612,12 @@ CREATE INDEX idx_agencies_company ON agencies(company_id);
 CREATE INDEX idx_agencies_client ON agencies(company_id, client_id);
 CREATE INDEX idx_agencies_expiry ON agencies(company_id, expiry_date);
 CREATE INDEX idx_employees_company ON employees(company_id);
+
+CREATE TABLE scheduled_reports (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    target_email TEXT NOT NULL,
+    report_type TEXT DEFAULT 'users_report',
+    send_at TIMESTAMPTZ NOT NULL,
+    status TEXT DEFAULT 'pending',
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);

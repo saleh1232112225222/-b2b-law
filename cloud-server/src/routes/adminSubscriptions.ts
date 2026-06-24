@@ -707,3 +707,166 @@ adminSubscriptionRouter.get('/stats/overview', requireAdminRole, async (_req: Re
     res.status(500).json({ error: 'فشل جلب الإحصائيات' })
   }
 })
+
+/**
+ * دالة مساعدة لتوليد تقرير HTML
+ */
+async function generateUsersReportHTML(): Promise<string> {
+  const res = await query(`
+    SELECT 
+      c.name AS company_name,
+      c.email AS company_email,
+      c.phone AS company_phone,
+      c.is_verified,
+      c.created_at,
+      u.username,
+      u.full_name,
+      u.recovery_email
+    FROM companies c
+    LEFT JOIN users u ON c.id = u.company_id
+    WHERE c.id != '00000000-0000-0000-0000-000000000000'
+    ORDER BY c.created_at DESC
+  `)
+
+  let tableRows = ''
+  res.rows.forEach((row, i) => {
+    const method = row.company_phone ? 'تسجيل يدوي (OTP)' : 'تسجيل عبر Google'
+    const status = row.is_verified 
+      ? '<span style="color: #2e7d32; font-weight: bold;">مفعل ✅</span>' 
+      : '<span style="color: #c62828;">غير مفعل ⏳</span>'
+    const date = new Date(row.created_at).toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
+
+    tableRows += `
+      <tr style="border-bottom: 1px solid #ddd;">
+        <td style="padding: 12px; text-align: right;">${i + 1}</td>
+        <td style="padding: 12px; text-align: right; font-weight: bold;">${row.company_name}</td>
+        <td style="padding: 12px; text-align: right;"><a href="mailto:${row.company_email}">${row.company_email}</a></td>
+        <td style="padding: 12px; text-align: right;">${row.company_phone || 'غير متوفر'}</td>
+        <td style="padding: 12px; text-align: right;">${method}</td>
+        <td style="padding: 12px; text-align: right;">${status}</td>
+        <td style="padding: 12px; text-align: right; font-size: 13px;">${date}</td>
+      </tr>
+    `
+  })
+
+  return `
+    <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px;">
+      <div style="background: #0c0e14; padding: 30px; border-radius: 12px; text-align: center; border: 2px solid #e9c349; margin-bottom: 20px;">
+        <h1 style="color: #e9c349; margin: 0; font-size: 26px;">📊 تقرير المستخدمين المسجلين في B2B Lawyer</h1>
+        <p style="color: #fff; margin-top: 10px; font-size: 15px;">تم توليد هذا التقرير تلقائياً بناءً على طلبك.</p>
+      </div>
+      
+      <table style="width: 100%; border-collapse: collapse; background: #fff; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 8px; overflow: hidden;">
+        <thead>
+          <tr style="background: #e9c349; color: #000; font-weight: bold;">
+            <th style="padding: 12px; text-align: right;">#</th>
+            <th style="padding: 12px; text-align: right;">اسم المكتب/المشترك</th>
+            <th style="padding: 12px; text-align: right;">البريد الإلكتروني</th>
+            <th style="padding: 12px; text-align: right;">رقم الهاتف</th>
+            <th style="padding: 12px; text-align: right;">طريقة التسجيل</th>
+            <th style="padding: 12px; text-align: right;">حالة الحساب</th>
+            <th style="padding: 12px; text-align: right;">تاريخ ووقت التسجيل</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${tableRows}
+        </tbody>
+      </table>
+      
+      <p style="text-align: center; color: #777; font-size: 12px; margin-top: 30px;">
+        تاريخ استخراج التقرير: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}
+      </p>
+    </div>
+  `
+}
+
+/**
+ * مساعدة لإرسال البريد
+ */
+export async function sendUsersReportEmail(targetEmail: string, htmlContent: string) {
+  const nodemailer = require('nodemailer')
+  const transporter = nodemailer.createTransport({
+    host: process.env.SMTP_HOST || 'smtp.gmail.com',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: {
+      user: process.env.SMTP_USER || 'slaehmap@gmail.com',
+      pass: process.env.SMTP_PASS || 'kkod vuiv zvgu izux'
+    }
+  })
+
+  await transporter.sendMail({
+    from: `"B2B Lawyer Reports" <${process.env.SMTP_USER || 'slaehmap@gmail.com'}>`,
+    to: targetEmail,
+    subject: `📊 تقرير المشتركين المسجلين في B2B Lawyer - ${new Date().toLocaleDateString('ar-EG')}`,
+    html: htmlContent
+  })
+}
+
+/**
+ * GET /api/admin/subscriptions/report/html
+ * للحصول على التقرير كـ HTML للطباعة
+ */
+adminSubscriptionRouter.get('/report/html', requireAdminRole, async (_req: Request, res: Response) => {
+  try {
+    const html = await generateUsersReportHTML()
+    res.send(html)
+  } catch (err) {
+    console.error('[ADMIN] Failed to generate HTML report:', err)
+    res.status(500).send('فشل توليد التقرير')
+  }
+})
+
+/**
+ * POST /api/admin/subscriptions/report/send
+ * طلب إرسال التقرير (فوراً أو مجدولاً)
+ */
+adminSubscriptionRouter.post('/report/send', requireAdminRole, async (req: Request, res: Response) => {
+  try {
+    const { email, scheduleDate } = req.body
+    const targetEmail = email || 'slaehmap@gmail.com'
+    
+    if (scheduleDate && new Date(scheduleDate) > new Date()) {
+      // حفظ في الجدولة
+      await query(
+        `INSERT INTO scheduled_reports (target_email, report_type, send_at, status) VALUES ($1, 'users_report', $2, 'pending')`,
+        [targetEmail, new Date(scheduleDate)]
+      )
+      return res.json({ success: true, message: 'تمت جدولة إرسال التقرير بنجاح' })
+    } else {
+      // إرسال فوري
+      const html = await generateUsersReportHTML()
+      await sendUsersReportEmail(targetEmail, html)
+      return res.json({ success: true, message: 'تم إرسال التقرير بنجاح' })
+    }
+  } catch (err) {
+    console.error('[ADMIN] Failed to send/schedule report:', err)
+    res.status(500).json({ error: 'فشل إرسال التقرير' })
+  }
+})
+
+// Background worker to process scheduled reports every minute
+setInterval(async () => {
+  try {
+    const pendingReports = await query(`
+      SELECT id, target_email 
+      FROM scheduled_reports 
+      WHERE status = 'pending' AND send_at <= NOW()
+    `)
+    
+    for (const report of pendingReports.rows) {
+      try {
+        const html = await generateUsersReportHTML()
+        await sendUsersReportEmail(report.target_email, html)
+        
+        await query(`UPDATE scheduled_reports SET status = 'sent' WHERE id = $1`, [report.id])
+        console.log(`[SCHEDULED_REPORTS] Sent report to ${report.target_email}`)
+      } catch (err) {
+        console.error(`[SCHEDULED_REPORTS] Failed to send report id ${report.id}:`, err)
+        await query(`UPDATE scheduled_reports SET status = 'failed' WHERE id = $1`, [report.id])
+      }
+    }
+  } catch (err) {
+    console.error('[SCHEDULED_REPORTS] Error in background worker:', err)
+  }
+}, 60000)
