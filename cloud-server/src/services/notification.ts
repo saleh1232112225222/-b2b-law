@@ -4,18 +4,14 @@ let transporter: nodemailer.Transporter | null = null
 
 export function getTransporter(): nodemailer.Transporter | null {
   if (transporter) return transporter
-  const host = process.env.SMTP_HOST
-  if (!host) {
-    console.log('[NOTIFICATION] SMTP not configured — OTP will be logged to console only')
-    return null
-  }
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   transporter = nodemailer.createTransport({
     host,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASS || ''
+      user: process.env.SMTP_USER || 'slaehmap@gmail.com',
+      pass: process.env.SMTP_PASS || 'kkod vuiv zvgu izux'
     },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
@@ -26,7 +22,7 @@ export function getTransporter(): nodemailer.Transporter | null {
 
 export async function sendOTP(email: string, phone: string, code: string): Promise<void> {
   const t = getTransporter()
-  const from = process.env.SMTP_FROM || 'noreply@b2blaw.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'slaehmap@gmail.com'
 
   console.log('\n================================================================================')
   console.log(`[OTP] Sending verification code...`)
@@ -72,7 +68,7 @@ export async function sendOTP(email: string, phone: string, code: string): Promi
 
 export async function sendEmail(options: { to: string; subject: string; text: string; html?: string }): Promise<void> {
   const t = getTransporter()
-  const from = process.env.SMTP_FROM || 'noreply@b2blaw.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'slaehmap@gmail.com'
 
   if (t) {
     try {
