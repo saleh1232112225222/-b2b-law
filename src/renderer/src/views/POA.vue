@@ -19,7 +19,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-lg px-8 premium-btn-gold-gradient h-100 premium-btn-gold-gradient"
+          class="font-weight-black rounded-lg px-8 premium-btn-gold-gradient h-100"
           @click="openAddDialog"
         >
           <LucideIcon name="plus" :size="20" class="me-3" /> تسجيل وكالة جديدة
@@ -28,41 +28,40 @@
     </v-row>
 
     <!-- Search & Filter Controls -->
-    <v-row dense class="mb-6 align-center">
+    <v-row dense class="mb-8 align-center">
       <!-- Search Input -->
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="7">
         <v-text-field
           v-model="searchQuery"
           placeholder="ابحث برقم الوكالة، اسم الموكل، أو مصدر الوكالة..."
-          variant="outlined"
-          density="comfortable"
-          clearable
-          class="glass-input search-input glass-input"
+          variant="solo"
+          flat
+          class="premium-search-field"
           hide-details
         >
           <template #prepend-inner>
-            <LucideIcon name="search" :size="20" class="text-gold opacity-50" />
+            <LucideIcon name="search" :size="20" class="text-gold opacity-70" />
           </template>
         </v-text-field>
       </v-col>
 
-      <!-- Filter Tabs (Toggle) -->
-      <v-col cols="12" md="6" class="d-flex justify-md-end justify-center mt-3 mt-md-0">
+      <!-- Filter Tabs -->
+      <v-col cols="12" md="5" class="d-flex justify-md-end justify-center mt-4 mt-md-0">
         <v-btn-toggle
           v-model="statusFilter"
           mandatory
-          selected-class="active-toggle-btn premium-btn-gold-gradient"
-          class="glass-toggle rounded-xl overflow-hidden border border-gold border-opacity-10"
+          class="premium-toggle-group rounded-xl overflow-hidden border border-gold border-opacity-10"
           density="comfortable"
+          selected-class="active-toggle-btn"
         >
-          <v-btn value="all" class="font-weight-black px-4 text-body-2 text-white premium-btn-gold-gradient">
-            <LucideIcon name="list" :size="16" class="me-2" /> الكل ({{ totalCount }})
+          <v-btn value="all" class="font-weight-black px-5 text-body-2">
+            الكل ({{ totalCount }})
           </v-btn>
-          <v-btn value="active" class="font-weight-black px-4 text-body-2 text-success premium-btn-gold-gradient">
-            <LucideIcon name="check-circle" :size="16" class="me-2" /> سارية ({{ activeCount }})
+          <v-btn value="active" class="font-weight-black px-5 text-body-2 text-success">
+            سارية ({{ activeCount }})
           </v-btn>
-          <v-btn value="expired" class="font-weight-black px-4 text-body-2 text-error premium-btn-gold-gradient">
-            <LucideIcon name="alert-triangle" :size="16" class="me-2" /> منتهية ({{ expiredCount }})
+          <v-btn value="expired" class="font-weight-black px-5 text-body-2 text-error">
+            منتهية ({{ expiredCount }})
           </v-btn>
         </v-btn-toggle>
       </v-col>
@@ -88,31 +87,14 @@
           <v-skeleton-loader type="table-row@12" class="bg-transparent"></v-skeleton-loader>
         </template>
 
-        <template #[`header.agency_number`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
-        <template #[`header.client_name`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
-        <template #[`header.date`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
-        <template #[`header.expiry_date`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
-        <template #[`header.court`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
-        <template #[`header.actions`]="{ column }">
-          <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
-        </template>
+        <!-- Headers removed to use standard table headers -->
 
         <template #[`item.agency_number`]="{ item }">
           <div class="d-flex align-center justify-center">
             <v-btn
               variant="text"
-              color="white"
-              class="px-0 font-weight-black text-body-2 ltr-text hover-gold premium-btn-gold-gradient"
+              color="accent"
+              class="px-0 font-weight-black text-body-2 ltr-text"
               @click="openEditDialog(item)"
             >
               {{ item.agency_number }}
@@ -124,58 +106,58 @@
           <v-btn
             v-if="item.client_id"
             variant="text"
-            color="white"
-            class="px-0 font-weight-black text-body-2 opacity-80 hover-gold premium-btn-gold-gradient"
+            color="accent"
+            class="px-0 font-weight-black text-body-2"
             :to="'/clients/' + item.client_id"
             density="compact"
           >
             {{ item.client_name || '-' }}
           </v-btn>
-          <div v-else class="font-weight-bold text-white opacity-40">
+          <div v-else class="font-weight-black text-body-2 text-accent">
             {{ item.client_name || '-' }}
           </div>
         </template>
 
         <template #[`item.date`]="{ item }">
           <div v-if="isValidDate(String(item.date))" class="d-flex flex-column align-center">
-            <div class="text-caption font-weight-black text-white">
+            <div class="text-body-2 font-weight-black text-ebony">
               {{ formatDate(String(item.date)) }} مـ
             </div>
-            <v-chip
-              size="x-small"
-              color="accent"
-              variant="flat"
-              class="mt-1 font-weight-black rounded-md"
-            >
+            <div class="text-caption font-weight-bold text-grey-darken-1 mt-1">
               {{ formatHijri(String(item.date)) }} هـ
-            </v-chip>
+            </div>
           </div>
-          <span v-else class="text-caption text-gold opacity-30 italic">---</span>
+          <span v-else class="text-body-2 text-grey-darken-1 opacity-50 italic">---</span>
         </template>
 
         <template #[`item.expiry_date`]="{ item }">
           <div v-if="isValidDate(String(item.expiry_date))" class="d-flex flex-column align-center">
-            <div class="text-caption font-weight-black text-white">
+            <div
+              class="text-body-2 font-weight-black"
+              :class="
+                getAgencyStatus(item.expiry_date).color === 'error' ? 'text-error' : 'text-ebony'
+              "
+            >
               {{ formatDate(String(item.expiry_date)) }} مـ
             </div>
-            <v-chip
-              size="x-small"
-              color="warning"
-              variant="flat"
-              class="mt-1 font-weight-black rounded-md"
+            <div
+              class="text-caption font-weight-bold mt-1"
+              :class="
+                getAgencyStatus(item.expiry_date).color === 'error'
+                  ? 'text-error'
+                  : 'text-grey-darken-1'
+              "
             >
               {{ formatHijri(String(item.expiry_date)) }} هـ
-            </v-chip>
+            </div>
           </div>
-          <span v-else class="text-caption text-gold opacity-30 italic">---</span>
+          <span v-else class="text-body-2 text-grey-darken-1 opacity-50 italic">---</span>
         </template>
 
         <template #[`item.court`]="{ item }">
-          <div class="d-flex align-center justify-center">
-            <LucideIcon name="landmark" :size="14" class="text-gold opacity-50 me-2" />
-            <span class="text-caption font-weight-bold text-white opacity-70">{{
-              item.court || 'كتابة عدل عامة'
-            }}</span>
+          <div class="d-flex align-center justify-center text-body-2 font-weight-bold text-ebony">
+            <LucideIcon name="landmark" :size="16" class="text-accent me-2" />
+            {{ item.court || 'كتابة عدل عامة' }}
           </div>
         </template>
 
@@ -186,7 +168,7 @@
               variant="text"
               color="accent"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="opacity-80"
               @click="openPreviewDialog(item)"
             >
               <LucideIcon name="eye" :size="18" />
@@ -195,9 +177,9 @@
             <v-btn
               icon
               variant="text"
-              color="gold"
+              color="primary"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="opacity-80"
               @click="openEditDialog(item)"
             >
               <LucideIcon name="edit-3" :size="18" />
@@ -208,7 +190,7 @@
               variant="text"
               color="error"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="opacity-80"
               @click="confirmDelete(item)"
             >
               <LucideIcon name="trash-2" :size="18" />
@@ -219,170 +201,151 @@
       </v-data-table>
     </v-card>
 
-    <!-- Agencies Mobile Cards View -->
-    <div v-else>
-      <div v-if="store.loading" class="d-flex flex-column gap-4">
+    <!-- Agencies Mobile Cards View (Premium Redesign) -->
+    <div v-else class="mobile-view-container">
+      <div v-if="store.loading" class="d-flex flex-column gap-4 px-2">
         <v-skeleton-loader
-          v-for="n in 4"
+          v-for="n in 3"
           :key="n"
-          type="card"
+          type="os-card"
           class="glass-card mb-4 rounded-xl bg-transparent"
         />
       </div>
 
       <div
         v-else-if="filteredAgencies.length === 0"
-        class="text-center py-12 glass-card rounded-xl"
+        class="text-center py-16 glass-card rounded-xl mx-2"
       >
-        <LucideIcon name="folder-open" :size="48" class="text-gold opacity-30 mb-4" />
-        <div class="text-h6 text-gold opacity-50 font-weight-black">
-          لا توجد وكالات مطابقة للبحث أو الفرز
+        <div class="empty-state-icon mb-4">
+          <LucideIcon name="file-question" :size="48" class="text-gold opacity-20" />
+        </div>
+        <div class="text-h6 text-gold opacity-40 font-weight-black">
+          لا توجد وكالات مطابقة لخيارات الفرز
         </div>
       </div>
 
-      <div v-else class="mobile-cards-container d-flex flex-column gap-4">
+      <div v-else class="mobile-cards-container d-flex flex-column gap-5 px-2">
         <v-card
           v-for="item in filteredAgencies"
           :key="item.id"
-          class="glass-card mb-4 rounded-xl border-gold border-opacity-10 overflow-hidden premium-hover glass-card"
-          elevation="0"
+          class="poa-mobile-card mb-2 rounded-xl border-gold border-opacity-10 overflow-hidden"
+          elevation="12"
+          @click="openPreviewDialog(item)"
         >
-          <!-- Card Header -->
-          <div
-            class="d-flex align-center justify-space-between pa-4 border-b border-gold border-opacity-10"
-          >
-            <div class="d-flex align-center">
-              <div class="glass-panel-light pa-2 rounded-lg me-3 border-gold border-opacity-20">
-                <LucideIcon name="file-text" :size="20" class="text-gold" />
+          <div class="pa-4">
+            <!-- Card Header: Number & Status -->
+            <div class="d-flex justify-space-between align-start mb-5">
+              <div class="d-flex align-center">
+                <div class="agency-icon-box pa-2 rounded-lg me-3">
+                  <LucideIcon name="file-text" :size="22" class="text-gold" />
+                </div>
+                <div>
+                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-0">
+                    رقم الوكالة
+                  </div>
+                  <div class="text-h6 font-weight-black text-white ltr-text ls-1">
+                    {{ item.agency_number }}
+                  </div>
+                </div>
               </div>
-              <div>
-                <span class="text-caption text-gold opacity-50 d-block mb-1"
-                  >الرقم المرجعي للوكالة</span
-                >
-                <v-btn
-                  variant="text"
-                  color="white"
-                  class="px-0 py-0 font-weight-black text-body-1 ltr-text hover-gold h-auto min-width-0 premium-btn-gold-gradient"
-                  @click="openEditDialog(item)"
-                >
-                  {{ item.agency_number }}
-                </v-btn>
-              </div>
-            </div>
-
-            <!-- Status Chip -->
-            <v-chip
-              :color="isExpired(item.expiry_date) ? 'error' : 'success'"
-              variant="flat"
-              size="small"
-              class="font-weight-black rounded-lg px-3"
-            >
-              {{ isExpired(item.expiry_date) ? 'منتهية' : 'سارية' }}
-            </v-chip>
-          </div>
-
-          <!-- Card Body -->
-          <v-card-text class="pa-4 text-white glass-card">
-            <!-- Client name -->
-            <div class="mb-4">
-              <span class="text-caption text-gold opacity-50 d-block mb-1">الموكل (الموكِّل)</span>
-              <v-btn
-                v-if="item.client_id"
-                variant="text"
-                color="white"
-                class="px-0 py-0 font-weight-black text-body-2 hover-gold h-auto min-width-0 premium-btn-gold-gradient"
-                :to="'/clients/' + item.client_id"
+              <v-chip
+                :color="getAgencyStatus(item.expiry_date).color"
+                variant="flat"
+                size="small"
+                class="font-weight-black rounded-lg px-3 shadow-sm status-chip"
               >
-                {{ item.client_name || '-' }}
-              </v-btn>
-              <div v-else class="font-weight-bold text-white opacity-40">
-                {{ item.client_name || '-' }}
+                <LucideIcon
+                  :name="getAgencyStatus(item.expiry_date).icon"
+                  :size="12"
+                  class="me-1"
+                />
+                {{ getAgencyStatus(item.expiry_date).label }}
+              </v-chip>
+            </div>
+
+            <!-- Client Info: Highlighted Section -->
+            <div class="client-info-section pa-3 rounded-lg mb-5">
+              <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+                الموكل صاحب الصلاحية
+              </div>
+              <div class="text-body-1 font-weight-black text-white d-flex align-center">
+                <LucideIcon name="user" :size="16" class="me-2 text-gold opacity-60" />
+                {{ item.client_name || 'غير محدد' }}
               </div>
             </div>
 
-            <v-row dense class="mb-4">
-              <!-- Start Date -->
+            <!-- Dates Section: Grid Layout -->
+            <v-row dense class="mb-5">
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">تاريخ الاعتماد</span>
-                <div v-if="isValidDate(String(item.date))">
-                  <span class="text-caption font-weight-black text-white d-block">
+                <div class="poa-date-item pa-2 rounded-lg">
+                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+                    تاريخ الاعتماد
+                  </div>
+                  <div class="text-caption font-weight-black text-white mb-1">
                     {{ formatDate(String(item.date)) }} مـ
-                  </span>
-                  <v-chip
-                    size="x-small"
-                    color="accent"
-                    variant="flat"
-                    class="mt-1 font-weight-black rounded-md"
-                  >
+                  </div>
+                  <div class="text-tiny font-weight-bold text-accent">
                     {{ formatHijri(String(item.date)) }} هـ
-                  </v-chip>
+                  </div>
                 </div>
-                <span v-else class="text-caption text-white opacity-30 italic">---</span>
               </v-col>
-
-              <!-- Expiry Date -->
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">تاريخ الانتهاء</span>
-                <div v-if="isValidDate(String(item.expiry_date))">
-                  <span class="text-caption font-weight-black text-white d-block">
-                    {{ formatDate(String(item.expiry_date)) }} مـ
-                  </span>
-                  <v-chip
-                    size="x-small"
-                    color="warning"
-                    variant="flat"
-                    class="mt-1 font-weight-black rounded-md"
+                <div class="poa-date-item pa-2 rounded-lg">
+                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+                    تاريخ الانتهاء
+                  </div>
+                  <div class="text-caption font-weight-black text-white mb-1">
+                    {{ item.expiry_date ? formatDate(String(item.expiry_date)) : '—' }} مـ
+                  </div>
+                  <div
+                    class="text-tiny font-weight-bold"
+                    :class="
+                      getAgencyStatus(item.expiry_date).color === 'error'
+                        ? 'text-error'
+                        : 'text-warning'
+                    "
                   >
-                    {{ formatHijri(String(item.expiry_date)) }} هـ
-                  </v-chip>
+                    {{ item.expiry_date ? formatHijri(String(item.expiry_date)) : '—' }} هـ
+                  </div>
                 </div>
-                <span v-else class="text-caption text-white opacity-30 italic">---</span>
               </v-col>
             </v-row>
 
-            <!-- Source (Court) -->
-            <div class="d-flex align-center pt-3 border-t border-gold border-opacity-5">
-              <LucideIcon name="landmark" :size="16" class="text-gold opacity-50 me-2" />
-              <div>
-                <span class="text-caption text-gold opacity-50 d-block">مصدر الوكالة</span>
-                <span class="text-caption font-weight-bold text-white opacity-70">
+            <!-- Bottom Actions and Source -->
+            <div class="d-flex align-center pt-3 border-t border-gold border-opacity-10 mt-2">
+              <div class="d-flex align-center opacity-60">
+                <LucideIcon name="landmark" :size="14" class="text-gold me-2" />
+                <span
+                  class="text-tiny font-weight-black text-white truncate-text"
+                  style="max-width: 140px"
+                >
                   {{ item.court || 'كتابة عدل عامة' }}
                 </span>
               </div>
+              <v-spacer />
+              <div class="d-flex ga-1">
+                <v-btn
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="gold"
+                  class="rounded-lg action-btn-blur"
+                  @click.stop="openEditDialog(item)"
+                >
+                  <LucideIcon name="edit-3" :size="16" />
+                </v-btn>
+                <v-btn
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="error"
+                  class="rounded-lg action-btn-blur"
+                  @click.stop="confirmDelete(item)"
+                >
+                  <LucideIcon name="trash-2" :size="16" />
+                </v-btn>
+              </div>
             </div>
-          </v-card-text>
-
-          <!-- Card Actions -->
-          <div
-            class="d-flex border-t border-gold border-opacity-10 bg-black bg-opacity-20 pa-2 justify-space-around"
-          >
-            <v-btn
-              variant="text"
-              color="accent"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              @click="openPreviewDialog(item)"
-            >
-              <LucideIcon name="eye" :size="16" class="me-1" /> معاينة
-            </v-btn>
-            <v-btn
-              variant="text"
-              color="gold"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              @click="openEditDialog(item)"
-            >
-              <LucideIcon name="edit-3" :size="16" class="me-1" /> تعديل
-            </v-btn>
-            <v-btn
-              variant="text"
-              color="error"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              @click="confirmDelete(item)"
-            >
-              <LucideIcon name="trash-2" :size="16" class="me-1" /> حذف
-            </v-btn>
           </div>
         </v-card>
       </div>
@@ -404,12 +367,18 @@
           </div>
           <span class="text-h5 font-weight-black text-gold">معاينة بيانات الوكالة</span>
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="previewDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            color="gold"
+            icon
+            @click="previewDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8 modal-scrollable poa-dialog-body glass-card">
+        <v-card-text class="pa-8 modal-scrollable poa-dialog-body">
           <v-row dense>
             <v-col cols="12" md="6">
               <div class="detail-row mb-6">
@@ -475,9 +444,7 @@
             </v-col>
             <v-col cols="12">
               <div class="detail-row mb-2">
-                <span class="poa-preview-label mb-2"
-                  >نطاق الوكالة / الصلاحيات الممنوحة</span
-                >
+                <span class="poa-preview-label mb-2">نطاق الوكالة / الصلاحيات الممنوحة</span>
                 <div class="poa-preview-box pa-4 rounded-lg leading-relaxed shadow-sm">
                   {{ previewItem?.notes || 'لا توجد ملاحظات مسجلة لنطاق هذه الوكالة' }}
                 </div>
@@ -487,7 +454,7 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-20"></v-divider>
-        <v-card-actions class="pa-8 poa-dialog-footer glass-card">
+        <v-card-actions class="pa-8 poa-dialog-footer">
           <v-btn
             variant="flat"
             color="grey-darken-3"
@@ -537,12 +504,18 @@
             {{ isEditing ? 'تعديل بيانات الوكالة الشرعية' : 'تسجيل وكالة شرعية جديدة' }}
           </span>
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="showDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            color="gold"
+            icon
+            @click="showDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body glass-card">
+        <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
             <v-row dense>
               <v-col cols="12">
@@ -554,7 +527,7 @@
                   item-value="id"
                   placeholder="ابحث عن اسم الموكل..."
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :rules="[(v) => !!v || 'تعيين الموكل ضروري لإتمام التسجيل']"
                   no-data-text="لا يوجد موكلون مسجلون"
                   required
@@ -570,7 +543,7 @@
                   v-model="editItem.agency_number"
                   placeholder="مثال: 44123456"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :rules="[(v) => !!v || 'رقم الوكالة مطلوب للتحقق النظامي']"
                   required
                 />
@@ -584,13 +557,14 @@
                 <DualDatePicker v-model="editItem.expiry_date" />
               </v-col>
               <v-col cols="12">
-                <label class="mb-2 font-weight-black text-gold">جهة الإصدار (كتابة عدل / منصة ناجز)</v-label
+                <label class="mb-2 font-weight-black text-gold"
+                  >جهة الإصدار (كتابة عدل / منصة ناجز)</label
                 >
                 <v-text-field
                   v-model="editItem.court"
                   placeholder="مثال: كتابة العدل الأولى بالرياض"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="landmark" :size="20" class="text-gold opacity-50" />
@@ -598,7 +572,8 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12">
-                <label class="mb-2 font-weight-black text-gold">نطاق الوكالة / الصلاحيات الممنوحة</v-label
+                <label class="mb-2 font-weight-black text-gold"
+                  >نطاق الوكالة / الصلاحيات الممنوحة</label
                 >
                 <v-textarea
                   v-model="editItem.notes"
@@ -617,7 +592,7 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10"></v-divider>
-        <v-card-actions class="pa-8 poa-dialog-footer glass-card">
+        <v-card-actions class="pa-8 poa-dialog-footer">
           <v-btn
             variant="flat"
             size="large"
@@ -688,13 +663,21 @@ const isMobile = computed(() => mobile.value || width.value <= 1023)
 const searchQuery = ref('')
 const statusFilter = ref<'all' | 'active' | 'expired'>('all')
 
-const isExpired = (expiryDateStr: string | undefined): boolean => {
-  if (!expiryDateStr || !isValidDate(expiryDateStr)) return false
+const getAgencyStatus = (expiryDateStr: string | undefined) => {
+  if (!expiryDateStr || !isValidDate(expiryDateStr)) {
+    return { label: 'سارية', color: 'success', icon: 'check-circle' }
+  }
   const expiryDate = new Date(expiryDateStr)
   const today = new Date()
   today.setHours(0, 0, 0, 0)
   expiryDate.setHours(0, 0, 0, 0)
-  return expiryDate < today
+
+  const diffTime = expiryDate.getTime() - today.getTime()
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) return { label: 'منتهية', color: 'error', icon: 'alert-octagon' }
+  if (diffDays <= 30) return { label: 'تنتهي قريباً', color: 'warning', icon: 'alert-triangle' }
+  return { label: 'سارية', color: 'success', icon: 'check-circle' }
 }
 
 const filteredAgencies = computed(() => {
@@ -711,11 +694,9 @@ const filteredAgencies = computed(() => {
   }
 
   if (statusFilter.value === 'active') {
-    list = list.filter((item: Agency) => !isExpired(item.expiry_date))
+    list = list.filter((item: Agency) => getAgencyStatus(item.expiry_date).color !== 'error')
   } else if (statusFilter.value === 'expired') {
-    list = list.filter((item: Agency) => {
-      return item.expiry_date && isValidDate(item.expiry_date) && isExpired(item.expiry_date)
-    })
+    list = list.filter((item: Agency) => getAgencyStatus(item.expiry_date).color === 'error')
   }
 
   return list
@@ -723,13 +704,15 @@ const filteredAgencies = computed(() => {
 
 const totalCount = computed(() => safeArray(store.agencies).length)
 const activeCount = computed(
-  () => safeArray(store.agencies).filter((item: Agency) => !isExpired(item.expiry_date)).length
+  () =>
+    safeArray(store.agencies).filter(
+      (item: Agency) => getAgencyStatus(item.expiry_date).color !== 'error'
+    ).length
 )
 const expiredCount = computed(
   () =>
     safeArray(store.agencies).filter(
-      (item: Agency) =>
-        item.expiry_date && isValidDate(item.expiry_date) && isExpired(item.expiry_date)
+      (item: Agency) => getAgencyStatus(item.expiry_date).color === 'error'
     ).length
 )
 
@@ -906,266 +889,97 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
 
 <style scoped>
 :root {
-  --glass-bg-soft: rgba(0, 0, 0, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --color-background: #101113;
+  --glass-bg-soft: rgba(15, 23, 42, 0.4);
+  --glass-border: rgba(233, 195, 73, 0.15);
+  --color-background: #020617;
+}
+
+.premium-search-field :deep(.v-field) {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(233, 195, 73, 0.1) !important;
+  transition: all 0.3s ease;
+}
+.premium-search-field :deep(.v-field--focused) {
+  border-color: rgba(233, 195, 73, 0.4) !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.premium-toggle-group {
+  background: rgba(255, 255, 255, 0.02) !important;
+  backdrop-filter: blur(10px);
+}
+.active-toggle-btn {
+  background: linear-gradient(135deg, #e9c349 0%, #c49a21 100%) !important;
+  color: #020617 !important;
+  font-weight: 900 !important;
+}
+
+.poa-mobile-card {
+  background: rgba(30, 41, 59, 0.45) !important;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(233, 195, 73, 0.12) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.agency-icon-box {
+  background: rgba(233, 195, 73, 0.1);
+  border: 1px solid rgba(233, 195, 73, 0.2);
+}
+
+.client-info-section {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(233, 195, 73, 0.05);
+}
+
+.poa-date-item {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.action-btn-blur {
+  background: rgba(255, 255, 255, 0.05) !important;
+  backdrop-filter: blur(5px);
 }
 
 .poa-table :deep(th) {
   background: rgba(233, 195, 73, 0.05) !important;
   color: #e9c349 !important;
   font-weight: 900 !important;
-  text-transform: uppercase;
-  letter-spacing: 1px;
   font-size: 0.75rem !important;
   border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
-.poa-table :deep(td) {
-  border-bottom: 1px solid rgba(233, 195, 73, 0.05) !important;
-}
-
-.hover-gold:hover {
-  color: #e9c349 !important;
-}
-
-.modal-scrollable {
-  max-height: calc(100vh - 280px);
-  overflow-y: auto;
-}
-
-.min-h-500 {
-  min-height: 500px;
-}
-
-.leading-relaxed {
-  line-height: 1.6;
-}
-
-.ltr-text {
-  direction: ltr;
-  display: inline-block;
-}
-
-.detail-row {
-  display: flex;
-  flex-direction: column;
-}
-
-.poa-form :deep(.glass-input .v-field__outline) {
-  --v-field-border-opacity: 1 !important;
-  color: #000000 !important;
-}
-
-.poa-form :deep(.glass-input .v-field__outline__start),
-.poa-form :deep(.glass-input .v-field__outline__notch),
-.poa-form :deep(.glass-input .v-field__outline__end) {
-  border-color: #000000 !important;
-}
-
-.poa-form :deep(.glass-input input),
-.poa-form :deep(.glass-input .v-field__input),
-.poa-form :deep(.glass-input .v-select__selection-text) {
-  color: #000000 !important;
-  font-weight: 800;
-}
-
-.premium-button-highlight {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-  transition: all 0.3s ease !important;
-}
-
-.premium-button-highlight:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
-  border-color: rgba(233, 195, 73, 0.8) !important;
-}
-
-.premium-button-highlight.v-btn--disabled {
-  background: #f5f5f5 !important;
-  color: #9e9e9e !important;
-  border-color: #e0e0e0 !important;
-  opacity: 1 !important;
-}
-
-.modal-footer-solid {
-  background: #ffffff !important;
-  opacity: 1 !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
-}
-
-.action-btn-unified {
-  min-width: 180px !important;
-}
-
-.search-input :deep(.v-field) {
-  border-radius: 16px !important;
-  background: rgba(255, 255, 255, 0.03) !important;
-  border: 1px solid rgba(233, 195, 73, 0.15) !important;
-  transition: all 0.3s ease;
-}
-
-.search-input :deep(.v-field--focused) {
-  border-color: rgba(233, 195, 73, 0.6) !important;
-  background: rgba(255, 255, 255, 0.06) !important;
-}
-
-.search-input :deep(input) {
-  color: #ffffff !important;
-  font-weight: 800;
-}
-
-.glass-toggle {
-  background: rgba(255, 255, 255, 0.02) !important;
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(233, 195, 73, 0.15) !important;
-}
-
-.active-toggle-btn {
-  background: rgba(233, 195, 73, 0.15) !important;
-  border-bottom: 2px solid #e9c349 !important;
-}
-
-.mobile-cards-container {
-  padding-bottom: 24px;
-}
-
-.border-accent {
-  border-color: var(--v-theme-accent) !important;
-}
-
-.text-gold {
-  color: #e9c349 !important;
-}
-
-.text-accent {
-  color: var(--v-theme-accent) !important;
-}
-
-.text-tiny {
-  font-size: 0.7rem !important;
-}
-
-.gap-2 {
-  gap: 8px;
-}
-
-.gap-4 {
-  gap: 16px;
-}
-
-/* Glass Dialog Styling matching Figma mockups */
 .poa-dialog-card {
-  background: rgba(15, 23, 42, 0.95) !important;
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
-  border-radius: 24px !important;
+  background: rgba(15, 23, 42, 0.98) !important;
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
-.poa-dialog-header {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.15) !important;
+.ls-1 {
+  letter-spacing: 1px;
 }
 
-.poa-dialog-footer {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.15) !important;
-}
-
-.poa-preview-text {
-  color: #ffffff !important;
-}
-
-.poa-preview-label {
-  color: #e9c349 !important;
-  font-weight: 800 !important;
-  font-size: 0.85rem !important;
-}
-
-.poa-preview-box {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(233, 195, 73, 0.15) !important;
-  color: #ffffff !important;
-  border-radius: 12px;
-}
-
-.poa-form :deep(.v-label) {
-  color: #e9c349 !important;
-  font-weight: 800 !important;
-  font-size: 0.95rem !important;
-  margin-bottom: 6px !important;
-}
-
-.poa-form :deep(.v-field) {
-  background: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 14px !important;
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
-  transition: all 0.3s ease;
-}
-
-.poa-form :deep(.v-field--focused) {
-  border-color: #e9c349 !important;
-  box-shadow: 0 0 12px rgba(233, 195, 73, 0.2) !important;
-}
-
-.poa-form :deep(input),
-.poa-form :deep(textarea),
-.poa-form :deep(.v-select__selection-text) {
-  color: #ffffff !important;
-  font-weight: 600 !important;
-}
-
-/* Mobile (<=1023px only) */
+/* Mobile Bottom Sheet Styles */
 @media (max-width: 1023px) {
-  :deep(.v-row.mb-8.align-center > .v-col-auto) {
-    flex: 0 0 100% !important;
-    max-width: 100% !important;
-    margin-top: 8px;
-  }
-  :deep(.v-row.mb-8.align-center > .v-col-auto .v-btn) {
-    width: 100% !important;
-  }
-  :deep(.v-table) {
-    overflow-x: auto !important;
-    display: block !important;
-  }
-  :deep(.v-table thead th) {
-    white-space: nowrap !important;
-    font-size: 0.7rem !important;
-    padding: 8px !important;
-  }
-  :deep(.v-table tbody td) {
-    padding: 8px !important;
-    font-size: 0.78rem !important;
-    padding: 8px !important;
-  }
-  :deep(.v-data-table .v-table__wrapper) {
-    overflow-x: auto !important;
-  }
   :deep(.v-dialog > .v-overlay__content) {
-    width: 95vw !important;
-    max-width: 95vw !important;
-    margin: 8px !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    border-radius: 28px 28px 0 0 !important;
+    height: auto !important;
+    max-height: 92vh !important;
+    overflow-y: auto !important;
   }
-  :deep(.v-card-text.pa-8) {
-    padding: 12px !important;
-  }
-  :deep(.v-card-actions.pa-8) {
-    padding: 12px !important;
-    flex-wrap: wrap !important;
-    gap: 8px !important;
-  }
-  :deep(.v-card-actions .v-spacer) {
-    display: none !important;
-  }
-  :deep(.v-card-actions .v-btn) {
-    flex: 1 1 auto !important;
-    min-width: 100px !important;
+
+  .poa-dialog-header {
+    border-radius: 28px 28px 0 0 !important;
+    position: sticky;
+    top: 0;
+    z-index: 2;
   }
 }
 </style>

@@ -4,7 +4,7 @@
       <LucideIcon name="file-key" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">تراخيص النظام</span>
     </div>
-    <v-card-text class="pa-4 glass-card">
+    <v-card-text class="pa-4">
       <div
         v-if="trialInfo"
         class="mb-4 glass-panel-light pa-3 rounded-lg border border-gold border-opacity-20"
@@ -42,7 +42,8 @@
         hide-details="auto"
       >
         <template #append-inner>
-          <v-btn class="premium-btn-gold-gradient"
+          <v-btn
+            class="premium-btn-gold-gradient"
             icon
             variant="text"
             color="gold"

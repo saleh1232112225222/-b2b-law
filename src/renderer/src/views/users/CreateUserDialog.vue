@@ -10,11 +10,17 @@
         <LucideIcon name="user-plus" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">إضافة مستخدم جديد للنظام</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="ebony"
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <v-row dense>
           <v-col cols="12">
             <v-text-field
@@ -73,7 +79,7 @@
         </v-row>
       </v-card-text>
       <v-divider class="border-gold opacity-10" />
-      <v-card-actions class="pa-6 glass-card">
+      <v-card-actions class="pa-6">
         <v-spacer />
         <v-btn
           variant="text"

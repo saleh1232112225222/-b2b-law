@@ -6,7 +6,7 @@
     scrollable
     transition="dialog-bottom-transition"
   >
-    <v-card class="rounded-xl shadow-2xl elevation-24">
+    <v-card class="rounded-xl shadow-2xl elevation-24 glass-card">
       <!-- Header -->
       <v-toolbar color="primary" flat height="72" class="px-4">
         <v-btn :icon="ICONS.UI.CLOSE" variant="text" color="white" @click="close"></v-btn>
@@ -168,7 +168,7 @@
 
     <!-- Confirmation Dialog -->
     <v-dialog v-model="showConfirm" max-width="400">
-      <v-card class="rounded-xl pa-4">
+      <v-card class="rounded-xl pa-4 glass-card">
         <v-card-title class="text-h6 font-weight-bold text-center"> تأكيد الحفظ </v-card-title>
         <v-card-text class="text-center py-4">
           هل أنت متأكد من رغبتك في {{ isEdit ? 'تعديل' : 'حفظ' }} بيانات طلب التنفيذ؟

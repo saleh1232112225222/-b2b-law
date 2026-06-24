@@ -18,7 +18,7 @@
         <span class="quick-actions-title">إجراءات سريعة</span>
       </div>
       <v-divider opacity="0.06"></v-divider>
-      <v-card-text class="pa-3 overflow-y-auto glass-card">
+      <v-card-text class="pa-3 overflow-y-auto">
         <v-row dense>
           <v-col v-for="action in quickActions" :key="action.title" cols="12" class="pa-1">
             <v-btn

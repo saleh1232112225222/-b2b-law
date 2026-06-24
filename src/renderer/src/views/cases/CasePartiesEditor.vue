@@ -85,7 +85,7 @@
 
         <template v-if="party.party_type === 'client'">
           <v-col cols="12" md="5">
-            <v-autocomplete class="glass-input"
+            <v-autocomplete
               :model-value="party.client_id"
               :items="clients"
               item-title="name"
@@ -94,8 +94,8 @@
               variant="outlined"
               density="compact"
               hide-details
+              class="glass-input premium-select"
               :rules="[(v: any) => !!v || 'الموكل مطلوب']"
-              class="premium-select"
               @update:model-value="(val: string) => onClientChange(idx, val)"
             >
               <template #prepend-inner>
@@ -108,7 +108,7 @@
         <template v-else>
           <v-col cols="12" md="5">
             <div class="d-flex ga-4 align-center">
-              <v-autocomplete class="glass-input"
+              <v-autocomplete
                 :model-value="party.defendant_id"
                 :items="defendants"
                 item-title="name"
@@ -117,8 +117,8 @@
                 variant="outlined"
                 density="compact"
                 hide-details
+                class="glass-input flex-grow-1 premium-select"
                 :rules="[(v: any) => !!v || 'الخصم مطلوب']"
-                class="flex-grow-1 premium-select"
                 @update:model-value="
                   (val: string) => $emit('defendantChange', { index: idx, value: val })
                 "

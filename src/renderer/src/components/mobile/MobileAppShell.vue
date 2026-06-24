@@ -1,6 +1,6 @@
 <template>
   <MobileErrorBoundary>
-    <v-layout full-height>
+    <v-layout full-height class="mobile-layout">
       <MobileHeader
         :title="currentRouteName"
         :is-dark="isDark"
@@ -27,7 +27,7 @@
         </div>
       </v-main>
 
-      <MobileBottomNav />
+      <MobileBottomNav @more-click="drawerOpen = !drawerOpen" />
 
       <div v-if="showFab" class="mobile-fab" :class="{ 'mobile-fab--hidden': fabHidden }">
         <v-btn

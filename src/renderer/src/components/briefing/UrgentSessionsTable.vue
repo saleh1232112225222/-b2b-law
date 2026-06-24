@@ -1,5 +1,5 @@
 <template>
-  <v-card class="urgent-card premium-lift" elevation="0">
+  <v-card class="urgent-card premium-lift glass-card" elevation="0">
     <v-toolbar color="transparent" flat height="96" class="px-8 border-b">
       <div class="d-flex align-center">
         <div class="urgent-icon-box me-5 premium-lift">

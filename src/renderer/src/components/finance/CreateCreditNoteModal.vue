@@ -1,6 +1,6 @@
 <template>
   <v-dialog v-model="show" width="90%" max-width="600" persistent>
-    <v-card class="rounded-xl overflow-hidden modal-card">
+    <v-card class="rounded-xl overflow-hidden modal-card glass-card">
       <v-toolbar color="error" class="px-6" height="72">
         <LucideIcon name="file-minus" :size="24" class="text-white me-3" />
         <v-toolbar-title class="font-weight-black text-white"
@@ -18,6 +18,7 @@
             <v-col cols="12">
               <v-autocomplete
                 v-model="item.client_id"
+                class="glass-input"
                 :items="clients"
                 item-title="name"
                 item-value="id"
@@ -31,6 +32,7 @@
             <v-col cols="12">
               <v-select
                 v-model="item.invoice_id"
+                class="glass-input"
                 :items="clientInvoices"
                 item-title="invoice_number"
                 item-value="id"
@@ -43,6 +45,7 @@
             <v-col cols="12">
               <v-text-field
                 v-model.number="item.amount"
+                class="glass-input"
                 type="number"
                 label="المبلغ المراد استراده*"
                 variant="outlined"
@@ -57,6 +60,7 @@
             <v-col cols="12">
               <v-textarea
                 v-model="item.reason"
+                class="glass-input"
                 label="سبب الاسترداد / الملاحظات*"
                 variant="outlined"
                 bg-color="white"

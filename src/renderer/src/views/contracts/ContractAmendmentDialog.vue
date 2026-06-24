@@ -13,11 +13,16 @@
         </div>
         <span class="text-h5 font-weight-black text-pure-black">إدراج ملحق للعقد</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn
+          class="premium-btn-gold-gradient"
+          variant="text"
+          color="primary"
+          icon
+          @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
-      <v-card-text class="pa-8 bg-white glass-card">
+      <v-card-text class="pa-8 bg-white">
         <label class="mb-2 font-weight-black text-gold">سبب الإدراج (Required)</label>
         <v-text-field
           v-model="reason"
@@ -30,12 +35,12 @@
           v-model="content"
           variant="outlined"
           rows="6"
-          class="premium-input-solid"
+          class="premium-input-solid glass-input"
           hide-details
         />
       </v-card-text>
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid glass-card">
+      <v-card-actions class="pa-8 modal-footer-solid">
         <v-btn
           variant="flat"
           size="large"

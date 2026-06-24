@@ -15,9 +15,12 @@
       :to="tab.to"
       :disabled="!tab.enabled"
       class="mobile-action-btn"
+      @click="tab.name === 'more' && $emit('more-click')"
     >
-      <v-icon :icon="tab.icon" :size="24" />
-      <span class="text-caption font-weight-bold mt-1">{{ tab.label }}</span>
+      <div class="nav-icon-wrapper">
+        <v-icon :icon="tab.icon" :size="20" />
+      </div>
+      <span class="nav-label">{{ tab.label }}</span>
     </v-btn>
   </v-bottom-navigation>
 </template>
@@ -72,6 +75,7 @@ const visibleTabs = computed(() =>
   allTabs.value.filter((t) => !t.perm || (typeof can === 'function' && can(t.perm)))
 )
 
+defineEmits<{ 'more-click': [] }>()
 const hideBottomNav = computed(
   () => route.path === '/login' || route.path === '/register' || route.query.window === 'new'
 )

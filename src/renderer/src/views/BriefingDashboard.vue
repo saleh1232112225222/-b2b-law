@@ -192,9 +192,9 @@
             <DailyProgress :model-value="completionRate" class="mb-6" />
 
             <!-- Frozen Alert Card -->
-            <v-card class="glass-card"
+            <v-card
               v-if="actionRequired.length > 0"
-              class="rounded-xl border border-error bg-white shadow-premium pa-6 text-center"
+              class="glass-card rounded-xl border border-error bg-white shadow-premium pa-6 text-center"
               elevation="0"
             >
               <LucideIcon
@@ -219,9 +219,9 @@
             </v-card>
 
             <!-- Quick Enforcement -->
-            <v-card class="glass-card"
+            <v-card
               v-if="awaitingEnforcement.length > 0"
-              class="mt-6 rounded-xl border-accent bg-white pa-4"
+              class="glass-card mt-6 rounded-xl border-accent bg-white pa-4"
             >
               <div class="d-flex align-center mb-3">
                 <LucideIcon name="gavel" class="text-accent me-2" :size="20" />
@@ -330,7 +330,10 @@
       <v-window-item value="followup">
         <v-row>
           <v-col cols="12" md="6">
-            <v-card class="rounded-xl border bg-white shadow-sm overflow-hidden glass-card" elevation="0">
+            <v-card
+              class="rounded-xl border bg-white shadow-sm overflow-hidden glass-card"
+              elevation="0"
+            >
               <v-toolbar color="grey-lighten-4" flat height="48" class="px-4">
                 <LucideIcon :name="ICONS.STATUS.PENDING" color="primary" class="me-2" :size="20" />
                 <div class="text-subtitle-2 font-weight-black text-pure-black">
@@ -501,8 +504,9 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
               </div>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentFavors"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="primary"
                 variant="outlined"
@@ -521,8 +525,9 @@
               <div class="text-subtitle-2 font-weight-black text-primary mb-2 d-flex align-center">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
               </div>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentNeedsExecution"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="primary"
                 variant="outlined"
@@ -542,8 +547,9 @@
                 <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
                 للاعتراض على الحكم؟
               </div>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentHasAppealGrounds"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="warning"
                 variant="outlined"
@@ -602,7 +608,7 @@
                 ? 'اكتب سبب النتيجة...'
                 : 'اكتب أي ملاحظات فنية أو إجرائية هنا...'
             "
-            class="rounded-xl"
+            class="rounded-xl glass-input"
             hide-details
           ></v-textarea>
         </v-col>
@@ -663,18 +669,27 @@
           <LucideIcon name="printer" :size="18" class="me-2 text-white" />
           <v-toolbar-title class="text-white font-weight-black">معاينة التقرير</v-toolbar-title>
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="white" @click="printPreviewDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            color="white"
+            @click="printPreviewDialog = false"
+          >
             <LucideIcon :name="ICONS.UI.CLOSE" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-0 glass-card">
+        <v-card-text class="pa-0">
           <iframe v-if="printPreviewHtml" class="print-preview-frame" :srcdoc="printPreviewHtml" />
           <div v-else class="pa-8 text-center text-grey-darken-1">لا توجد معاينة متاحة.</div>
         </v-card-text>
         <v-divider />
-        <v-card-actions class="pa-4 glass-card">
+        <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="printPreviewDialog = false"
+          <v-btn
+            variant="text"
+            class="font-weight-black premium-btn-gold-gradient"
+            @click="printPreviewDialog = false"
             >إغلاق</v-btn
           >
           <v-btn

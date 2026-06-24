@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input glass-input"
+          class="glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -141,7 +141,7 @@
     <!-- Add/Edit Communication Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
       <v-card class="glass-card overflow-hidden glass-card">
-        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center glass-card">
+        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon
               :name="isEditing ? 'message-square' : 'plus-circle'"
@@ -153,12 +153,18 @@
             {{ isEditing ? 'تعديل بروتوكول التواصل' : 'توثيق سجل تواصل جديد' }}
           </span>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="showDialog = false">
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="showDialog = false"
+          >
             <LucideIcon name="x" :size="20" class="text-white" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8 glass-card">
+        <v-card-text class="pa-8">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
             <v-row dense>
               <v-col cols="12" md="6">
@@ -174,7 +180,7 @@
                   ]"
                   label="وسيلة التواصل القانوني*"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="اختر وسيلة التواصل"
                   :rules="[(v) => !!v || 'نوع التواصل مطلوب للتوثيق']"
                   required
@@ -192,7 +198,7 @@
                   v-model="editItem.subject"
                   label="موضوع التواصل / خلاصة الغرض*"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="مثال: تبليغ بموعد جلسة، استلام مستندات..."
                   :rules="[(v) => !!v || 'الموضوع أساسي للبحث والفرز']"
                   required
@@ -210,7 +216,7 @@
                   item-value="id"
                   label="الموكل المعني"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   no-data-text="لا يوجد موكلون مسجلون"
                   placeholder="ابحث عن موكل..."
                   clearable
@@ -228,7 +234,7 @@
                   item-value="id"
                   label="مرتبط بالقضية رقم"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   no-data-text="لا توجد قضايا نشطة"
                   placeholder="ابحث عن قضية..."
                   clearable
@@ -257,7 +263,7 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha glass-card">
+        <v-card-actions class="pa-6 bg-black-alpha">
           <v-btn
             variant="text"
             color="white"

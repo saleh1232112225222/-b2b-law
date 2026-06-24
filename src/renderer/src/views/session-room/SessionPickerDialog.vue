@@ -5,11 +5,16 @@
         <LucideIcon name="calendar-search" :size="24" class="text-accent me-3" />
         <v-toolbar-title class="font-weight-black text-white">اختيار الجلسة</v-toolbar-title>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="white" @click="showVal = false"
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="white"
+          @click="showVal = false"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </v-toolbar>
-      <v-card-text class="pa-6 bg-noir-surface glass-card">
+      <v-card-text class="pa-6 bg-noir-surface">
         <v-alert
           v-if="pickOptions.length === 0"
           type="info"

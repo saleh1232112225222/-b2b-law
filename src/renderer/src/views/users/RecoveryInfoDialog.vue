@@ -5,18 +5,25 @@
         <LucideIcon name="shield-alert" :size="24" class="me-3" />
         <span class="text-h6 font-weight-black">بيانات الاستعادة: {{ username }}</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="ebony"
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <div class="mb-4">
-          <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني للاستعادة (Identity Hint)</v-label
+          <label class="mb-2 font-weight-black text-gold"
+            >البريد الإلكتروني للاستعادة (Identity Hint)</label
           >
           <v-text-field
             v-model="email"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             placeholder="example@email.com"
             hide-details
           >
@@ -30,7 +37,7 @@
           <v-text-field
             v-model="question"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             placeholder="ما هو اسم مدرستك الأولى؟"
             hide-details
           >
@@ -40,12 +47,13 @@
           </v-text-field>
         </div>
         <div class="mb-4">
-          <label class="mb-2 font-weight-black text-gold">الإجابة السرية (اتركه فارغاً لعدم التغيير)</v-label
+          <label class="mb-2 font-weight-black text-gold"
+            >الإجابة السرية (اتركه فارغاً لعدم التغيير)</label
           >
           <v-text-field
             v-model="answer"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             placeholder="أدخل الإجابة الجديدة هنا"
             hide-details
             type="password"
@@ -64,7 +72,7 @@
           بصفتك مديراً، يمكنك تعيين هذه البيانات للموظف في حال نسيانها بالكامل.
         </v-alert>
       </v-card-text>
-      <v-card-actions class="pa-8 pt-0 ga-3 glass-card">
+      <v-card-actions class="pa-8 pt-0 ga-3">
         <v-btn
           variant="text"
           color="gold"

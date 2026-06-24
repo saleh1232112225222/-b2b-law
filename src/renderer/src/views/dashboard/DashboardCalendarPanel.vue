@@ -1,22 +1,40 @@
 <template>
   <v-window-item value="calendar" class="h-100">
     <v-row dense class="ma-0">
-      <v-col cols="12" sm="7">
-        <div class="d-flex align-center justify-space-between mb-1">
-          <div class="font-weight-black text-white text-tiny">
+      <v-col cols="12" sm="7" class="pr-0">
+        <div class="d-flex align-center justify-space-between mb-3 px-1">
+          <div class="font-weight-bold text-ebony text-subtitle-1">
             {{ calendarMonthLabel }}
           </div>
-          <div class="d-flex align-center gap-1">
-            <v-btn class="premium-btn-gold-gradient" variant="tonal" color="primary" icon size="x-small" @click="$emit('prev-month')">
-              <LucideIcon name="chevron-right" :size="12" />
+          <div class="d-flex align-center gap-2">
+            <v-btn
+              variant="tonal"
+              color="grey-darken-1"
+              icon
+              size="small"
+              class="rounded-circle"
+              @click="$emit('prev-month')"
+            >
+              <LucideIcon name="chevron-right" :size="16" />
             </v-btn>
-            <v-btn class="premium-btn-gold-gradient" variant="tonal" color="primary" icon size="x-small" @click="$emit('next-month')">
-              <LucideIcon name="chevron-left" :size="12" />
+            <v-btn
+              variant="tonal"
+              color="grey-darken-1"
+              icon
+              size="small"
+              class="rounded-circle"
+              @click="$emit('next-month')"
+            >
+              <LucideIcon name="chevron-left" :size="16" />
             </v-btn>
           </div>
         </div>
-        <div class="calendar-grid-mini border-gold-glow elite-glass">
-          <div v-for="d in weekDays" :key="d" class="calendar-head font-weight-black">
+        <div class="calendar-grid-mini bg-white rounded-lg border">
+          <div
+            v-for="d in weekDays"
+            :key="d"
+            class="calendar-head font-weight-bold text-grey-darken-3"
+          >
             {{ d }}
           </div>
           <button
@@ -39,36 +57,41 @@
           </button>
         </div>
       </v-col>
-      <v-col cols="12" sm="5" class="d-flex flex-column gap-1 overflow-hidden">
+      <v-col cols="12" sm="5" class="d-flex flex-column gap-1 overflow-hidden pl-0">
         <v-card
           elevation="0"
-          class="glass-card-light overflow-hidden flex-grow-1 d-flex flex-column glass-card"
+          class="bg-white border rounded-lg overflow-hidden flex-grow-1 d-flex flex-column"
           min-height="100"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0 glass-card">
-            <span class="text-tiny-v font-weight-black dashboard-title">
-              {{ selectedDate }} &nbsp; &nbsp; &nbsp; | &nbsp; &nbsp; &nbsp;
-              {{ gregorianIsoToHijriIso(selectedDate) }}
+          <v-card-title
+            class="pa-2 px-3 d-flex align-center justify-start shrink-0 bg-grey-lighten-4"
+          >
+            <span class="text-caption font-weight-bold text-ebony">
+              {{ gregorianIsoToHijriIso(selectedDate) }} &nbsp; | &nbsp; {{ selectedDate }}
             </span>
           </v-card-title>
-          <v-divider opacity="0.1"></v-divider>
-          <div class="overflow-y-auto max-h-140">
+          <v-divider></v-divider>
+          <div class="overflow-y-auto flex-grow-1 p-2">
             <div
               v-if="selectedImportantDates.length === 0"
-              class="pa-2 text-center opacity-40 text-tiny-v"
+              class="pa-4 text-center text-grey text-body-2 mt-4"
             >
-              لا توجد أحداث
+              لا توجد بيانات
             </div>
-            <v-list v-else class="pa-0 dashboard-list-mini" density="compact">
+            <v-list v-else class="pa-0 bg-transparent" density="compact">
               <v-list-item
                 v-for="it in selectedImportantDates"
                 :key="it.type + it.date + it.title"
-                class="px-2 border-b"
+                class="px-3 py-2 border-b"
               >
-                <v-list-item-title class="font-weight-black text-tiny-v">{{
+                <v-list-item-title class="font-weight-bold text-body-2 text-ebony mb-1">{{
                   it.title
                 }}</v-list-item-title>
-                <v-list-item-subtitle v-if="it.subtitle" class="text-tiny-vv opacity-70">
+                <v-list-item-subtitle
+                  v-if="it.subtitle"
+                  class="text-caption text-grey-darken-1"
+                  style="white-space: normal"
+                >
                   {{ it.subtitle }}
                 </v-list-item-subtitle>
               </v-list-item>
@@ -105,118 +128,72 @@ defineEmits<{
 .calendar-grid-mini {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 3px;
-  padding: 6px;
-  background: rgba(197, 160, 40, 0.03);
-  border-radius: 12px;
-  box-shadow: inset 0 0 10px rgba(197, 160, 40, 0.05);
+  padding: 8px;
 }
 
 .calendar-cell-mini {
   border-radius: 8px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(197, 160, 40, 0.05) 100%);
-  min-height: 30px;
+  background: #ffffff;
+  min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem !important;
-  border: 1px solid rgba(197, 160, 40, 0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: #000 !important;
-  font-weight: 900;
+  font-size: 1.15rem !important;
+  border: 1px solid #f8f9fa;
+  transition: all 0.2s ease;
+  color: #1f2937 !important;
+  font-weight: 400;
 }
 
 .calendar-cell-mini:hover {
-  background: rgba(220, 38, 38, 0.1) !important;
-  border-color: rgba(220, 38, 38, 0.5) !important;
-  color: #dc2626 !important;
-  transform: scale(1.08);
-  z-index: 2;
+  background: #f3f4f6 !important;
+  border-color: #e5e7eb !important;
 }
 
 .calendar-day__dot {
   position: absolute;
   bottom: 4px;
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
   background: #3b82f6 !important;
   border-radius: 50%;
-  box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
 }
 
 .calendar-day {
   position: relative;
 }
 
-.calendar-day--selected {
-  background: linear-gradient(135deg, var(--v-primary-base) 0%, #d4af37 100%) !important;
-  color: white !important;
-  font-weight: 900 !important;
-  box-shadow: 0 4px 12px rgba(197, 160, 40, 0.3) !important;
-  border: none !important;
+.calendar-day--muted {
+  color: #9ca3af !important;
+  background: #f9fafb;
 }
 
-.text-tiny-v {
-  font-size: 0.6rem !important;
-  height: 18px !important;
+.calendar-day--selected {
+  background: #fff8eb !important;
+  color: #1f2937 !important;
+  font-weight: 600 !important;
+  border: 2px solid #f59e0b !important;
 }
 
 .calendar-head {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem !important;
-  color: #000 !important;
-  padding: 4px 0;
+  font-size: 0.75rem !important;
+  color: #4b5563 !important;
+  padding: 8px 0;
   text-align: center;
-  min-height: 24px;
 }
 
-.text-tiny-vv {
-  font-size: 0.55rem !important;
-  line-height: 1 !important;
+.border {
+  border: 1px solid #e5e7eb !important;
 }
 
-.max-h-140 {
-  max-height: 140px;
-}
-
-.border-gold-glow {
-  box-shadow: 0 0 15px rgba(197, 160, 40, 0.1);
-  border: 1px solid rgba(197, 160, 40, 0.15) !important;
-}
-
-.dashboard-title {
-  color: #000000 !important;
-}
-
-.dashboard-list-mini :deep(.v-list-item) {
-  min-height: 24px !important;
-  padding: 2px 8px !important;
-}
-
-.dashboard-list-mini :deep(.v-list-item-title) {
-  font-size: 0.7rem !important;
-  line-height: 1.1 !important;
-  font-weight: 800 !important;
-  color: #000 !important;
-}
-
-.dashboard-list-mini :deep(.v-list-item-subtitle) {
-  font-size: 0.6rem !important;
-  line-height: 1.1 !important;
-  opacity: 0.7;
-}
-
-[data-theme='dark'] .dashboard-title {
-  color: #ffffff !important;
+.border-b {
+  border-bottom: 1px solid #e5e7eb !important;
 }
 
 @media (max-width: 768px) {
-  .calendar-grid-mini {
-    font-size: 0.75rem !important;
-  }
-
   .calendar-cell-mini {
     min-height: 36px !important;
     min-width: 36px !important;
@@ -227,10 +204,6 @@ defineEmits<{
   .v-col-sm-5 {
     flex: 0 0 100% !important;
     max-width: 100% !important;
-  }
-
-  .dashboard-title {
-    font-size: 0.8rem !important;
   }
 }
 </style>

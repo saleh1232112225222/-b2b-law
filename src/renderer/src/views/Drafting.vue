@@ -60,7 +60,10 @@
           </v-list>
         </v-card>
 
-        <v-card elevation="0" class="glass-panel-light pa-8 border-gold-alpha text-center glass-card">
+        <v-card
+          elevation="0"
+          class="glass-panel-light pa-8 border-gold-alpha text-center glass-card"
+        >
           <div class="bg-accent-alpha pa-3 rounded-xl d-inline-flex mb-4">
             <LucideIcon name="lightbulb" :size="28" class="text-gold" />
           </div>
@@ -105,7 +108,12 @@
             </div>
 
             <div class="d-flex ga-1 px-4 border-l border-gold-alpha">
-              <v-btn icon variant="tonal" color="accent" size="small" class="rounded-lg premium-btn-gold-gradient"
+              <v-btn
+                icon
+                variant="tonal"
+                color="accent"
+                size="small"
+                class="rounded-lg premium-btn-gold-gradient"
                 ><LucideIcon name="align-right" :size="18"
               /></v-btn>
               <v-btn
@@ -147,7 +155,7 @@
           </div>
 
           <!-- Content -->
-          <v-card-text class="pa-12 flex-grow-1 position-relative glass-card">
+          <v-card-text class="pa-12 flex-grow-1 position-relative">
             <v-fade-transition hide-on-leave>
               <div
                 v-if="aiLoading"
@@ -188,7 +196,7 @@
               placeholder="اكتب وقائع الدعوى أو بنود العقد هنا..."
               auto-grow
               rows="30"
-              class="draft-editor"
+              class="draft-editor glass-input"
               hide-details
             ></v-textarea>
           </v-card-text>

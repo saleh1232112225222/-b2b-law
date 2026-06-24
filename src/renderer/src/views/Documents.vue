@@ -39,7 +39,7 @@
               variant="outlined"
               density="comfortable"
               hide-details
-              class="glass-input glass-input"
+              class="glass-input"
               clearable
             >
               <template #prepend-inner>
@@ -155,7 +155,7 @@
     <!-- Upload Document Dialog -->
     <v-dialog v-model="showUploadDialog" width="90%" max-width="800" persistent scrollable>
       <v-card class="glass-card overflow-hidden glass-card">
-        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center glass-card">
+        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="file-up" :size="20" class="text-gold" />
           </div>
@@ -172,7 +172,7 @@
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8 bg-noir-surface glass-card">
+        <v-card-text class="pa-8 bg-noir-surface">
           <div
             class="d-flex align-center mb-8 pa-6 glass-panel-light rounded-xl border-gold-alpha border-dashed"
           >
@@ -217,7 +217,7 @@
                 item-value="id"
                 placeholder="ابحث عن رقم القضية..."
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
                 :custom-filter="arabicFilter"
               >
                 <template #prepend-inner>
@@ -238,7 +238,7 @@
                 item-value="id"
                 placeholder="اختر المهمة المعنية..."
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
                 :custom-filter="arabicFilter"
               >
                 <template #prepend-inner>
@@ -259,7 +259,7 @@
                 item-value="id"
                 placeholder="ابحث عن تاريخ أو رقم الجلسة..."
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
                 :custom-filter="arabicFilter"
               >
                 <template #prepend-inner>
@@ -277,7 +277,7 @@
                 v-model="uploadForm.linkedTitle"
                 placeholder="مثال: مستندات تأسيس الشركة، ملفات عامة..."
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
               >
                 <template #prepend-inner>
                   <LucideIcon name="tag" :size="18" class="text-gold opacity-40" />
@@ -288,7 +288,7 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-8 glass-panel border-t border-gold-alpha glass-card">
+        <v-card-actions class="pa-8 glass-panel border-t border-gold-alpha">
           <v-btn
             variant="text"
             color="error"

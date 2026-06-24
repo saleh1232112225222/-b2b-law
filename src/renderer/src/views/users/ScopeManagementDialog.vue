@@ -11,11 +11,17 @@
         <LucideIcon name="scope" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">إدارة نطاق العمل (Scope)</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="ebony"
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <div class="text-body-2 text-gold opacity-60 mb-6 font-weight-bold">
           اربط المستخدم بقضايا أو عملاء محددين للتحكم في الوصول الدقيق للبيانات.
         </div>
@@ -26,7 +32,7 @@
               :items="scopeTypes"
               label="نوع النطاق"
               variant="outlined"
-              class="glass-input glass-input"
+              class="glass-input"
               hide-details
             />
           </v-col>
@@ -58,7 +64,7 @@
               :items="accessLevels"
               label="المستوى"
               variant="outlined"
-              class="glass-input glass-input"
+              class="glass-input"
               hide-details
             />
           </v-col>
@@ -118,7 +124,8 @@
                     >
                   </td>
                   <td class="text-center">
-                    <v-btn class="premium-btn-gold-gradient"
+                    <v-btn
+                      class="premium-btn-gold-gradient"
                       icon
                       variant="tonal"
                       color="error"
@@ -174,7 +181,8 @@
                     >
                   </td>
                   <td class="text-center">
-                    <v-btn class="premium-btn-gold-gradient"
+                    <v-btn
+                      class="premium-btn-gold-gradient"
                       icon
                       variant="tonal"
                       color="error"
@@ -190,7 +198,7 @@
           </v-col>
         </v-row>
       </v-card-text>
-      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10 glass-card">
+      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10">
         <v-spacer />
         <v-btn
           color="gold"

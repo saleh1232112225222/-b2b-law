@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input glass-input"
+          class="glass-input"
           clearable
         >
           <template #prepend-inner>

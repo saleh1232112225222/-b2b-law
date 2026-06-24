@@ -1,7 +1,11 @@
 ﻿<template>
   <v-container fluid class="pa-6">
     <div class="d-flex justify-space-between align-center mb-4">
-      <v-btn variant="outlined" to="/cases" class="font-weight-black return-btn-gold premium-btn-gold-gradient">
+      <v-btn
+        variant="outlined"
+        to="/cases"
+        class="font-weight-black return-btn-gold premium-btn-gold-gradient"
+      >
         <LucideIcon name="arrow-right" :size="18" class="me-2" /> العودة للقضايا
       </v-btn>
       <v-btn

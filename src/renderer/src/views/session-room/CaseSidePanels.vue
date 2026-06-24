@@ -101,7 +101,8 @@
               </div>
             </div>
             <div class="d-flex align-center ga-1">
-              <v-btn class="premium-btn-gold-gradient"
+              <v-btn
+                class="premium-btn-gold-gradient"
                 icon
                 size="x-small"
                 variant="text"
@@ -111,7 +112,8 @@
               >
                 <LucideIcon name="link" :size="14" />
               </v-btn>
-              <v-btn class="premium-btn-gold-gradient"
+              <v-btn
+                class="premium-btn-gold-gradient"
                 icon
                 size="x-small"
                 variant="text"

@@ -14,7 +14,12 @@
         </div>
         <span class="text-h5 font-weight-black text-pure-black">تحرير عقد قانوني جديد</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn
+          class="premium-btn-gold-gradient"
+          variant="text"
+          color="primary"
+          icon
+          @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
@@ -26,7 +31,7 @@
         </v-tabs>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
+      <v-card-text class="pa-8 bg-white modal-scrollable">
         <v-form ref="createForm" v-model="createValid">
           <v-row>
             <v-col cols="12" md="8">
@@ -195,7 +200,7 @@
                   item-title="title"
                   item-value="value"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   clearable
                   hide-details
                 />
@@ -283,7 +288,8 @@
                     />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <label class="mb-2 font-weight-black text-gold">توضع تلقائياً في تاريخ البداية</v-label
+                    <label class="mb-2 font-weight-black text-gold"
+                      >توضع تلقائياً في تاريخ البداية</label
                     >
                   </v-col>
                   <v-col cols="12" md="5">
@@ -307,7 +313,8 @@
                     />
                   </v-col>
                   <v-col cols="12" md="4">
-                    <label class="mb-2 font-weight-black text-gold">توضع تلقائياً في تاريخ النهاية</v-label
+                    <label class="mb-2 font-weight-black text-gold"
+                      >توضع تلقائياً في تاريخ النهاية</label
                     >
                   </v-col>
                 </v-row>
@@ -407,7 +414,8 @@
                     <td class="font-weight-black">{{ p.display_name }}</td>
                     <td>{{ roleLabel(p.role_key) }}</td>
                     <td class="text-center">
-                      <v-btn class="premium-btn-gold-gradient"
+                      <v-btn
+                        class="premium-btn-gold-gradient"
                         icon
                         variant="tonal"
                         color="error"
@@ -427,7 +435,7 @@
                 v-model="draft.text_content"
                 variant="outlined"
                 rows="10"
-                class="premium-input-solid font-judicial"
+                class="premium-input-solid font-judicial glass-input"
                 :rules="[required]"
                 hide-details="auto"
               />
@@ -436,7 +444,7 @@
         </v-form>
       </v-card-text>
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
         <v-btn
           variant="flat"
           size="large"

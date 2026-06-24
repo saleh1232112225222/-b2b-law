@@ -41,7 +41,7 @@
             :items="linkTypes"
             label="نوع الارتباط المرجعي"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
           >
@@ -58,7 +58,7 @@
             item-value="value"
             label="المرجع المحدد"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
           />
@@ -69,7 +69,7 @@
             label="من تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
           />
         </v-col>
@@ -79,7 +79,7 @@
             label="إلى تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
           />
         </v-col>

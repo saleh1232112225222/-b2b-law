@@ -76,7 +76,7 @@
               variant="outlined"
               density="comfortable"
               hide-details
-              class="glass-input glass-input"
+              class="glass-input"
               clearable
             >
               <template #prepend-inner>
@@ -267,12 +267,18 @@
             >
               <LucideIcon name="printer" :size="18" class="me-2" /> طباعة
             </v-btn>
-            <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="showPreviewDialog = false">
+            <v-btn
+              class="premium-btn-gold-gradient"
+              variant="text"
+              color="gold"
+              icon
+              @click="showPreviewDialog = false"
+            >
               <LucideIcon name="x" :size="24" />
             </v-btn>
           </div>
 
-          <v-card-text class="pa-0 bg-white glass-card" style="height: 80vh">
+          <v-card-text class="pa-0 bg-white" style="height: 80vh">
             <div
               v-if="previewLoading"
               class="d-flex flex-column align-center justify-center h-100 bg-primary-dark"
@@ -308,12 +314,18 @@
               {{ isEditing ? 'تعديل المذكرة القضائية' : 'تحرير مذكرة قانونية جديدة' }}
             </span>
             <v-spacer></v-spacer>
-            <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="showDialog = false">
+            <v-btn
+              class="premium-btn-gold-gradient"
+              variant="text"
+              color="gold"
+              icon
+              @click="showDialog = false"
+            >
               <LucideIcon name="x" :size="24" />
             </v-btn>
           </div>
 
-          <v-card-text class="pa-8 bg-primary-dark modal-scrollable glass-card">
+          <v-card-text class="pa-8 bg-primary-dark modal-scrollable">
             <v-form ref="formRef" lazy-validation>
               <v-row>
                 <!-- Info Section -->
@@ -328,8 +340,7 @@
                       <LucideIcon name="link" :size="18" class="me-3 text-accent" /> ارتباط القضية
                     </div>
 
-                    <label class="mb-2 font-weight-black text-gold">رقم القضية*</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">رقم القضية*</label>
                     <v-autocomplete
                       v-model="editItem.case_id"
                       :items="safeArray(casesStore.cases)"
@@ -358,8 +369,7 @@
                       </template>
                     </v-autocomplete>
 
-                    <label class="mb-2 font-weight-black text-gold">الموكل</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">الموكل</label>
                     <v-text-field
                       v-model="displayData.client_name"
                       variant="outlined"
@@ -371,8 +381,7 @@
                       </template>
                     </v-text-field>
 
-                    <label class="mb-2 font-weight-black text-gold">الخصم</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">الخصم</label>
                     <v-text-field
                       v-if="displayData.opponent_name || showOpponentField"
                       v-model="editItem.opponent_name"
@@ -397,8 +406,7 @@
                       والتصنيف
                     </div>
 
-                    <label class="mb-2 font-weight-black text-gold">عنوان المذكرة*</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">عنوان المذكرة*</label>
                     <v-text-field
                       v-model="editItem.memo_title"
                       placeholder="مثال: مذكرة جوابية على دعوى..."
@@ -407,8 +415,7 @@
                       :rules="[(v) => !!v || 'عنوان المذكرة مطلوب']"
                     ></v-text-field>
 
-                    <label class="mb-2 font-weight-black text-gold">نوع المذكرة</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">نوع المذكرة</label>
                     <v-select
                       v-model="editItem.memo_type"
                       :items="memoTypes"
@@ -416,17 +423,15 @@
                       class="glass-input mb-4 glass-input"
                     ></v-select>
 
-                    <label class="mb-2 font-weight-black text-gold">تاريخ المذكرة</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">تاريخ المذكرة</label>
                     <DualDatePicker v-model="editItem.memo_date" class="mb-4" />
 
-                    <label class="mb-2 font-weight-black text-gold">حالة المذكرة</v-label
-                    >
+                    <label class="mb-2 font-weight-black text-gold">حالة المذكرة</label>
                     <v-select
                       v-model="editItem.memo_status"
                       :items="['مسودة', 'تحت التحرير', 'مقدمة', 'معتمدة']"
                       variant="outlined"
-                      class="glass-input glass-input"
+                      class="glass-input"
                     ></v-select>
                   </v-card>
                 </v-col>
@@ -464,7 +469,7 @@
                       placeholder="ابدأ كتابة نص المذكرة القانونية هنا..."
                       auto-grow
                       rows="25"
-                      class="memo-editor pa-8 text-white leading-loose font-serif text-h6"
+                      class="memo-editor pa-8 text-white leading-loose font-serif text-h6 glass-input"
                       hide-details
                     ></v-textarea>
                   </v-card>
@@ -474,7 +479,7 @@
           </v-card-text>
 
           <v-divider class="border-gold opacity-10"></v-divider>
-          <v-card-actions class="pa-8 glass-panel glass-card">
+          <v-card-actions class="pa-8 glass-panel">
             <v-btn
               variant="text"
               color="gold"

@@ -9,6 +9,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model.number="model.amount_instrument"
+          class="glass-input"
           label="مبلغ السند الإجمالي"
           type="number"
           variant="outlined"
@@ -22,6 +23,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model.number="model.amount_collected_for_client"
+          class="glass-input"
           label="المبلغ المسترد للعميل حالياً"
           type="number"
           variant="outlined"
@@ -49,6 +51,7 @@
       <v-col cols="12" class="mt-4">
         <v-select
           v-model="model.currency"
+          class="glass-input"
           label="العملة"
           :items="['ريال سعودي', 'دولار أمريكي', 'درهم إماراتي', 'أخرى']"
           variant="outlined"

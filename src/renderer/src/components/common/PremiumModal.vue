@@ -6,7 +6,7 @@
     transition="dialog-bottom-transition"
     class="premium-modal"
   >
-    <v-card class="rounded-xl overflow-hidden" elevation="24">
+    <v-card class="rounded-xl overflow-hidden glass-card" elevation="24">
       <!-- Header -->
       <div class="modal-header pa-6 d-flex align-center bg-primary text-white">
         <div class="header-icon-box me-4">

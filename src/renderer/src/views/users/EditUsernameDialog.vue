@@ -5,11 +5,17 @@
         <LucideIcon name="pencil" :size="24" class="me-3" />
         <span class="text-h6 font-weight-black">تعديل اسم المستخدم</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="ebony"
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <div class="text-caption text-gold opacity-60 mb-4 font-weight-black">
           المستخدم الحالي: {{ oldUsername }}
         </div>
@@ -17,7 +23,7 @@
         <v-text-field
           v-model="newUsername"
           variant="outlined"
-          class="glass-input glass-input"
+          class="glass-input"
           placeholder="أدخل اسم المستخدم الجديد"
           hide-details="auto"
           autofocus
@@ -36,7 +42,7 @@
           تغيير اسم المستخدم سيؤثر على عملية تسجيل الدخول القادمة لهذا الحساب.
         </v-alert>
       </v-card-text>
-      <v-card-actions class="pa-8 pt-0 ga-3 glass-card">
+      <v-card-actions class="pa-8 pt-0 ga-3">
         <v-btn
           variant="text"
           color="gold"

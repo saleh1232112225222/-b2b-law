@@ -13,7 +13,7 @@
       </v-tabs>
     </div>
     <v-divider class="border-gold opacity-10" />
-    <v-card-text class="pa-8 glass-card">
+    <v-card-text class="pa-8">
       <v-alert
         v-if="!can('view_contracts')"
         type="error"
@@ -32,7 +32,7 @@
               density="comfortable"
               placeholder="بحث برقم العقد، العنوان، أو اسم الطرف..."
               hide-details
-              class="glass-input glass-input"
+              class="glass-input"
               clearable
               @update:model-value="$emit('update:search', $event)"
             >

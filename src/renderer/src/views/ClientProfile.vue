@@ -2,7 +2,11 @@
   <v-container fluid class="pa-6 rtl">
     <!-- Navigation Buttons -->
     <div class="d-flex justify-space-between align-center mb-6">
-      <v-btn variant="outlined" to="/clients" class="font-weight-black return-btn-gold premium-btn-gold-gradient">
+      <v-btn
+        variant="outlined"
+        to="/clients"
+        class="font-weight-black return-btn-gold premium-btn-gold-gradient"
+      >
         <LucideIcon name="arrow-right" :size="20" class="me-2" /> العودة للموكلين
       </v-btn>
 
@@ -256,7 +260,7 @@
     <!-- Edit Dialog -->
     <v-dialog v-model="showEditDialog" width="90%" max-width="850" persistent scrollable>
       <v-card class="glass-card overflow-hidden glass-card">
-        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center glass-card">
+        <v-card-title class="pa-6 border-b border-gold opacity-10 d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="user-cog" :size="20" class="text-gold" />
           </div>
@@ -273,12 +277,12 @@
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8 glass-card">
+        <v-card-text class="pa-8">
           <ClientForm v-model="editClientItem" v-model:valid="formValid" />
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha glass-card">
+        <v-card-actions class="pa-6 bg-black-alpha">
           <v-btn
             variant="text"
             color="white"

@@ -5,8 +5,8 @@
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card elevation="0" class="rounded-xl glass-card border shadow-premium glass-card">
-      <v-card-title class="font-weight-black glass-card">{{ title }}</v-card-title>
-      <v-card-text class="pt-2 glass-card">
+      <v-card-title class="font-weight-black">{{ title }}</v-card-title>
+      <v-card-text class="pt-2">
         <v-textarea
           v-model="reason"
           :label="label"
@@ -15,12 +15,16 @@
           rows="3"
           auto-grow
           hide-details
-          class="rounded-xl premium-select"
+          class="rounded-xl premium-select glass-input"
         />
       </v-card-text>
-      <v-card-actions class="px-4 pb-4 glass-card">
+      <v-card-actions class="px-4 pb-4">
         <v-spacer />
-        <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="$emit('update:modelValue', false)">
+        <v-btn
+          variant="text"
+          class="font-weight-black premium-btn-gold-gradient"
+          @click="$emit('update:modelValue', false)"
+        >
           تراجع
         </v-btn>
         <v-btn

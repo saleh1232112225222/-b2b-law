@@ -24,7 +24,7 @@
         </v-btn>
       </div>
 
-      <v-card-text class="pa-0 glass-card">
+      <v-card-text class="pa-0">
         <!-- Filters Area -->
         <v-expand-transition>
           <div v-if="showFilters" class="filters-panel pa-6 border-b glass-panel-light">
@@ -38,7 +38,7 @@
                   variant="outlined"
                   clearable
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                 ></v-select>
               </v-col>
               <v-col cols="12" sm="2">
@@ -50,7 +50,7 @@
                   variant="outlined"
                   clearable
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                 ></v-select>
               </v-col>
               <v-col cols="12" sm="3">
@@ -60,7 +60,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                   clearable
                 >
                   <template #prepend-inner>
@@ -76,7 +76,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="2">
@@ -87,7 +87,7 @@
                   density="comfortable"
                   variant="outlined"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                 ></v-text-field>
               </v-col>
             </v-row>
@@ -100,10 +100,19 @@
               >
                 إعادة تعيين
               </v-btn>
-              <v-btn color="accent" class="rounded-lg px-6 font-weight-black premium-btn-gold-gradient" @click="loadLogs">
+              <v-btn
+                color="accent"
+                class="rounded-lg px-6 font-weight-black premium-btn-gold-gradient"
+                @click="loadLogs"
+              >
                 تطبيق الفلاتر
               </v-btn>
-              <v-btn variant="tonal" color="gold" class="ms-2 font-weight-black premium-btn-gold-gradient" @click="exportPdf">
+              <v-btn
+                variant="tonal"
+                color="gold"
+                class="ms-2 font-weight-black premium-btn-gold-gradient"
+                @click="exportPdf"
+              >
                 <LucideIcon name="file-down" :size="18" class="me-2" /> تصدير PDF
               </v-btn>
             </div>
@@ -205,7 +214,8 @@
                   {{ (log as ActivityLog).entity_name || '---' }}
                 </td>
                 <td class="text-center">
-                  <v-btn class="premium-btn-gold-gradient"
+                  <v-btn
+                    class="premium-btn-gold-gradient"
                     variant="text"
                     density="comfortable"
                     color="accent"
@@ -230,7 +240,7 @@
               variant="outlined"
               hide-details
               style="width: 140px"
-              class="me-3 glass-input glass-input"
+              class="me-3 glass-input"
             />
             <v-pagination
               v-model="page"
@@ -252,11 +262,17 @@
           <LucideIcon name="search-code" :size="24" class="text-accent me-3" />
           <span class="text-h6 font-weight-black text-gold">تفاصيل النشاط</span>
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" variant="text" density="comfortable" color="gold" @click="detailsModal = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            density="comfortable"
+            color="gold"
+            @click="detailsModal = false"
+          >
             <LucideIcon name="x" :size="20" />
           </v-btn>
         </div>
-        <v-card-text class="pa-6 modal-scrollable bg-primary-dark glass-card">
+        <v-card-text class="pa-6 modal-scrollable bg-primary-dark">
           <v-row dense>
             <v-col cols="12" sm="6">
               <div class="detail-row mb-4">
@@ -331,7 +347,7 @@
             >{{ formatMetadata(selectedLog?.metadata_json) }}</pre
           >
         </v-card-text>
-        <v-card-actions class="pa-6 glass-panel glass-card">
+        <v-card-actions class="pa-6 glass-panel">
           <v-btn
             color="accent"
             block
@@ -352,7 +368,7 @@
           <LucideIcon name="alert-triangle" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تأكيد تطهير السجلات</span>
         </div>
-        <v-card-text class="pa-8 text-center bg-primary-dark glass-card">
+        <v-card-text class="pa-8 text-center bg-primary-dark">
           <LucideIcon name="history" :size="64" class="text-error opacity-20 mb-4" />
           <p class="text-h6 font-weight-black text-white mb-2">أنت على وشك حذف السجلات نهائياً</p>
           <p class="text-body-2 text-gold opacity-70 mb-6 leading-relaxed">
@@ -371,7 +387,7 @@
           />
         </v-card-text>
         <v-divider class="border-gold opacity-10"></v-divider>
-        <v-card-actions class="pa-6 bg-primary-dark d-flex flex-column gap-3 glass-card">
+        <v-card-actions class="pa-6 bg-primary-dark d-flex flex-column gap-3">
           <v-btn
             color="error"
             variant="flat"

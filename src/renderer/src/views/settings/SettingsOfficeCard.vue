@@ -4,7 +4,7 @@
       <LucideIcon name="building-2" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">بيانات المكتب</span>
     </div>
-    <v-card-text class="pa-4 glass-card">
+    <v-card-text class="pa-4">
       <v-row dense>
         <v-col cols="12">
           <v-text-field
@@ -13,7 +13,7 @@
             placeholder="اكتب اسم المكتب هنا"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input glass-input"
+            class="mb-3 glass-input"
             hide-details="auto"
             @update:model-value="emitField('officeName', $event)"
           ></v-text-field>
@@ -24,7 +24,7 @@
             label="العنوان"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input glass-input"
+            class="mb-3 glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmAddress', $event)"
           ></v-text-field>
@@ -35,7 +35,7 @@
             label="الهاتف"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input glass-input"
+            class="mb-3 glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmPhone', $event)"
           ></v-text-field>
@@ -46,7 +46,7 @@
             label="البريد الإلكتروني"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input glass-input"
+            class="mb-3 glass-input"
             hide-details="auto"
             @update:model-value="emitField('firmEmail', $event)"
           ></v-text-field>
@@ -58,7 +58,7 @@
             label="المظهر"
             variant="outlined"
             density="compact"
-            class="mb-3 glass-input glass-input"
+            class="mb-3 glass-input"
             hide-details="auto"
             @update:model-value="emitField('theme', $event)"
           ></v-select>

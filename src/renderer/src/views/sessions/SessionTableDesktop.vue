@@ -46,10 +46,10 @@
             <v-btn
               variant="text"
               color="gold"
-              class="px-0 text-body-1 font-weight-black hover-gold premium-btn-gold-gradient"
+              class="px-0 text-body-1 font-weight-black hover-gold"
               @click="$emit('edit', item)"
             >
-              {{ item.date }} م
+              {{ item.date ? item.date.split('T')[0] : '' }} م
             </v-btn>
             <span class="text-tiny text-gold opacity-60 font-weight-black"
               >{{ item.date_hijri || '---' }} هـ</span
@@ -79,7 +79,7 @@
             v-if="item.client_id"
             variant="text"
             color="gold"
-            class="px-0 text-body-2 font-weight-black opacity-80 hover-gold premium-btn-gold-gradient"
+            class="px-0 text-body-2 font-weight-black opacity-80 hover-gold"
             :to="'/clients/' + item.client_id"
             density="compact"
           >
@@ -95,7 +95,7 @@
             v-if="item.case_id"
             variant="text"
             color="accent"
-            class="px-0 text-body-2 font-weight-black hover-gold premium-btn-gold-gradient"
+            class="px-0 text-body-2 font-weight-black hover-gold"
             :to="'/cases/' + item.case_id"
             density="compact"
           >
@@ -129,7 +129,7 @@
               variant="text"
               color="accent"
               size="small"
-              class="premium-hover premium-btn-gold-gradient"
+              class="premium-hover"
               @click="$emit('open-session-room', item)"
             >
               <LucideIcon name="swords" :size="20" />
@@ -140,7 +140,7 @@
               variant="text"
               color="primary"
               size="small"
-              class="premium-hover premium-btn-gold-gradient"
+              class="premium-hover"
               @click="$emit('open-session-room-new-window', item)"
             >
               <LucideIcon name="external-link" :size="18" />
@@ -156,7 +156,7 @@
               variant="text"
               color="gold"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="premium-hover opacity-70"
               @click="$emit('edit', item)"
             >
               <LucideIcon name="edit-3" :size="18" />
@@ -166,7 +166,7 @@
               variant="text"
               color="error"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="premium-hover opacity-70"
               @click="$emit('delete', item)"
             >
               <LucideIcon name="trash-2" :size="18" />

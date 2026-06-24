@@ -270,7 +270,10 @@
 
       <!-- Add Transaction Dialog -->
       <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
-        <v-card v-if="showDialog" class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
+        <v-card
+          v-if="showDialog"
+          class="rounded-xl elevation-24 overflow-hidden modal-card glass-card"
+        >
           <v-toolbar color="white" class="px-8 border-b" height="72">
             <div class="bg-gold-alpha pa-2 rounded-lg me-4">
               <LucideIcon name="plus-circle" :size="24" class="text-gold" />
@@ -279,7 +282,13 @@
               >إدراج عملية مالية جديدة</v-toolbar-title
             >
             <v-spacer></v-spacer>
-            <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="closeDialog">
+            <v-btn
+              icon
+              variant="text"
+              size="small"
+              class="rounded-lg premium-btn-gold-gradient"
+              @click="closeDialog"
+            >
               <LucideIcon name="x" :size="24" class="text-pure-black" />
             </v-btn>
           </v-toolbar>
@@ -317,8 +326,7 @@
                 </v-col>
 
                 <v-col v-if="editItem.type === 'expense'" cols="12">
-                  <label class="mb-2 font-weight-black text-gold">وجهة صرف المبلغ*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">وجهة صرف المبلغ*</label>
                   <v-select
                     v-model="editItem.expense_owner_type"
                     :items="expenseOwnerTypes"
@@ -333,8 +341,7 @@
                 </v-col>
 
                 <v-col v-if="shouldShowClientSelector" cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">الموكل المعني*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">الموكل المعني*</label>
                   <v-autocomplete
                     v-model="editItem.client_id"
                     :items="safeArray(lookupClients)"
@@ -354,8 +361,7 @@
                 </v-col>
 
                 <v-col v-if="shouldShowCaseSelector" cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">ملف القضية المتأثر*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">ملف القضية المتأثر*</label>
                   <v-autocomplete
                     v-model="editItem.case_id"
                     :items="safeArray(filteredCasesForLink)"
@@ -375,8 +381,7 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">المبلغ النقدي الأساسي*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">المبلغ النقدي الأساسي*</label>
                   <v-text-field
                     v-model.number="editItem.amount"
                     type="number"
@@ -392,8 +397,7 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">وعاء الضريبة (VAT)*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">وعاء الضريبة (VAT)*</label>
                   <v-select
                     v-model.number="editItem.vat_rate"
                     :items="vatRates"
@@ -407,8 +411,7 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">الحساب المالي المتأثر*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">الحساب المالي المتأثر*</label>
                   <v-select
                     v-model="editItem.account_id"
                     :items="safeArray(filteredAccounts)"
@@ -426,13 +429,13 @@
                 </v-col>
 
                 <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">تاريخ تسجيل الحركة*</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">تاريخ تسجيل الحركة*</label>
                   <DualDatePicker v-model="editItem.date" />
                 </v-col>
 
                 <v-col cols="12">
-                  <label class="mb-2 font-weight-black text-gold">وصف العملية / البيان المحاسبي</v-label
+                  <label class="mb-2 font-weight-black text-gold"
+                    >وصف العملية / البيان المحاسبي</label
                   >
                   <v-textarea
                     v-model="editItem.description"
@@ -476,7 +479,9 @@
 
       <!-- Delete Confirmation -->
       <v-dialog v-model="showDeleteDialog" width="90%" max-width="500" persistent>
-        <v-card class="rounded-xl elevation-24 overflow-hidden modal-card border-error-alpha glass-card">
+        <v-card
+          class="rounded-xl elevation-24 overflow-hidden modal-card border-error-alpha glass-card"
+        >
           <v-toolbar color="white" class="px-8 border-b" height="72">
             <LucideIcon name="alert-triangle" :size="24" class="text-error me-4" />
             <v-toolbar-title class="text-h6 font-weight-black text-error"

@@ -38,6 +38,7 @@
         <v-col cols="12" md="6">
           <v-text-field
             v-model.number="model.alimony_amount"
+            class="glass-input"
             label="مبلغ النفقة المقرر"
             type="number"
             variant="outlined"
@@ -51,6 +52,7 @@
         <v-col cols="12" md="6">
           <v-select
             v-model="model.execution_frequency"
+            class="glass-input"
             label="دورية التنفيذ"
             :items="frequencies"
             variant="outlined"
@@ -66,6 +68,7 @@
         <v-col cols="12" md="6">
           <v-text-field
             v-model="model.visit_time"
+            class="glass-input"
             label="مقتضى التنفيذ (مثلاً: زيارة أسبوعية)"
             variant="outlined"
             density="comfortable"
@@ -76,6 +79,7 @@
         <v-col cols="12" md="6">
           <v-text-field
             v-model="model.visit_location"
+            class="glass-input"
             label="مكان التنفيذ / التسليم"
             variant="outlined"
             density="comfortable"
@@ -88,6 +92,7 @@
       <v-col cols="12" class="mt-2">
         <v-text-field
           v-model="model.beneficiary_name"
+          class="glass-input"
           label="اسم المستفيد (أو الأبناء)"
           variant="outlined"
           density="comfortable"
@@ -100,6 +105,7 @@
       <v-col cols="12">
         <v-textarea
           v-model="model.visit_custody_details"
+          class="glass-input"
           label="تفاصيل إضافية"
           variant="outlined"
           rows="3"

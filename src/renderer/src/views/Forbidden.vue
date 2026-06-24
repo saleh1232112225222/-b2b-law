@@ -2,7 +2,10 @@
   <v-container fluid class="pa-6 fill-height d-flex align-center justify-center rtl">
     <v-row justify="center">
       <v-col cols="12" md="8" lg="6">
-        <v-card elevation="0" class="glass-card pa-10 text-center overflow-hidden relative glass-card">
+        <v-card
+          elevation="0"
+          class="glass-card pa-10 text-center overflow-hidden relative glass-card"
+        >
           <div class="decorative-top-error"></div>
 
           <div

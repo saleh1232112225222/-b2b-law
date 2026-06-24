@@ -1,5 +1,5 @@
 <template>
-  <v-card class="enforcement-card premium-lift" elevation="0">
+  <v-card class="enforcement-card premium-lift glass-card" elevation="0">
     <div class="d-flex align-center mb-8 px-2">
       <div class="timeline-icon-box me-4 premium-lift">
         <LucideIcon name="gavel" :size="24" class="text-gold" />
@@ -22,7 +22,7 @@
         size="x-small"
       >
         <v-card
-          class="enforcement-item-card pa-4 mb-2 premium-lift"
+          class="enforcement-item-card glass-card pa-4 mb-2 premium-lift"
           elevation="0"
           @click="$emit('go-to-enforcement', enf)"
         >

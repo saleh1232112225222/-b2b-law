@@ -1,7 +1,7 @@
 :root {
-  --mobile-header-height: 56px;
-  --mobile-bottom-nav-height: 64px;
-  --mobile-fab-size: 56px;
+  --mobile-header-height: 48px;
+  --mobile-bottom-nav-height: 52px;
+  --mobile-fab-size: 48px;
   --mobile-card-min-height: 72px;
   --mobile-touch-target: 44px;
 }
@@ -42,6 +42,51 @@ html {
 
 .mobile-bottom-nav {
   padding-bottom: env(safe-area-inset-bottom);
+  height: var(--mobile-bottom-nav-height) !important;
+  min-height: var(--mobile-bottom-nav-height) !important;
+}
+
+.nav-icon-wrapper {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(233, 195, 73, 0.12);
+  border: 1px solid rgba(233, 195, 73, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2px;
+  transition: all 0.2s ease;
+}
+
+.v-btn--active .nav-icon-wrapper {
+  background: linear-gradient(135deg, #e9c349 0%, #fceabb 100%);
+  border-color: transparent;
+  box-shadow: 0 2px 8px rgba(233, 195, 73, 0.3);
+}
+
+.nav-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  line-height: 1;
+}
+
+.v-btn--active .nav-label {
+  color: var(--primary) !important;
+}
+
+.mobile-action-btn {
+  min-width: 44px !important;
+  min-height: 44px !important;
+  padding: 2px 6px !important;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.mobile-header {
+  height: var(--mobile-header-height) !important;
+  min-height: var(--mobile-header-height) !important;
 }
 
 .mobile-header {
@@ -49,8 +94,66 @@ html {
   height: calc(var(--mobile-header-height) + env(safe-area-inset-top));
 }
 
+.mobile-layout {
+  overflow-y: hidden !important;
+}
+
 .mobile-app-shell {
   padding-top: env(safe-area-inset-top);
+  overflow-y: auto !important;
+  height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)) !important;
+}
+
+.v-main.mobile-app-shell {
+  overflow-y: auto !important;
+  max-height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)) !important;
+}
+
+.main-body-wrapper {
+  min-height: 100%;
+  padding-bottom: 16px;
+}
+
+/* Fix overlapping on small screens */
+.v-data-table {
+  overflow-x: auto !important;
+}
+.v-data-table > .v-table__wrapper {
+  overflow-x: auto !important;
+}
+
+/* Mobile card improvements */
+.mobile-card-full {
+  width: 100% !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+}
+
+/* Fix button overflow */
+.mobile-action-btn .v-btn__content {
+  flex-wrap: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fix header text wrapping on small screens */
+.mobile-header-title {
+  font-size: clamp(0.875rem, 4vw, 1.1rem) !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60vw;
+}
+
+/* Prevent FAB from overlapping content */
+.mobile-fab {
+  z-index: 1000 !important;
+}
+
+/* Fix v-data-table-server on mobile */
+.v-data-table-server {
+  min-width: unset !important;
 }
 
 @supports (padding: env(safe-area-inset-bottom)) {

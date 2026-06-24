@@ -8,7 +8,7 @@
       <v-spacer />
       <v-progress-circular v-if="loading" indeterminate size="18" width="2" color="accent" />
     </div>
-    <v-card-text class="pa-0 glass-card">
+    <v-card-text class="pa-0">
       <v-table density="compact" class="bg-transparent">
         <thead>
           <tr>

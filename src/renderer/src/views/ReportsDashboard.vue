@@ -8,8 +8,8 @@
             <LucideIcon name="pie-chart" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-bold text-gold mb-1">مركز التقارير والرقابة</h1>
-            <p class="text-body-2 text-gold opacity-70">
+            <h1 class="text-h5 font-weight-bold text-accent mb-1">مركز التقارير والرقابة</h1>
+            <p class="text-body-2 text-ebony opacity-80 font-weight-bold">
               تحليل البيانات والمؤشرات القانونية والتشغيلية للمكتب
             </p>
           </div>
@@ -49,10 +49,10 @@
                 <LucideIcon :name="report.icon" :size="24" class="text-accent" />
               </div>
               <div>
-                <div class="font-weight-black text-white text-subtitle-1 mb-1">
+                <div class="font-weight-black text-ebony text-subtitle-1 mb-1">
                   {{ report.title }}
                 </div>
-                <div class="text-tiny font-weight-black text-gold opacity-50">
+                <div class="text-tiny font-weight-black text-accent opacity-80">
                   {{ report.subtitle }}
                 </div>
               </div>

@@ -49,7 +49,7 @@
         </v-btn>
       </v-toolbar>
 
-      <v-card-text class="pa-8 bg-transparent glass-card">
+      <v-card-text class="pa-8 bg-transparent">
         <v-form ref="formRef" v-model="localFormValid">
           <v-row>
             <v-col cols="12" md="4">
@@ -71,13 +71,13 @@
             </v-col>
             <v-col cols="12" md="4">
               <label class="mb-2 font-weight-black text-gold">مسؤول القضية</label>
-              <v-select class="glass-input"
+              <v-select
                 v-model="item.responsible_user_id"
                 :items="assignableUsers"
                 :item-title="(u: any) => u?.full_name || u?.username || ''"
                 item-value="id"
                 variant="outlined"
-                class="premium-select"
+                class="glass-input premium-select"
                 clearable
                 :loading="assignableLoading"
               >
@@ -171,7 +171,7 @@
                 v-model="item.plaintiff_requests"
                 variant="outlined"
                 rows="3"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="اكتب طلبات المدعي هنا..."
               >
                 <template #prepend-inner
@@ -186,7 +186,7 @@
                 v-model="item.court"
                 :items="COURT_TYPES"
                 variant="outlined"
-                class="premium-select"
+                class="premium-select glass-input"
                 :rules="[(v: any) => !!v || 'المحكمة مطلوبة']"
                 required
               >
@@ -305,7 +305,7 @@
                 v-model="item.assessment"
                 variant="outlined"
                 rows="2"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="تقييم فني لحالة القضية..."
               >
                 <template #prepend-inner
@@ -319,7 +319,7 @@
                 v-model="item.notes"
                 variant="outlined"
                 rows="2"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="أي ملاحظات إضافية..."
               >
                 <template #prepend-inner
@@ -365,7 +365,7 @@
       </v-card-text>
 
       <v-divider />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
         <v-btn
           variant="flat"
           size="large"

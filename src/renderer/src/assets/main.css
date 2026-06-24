@@ -2,46 +2,46 @@
 @import './base.css';
 
 :root {
-  /* ===== Light Theme: Navy + Gold Enterprise ===== */
-  --primary: #1A437D;
-  --primary-light: #8FB0E8;
-  --primary-dark: #0F2A55;
+  /* ===== Light Theme: Sand + Gold Premium ===== */
+  --primary: #735C00;
+  --primary-light: #E9C349;
+  --primary-dark: #4A3A00;
   --accent: #E9C349;
-  --accent-light: #F5D94E;
+  --accent-light: #FCEABB;
   --accent-glow: rgba(233, 195, 73, 0.18);
   --accent-alpha: rgba(233, 195, 73, 0.10);
 
-  /* Neutral Palette */
-  --background: #F4F6FA;
-  --background-dark: #E8ECF2;
+  /* Neutral Palette — Calm Sand */
+  --background: #FFF8F0;
+  --background-dark: #F5EDDF;
   --surface: #FFFFFF;
-  --surface-variant: #F8FAFC;
-  --surface-hover: rgba(26, 67, 125, 0.04);
-  --border: rgba(203, 213, 225, 0.6);
-  --divider: rgba(203, 213, 225, 0.3);
+  --surface-variant: #FBF3E5;
+  --surface-hover: rgba(115, 92, 0, 0.04);
+  --border: rgba(208, 198, 175, 0.6);
+  --divider: rgba(208, 198, 175, 0.3);
 
-  /* Typography */
-  --text-primary: #0F172A;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --text-white: #FFFFFF;
+  /* Typography — High Contrast */
+  --text-primary: #1F1B13;
+  --text-secondary: #4D4635;
+  --text-muted: #7F7663;
+  --text-white: #1F1B13;
 
   /* Semantic */
   --success: #059669;
   --success-bg: #D1FAE5;
   --warning: #D97706;
   --warning-bg: #FEF3C7;
-  --error: #DC2626;
-  --error-bg: #FEE2E2;
+  --error: #BA1A1A;
+  --error-bg: #FFDAD6;
   --info: #3B82F6;
   --info-bg: #DBEAFE;
 
-  /* Glassmorphism */
+  /* Glassmorphism — Crystal Clear */
   --glass-bg: rgba(255, 255, 255, 0.78);
   --glass-bg-soft: rgba(255, 255, 255, 0.50);
-  --glass-border: rgba(203, 213, 225, 0.45);
+  --glass-border: rgba(26, 43, 72, 0.08);
   --glass-blur: blur(20px);
-  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05);
+  --glass-shadow: 0 20px 40px rgba(26, 43, 72, 0.05);
 
   /* Elevation & Radius */
   --radius-sm: 6px;
@@ -52,20 +52,20 @@
   --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.03), 0 1px 1px -1px rgb(0 0 0 / 0.02);
   --shadow-md: 0 4px 6px -2px rgb(0 0 0 / 0.05), 0 2px 3px -2px rgb(0 0 0 / 0.03);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.06), 0 4px 6px -4px rgb(0 0 0 / 0.04);
-  --shadow-premium: 0 20px 40px -8px rgb(0 0 0 / 0.10), 0 0 0 1px rgb(0 0 0 / 0.02);
+  --shadow-premium: 0 20px 40px -8px rgba(26, 43, 72, 0.10), 0 0 0 1px rgba(26, 43, 72, 0.02);
 
-  /* Gold */
-  --gold: #B8941E;
-  --gold-light: #F5D94E;
-  --gold-dark: #8B6914;
-  --gold-alpha: rgba(184, 148, 30, 0.12);
-  --gold-alpha-soft: rgba(184, 148, 30, 0.06);
+  /* Gold — Premium */
+  --gold: #735C00;
+  --gold-light: #E9C349;
+  --gold-dark: #4A3A00;
+  --gold-alpha: rgba(233, 195, 73, 0.12);
+  --gold-alpha-soft: rgba(233, 195, 73, 0.06);
 
   /* Sidebar */
-  --sidebar-bg: linear-gradient(180deg, #0F2A55 0%, #1A437D 50%, #1E4D8C 100%);
+  --sidebar-bg: linear-gradient(180deg, #FFF8F0 0%, #F5EDDF 100%);
   --sidebar-active: rgba(233, 195, 73, 0.18);
-  --sidebar-text: rgba(255, 255, 255, 0.80);
-  --sidebar-text-active: #FFFFFF;
+  --sidebar-text: #4D4635;
+  --sidebar-text-active: #1F1B13;
 
   /* Transitions */
   --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -154,6 +154,12 @@
   --field-border-hover: rgba(233, 195, 73, 0.35);
   --field-border-focus: rgba(233, 195, 73, 0.70);
   --field-focus-shadow: 0 0 16px rgba(233, 195, 73, 0.12);
+
+  --glass-bg-white: rgba(13, 21, 38, 0.75);
+}
+
+[data-theme='light'] {
+  --glass-bg-white: rgba(255, 255, 255, 0.7);
 }
 
 /* Typography Scale - Enlarged for Professional Legibility */
@@ -201,28 +207,32 @@
 }
 
 .glass-card {
-  background: var(--glass-bg-soft) !important;
+  background: rgba(255, 255, 255, 0.7) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   border: 1px solid var(--glass-border) !important;
-  box-shadow: var(--glass-shadow) !important;
+  box-shadow: var(--shadow-premium) !important;
   border-radius: var(--radius-lg) !important;
   transition: var(--transition-smooth);
 }
 
 .glass-card:hover {
-  background: var(--glass-bg) !important;
-  border-color: var(--primary-light) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  border-color: rgba(233, 195, 73, 0.3) !important;
   transform: translateY(-2px);
 }
 
 .text-gold {
-  color: var(--gold) !important;
+  color: #E9C349 !important;
   font-weight: 900;
 }
 
+.text-accent {
+  color: #E9C349 !important;
+}
+
 [data-theme='dark'] .text-gold {
-  color: var(--gold-light) !important;
+  color: #E9C349 !important;
 }
 
 .text-white-50 {
@@ -342,7 +352,7 @@ th[data-column='actions'] {
 }
 
 [data-theme='light'] .text-white {
-  color: var(--text-primary) !important;
+  color: #FFFFFF !important;
 }
 
 [data-theme='light'] .text-white-50 {
@@ -350,11 +360,11 @@ th[data-column='actions'] {
 }
 
 [data-theme='light'] .text-gold {
-  color: #000000 !important;
+  color: #E9C349 !important;
 }
 
 .text-ebony {
-  color: #000000 !important;
+  color: var(--text-primary) !important;
 }
 
 [data-theme='dark'] .text-ebony {
@@ -505,7 +515,7 @@ body,
   margin: 0;
   padding: 0;
   overflow: hidden !important;
-  user-select: none;
+  user-select: text;
   height: 100vh !important;
   width: 100vw !important;
   font-family: 'Cairo', 'Inter', 'Manrope', sans-serif !important;
@@ -1116,6 +1126,31 @@ body,
   .v-navigation-drawer--temporary {
     z-index: 2500 !important;
   }
+}
+
+/* ---- glass-toggle for filter button groups ---- */
+.glass-toggle {
+  background: var(--glass-bg-white) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border-radius: 12px !important;
+  padding: 4px !important;
+  border: 1px solid var(--color-outline) !important;
+}
+
+.glass-toggle .v-btn {
+  color: var(--text-primary) !important;
+  font-weight: 600 !important;
+  border-radius: 8px !important;
+  opacity: 0.7 !important;
+  transition: all 0.2s ease !important;
+}
+
+.glass-toggle .v-btn--active {
+  background: var(--color-accent) !important;
+  color: #1F1B13 !important;
+  opacity: 1 !important;
+  font-weight: 800 !important;
 }
 
 /* ---- Page containers – prevent horizontal overflow ---- */

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6 pb-12 rtl">
     <v-row justify="center">
       <v-col cols="12" md="8" lg="6">
@@ -25,9 +25,10 @@
             <div class="d-flex align-start justify-space-between flex-wrap gap-6 mb-8">
               <div class="profile-hero-meta">
                 <div class="d-flex align-center gap-2 mb-2">
-                  <div class="text-h5 font-weight-black text-white">{{ user?.username }}</div>
-                  <v-btn class="premium-btn-gold-gradient"
+                  <div class="text-h5 font-weight-black text-ebony">{{ user?.username }}</div>
+                  <v-btn
                     v-if="user?.roleKey === 'admin'"
+                    class="premium-btn-gold-gradient"
                     icon
                     variant="text"
                     size="small"
@@ -54,20 +55,18 @@
                 <div
                   class="glass-panel-light pa-5 rounded-xl border border-gold border-opacity-10 h-100"
                 >
-                  <div class="text-caption text-gold opacity-40 font-weight-black mb-1">
+                  <div class="text-caption text-gold font-weight-black mb-1">
                     اسم المستخدم المعرف
                   </div>
-                  <div class="text-h6 font-weight-black text-white">{{ user?.username }}</div>
+                  <div class="text-h6 font-weight-black text-ebony">{{ user?.username }}</div>
                 </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div
                   class="glass-panel-light pa-5 rounded-xl border border-gold border-opacity-10 h-100"
                 >
-                  <div class="text-caption text-gold opacity-40 font-weight-black mb-1">
-                    نطاق الصلاحيات
-                  </div>
-                  <div class="text-h6 font-weight-black text-white">
+                  <div class="text-caption text-gold font-weight-black mb-1">نطاق الصلاحيات</div>
+                  <div class="text-h6 font-weight-black text-ebony">
                     {{ getRoleLabel(user?.roleKey) }}
                   </div>
                 </div>
@@ -77,7 +76,10 @@
         </v-card>
 
         <!-- Change Password Card -->
-        <v-card elevation="0" class="glass-card rounded-2xl border border-gold border-opacity-20 glass-card">
+        <v-card
+          elevation="0"
+          class="glass-card rounded-2xl border border-gold border-opacity-20 glass-card"
+        >
           <div
             class="glass-panel-light pa-6 border-b border-gold border-opacity-10 d-flex align-center"
           >
@@ -86,7 +88,7 @@
             >
               <LucideIcon name="shield-check" :size="24" class="text-gold" />
             </div>
-            <span class="text-h5 font-weight-black text-white"
+            <span class="text-h5 font-weight-black text-ebony"
               >تأمين الحساب وتغيير كلمة المرور</span
             >
           </div>
@@ -94,8 +96,7 @@
           <v-card-text class="pa-8 glass-card">
             <v-form ref="passwordForm" v-model="isFormValid" @submit.prevent="handleUpdatePassword">
               <div class="mb-6">
-                <label class="mb-2 font-weight-black text-gold">كلمة المرور الحالية</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">كلمة المرور الحالية</label>
                 <v-text-field
                   v-model="passwordData.oldPassword"
                   type="password"
@@ -112,8 +113,7 @@
               </div>
 
               <div class="mb-4">
-                <label class="mb-2 font-weight-black text-gold">كلمة المرور الجديدة</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">كلمة المرور الجديدة</label>
                 <v-text-field
                   v-model="passwordData.newPassword"
                   type="password"
@@ -140,7 +140,7 @@
                 <div
                   class="d-flex align-center justify-space-between text-caption font-weight-black"
                 >
-                  <span class="text-white opacity-40">مستوى تعقيد كلمة المرور</span>
+                  <span class="text-grey-darken-1">مستوى تعقيد كلمة المرور</span>
                   <span :class="passwordStrength.textClass" class="text-h6">{{
                     passwordStrength.label
                   }}</span>
@@ -148,8 +148,7 @@
               </div>
 
               <div class="mb-10">
-                <label class="mb-2 font-weight-black text-gold">تأكيد كلمة المرور الجديدة</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">تأكيد كلمة المرور الجديدة</label>
                 <v-text-field
                   v-model="passwordData.confirmPassword"
                   type="password"
@@ -197,20 +196,19 @@
             >
               <LucideIcon name="shield-alert" :size="24" class="text-gold" />
             </div>
-            <span class="text-h5 font-weight-black text-white"
+            <span class="text-h5 font-weight-black text-ebony"
               >إعدادات استعادة الحساب (Self-Recovery)</span
             >
           </div>
 
           <v-card-text class="pa-8 glass-card">
-            <div class="text-body-2 text-gold opacity-60 mb-8 font-weight-bold">
+            <div class="text-body-2 text-gold opacity-80 mb-8 font-weight-bold">
               قم بتعيين سؤال سري وبريد إلكتروني احتياطي لتتمكن من استعادة حسابك ذاتياً في حال فقدان
               كلمة المرور.
             </div>
 
             <div class="mb-6">
-              <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني للاستعادة</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني للاستعادة</label>
               <v-text-field
                 v-model="recoveryData.email"
                 variant="outlined"
@@ -227,8 +225,7 @@
             <v-row dense>
               <v-col cols="12" sm="6">
                 <div class="mb-6">
-                  <label class="mb-2 font-weight-black text-gold">سؤال الأمان المخصص</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">سؤال الأمان المخصص</label>
                   <v-text-field
                     v-model="recoveryData.question"
                     variant="outlined"
@@ -244,8 +241,7 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="mb-6">
-                  <label class="mb-2 font-weight-black text-gold">إجابة السؤال (تشفير آمن)</v-label
-                  >
+                  <label class="mb-2 font-weight-black text-gold">إجابة السؤال (تشفير آمن)</label>
                   <v-text-field
                     v-model="recoveryData.answer"
                     type="password"
@@ -288,7 +284,13 @@
           <LucideIcon name="user-edit" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تعديل اسم المستخدم</span>
           <v-spacer />
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showUsernameDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            color="ebony"
+            @click="showUsernameDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
@@ -350,7 +352,9 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
       <template #actions>
-        <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="snackbar = false">فهمت</v-btn>
+        <v-btn color="white" variant="text" class="font-weight-black" @click="snackbar = false"
+          >فهمت</v-btn
+        >
       </template>
     </v-snackbar>
   </v-container>

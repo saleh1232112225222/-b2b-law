@@ -75,7 +75,7 @@
 
     <!-- Main Table Section -->
     <v-card elevation="0" class="glass-card overflow-hidden border-gold-premium glass-card">
-      <v-card-title class="pa-6 d-flex align-center border-b border-gold-alpha flex-wrap ga-4 glass-card">
+      <v-card-title class="pa-6 d-flex align-center border-b border-gold-alpha flex-wrap ga-4">
         <div class="d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3 border-gold-alpha">
             <LucideIcon name="contact-2" :size="20" class="text-gold" />
@@ -277,12 +277,18 @@
             {{ isEdit ? 'تعديل بيانات الموظف' : 'إضافة موظف جديد للمؤسسة' }}
           </v-toolbar-title>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="dialog = false">
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="dialog = false"
+          >
             <LucideIcon name="x" :size="20" class="text-pure-black" />
           </v-btn>
         </v-toolbar>
 
-        <v-card-text class="pa-8 bg-white glass-card">
+        <v-card-text class="pa-8 bg-white">
           <v-form ref="form" v-model="formValid" validate-on="input">
             <v-alert
               v-if="error"
@@ -303,7 +309,7 @@
                   v-model="editedItem.name"
                   label="الاسم الكامل"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   required
                   :rules="[(v) => !!v || 'الاسم مطلوب']"
                 />
@@ -313,7 +319,7 @@
                   v-model="editedItem.national_id"
                   label="رقم الهوية / الإقامة"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -322,7 +328,7 @@
                   :items="['سعودي', 'مقيم']"
                   label="الجنسية"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -338,7 +344,7 @@
                   v-model="editedItem.job_title"
                   label="المسمى الوظيفي"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="مدير قانوني، محامي، إلخ..."
                 />
               </v-col>
@@ -348,7 +354,7 @@
                   :items="['محامي', 'محامي متدرب', 'سكرتير', 'عامل', 'متعاقد']"
                   label="تصنيف الموظف"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12" md="4">
@@ -356,7 +362,7 @@
                   v-model.number="editedItem.salary"
                   label="الراتب الشهري"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   type="number"
                   suffix="ر.س"
                 />
@@ -366,7 +372,7 @@
                   v-model.number="editedItem.hourly_rate"
                   label="أجر الساعة"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   type="number"
                   suffix="ر.س"
                 />
@@ -381,7 +387,7 @@
                   ]"
                   label="الحالة الوظيفية"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12">
@@ -389,7 +395,7 @@
                   v-model="editedItem.qualification"
                   label="المؤهلات والخبرات"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -397,7 +403,7 @@
                   v-model="editedItem.license_number"
                   label="رقم الترخيص المهني"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
               <v-col cols="12" md="6">
@@ -405,14 +411,14 @@
                   v-model="editedItem.contract_number"
                   label="رقم العقد"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 />
               </v-col>
             </v-row>
           </v-form>
         </v-card-text>
 
-        <v-card-actions class="pa-8 modal-footer-solid glass-card">
+        <v-card-actions class="pa-8 modal-footer-solid">
           <v-btn
             color="gold"
             variant="outlined"
@@ -447,11 +453,17 @@
             >تفعيل حساب النظام</v-toolbar-title
           >
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="userDialog = false">
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="userDialog = false"
+          >
             <LucideIcon name="x" :size="20" class="text-pure-black" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-8 bg-white glass-card">
+        <v-card-text class="pa-8 bg-white">
           <div class="mb-8 text-center glass-panel-light pa-4 rounded-xl border-gold-alpha">
             <div class="text-h6 font-weight-black text-gold mb-1">{{ targetEmployee?.name }}</div>
             <div class="text-tiny text-pure-black opacity-60 font-weight-black">
@@ -506,13 +518,13 @@
               ]"
               label="مستوى الصلاحية"
               variant="outlined"
-              class="glass-input glass-input"
+              class="glass-input"
               required
               :rules="[(v) => !!v || 'مطلوب']"
             />
           </v-form>
         </v-card-text>
-        <v-card-actions class="pa-8 modal-footer-solid glass-card">
+        <v-card-actions class="pa-8 modal-footer-solid">
           <v-btn
             color="gold"
             variant="outlined"

@@ -30,7 +30,7 @@
           variant="outlined"
           density="comfortable"
           :prepend-inner-icon="ICONS.LEGAL.CASE"
-          class="mb-4"
+          class="mb-4 glass-input"
           clearable
           persistent-placeholder
           placeholder="ابحث برقم القضية أو اسم الموكل..."
@@ -91,7 +91,7 @@
           density="comfortable"
           required
           :prepend-inner-icon="ICONS.UI.SEARCH"
-          class="mb-4"
+          class="mb-4 glass-input"
         ></v-select>
       </v-col>
 
@@ -99,6 +99,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="model.instrument_no"
+          class="glass-input"
           label="رقم السند"
           variant="outlined"
           density="comfortable"
@@ -110,6 +111,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="model.najiz_request_no"
+          class="glass-input"
           label="رقم الطلب في ناجز"
           variant="outlined"
           density="comfortable"
@@ -128,6 +130,7 @@
       <v-col cols="12" md="6">
         <v-select
           v-model="model.instrument_type_main"
+          class="glass-input"
           label="نوع السند (رئيسي)"
           :items="mainInstrumentTypes"
           variant="outlined"
@@ -139,6 +142,7 @@
       <v-col cols="12" md="6">
         <v-select
           v-model="model.instrument_type_sub"
+          class="glass-input"
           label="نوع السند (فرعي)"
           :items="subInstrumentTypes"
           variant="outlined"
@@ -150,6 +154,7 @@
       <v-col cols="12" md="4">
         <v-select
           v-model="model.court_name"
+          class="glass-input"
           label="اسم المحكمة"
           :items="courts"
           variant="outlined"
@@ -160,6 +165,7 @@
       <v-col cols="12" md="4">
         <v-text-field
           v-model="model.case_number"
+          class="glass-input"
           label="رقم صك الحكم / القرار"
           variant="outlined"
           density="comfortable"
@@ -169,6 +175,7 @@
       <v-col cols="12" md="4">
         <v-select
           v-model="model.request_classification"
+          class="glass-input"
           label="تصنيف الطلب"
           :items="classifications"
           variant="outlined"
@@ -179,6 +186,7 @@
       <v-col v-if="showOther" cols="12">
         <v-textarea
           v-model="model.other_explanation"
+          class="glass-input"
           label="توضيح الخيار (إلزامي)"
           variant="outlined"
           rows="2"
@@ -219,6 +227,7 @@
               <td class="pa-1">
                 <v-combobox
                   v-model="party.linked_key"
+                  class="glass-input"
                   :items="partyOptions"
                   item-title="label"
                   item-value="key"
@@ -233,6 +242,7 @@
               <td class="pa-1">
                 <v-select
                   v-model="party.role"
+                  class="glass-input"
                   :items="['منفذ (طالب)', 'منفذ ضده (مطلوب)']"
                   variant="plain"
                   density="compact"

@@ -32,7 +32,7 @@
       <v-col cols="12" md="4">
         <v-card
           elevation="0"
-          class="glass-card pa-6 position-relative overflow-hidden premium-hover border-gold border-opacity-10 rounded-xl glass-card"
+          class="glass-card pa-6 position-relative overflow-hidden premium-hover border-gold border-opacity-10 rounded-xl"
         >
           <v-skeleton-loader
             v-if="store.loading"
@@ -72,7 +72,7 @@
           variant="outlined"
           density="comfortable"
           clearable
-          class="glass-input search-input glass-input"
+          class="glass-input search-input"
           hide-details
         >
           <template #prepend-inner>
@@ -90,7 +90,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input search-input glass-input"
+          class="glass-input search-input"
         >
           <template #prepend-inner>
             <LucideIcon name="filter" :size="20" class="text-gold opacity-50" />
@@ -100,11 +100,7 @@
     </v-row>
 
     <!-- Data Table (Desktop) -->
-    <v-card
-      v-if="!isMobile"
-      elevation="0"
-      class="glass-card overflow-hidden rounded-xl glass-card"
-    >
+    <v-card v-if="!isMobile" elevation="0" class="glass-card overflow-hidden rounded-xl">
       <v-data-table-server
         :headers="headers"
         :items="filteredClients"
@@ -147,8 +143,7 @@
             </v-avatar>
             <v-btn
               variant="text"
-              color="white"
-              class="px-0 font-weight-black text-body-2 hover-gold premium-btn-gold-gradient"
+              class="px-0 font-weight-black text-body-2 text-gold"
               :to="'/clients/' + item.id"
               density="compact"
             >
@@ -173,7 +168,9 @@
         </template>
 
         <template #[`item.email`]="{ item }">
-          <span class="text-caption text-white opacity-80 font-weight-bold">{{ item.email || '-' }}</span>
+          <span class="text-caption text-white opacity-80 font-weight-bold">{{
+            item.email || '-'
+          }}</span>
         </template>
 
         <template #[`item.created_at`]="{ item }">
@@ -187,34 +184,31 @@
             <v-btn
               icon
               variant="text"
-              color="accent"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="premium-hover opacity-70"
               :to="'/clients/' + item.id"
             >
-              <LucideIcon name="eye" :size="18" />
+              <v-icon color="accent">mdi-eye</v-icon>
               <v-tooltip activator="parent" location="top">ملف الموكل</v-tooltip>
             </v-btn>
             <v-btn
               icon
               variant="text"
-              color="gold"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="premium-hover opacity-70"
               @click="openEditDialog(item)"
             >
-              <LucideIcon name="edit-3" :size="18" />
+              <v-icon color="accent">mdi-pencil</v-icon>
               <v-tooltip activator="parent" location="top">تعديل الموكل</v-tooltip>
             </v-btn>
             <v-btn
               icon
               variant="text"
-              color="error"
               size="small"
-              class="premium-hover opacity-70 premium-btn-gold-gradient"
+              class="premium-hover opacity-70"
               @click="confirmDelete(item)"
             >
-              <LucideIcon name="trash-2" :size="18" />
+              <v-icon color="error">mdi-delete</v-icon>
               <v-tooltip activator="parent" location="top">حذف الموكل</v-tooltip>
             </v-btn>
           </div>
@@ -237,10 +231,7 @@
         />
       </div>
 
-      <div
-        v-else-if="filteredClients.length === 0"
-        class="text-center py-12 glass-card rounded-xl"
-      >
+      <div v-else-if="filteredClients.length === 0" class="text-center py-12 glass-card rounded-xl">
         <LucideIcon name="users" :size="48" class="text-gold opacity-30 mb-4" />
         <div class="text-h6 text-gold opacity-50 font-weight-black">
           لا يوجد موكلون مطابقون للبحث
@@ -251,7 +242,7 @@
         <v-card
           v-for="item in filteredClients"
           :key="item.id"
-          class="glass-card mb-4 rounded-xl border-gold border-opacity-10 overflow-hidden premium-hover glass-card"
+          class="glass-card mb-4 rounded-xl border-gold border-opacity-10 overflow-hidden premium-hover"
           elevation="0"
         >
           <!-- Card Header -->
@@ -286,7 +277,7 @@
           </div>
 
           <!-- Card Body -->
-          <v-card-text class="pa-4 text-white glass-card">
+          <v-card-text class="pa-4 text-white">
             <v-row dense class="mb-2">
               <v-col cols="6">
                 <span class="text-caption text-gold opacity-50 d-block mb-1">رقم الجوال</span>
@@ -304,8 +295,13 @@
 
             <v-row dense>
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">البريد الإلكتروني</span>
-                <span class="text-caption font-weight-black text-white text-truncate d-block" style="max-width: 150px;">
+                <span class="text-caption text-gold opacity-50 d-block mb-1"
+                  >البريد الإلكتروني</span
+                >
+                <span
+                  class="text-caption font-weight-black text-white text-truncate d-block"
+                  style="max-width: 150px"
+                >
                   {{ item.email || '-' }}
                 </span>
               </v-col>
@@ -377,19 +373,25 @@
             {{ isEditing ? 'تعديل بيانات الموكل' : 'تسجيل موكل جديد' }}
           </span>
           <v-spacer />
-          <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="showDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            color="gold"
+            icon
+            @click="showDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body glass-card">
+        <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body">
           <div class="poa-form">
             <ClientForm ref="clientFormRef" v-model="editItem" v-model:valid="formValid" />
           </div>
         </v-card-text>
 
         <v-divider class="border-gold opacity-10"></v-divider>
-        <v-card-actions class="pa-8 poa-dialog-footer d-flex flex-column align-center gap-3 glass-card">
+        <v-card-actions class="pa-8 poa-dialog-footer d-flex flex-column align-center gap-3">
           <v-btn
             variant="flat"
             size="large"

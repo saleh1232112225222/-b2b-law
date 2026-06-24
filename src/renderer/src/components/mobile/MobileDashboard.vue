@@ -33,7 +33,7 @@
         :loading="financeLoading"
         title-field="description"
         subtitle-field="client_name"
-        :info-fields="[{key:'amount',label:'المبلغ'}]"
+        :info-fields="[{ key: 'amount', label: 'المبلغ' }]"
         empty-text="لا توجد معاملات"
         can-add
         add-label="إضافة معاملة"

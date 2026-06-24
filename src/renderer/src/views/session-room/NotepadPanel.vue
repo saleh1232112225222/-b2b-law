@@ -34,7 +34,7 @@
       <div class="flex-grow-1 pa-4 bg-noir-surface">
         <v-textarea
           v-model="note"
-          class="note-textarea premium-textarea font-weight-bold"
+          class="note-textarea premium-textarea font-weight-bold glass-input"
           variant="plain"
           auto-grow
           hide-details

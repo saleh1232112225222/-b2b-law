@@ -42,7 +42,7 @@
             :items="courtTypes"
             label="اختر المحكمة من القائمة"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
             :menu-props="{ maxHeight: 300, zIndex: 9999 }"
@@ -58,7 +58,7 @@
             label="من تاريخ القيد"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
           />
@@ -69,7 +69,7 @@
             label="إلى تاريخ القيد"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
           />
@@ -194,7 +194,7 @@
     </div>
 
     <!-- Table Section -->
-    <v-card class="glass-card"
+    <v-card
       v-if="reportCases.length > 0"
       elevation="0"
       class="glass-card border border-gold border-opacity-10 rounded-xl overflow-hidden mb-8 print-table-card"
@@ -260,7 +260,7 @@
                 auto-grow
                 density="compact"
                 hide-details
-                class="no-print notes-input"
+                class="no-print notes-input glass-input"
               />
               <!-- On Print Box -->
               <div class="print-notes-box">

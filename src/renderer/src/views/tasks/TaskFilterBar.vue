@@ -1,5 +1,8 @@
 <template>
-  <v-card elevation="0" class="rounded-xl mb-8 pa-5 glass-card-noir border shadow-premium glass-card">
+  <v-card
+    elevation="0"
+    class="rounded-xl mb-8 pa-5 glass-card-noir border shadow-premium glass-card"
+  >
     <v-row dense align="center">
       <v-col cols="12" md="4">
         <v-text-field

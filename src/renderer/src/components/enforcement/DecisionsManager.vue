@@ -30,6 +30,7 @@
           <td class="pa-2">
             <v-select
               v-model="decision.decision_type"
+              class="glass-input"
               :items="decisionTypes"
               variant="outlined"
               density="compact"
@@ -48,6 +49,7 @@
           <td class="pa-2">
             <v-text-field
               v-model="decision.notes"
+              class="glass-input"
               variant="outlined"
               density="compact"
               placeholder="مثال: تم التبليغ، بانتظار الرد..."

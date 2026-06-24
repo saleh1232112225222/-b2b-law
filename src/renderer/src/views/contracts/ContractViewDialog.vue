@@ -14,12 +14,17 @@
         </div>
         <span class="text-h5 font-weight-black text-pure-black">استعراض وتدقيق العقد</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" variant="text" color="primary" icon @click="$emit('update:show', false)"
+        <v-btn
+          class="premium-btn-gold-gradient"
+          variant="text"
+          color="primary"
+          icon
+          @click="$emit('update:show', false)"
           ><LucideIcon name="x" :size="24"
         /></v-btn>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
+      <v-card-text class="pa-8 bg-white modal-scrollable">
         <div v-if="viewLoading" class="text-center py-12">
           <v-progress-circular indeterminate color="accent" />
           <div class="mt-4 font-weight-black text-gold">جاري تحميل بيانات العقد...</div>
@@ -86,7 +91,7 @@
                   item-title="title"
                   item-value="value"
                   variant="outlined"
-                  class="premium-input-solid"
+                  class="premium-input-solid glass-input"
                   clearable
                   hide-details
                   placeholder="اختر القضية المرتبطة..."
@@ -183,7 +188,8 @@
                   />
                 </td>
                 <td class="text-center">
-                  <v-btn class="premium-btn-gold-gradient"
+                  <v-btn
+                    class="premium-btn-gold-gradient"
                     icon
                     variant="tonal"
                     color="error"
@@ -255,7 +261,7 @@
       </v-card-text>
 
       <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
         <v-btn
           variant="flat"
           size="large"

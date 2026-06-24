@@ -6,7 +6,7 @@
     max-width="480"
     persistent
   >
-    <v-card class="rounded-t-xl">
+    <v-card class="rounded-t-xl glass-card">
       <v-card-title class="d-flex align-center pa-4 border-b">
         <span class="font-weight-black text-body-1">{{ title }}</span>
         <v-spacer />

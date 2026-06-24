@@ -38,7 +38,7 @@
 
       <v-divider class="border-gold opacity-10" />
 
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <v-window v-model="tab">
           <!-- Enforcement Tab -->
           <v-window-item value="enforcement">
@@ -50,7 +50,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                   clearable
                   @update:model-value="loadEnforcement"
                 >
@@ -67,7 +67,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                   @update:model-value="loadEnforcement"
                 >
                   <template #prepend-inner>
@@ -219,7 +219,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                   clearable
                   @update:model-value="loadCollections"
                 >
@@ -235,7 +235,7 @@
                   variant="outlined"
                   density="comfortable"
                   hide-details
-                  class="glass-input glass-input"
+                  class="glass-input"
                   @update:model-value="loadCollections"
                 >
                   <template #prepend-inner>
@@ -260,7 +260,10 @@
             <!-- Collections Summary -->
             <v-row class="mb-10 ga-0">
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card"
+                >
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-accent-alpha">
                       <LucideIcon name="clipboard-list" :size="24" class="text-accent" />
@@ -277,7 +280,10 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card"
+                >
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-gold-alpha">
                       <LucideIcon name="wallet" :size="24" class="text-gold" />
@@ -295,7 +301,10 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card"
+                >
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-success-alpha">
                       <LucideIcon name="check-circle-2" :size="24" class="text-success" />
@@ -313,7 +322,10 @@
                 </v-card>
               </v-col>
               <v-col cols="12" md="3">
-                <v-card elevation="0" class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card">
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-5 border-gold opacity-10 h-100 glass-card"
+                >
                   <div class="d-flex align-center">
                     <div class="glass-panel-light pa-3 rounded-lg me-4 bg-error-alpha">
                       <LucideIcon name="clock-alert" :size="24" class="text-error" />

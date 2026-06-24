@@ -55,8 +55,7 @@
 
         <v-row dense class="mb-2 align-end pb-1">
           <v-col cols="12" md="9">
-            <label class="mb-2 font-weight-black text-gold">مسار التخزين النشط</v-label
-            >
+            <label class="mb-2 font-weight-black text-gold">مسار التخزين النشط</label>
             <v-text-field
               :model-value="vaultRoot"
               variant="outlined"
@@ -95,8 +94,7 @@
               رفع وربط مستند جديد
             </div>
 
-            <label class="mb-2 font-weight-black text-gold">نوع الارتباط القضائي</v-label
-            >
+            <label class="mb-2 font-weight-black text-gold">نوع الارتباط القضائي</label>
             <v-select
               v-model="entityType"
               :items="entityTypes"
@@ -104,8 +102,7 @@
               class="glass-input mb-4 glass-input"
             ></v-select>
 
-            <label class="mb-2 font-weight-black text-gold">تحديد المرجع المستهدف</v-label
-            >
+            <label class="mb-2 font-weight-black text-gold">تحديد المرجع المستهدف</label>
             <v-select
               v-model="entityId"
               :items="entityOptions"
@@ -122,8 +119,7 @@
               </template>
             </v-select>
 
-            <label class="mb-2 font-weight-black text-gold">تصنيف المستند (اختياري)</v-label
-            >
+            <label class="mb-2 font-weight-black text-gold">تصنيف المستند (اختياري)</label>
             <v-text-field
               v-model="docType"
               placeholder="مثال: توكيل، لائحة، حكم"

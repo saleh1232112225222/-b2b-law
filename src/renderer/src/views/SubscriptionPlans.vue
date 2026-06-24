@@ -179,12 +179,18 @@
           <LucideIcon name="credit-card" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تأكيد الدفع</span>
           <v-spacer />
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="showPaymentDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            color="ebony"
+            @click="showPaymentDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </div>
 
-        <v-card-text class="pa-6 rtl glass-card">
+        <v-card-text class="pa-6 rtl">
           <div class="text-h5 font-weight-black text-center mb-4">{{ selectedPlan?.name_ar }}</div>
 
           <div

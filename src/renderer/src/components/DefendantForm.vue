@@ -4,6 +4,7 @@
       <v-col cols="12">
         <v-text-field
           v-model="modelValue.name"
+          class="glass-input"
           label="اسم الخصم بالكامل*"
           variant="outlined"
           :prepend-inner-icon="ICONS.ENTITY.DEFENDANT"
@@ -18,6 +19,7 @@
       <v-col cols="12" md="6">
         <v-select
           v-model="modelValue.type"
+          class="glass-input"
           :items="['فرد', 'شركة', 'مؤسسة', 'جهة حكومية', 'أخرى']"
           label="نوع الخصم"
           variant="outlined"
@@ -28,6 +30,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="modelValue.id_number"
+          class="glass-input"
           label="رقم الهوية / السجل التجاري"
           variant="outlined"
           :prepend-inner-icon="ICONS.UI.ID_CARD"
@@ -38,6 +41,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="modelValue.phone"
+          class="glass-input"
           label="رقم الجوال"
           variant="outlined"
           :prepend-inner-icon="ICONS.UI.PHONE"
@@ -48,6 +52,7 @@
       <v-col cols="12" md="6">
         <v-combobox
           v-model="modelValue.nationality"
+          class="glass-input"
           :items="['سعودي', 'مصري', 'سوري', 'أردني', 'يمني', 'سوداني', 'باكستاني', 'هندي', 'أخرى']"
           label="الجنسية"
           variant="outlined"
@@ -58,6 +63,7 @@
       <v-col cols="12" md="6">
         <v-combobox
           v-model="modelValue.city"
+          class="glass-input"
           :items="[
             'الرياض',
             'جدة',
@@ -77,6 +83,7 @@
       <v-col cols="12" md="6">
         <v-text-field
           v-model="modelValue.email"
+          class="glass-input"
           label="البريد الإلكتروني"
           variant="outlined"
           :prepend-inner-icon="ICONS.UI.EMAIL"
@@ -87,6 +94,7 @@
       <v-col cols="12">
         <v-textarea
           v-model="modelValue.address"
+          class="glass-input"
           label="العنوان"
           variant="outlined"
           rows="2"
@@ -105,6 +113,7 @@
       <v-col cols="12">
         <v-text-field
           v-model="modelValue.notes"
+          class="glass-input"
           label="ملاحظات"
           variant="outlined"
           :prepend-inner-icon="ICONS.UI.NOTE"

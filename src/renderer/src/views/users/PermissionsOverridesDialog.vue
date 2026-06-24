@@ -11,11 +11,17 @@
         <LucideIcon name="key" :size="24" class="text-ebony me-3" />
         <span class="text-h6 font-weight-black text-ebony">تخصيص صلاحيات المستخدم</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" icon variant="text" color="ebony" @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          icon
+          variant="text"
+          color="ebony"
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8 glass-card">
+      <v-card-text class="pa-8">
         <div class="glass-panel-light pa-4 rounded-xl mb-6 border border-gold border-opacity-20">
           <div class="text-subtitle-2 font-weight-black text-gold mb-1">تنبيه الصلاحيات:</div>
           <div class="text-body-2 text-white opacity-60">
@@ -91,7 +97,7 @@
           </tbody>
         </v-table>
       </v-card-text>
-      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10 glass-card">
+      <v-card-actions class="pa-6 glass-panel-light border-t border-gold border-opacity-10">
         <v-spacer />
         <v-btn
           color="accent"

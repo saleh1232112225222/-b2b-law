@@ -9,6 +9,7 @@
       <v-col cols="12">
         <v-text-field
           v-model="model.execution_location"
+          class="glass-input"
           label="محل التنفيذ (العنوان التفصيلي)"
           variant="outlined"
           density="comfortable"
@@ -21,6 +22,7 @@
       <v-col cols="12" md="6">
         <v-select
           v-model="model.action_type"
+          class="glass-input"
           label="نوع الإجراء المطلوب"
           :items="actionTypes"
           variant="outlined"
@@ -33,6 +35,7 @@
       <v-col cols="12">
         <v-textarea
           v-model="model.work_description"
+          class="glass-input"
           label="وصف العمل المطلوب تنفيذه"
           variant="outlined"
           rows="4"

@@ -68,7 +68,7 @@
 
     <!-- Payment Dialog -->
     <v-dialog v-model="showPaymentDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="showPaymentDialog" class="rounded-xl modal-card">
+      <v-card v-if="showPaymentDialog" class="rounded-xl modal-card glass-card">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="banknote" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white">تحصيل مبلغ</v-toolbar-title>
@@ -96,6 +96,7 @@
 
           <v-text-field
             v-model.number="paymentAmount"
+            class="glass-input"
             label="المبلغ المحصل*"
             type="number"
             variant="outlined"

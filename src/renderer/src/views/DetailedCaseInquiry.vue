@@ -27,7 +27,10 @@
       </v-col>
     </v-row>
 
-    <v-card elevation="0" class="glass-card pa-8 mb-8 border-gold border-opacity-30 border-2 glass-card">
+    <v-card
+      elevation="0"
+      class="glass-card pa-8 mb-8 border-gold border-opacity-30 border-2 glass-card"
+    >
       <v-row dense class="align-center">
         <v-col cols="12" md="8">
           <v-autocomplete

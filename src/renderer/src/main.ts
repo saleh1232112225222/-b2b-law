@@ -6,6 +6,7 @@ import router from './router'
 import { initApiAdapter } from './api/initApi'
 
 import './assets/main.css'
+import './assets/css/theme.css'
 import './assets/responsive.css'
 
 // Initialize API mode: Cloud (Web) or Desktop (Electron IPC)

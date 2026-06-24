@@ -7,7 +7,7 @@
       variant="outlined"
       density="comfortable"
       hide-details
-      class="mb-3 rounded-lg"
+      class="mb-3 rounded-lg glass-input"
       clearable
     />
 

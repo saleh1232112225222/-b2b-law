@@ -72,7 +72,7 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input glass-input"
+            class="glass-input"
             clearable
           >
             <template #prepend-inner>
@@ -88,7 +88,7 @@
             variant="outlined"
             density="comfortable"
             hide-details
-            class="glass-input glass-input"
+            class="glass-input"
           >
             <template #prepend-inner>
               <LucideIcon name="filter" :size="18" class="text-primary" />
@@ -237,7 +237,7 @@
     <!-- Add/Edit Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
       <v-card class="glass-card overflow-hidden glass-card">
-        <v-card-title class="pa-6 border-b border-primary d-flex align-center glass-card">
+        <v-card-title class="pa-6 border-b border-primary d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon
               :name="isEditing ? 'user-cog' : 'user-plus'"
@@ -249,17 +249,23 @@
             {{ isEditing ? 'تعديل ملف الخصم' : 'تسجيل خصم جديد' }}
           </span>
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="showDialog = false">
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="showDialog = false"
+          >
             <LucideIcon name="x" :size="20" class="text-primary" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-8 glass-card">
+        <v-card-text class="pa-8">
           <DefendantForm ref="defendantFormRef" v-model="editItem" />
         </v-card-text>
 
         <v-divider class="border-gold" />
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
           <v-btn
             variant="flat"
             size="large"
@@ -284,7 +290,7 @@
     <!-- Preview Dialog -->
     <v-dialog v-model="previewDialog" width="90%" max-width="800" scrollable>
       <v-card class="glass-card overflow-hidden glass-card">
-        <v-card-title class="pa-6 border-b border-gold d-flex align-center glass-card">
+        <v-card-title class="pa-6 border-b border-gold d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="eye" :size="20" class="text-gold" />
           </div>
@@ -292,12 +298,18 @@
             >معاينة تفصيلية لملف الخصم</span
           >
           <v-spacer />
-          <v-btn icon variant="text" size="small" class="rounded-lg premium-btn-gold-gradient" @click="previewDialog = false">
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="previewDialog = false"
+          >
             <LucideIcon name="x" :size="20" class="text-primary" />
           </v-btn>
         </v-card-title>
 
-        <v-card-text class="pa-10 glass-card">
+        <v-card-text class="pa-10">
           <v-row class="ga-y-8">
             <v-col cols="12" md="6">
               <div
@@ -392,7 +404,7 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10" />
-        <v-card-actions class="pa-6 bg-black-alpha ga-3 glass-card">
+        <v-card-actions class="pa-6 bg-black-alpha ga-3">
           <v-btn
             variant="text"
             color="white"

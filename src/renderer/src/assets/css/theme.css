@@ -1,72 +1,397 @@
-/* src/assets/css/theme.css */
+/* src/assets/css/theme.css — Lex Aurum Light Theme */
 
 :root {
-  /* Color palette */
-  --color-gold: #e9c349; /* Primary gold */
-  --color-gold-light: #f5d96e;
-  --color-gold-dark: #c5a332;
-  --color-accent: #ff6f61; /* Example accent */
-  --color-background: #ffffff;
-  --color-background-dark: #121212;
+  /* Gold & Primary Palette */
+  --color-gold: #e9c349;
+  --color-gold-light: #fceabb;
+  --color-gold-dark: #735c00;
+  --color-gold-gradient: linear-gradient(135deg, #e9c349 0%, #fceabb 100%);
+  --color-accent: #e9c349;
+  --color-primary: #735c00;
+
+  /* Surface / Background */
+  --color-surface-bright: #fff8f0;
+  --color-surface: #f5eddf;
+  --color-surface-dim: #e1d9cc;
+  --color-surface-container-low: #fbf3e5;
+  --color-surface-container: #f5eddf;
+  --color-surface-container-high: #efe7da;
+  --color-surface-container-highest: #eae2d4;
+  --color-background: #f9fafb;
+  --color-surface-variant: #eae2d4;
+
+  /* Text */
+  --color-on-surface: #1f1b13;
+  --color-on-surface-variant: #4d4635;
+  --color-on-primary: #735c00;
+  --color-on-primary-fixed: #231a00;
+  --color-on-background: #1f1b13;
+
+  /* Inverse */
+  --color-inverse-surface: #343027;
+  --color-inverse-on-surface: #f8f0e2;
+  --color-inverse-primary: #e9c349;
+
+  /* Secondary & Tertiary */
+  --color-secondary: #4e5f7e;
+  --color-secondary-container: #cadaff;
+  --color-tertiary: #505f76;
+  --color-tertiary-container: #b7c8e2;
+
+  /* Error */
+  --color-error: #ba1a1a;
+  --color-error-container: #ffdad6;
+
+  /* Outline */
+  --color-outline: #7f7663;
+  --color-outline-variant: #d0c6af;
 
   /* Glassmorphism */
-  --glass-bg-soft: rgba(255, 255, 255, 0.12);
-  --glass-blur: blur(12px);
-  --glass-border: rgba(255, 255, 255, 0.18);
+  --glass-bg-white: rgba(255, 255, 255, 0.7);
+  --glass-bg-soft: rgba(255, 255, 255, 0.5);
+  --glass-bg-dark: rgba(15, 42, 85, 0.08);
+  --glass-blur: blur(20px);
+  --glass-border: rgba(26, 43, 72, 0.08);
+  --glass-border-gold: rgba(233, 195, 73, 0.25);
 
   /* Shadows */
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
-  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.15);
+  --shadow-premium: 0 20px 40px rgba(26, 43, 72, 0.05);
+  --shadow-md: 0 4px 12px rgba(26, 43, 72, 0.08);
+  --shadow-lg: 0 8px 20px rgba(26, 43, 72, 0.1);
+  --shadow-gold: 0 4px 20px rgba(233, 195, 73, 0.2);
 
-  /* Transitions */
-  --transition-smooth: all 0.3s ease;
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+  --radius-xl: 24px;
+  --radius-full: 9999px;
 
-  /* Typography (from Figma) */
-  --font-primary: 'Inter', sans-serif;
-  --font-secondary: 'Roboto', sans-serif;
-  --font-weight-bold: 800;
-  --font-weight-medium: 600;
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 40px;
+
+  /* Font */
+  --font-cairo: 'Cairo', sans-serif;
 }
 
-[data-theme='dark'] {
-  --glass-bg-soft: rgba(0, 0, 0, 0.2);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --color-background: #101113; /* dark background from mockup */
-}
-
-/* Utility classes */
+/* ============================================
+   GLASS CARDS — Clear white with strong blur
+   ============================================ */
 .glass-card {
-  background: var(--glass-bg-soft) !important;
+  background: var(--glass-bg-white) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   border: 1px solid var(--glass-border) !important;
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-premium) !important;
+  border-radius: var(--radius-lg) !important;
 }
 
-.glass-input .v-field__outline {
-  border-color: var(--color-gold) !important;
+.glass-card-noir {
+  background: rgba(31, 27, 19, 0.03) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
 }
 
-.glass-input input,
-.glass-input .v-field__input,
-.glass-input .v-select__selection-text {
-  color: var(--color-gold) !important;
-  font-weight: var(--font-weight-bold);
-  font-family: var(--font-primary) !important;
+.glass-panel-light {
+  background: rgba(233, 195, 73, 0.1) !important;
+  border: 1px solid var(--glass-border-gold) !important;
 }
 
+/* ============================================
+   GOLD GRADIENT BUTTONS
+   ============================================ */
 .premium-btn-gold-gradient {
-  background: linear-gradient(135deg, var(--color-gold-light), var(--color-gold-dark)) !important;
-  color: #000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
-  border-radius: 12px !important;
-  box-shadow: var(--shadow-md) !important;
-  transition: var(--transition-smooth);
+  background: var(--color-gold-gradient) !important;
+  color: #1a1a1a !important;
+  border: none !important;
+  border-radius: var(--radius-lg) !important;
+  box-shadow: var(--shadow-gold) !important;
+  font-weight: 900 !important;
+}
+
+.premium-btn-gold-gradient .v-btn__content,
+.premium-btn-gold-gradient .v-icon,
+.premium-btn-gold-gradient i,
+.premium-btn-gold-gradient span {
+  color: #1a1a1a !important;
 }
 
 .premium-btn-gold-gradient:hover {
+  box-shadow: 0 6px 24px rgba(233, 195, 73, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.btn-gold-outline {
+  background: transparent !important;
+  border: 1.5px solid var(--color-gold) !important;
+  color: var(--color-gold-dark) !important;
+  border-radius: var(--radius-lg) !important;
+  font-weight: 700 !important;
+}
+
+.btn-gold-outline:hover {
+  background: rgba(233, 195, 73, 0.08) !important;
+}
+
+/* ============================================
+   INPUTS & FIELDS
+   ============================================ */
+.glass-input {
+  background: var(--glass-bg-white) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.glass-input .v-field {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.glass-input .v-field__outline {
+  --v-field-border-color: var(--color-outline) !important;
+  --v-field-border-opacity: 0.3 !important;
+}
+
+.search-input {
+  border-radius: var(--radius-lg) !important;
+}
+
+/* ============================================
+   TEXT COLORS
+   ============================================ */
+.text-gold {
+  color: var(--color-gold-dark) !important;
+}
+
+.text-gold-bright {
+  color: var(--color-gold) !important;
+}
+
+.text-accent {
+  color: var(--color-primary) !important;
+}
+
+.text-pure-black {
+  color: var(--color-on-surface) !important;
+}
+
+.text-white {
+  color: var(--color-on-surface) !important;
+}
+
+.text-ebony {
+  color: var(--color-on-surface) !important;
+}
+
+/* ============================================
+   GLASS DIALOG
+   ============================================ */
+.glass-dialog {
+  background: var(--color-surface-bright) !important;
+  border-radius: var(--radius-xl) !important;
+}
+
+.glass-dialog .v-card {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ============================================
+   DIVIDER & STATUS
+   ============================================ */
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--color-gold), transparent);
+  border: none;
+  opacity: 0.5;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* ============================================
+   ICONS & DECORATIVE
+   ============================================ */
+.icon-gold-bg {
+  background: var(--color-gold-gradient) !important;
+  color: var(--color-on-primary-fixed) !important;
+  border-radius: var(--radius-full) !important;
+}
+
+.premium-hover {
+  transition: all 0.2s ease !important;
+}
+
+.premium-hover:hover {
   transform: translateY(-2px) !important;
   box-shadow: var(--shadow-lg) !important;
+}
+
+.glow-gold {
+  box-shadow: 0 0 20px rgba(233, 195, 73, 0.15);
+}
+
+/* ============================================
+   BTN TOGGLE / FILTER
+   ============================================ */
+.glass-toggle {
+  background: var(--glass-bg-white) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+.active-toggle-btn {
+  background: var(--color-gold-gradient) !important;
+  color: var(--color-on-primary-fixed) !important;
+}
+
+/* ============================================
+   PREVIEW BOX
+   ============================================ */
+.preview-box {
+  background: var(--glass-bg-white) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-lg) !important;
+}
+
+/* ============================================
+   PARTY CARD & POWER ITEM
+   ============================================ */
+.party-card {
+  background: var(--glass-bg-white) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+.power-item {
+  background: rgba(233, 195, 73, 0.06) !important;
+  border: 1px solid var(--glass-border-gold) !important;
+  border-radius: var(--radius-sm) !important;
+}
+
+/* ============================================
+   HEADER BACKGROUND
+   ============================================ */
+.premium-header-bg {
+  background: var(--color-surface-bright) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+/* ============================================
+   BORDER HELPERS
+   ============================================ */
+.border-gold {
+  border-color: var(--color-gold) !important;
+}
+
+.border-accent {
+  border-color: var(--color-gold) !important;
+}
+
+.border-accent-glow {
+  border-color: var(--color-gold) !important;
+  box-shadow: 0 0 12px rgba(233, 195, 73, 0.25);
+}
+
+.border-top-accent {
+  border-top: 2px solid var(--color-gold) !important;
+}
+
+/* ============================================
+   SHADOW
+   ============================================ */
+.shadow-premium {
+  box-shadow: var(--shadow-premium) !important;
+}
+
+/* ============================================
+   GLASS HEADER — Mobile
+   ============================================ */
+.glass-header {
+  background: var(--color-surface-bright) !important;
+  backdrop-filter: var(--glass-blur) !important;
+  -webkit-backdrop-filter: var(--glass-blur) !important;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+
+/* ============================================
+   DATA TABLE PREMIUM
+   ============================================ */
+.v-data-table.clients-table-compact .v-data-table__thead th {
+  background: rgba(255, 255, 255, 0.5) !important;
+  color: var(--color-gold-dark) !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--glass-border) !important;
+}
+.v-data-table.clients-table-compact .v-data-table__tbody tr:hover {
+  background: rgba(233, 195, 73, 0.04) !important;
+}
+.v-data-table.clients-table-compact .v-data-table__tbody td {
+  border-bottom: 1px solid rgba(26, 43, 72, 0.04) !important;
+}
+.v-data-table.clients-table-compact .v-data-table-footer {
+  background: var(--glass-bg-soft) !important;
+  border-top: 1px solid var(--glass-border) !important;
+}
+
+/* ============================================
+   RTL
+   ============================================ */
+.rtl-text {
+  direction: rtl;
+  text-align: right;
+}
+.ltr-text {
+  direction: ltr;
+  text-align: left;
+  display: inline-block;
+}
+
+/* ============================================
+   ANIMATIONS
+   ============================================ */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.page-enter { animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+/* ============================================
+   MOBILE SCROLL FIX
+   ============================================ */
+.mobile-layout {
+  overflow-y: hidden !important;
+}
+.mobile-app-shell {
+  padding-top: env(safe-area-inset-top);
+  overflow-y: auto !important;
+  height: calc(100vh - 56px - 64px) !important;
+}
+.v-main.mobile-app-shell {
+  overflow-y: auto !important;
+  max-height: calc(100vh - 56px - 64px) !important;
+}
+.main-body-wrapper {
+  min-height: 100%;
+  padding-bottom: 16px;
 }

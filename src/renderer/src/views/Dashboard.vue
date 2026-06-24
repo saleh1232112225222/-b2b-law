@@ -53,7 +53,7 @@
               </v-tabs>
             </div>
             <v-divider opacity="0.06"></v-divider>
-            <v-card-text class="pa-2 flex-grow-1 overflow-y-auto glass-card">
+            <v-card-text class="pa-2 flex-grow-1 overflow-y-auto">
               <v-window v-model="topPanelTab" class="mb-1" style="min-height: 150px">
                 <DashboardCalendarPanel
                   :calendar-month-label="calendarMonthLabel"
@@ -116,7 +116,12 @@
       >
         {{ snackbar.text }}
         <template #actions>
-          <v-btn class="premium-btn-gold-gradient" variant="text" icon @click="snackbar.show = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            icon
+            @click="snackbar.show = false"
+          >
             <LucideIcon name="x" :size="16" />
           </v-btn>
         </template>
@@ -412,8 +417,10 @@ const importantDates = computed(() => {
 const importantDatesByDay = computed(() => {
   const map: Record<string, any[]> = {}
   for (const it of importantDates.value) {
-    if (!map[it.date]) map[it.date] = []
-    map[it.date].push(it)
+    const dKey = it.date ? it.date.split('T')[0] : ''
+    if (!dKey) continue
+    if (!map[dKey]) map[dKey] = []
+    map[dKey].push(it)
   }
   return map
 })

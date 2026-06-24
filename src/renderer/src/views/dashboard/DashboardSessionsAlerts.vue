@@ -5,11 +5,16 @@
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-sessions-today dashboard-bottom-inner-card glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
           <div class="font-weight-black text-tiny-v dashboard-title">
             جلسات اليوم ({{ safeArray(todaySessions).length }})
           </div>
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" size="x-small" @click="$emit('navigate', '/sessions')"
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            size="x-small"
+            @click="$emit('navigate', '/sessions')"
             ><LucideIcon name="external-link" :size="10"
           /></v-btn>
         </v-card-title>
@@ -36,7 +41,7 @@
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-sessions-tomorrow dashboard-bottom-inner-card glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
           <div class="font-weight-black text-tiny-v dashboard-title">
             جلسات غداً ({{ safeArray(tomorrowSessions).length }})
           </div>
@@ -64,11 +69,16 @@
         elevation="0"
         class="glass-card-light overflow-hidden dashboard-agency-alerts dashboard-bottom-inner-card border-warning-alpha glass-card"
       >
-        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between glass-card">
+        <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between">
           <div class="font-weight-black text-tiny-v dashboard-title">
             تنبيهات الوكالات ({{ safeLength(agencyAlerts) }})
           </div>
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" size="x-small" @click="$emit('navigate', '/clients')"
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            size="x-small"
+            @click="$emit('navigate', '/clients')"
             ><LucideIcon name="users" :size="10"
           /></v-btn>
         </v-card-title>

@@ -11,11 +11,11 @@
         <div class="pa-3 rounded-lg bg-white-alpha-10 me-4">
           <LucideIcon name="trash-2" :size="24" class="text-white" />
         </div>
-        <v-card-title class="pa-0 text-white font-weight-black text-h6 glass-card"
+        <v-card-title class="pa-0 text-white font-weight-black text-h6"
           >حذف ملف القضية</v-card-title
         >
       </div>
-      <v-card-text class="pa-8 text-center glass-card">
+      <v-card-text class="pa-8 text-center">
         <div class="text-subtitle-1 mb-4 font-weight-medium text-text-muted">
           هل أنت متأكد من حذف ملف القضية رقم:
         </div>
@@ -26,7 +26,7 @@
           تحذير: هذا الإجراء نهائي ولا يمكن التراجع عنه. سيتم حذف كافة البيانات والملحقات المرتبطة.
         </v-alert>
       </v-card-text>
-      <v-card-actions class="pa-6 pt-0 glass-card">
+      <v-card-actions class="pa-6 pt-0">
         <v-btn
           variant="tonal"
           class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"

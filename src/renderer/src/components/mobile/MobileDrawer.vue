@@ -4,50 +4,49 @@
     temporary
     location="right"
     width="300"
-    class="mobile-drawer"
+    class="glass-card pa-0 mobile-drawer"
   >
     <div class="d-flex flex-column h-100 pa-4">
-      <div class="text-center mb-6">
-        <v-avatar size="64" class="mb-2 border-accent-glow">
+      <div class="text-center mb-6 mt-4">
+        <v-avatar size="72" class="mb-3 icon-gold-bg border border-gold border-opacity-30">
           <v-img
-            :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=1A437D&color=E9C349&bold=true`"
+            :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=0F2A55&color=E9C349&bold=true`"
           />
         </v-avatar>
-        <div class="text-subtitle-1 font-weight-black">{{ username || 'المستخدم' }}</div>
-        <div class="text-caption text-medium-emphasis">{{ role || '—' }}</div>
+        <div class="text-subtitle-1 font-weight-black text-gold">{{ username || 'المستخدم' }}</div>
+        <div class="text-caption text-accent opacity-70">{{ role || '—' }}</div>
       </div>
 
-      <v-divider class="mb-4" />
+      <div class="divider-gold my-2"></div>
 
-      <v-list nav density="compact" class="flex-grow-1">
+      <v-list nav density="compact" class="flex-grow-1 bg-transparent">
         <v-list-item
           v-for="item in moreItems"
           :key="item.title"
           :to="item.to"
           link
-          active-color="primary"
-          class="rounded-lg mb-1"
+          active-color="accent"
+          class="rounded-lg mb-1 glass-input"
           @click="localDrawer = false"
         >
           <template #prepend>
-            <v-icon :icon="item.icon" :size="20" class="me-3" />
+            <v-icon :icon="item.icon" :size="20" class="text-accent me-3" />
           </template>
-          <v-list-item-title class="font-weight-bold text-body-2">{{
+          <v-list-item-title class="font-weight-bold text-body-2 text-gold">{{
             item.title
           }}</v-list-item-title>
         </v-list-item>
       </v-list>
 
-      <v-divider class="mb-4" />
+      <div class="divider-gold my-2"></div>
 
       <v-btn
         block
-        color="error"
         variant="tonal"
-        class="rounded-lg font-weight-bold"
+        class="font-weight-bold rounded-xl btn-gold-outline my-2"
         @click="handleLogout"
       >
-        <v-icon icon="mdi-logout" class="me-2" :size="20" />
+        <LucideIcon name="log-out" :size="18" class="me-2" />
         تسجيل الخروج
       </v-btn>
     </div>
@@ -56,6 +55,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import LucideIcon from '../common/LucideIcon.vue'
 
 const props = defineProps<{
   modelValue: boolean

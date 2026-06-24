@@ -76,7 +76,7 @@
 
     <!-- Add Voucher Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="showDialog" class="rounded-xl overflow-hidden modal-card">
+      <v-card v-if="showDialog" class="rounded-xl overflow-hidden modal-card glass-card">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="receipt" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white">إنشاء سند مالي</v-toolbar-title>
@@ -100,6 +100,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model="editItem.voucher_number"
+                  class="glass-input"
                   label="رقم السند (اختياري)"
                   variant="outlined"
                   bg-color="white"
@@ -110,6 +111,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="editItem.account_id"
+                  class="glass-input"
                   :items="safeArray(filteredAccounts)"
                   item-title="name"
                   item-value="id"
@@ -139,6 +141,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="editItem.reference_type"
+                  class="glass-input"
                   :items="referenceTypes"
                   label="مرجع السند (إلزامي)*"
                   variant="outlined"
@@ -152,6 +155,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="editItem.reference_id"
+                  class="glass-input"
                   :items="filteredReferences"
                   item-title="label"
                   item-value="id"
@@ -167,6 +171,7 @@
               <v-col cols="12" md="6">
                 <v-select
                   v-model="editItem.client_id"
+                  class="glass-input"
                   :items="safeArray(clientsStore.clients)"
                   item-title="name"
                   item-value="id"
@@ -182,6 +187,7 @@
               <v-col cols="12" md="6">
                 <v-text-field
                   v-model.number="editItem.amount"
+                  class="glass-input"
                   type="number"
                   label="المبلغ*"
                   variant="outlined"
@@ -198,6 +204,7 @@
               <v-col cols="12">
                 <v-textarea
                   v-model="editItem.description"
+                  class="glass-input"
                   label="ملاحظات / البيان"
                   variant="outlined"
                   bg-color="white"
@@ -224,7 +231,7 @@
     </v-dialog>
 
     <v-dialog v-model="showVoucherViewDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="voucherToView" class="rounded-xl modal-card">
+      <v-card v-if="voucherToView" class="rounded-xl modal-card glass-card">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="receipt-text" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white">عرض السند</v-toolbar-title>

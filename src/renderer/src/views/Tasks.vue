@@ -164,7 +164,13 @@
                   }}
                 </v-toolbar-title>
                 <v-spacer></v-spacer>
-                <v-btn class="premium-btn-gold-gradient" icon variant="text" color="black" @click="showDialog = false">
+                <v-btn
+                  class="premium-btn-gold-gradient"
+                  icon
+                  variant="text"
+                  color="black"
+                  @click="showDialog = false"
+                >
                   <LucideIcon name="x" :size="24" />
                 </v-btn>
               </v-toolbar>
@@ -215,7 +221,8 @@
                         <v-expand-transition>
                           <div class="mt-4" style="min-height: 85px">
                             <div v-if="editItem.link_type === 'case'">
-                              <label class="mb-2 font-weight-black text-gold">اختيار ملف القضية المستهدف*</v-label
+                              <label class="mb-2 font-weight-black text-gold"
+                                >اختيار ملف القضية المستهدف*</label
                               >
                               <v-autocomplete
                                 v-model="editItem.case_id"
@@ -235,7 +242,8 @@
                               </v-autocomplete>
                             </div>
                             <div v-else-if="editItem.link_type === 'client'">
-                              <label class="mb-2 font-weight-black text-gold">اختيار الموكل المسؤول*</v-label
+                              <label class="mb-2 font-weight-black text-gold"
+                                >اختيار الموكل المسؤول*</label
                               >
                               <v-autocomplete
                                 v-model="editItem.client_id"
@@ -261,7 +269,8 @@
                             <div v-else-if="editItem.link_type === 'none'">
                               <v-row dense>
                                 <v-col cols="12" md="8">
-                                  <label class="mb-2 font-weight-black text-gold">جهة التنفيذ المستهدفة</v-label
+                                  <label class="mb-2 font-weight-black text-gold"
+                                    >جهة التنفيذ المستهدفة</label
                                   >
                                   <v-text-field
                                     v-model="editItem.external_name"
@@ -279,8 +288,9 @@
                                   </v-text-field>
                                 </v-col>
                                 <v-col cols="12" md="4">
-                                  <v-select class="glass-input"
+                                  <v-select
                                     v-model="editItem.owner_type"
+                                    class="glass-input"
                                     :items="[
                                       { title: 'مهمة داخلية للمكتب', value: 'office' },
                                       { title: 'مهمة متابعة خارجية', value: 'external' }
@@ -315,8 +325,7 @@
                     </v-col>
 
                     <v-col cols="12">
-                      <label class="mb-2 font-weight-black text-gold">عنوان المهمة التشغيلي*</v-label
-                      >
+                      <label class="mb-2 font-weight-black text-gold">عنوان المهمة التشغيلي*</label>
                       <v-text-field
                         v-model="editItem.title"
                         placeholder="مثال: تقديم لائحة جوابية، استخراج صك اعالة..."
@@ -332,7 +341,8 @@
                     </v-col>
 
                     <v-col cols="12">
-                      <label class="mb-2 font-weight-black text-gold">تفاصيل التنفيذ والملاحظات</v-label
+                      <label class="mb-2 font-weight-black text-gold"
+                        >تفاصيل التنفيذ والملاحظات</label
                       >
                       <v-textarea
                         v-model="editItem.description"
@@ -347,8 +357,7 @@
                     </v-col>
 
                     <v-col cols="12" md="6">
-                      <label class="mb-2 font-weight-black text-gold">درجة الاستعجال*</v-label
-                      >
+                      <label class="mb-2 font-weight-black text-gold">درجة الاستعجال*</label>
                       <v-select
                         v-model="editItem.priority"
                         :items="['عالية', 'متوسطة', 'منخفضة']"
@@ -362,8 +371,7 @@
                       </v-select>
                     </v-col>
                     <v-col cols="12" md="6">
-                      <label class="mb-2 font-weight-black text-gold">موعد التسليم النهائي*</v-label
-                      >
+                      <label class="mb-2 font-weight-black text-gold">موعد التسليم النهائي*</label>
                       <DualDatePicker v-model="editItem.due_date" />
                     </v-col>
 

@@ -15,16 +15,20 @@
         </div>
         <v-toolbar-title class="font-weight-black text-primary">جدولة جلسة قضائية</v-toolbar-title>
         <v-spacer />
-        <v-btn icon variant="tonal" class="rounded-lg premium-btn-gold-gradient" @click="$emit('update:modelValue', false)">
+        <v-btn
+          icon
+          variant="tonal"
+          class="rounded-lg premium-btn-gold-gradient"
+          @click="$emit('update:modelValue', false)"
+        >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </v-toolbar>
-      <v-card-text class="pa-8 bg-transparent glass-card">
+      <v-card-text class="pa-8 bg-transparent">
         <v-form ref="formRef" v-model="valid">
           <v-row>
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">تاريخ الجلسة (هجري/ميلادي)*</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">تاريخ الجلسة (هجري/ميلادي)*</label>
               <DualDatePicker v-model="session.date" />
             </v-col>
             <v-col cols="12" md="6">
@@ -67,7 +71,8 @@
               </v-select>
             </v-col>
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">رابط الجلسة الرقمية (ناجز / تيمز / زووم)</v-label
+              <label class="mb-2 font-weight-black text-gold"
+                >رابط الجلسة الرقمية (ناجز / تيمز / زووم)</label
               >
               <v-text-field
                 v-model="session.meeting_link"
@@ -86,7 +91,7 @@
                 v-model="session.notes"
                 variant="outlined"
                 rows="3"
-                class="premium-select"
+                class="premium-select glass-input"
                 placeholder="سجل هنا أهم ما دار في الجلسة أو القرارات الصادرة..."
               />
             </v-col>
@@ -94,7 +99,7 @@
         </v-form>
       </v-card-text>
       <v-divider class="opacity-10" />
-      <v-card-actions class="pa-6 bg-transparent glass-card">
+      <v-card-actions class="pa-6 bg-transparent">
         <v-btn
           variant="tonal"
           class="px-6 font-weight-black rounded-xl premium-btn-gold-gradient"

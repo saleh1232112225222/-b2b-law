@@ -22,7 +22,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input glass-input"
+          class="glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -143,7 +143,7 @@
       <v-card class="glass-card overflow-hidden rtl glass-card">
         <div class="decorative-top-gold"></div>
 
-        <v-card-title class="pa-8 d-flex align-center glass-card">
+        <v-card-title class="pa-8 d-flex align-center">
           <div class="glass-panel-light pa-3 rounded-xl me-4">
             <LucideIcon
               :name="isEditing ? 'user-cog' : 'user-plus'"
@@ -160,23 +160,28 @@
             </div>
           </div>
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="gold" @click="showDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            color="gold"
+            @click="showDialog = false"
+          >
             <LucideIcon name="x" :size="24" />
           </v-btn>
         </v-card-title>
 
         <v-divider class="border-gold opacity-10" />
 
-        <v-card-text class="pa-8 glass-card">
+        <v-card-text class="pa-8">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
             <v-row>
               <v-col cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">الاسم الكامل للخبير*</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">الاسم الكامل للخبير*</label>
                 <v-text-field
                   v-model="editItem.name"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="د. أحمد المحمدي"
                   :rules="[(v) => !!v || 'الاسم الكامل مطلوب']"
                 >
@@ -186,12 +191,11 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">التخصص المهني*</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">التخصص المهني*</label>
                 <v-text-field
                   v-model="editItem.specialty"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="محاسب قانوني، خبير هندسي..."
                   :rules="[(v) => !!v || 'التخصص مطلوب للتصنيف']"
                 >
@@ -201,12 +205,11 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">رقم التواصل (جوال)*</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">رقم التواصل (جوال)*</label>
                 <v-text-field
                   v-model="editItem.phone"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="05xxxxxxxx"
                   :rules="[(v) => !!v || 'رقم الجوال ضروري للتواصل']"
                 >
@@ -216,12 +219,11 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">البريد الإلكتروني</label>
                 <v-text-field
                   v-model="editItem.email"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="example@domain.com"
                 >
                   <template #prepend-inner>
@@ -230,15 +232,14 @@
                 </v-text-field>
               </v-col>
               <v-col cols="12">
-                <label class="mb-2 font-weight-black text-gold">الارتباط بملف قضية حالي</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">الارتباط بملف قضية حالي</label>
                 <v-autocomplete
                   v-model="editItem.case_id"
                   :items="safeArray(casesStore.cases)"
                   item-title="case_number"
                   item-value="id"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   placeholder="ابحث عن رقم القضية..."
                   :custom-filter="arabicFilter"
                   clearable
@@ -249,8 +250,7 @@
                 </v-autocomplete>
               </v-col>
               <v-col cols="12">
-                <label class="mb-2 font-weight-black text-gold">ملاحظات وتقييم أداء</v-label
-                >
+                <label class="mb-2 font-weight-black text-gold">ملاحظات وتقييم أداء</label>
                 <v-textarea
                   v-model="editItem.notes"
                   variant="outlined"
@@ -269,7 +269,7 @@
 
         <v-divider class="border-gold opacity-10" />
 
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
           <v-btn
             variant="flat"
             size="large"

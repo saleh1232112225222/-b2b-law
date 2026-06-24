@@ -49,7 +49,10 @@
       <!-- Linked Case Section -->
       <div v-if="caseItem" class="mb-4">
         <div class="text-caption font-weight-bold text-gold mb-2">ملف القضية المقترن</div>
-        <v-card elevation="0" class="glass-panel-light pa-4 rounded-xl border-gold-alpha">
+        <v-card
+          elevation="0"
+          class="glass-panel-light pa-4 rounded-xl border-gold-alpha glass-card"
+        >
           <div class="d-flex align-center justify-space-between mb-2">
             <span class="text-body-2 font-weight-black text-accent">{{
               caseItem.case_number
@@ -79,7 +82,11 @@
       </div>
 
       <!-- Notes & Decisions -->
-      <v-card variant="tonal" color="primary" class="pa-4 rounded-xl border-gold-alpha mb-4">
+      <v-card
+        variant="tonal"
+        color="primary"
+        class="pa-4 rounded-xl border-gold-alpha mb-4 glass-card"
+      >
         <div class="text-caption font-weight-black text-gold mb-2 d-flex align-center">
           <LucideIcon name="sticky-note" :size="16" class="me-2 opacity-50" /> وقائع وتفاصيل الجلسة
         </div>
@@ -88,12 +95,7 @@
         </div>
       </v-card>
 
-      <v-card
-        v-if="session.result"
-        variant="tonal"
-        color="success"
-        class="pa-4 rounded-xl border-gold-alpha"
-      >
+      <v-card v-if="session.result" class="glass-card pa-4 rounded-xl border-gold-alpha">
         <div class="text-caption font-weight-black text-accent mb-2 d-flex align-center">
           <LucideIcon name="check-square" :size="16" class="me-2 opacity-50" /> قرار اللجنة / سبب
           التأجيل

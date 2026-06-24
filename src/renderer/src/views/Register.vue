@@ -37,7 +37,12 @@
               عذراً، هذا الإصدار المحلي لا يدعم إنشاء حسابات جديدة مباشرة. التسجيل التلقائي متاح فقط
               لنسخة الويب السحابية.
             </v-alert>
-            <v-btn block height="50" class="premium-submit-btn premium-btn-gold-gradient" @click="router.push('/login')">
+            <v-btn
+              block
+              height="50"
+              class="premium-submit-btn premium-btn-gold-gradient"
+              @click="router.push('/login')"
+            >
               العودة لتسجيل الدخول
             </v-btn>
           </div>

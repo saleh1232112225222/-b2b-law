@@ -23,7 +23,10 @@
           @refresh="store.fetchCases"
         />
 
-        <v-card elevation="0" class="glass-panel overflow-hidden min-h-500 table-to-cards glass-card">
+        <v-card
+          elevation="0"
+          class="glass-panel overflow-hidden min-h-500 table-to-cards glass-card"
+        >
           <MobileCases
             v-if="isMobile"
             :items="safeArray(store.cases)"

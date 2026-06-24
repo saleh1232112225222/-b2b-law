@@ -186,8 +186,9 @@
               <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> الحكم لصالح من؟
               </label>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentFavors"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="primary"
                 variant="outlined"
@@ -206,8 +207,9 @@
               <label class="mb-2 font-weight-black text-gold">
                 <LucideIcon name="help-circle" :size="16" class="me-1" /> هل الحكم يحتاج تنفيذ؟
               </label>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentNeedsExecution"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="primary"
                 variant="outlined"
@@ -227,8 +229,9 @@
                 <LucideIcon name="alert-triangle" :size="16" class="me-1" /> هل يوجد سبب مشروع
                 للاعتراض على الحكم؟
               </label>
-              <v-btn class="premium-btn-gold-gradient"-toggle
+              <v-btn-toggle
                 v-model="outcomeModal.judgmentHasAppealGrounds"
+                class="premium-btn-gold-gradient"
                 mandatory
                 color="warning"
                 variant="outlined"
@@ -287,7 +290,7 @@
                 ? 'اكتب سبب النتيجة...'
                 : 'اكتب أي ملاحظات فنية أو إجرائية هنا...'
             "
-            class="rounded-xl premium-select"
+            class="rounded-xl premium-select glass-input"
             hide-details
           />
         </v-col>

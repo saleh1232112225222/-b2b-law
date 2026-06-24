@@ -44,7 +44,7 @@
             item-value="value"
             label="اختر القضية للمعاينة"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
             clearable
           >
@@ -59,7 +59,7 @@
             label="من تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
           />
         </v-col>
@@ -69,7 +69,7 @@
             label="إلى تاريخ"
             type="date"
             variant="outlined"
-            class="glass-input glass-input"
+            class="glass-input"
             hide-details
           />
         </v-col>
@@ -585,11 +585,17 @@
             >معاينة الطباعة (A4)</v-toolbar-title
           >
           <v-spacer></v-spacer>
-          <v-btn class="premium-btn-gold-gradient" icon variant="text" color="white" @click="printPreviewDialog = false">
+          <v-btn
+            class="premium-btn-gold-gradient"
+            icon
+            variant="text"
+            color="white"
+            @click="printPreviewDialog = false"
+          >
             <LucideIcon name="x" />
           </v-btn>
         </v-toolbar>
-        <v-card-text class="pa-0 glass-card">
+        <v-card-text class="pa-0">
           <div v-if="printPreviewLoading" class="pa-10 text-center">
             <v-progress-circular indeterminate color="primary" />
             <div class="mt-4 text-grey-darken-1 font-weight-black">جاري تجهيز المعاينة...</div>
@@ -604,9 +610,12 @@
           </div>
         </v-card-text>
         <v-divider />
-        <v-card-actions class="pa-4 glass-card">
+        <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn variant="text" class="font-weight-black premium-btn-gold-gradient" @click="printPreviewDialog = false"
+          <v-btn
+            variant="text"
+            class="font-weight-black premium-btn-gold-gradient"
+            @click="printPreviewDialog = false"
             >إغلاق</v-btn
           >
           <v-btn

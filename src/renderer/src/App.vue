@@ -7,8 +7,8 @@
   >
     <v-layout full-height>
       <component
-        v-if="layoutComponent"
         :is="layoutComponent"
+        v-if="layoutComponent"
         v-bind="layoutProps"
         @logout="handleLogout"
         @toggle-theme="toggleTheme"
@@ -19,7 +19,7 @@
 
     <!-- Support & Disclaimer Dialog -->
     <v-dialog v-model="showSupportDialog" max-width="550">
-      <v-card class="rounded-xl overflow-hidden border">
+      <v-card class="rounded-xl overflow-hidden border glass-card">
         <v-toolbar color="primary" height="80">
           <div class="px-6 d-flex align-center w-100">
             <v-avatar
@@ -56,7 +56,7 @@
             {{ developerInfo?.disclaimer?.legal }}
           </div>
 
-          <v-card variant="tonal" color="primary" class="rounded-lg pa-4">
+          <v-card variant="tonal" color="primary" class="rounded-lg pa-4 glass-card">
             <div class="text-subtitle-2 font-weight-black mb-3 d-flex align-center">
               <v-icon icon="mdi-headset" :size="18" class="me-2" />
               قنوات التواصل المباشرة
@@ -110,7 +110,7 @@
 
     <!-- Smart Logout Confirmation Dialog -->
     <v-dialog v-model="showLogoutConfirm" max-width="500" persistent>
-      <v-card class="rounded-xl border-gold-thin premium-shadow-lg">
+      <v-card class="rounded-xl border-gold-thin premium-shadow-lg glass-card">
         <v-card-text class="pa-8 text-center">
           <v-avatar color="amber-lighten-4" size="70" class="mb-6">
             <v-icon icon="mdi-shield-alert" :size="36" color="amber-darken-3" />
@@ -170,7 +170,7 @@
 
     <!-- Global Trial Expired / Read-Only Warning Dialog -->
     <v-dialog v-model="licensingStore.showWarningDialog" max-width="500" persistent>
-      <v-card class="rounded-xl border-gold-thin premium-shadow-lg text-center pa-8">
+      <v-card class="rounded-xl border-gold-thin premium-shadow-lg text-center pa-8 glass-card">
         <v-avatar color="amber-lighten-4" size="80" class="mb-6">
           <v-icon icon="mdi-shield-alert" :size="42" color="amber-darken-3" />
         </v-avatar>
@@ -189,7 +189,7 @@
           الإلكتروني.
         </p>
 
-        <v-card variant="tonal" color="primary" class="rounded-xl pa-5 mb-6 text-start">
+        <v-card variant="tonal" color="primary" class="rounded-xl pa-5 mb-6 text-start glass-card">
           <div class="text-subtitle-2 font-weight-black mb-3 d-flex align-center">
             <v-icon icon="mdi-headset" :size="18" class="me-2 text-gold" />
             قنوات الدعم الفني والمبيعات المباشرة:

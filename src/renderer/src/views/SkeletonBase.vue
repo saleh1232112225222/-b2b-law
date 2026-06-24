@@ -36,10 +36,20 @@
       <v-data-table :headers="headers" :items="placeholderItems" class="bg-transparent" hover>
         <template #item.actions>
           <div class="d-flex justify-end ga-2">
-            <v-btn variant="tonal" color="primary" size="small" class="rounded-lg premium-btn-gold-gradient">
+            <v-btn
+              variant="tonal"
+              color="primary"
+              size="small"
+              class="rounded-lg premium-btn-gold-gradient"
+            >
               <LucideIcon name="pencil" :size="16" />
             </v-btn>
-            <v-btn variant="tonal" color="error" size="small" class="rounded-lg premium-btn-gold-gradient">
+            <v-btn
+              variant="tonal"
+              color="error"
+              size="small"
+              class="rounded-lg premium-btn-gold-gradient"
+            >
               <LucideIcon name="trash-2" :size="16" />
             </v-btn>
           </div>

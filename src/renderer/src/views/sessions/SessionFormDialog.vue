@@ -20,12 +20,18 @@
           isEditing ? 'تعديل بيانات الجلسة المجدولة' : 'إدراج موعد جلسة قضائية جديد'
         }}</span>
         <v-spacer />
-        <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="$emit('update:show', false)">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          variant="text"
+          color="gold"
+          icon
+          @click="$emit('update:show', false)"
+        >
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
 
-      <v-card-text class="pa-8 modal-scrollable session-form glass-card">
+      <v-card-text class="pa-8 modal-scrollable session-form">
         <v-form ref="formRef" v-model="formValid">
           <v-row>
             <v-col v-if="caseBlockStatus.is_blocked" cols="12">
@@ -54,8 +60,7 @@
             </v-col>
 
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">ملف القضية المستهدفة*</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">ملف القضية المستهدفة*</label>
               <v-autocomplete
                 v-model="editItem.case_id"
                 :items="safeArray(caseOptions)"
@@ -112,8 +117,7 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <label class="mb-2 font-weight-black text-gold">القاعة / الدائرة القضائية</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">القاعة / الدائرة القضائية</label>
               <v-text-field
                 v-model="editItem.court_room"
                 placeholder="مثال: القاعة الخامسة، الدائرة السادسة"
@@ -156,7 +160,8 @@
             </v-col>
 
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">رابط الجلسة الرقمية (ناجز / تيمز)</v-label
+              <label class="mb-2 font-weight-black text-gold"
+                >رابط الجلسة الرقمية (ناجز / تيمز)</label
               >
               <v-text-field
                 v-model="editItem.meeting_link"
@@ -173,13 +178,12 @@
             </v-col>
 
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">ملاحظات ووقائع الجلسة</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">ملاحظات ووقائع الجلسة</label>
               <v-textarea
                 v-model="editItem.notes"
                 variant="outlined"
                 rows="2"
-                class="premium-input-solid"
+                class="premium-input-solid glass-input"
               >
                 <template #prepend-inner>
                   <LucideIcon name="sticky-note" :size="20" class="text-primary" />
@@ -188,8 +192,7 @@
             </v-col>
 
             <v-col v-if="editItem.status === 'تمت' || editItem.status === 'مؤجلة'" cols="12">
-              <label class="mb-2 font-weight-black text-gold">قرار اللجنة / سبب التأجيل</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">قرار اللجنة / سبب التأجيل</label>
               <v-text-field
                 v-model="editItem.result"
                 variant="outlined"
@@ -209,7 +212,7 @@
         </v-form>
       </v-card-text>
       <v-divider class="border-gold" style="opacity: 0.1" />
-      <v-card-actions class="pa-8 session-dialog-footer glass-card">
+      <v-card-actions class="pa-8 session-dialog-footer">
         <v-btn
           variant="flat"
           size="large"

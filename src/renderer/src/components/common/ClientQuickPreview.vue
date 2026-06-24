@@ -87,7 +87,11 @@
             </v-list-item>
           </v-list>
 
-          <v-card variant="tonal" color="primary" class="mt-4 pa-4 rounded-xl border-gold-alpha">
+          <v-card
+            variant="tonal"
+            color="primary"
+            class="mt-4 pa-4 rounded-xl border-gold-alpha glass-card"
+          >
             <div class="text-caption font-weight-black text-gold mb-2 d-flex align-center">
               <LucideIcon name="message-square" :size="16" class="me-2 opacity-50" /> الملاحظات
               المسجلة
@@ -107,7 +111,7 @@
             v-for="item in safeArray(linkedCases)"
             :key="item.id"
             elevation="0"
-            class="glass-panel-light mb-3 pa-3 rounded-lg border-gold-alpha"
+            class="glass-card glass-panel-light mb-3 pa-3 rounded-lg border-gold-alpha"
           >
             <div class="d-flex align-center justify-space-between mb-1">
               <span class="text-caption font-weight-black text-gold">{{ item.case_number }}</span>

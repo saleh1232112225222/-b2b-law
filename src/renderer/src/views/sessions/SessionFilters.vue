@@ -1,5 +1,5 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-8 pa-6 glass-card">
+  <v-card elevation="0" class="glass-card mb-8 pa-6">
     <v-row dense align="center">
       <v-col cols="12" md="4">
         <v-text-field
@@ -8,7 +8,7 @@
           variant="outlined"
           density="comfortable"
           hide-details
-          class="glass-input glass-input"
+          class="glass-input"
           clearable
         >
           <template #prepend-inner>
@@ -22,26 +22,20 @@
           mandatory
           color="accent"
           variant="text"
-          class="glass-panel rounded-lg w-100 pa-1 premium-btn-gold-gradient"
+          class="glass-toggle w-100"
           density="comfortable"
         >
-          <v-btn value="all" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold premium-btn-gold-gradient"
-            >الكل</v-btn
-          >
-          <v-btn value="upcoming" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold premium-btn-gold-gradient"
-            >القادمة</v-btn
-          >
-          <v-btn value="recent" class="flex-grow-1 font-weight-black text-subtitle-1 text-gold premium-btn-gold-gradient"
-            >الأخيرة</v-btn
-          >
+          <v-btn value="all" class="flex-grow-1 font-weight-bold">الكل</v-btn>
+          <v-btn value="upcoming" class="flex-grow-1 font-weight-bold">القادمة</v-btn>
+          <v-btn value="recent" class="flex-grow-1 font-weight-bold">الأخيرة</v-btn>
         </v-btn-toggle>
       </v-col>
       <v-spacer />
       <v-col cols="auto">
         <v-btn
-          variant="text"
-          color="gold"
-          class="rounded-lg premium-btn-gold-gradient"
+          variant="tonal"
+          color="accent"
+          class="rounded-lg font-weight-bold"
           :loading="loading"
           @click="$emit('reset')"
         >

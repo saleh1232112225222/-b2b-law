@@ -6,7 +6,7 @@
           elevation="0"
           class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card glass-card"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0 glass-card">
+          <v-card-title class="pa-1 px-2 d-flex align-center justify-space-between shrink-0">
             <span class="font-weight-black text-tiny-v dashboard-title">المهام المعلقة</span>
             <v-btn
               variant="text"
@@ -53,7 +53,7 @@
           elevation="0"
           class="glass-card d-flex flex-column overflow-hidden dashboard-bottom-inner-card border-error-alpha glass-card"
         >
-          <v-card-title class="pa-1 px-2 d-flex align-center shrink-0 glass-card">
+          <v-card-title class="pa-1 px-2 d-flex align-center shrink-0">
             <LucideIcon name="alert-triangle" :size="12" class="text-error me-2 pulse-icon" />
             <span class="font-weight-black text-tiny-v dashboard-title">تنبيهات عاجلة</span>
           </v-card-title>

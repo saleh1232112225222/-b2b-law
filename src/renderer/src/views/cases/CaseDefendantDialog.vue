@@ -17,15 +17,20 @@
           >إضافة خصم جديد للمنظومة</v-toolbar-title
         >
         <v-spacer />
-        <v-btn icon variant="tonal" class="rounded-lg premium-btn-gold-gradient" @click="$emit('update:modelValue', false)">
+        <v-btn
+          icon
+          variant="tonal"
+          class="rounded-lg premium-btn-gold-gradient"
+          @click="$emit('update:modelValue', false)"
+        >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </v-toolbar>
-      <v-card-text class="pa-8 bg-transparent glass-card">
+      <v-card-text class="pa-8 bg-transparent">
         <DefendantForm ref="formRef" v-model="defendant" />
       </v-card-text>
       <v-divider class="opacity-10" />
-      <v-card-actions class="pa-6 bg-transparent glass-card">
+      <v-card-actions class="pa-6 bg-transparent">
         <v-btn
           variant="tonal"
           class="px-6 font-weight-black rounded-xl premium-btn-gold-gradient"

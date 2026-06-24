@@ -14,7 +14,7 @@
           density="comfortable"
           hide-details="auto"
           bg-color="surface"
-          class="mb-3"
+          class="mb-3 glass-input"
           @update:model-value="onGDateUpdate"
         ></v-text-field>
       </v-col>
@@ -28,7 +28,7 @@
           hide-details="auto"
           bg-color="transparent"
           :prepend-inner-icon="ICONS.NAV.SESSIONS"
-          class="hijri-field"
+          class="hijri-field glass-input"
         ></v-text-field>
       </v-col>
     </v-row>

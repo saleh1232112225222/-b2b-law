@@ -12,7 +12,7 @@
       <div class="pa-6 bg-error text-white d-flex align-center font-weight-black">
         <LucideIcon name="alert-octagon" :size="28" class="me-3" /> تأكيد المسح الشامل
       </div>
-      <v-card-text class="pa-8 bg-white glass-card">
+      <v-card-text class="pa-8 bg-white">
         <p class="text-h6 mb-4 font-weight-black text-black">
           تحذير: سيتم حذف بيانات القضايا والمعاملات نهائياً.
         </p>
@@ -32,8 +32,12 @@
           autocomplete="off"
         ></v-text-field>
       </v-card-text>
-      <v-card-actions class="pa-6 pt-0 gap-3 glass-card">
-        <v-btn variant="text" color="gold" class="font-weight-black premium-btn-gold-gradient" @click="handleCancel"
+      <v-card-actions class="pa-6 pt-0 gap-3">
+        <v-btn
+          variant="text"
+          color="gold"
+          class="font-weight-black premium-btn-gold-gradient"
+          @click="handleCancel"
           >تراجع</v-btn
         >
         <v-spacer></v-spacer>

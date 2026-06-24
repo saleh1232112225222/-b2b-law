@@ -7,17 +7,22 @@
         </div>
         <span class="text-h5 font-weight-black text-gold">تعديل بيانات الوكالة الشرعية</span>
         <v-spacer></v-spacer>
-        <v-btn class="premium-btn-gold-gradient" variant="text" color="gold" icon @click="$emit('close')">
+        <v-btn
+          class="premium-btn-gold-gradient"
+          variant="text"
+          color="gold"
+          icon
+          @click="$emit('close')"
+        >
           <LucideIcon name="x" :size="24" />
         </v-btn>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable poa-form glass-card">
+      <v-card-text class="pa-8 bg-white modal-scrollable poa-form">
         <v-form ref="agencyFormRef" v-model="agencyEditDialog.valid" lazy-validation>
           <v-row dense>
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">الموكل صاحب الوكالة*</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">الموكل صاحب الوكالة*</label>
               <v-autocomplete
                 v-model="agencyEditDialog.data.client_id"
                 :items="clients"
@@ -25,7 +30,7 @@
                 item-value="id"
                 placeholder="ابحث عن اسم الموكل..."
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
                 :rules="[(v) => !!v || 'تعيين الموكل ضروري لإتمام التسجيل']"
                 no-data-text="لا يوجد موكلون مسجلون"
                 required
@@ -36,35 +41,33 @@
               </v-autocomplete>
             </v-col>
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">رقم الوكالة الرسمي*</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">رقم الوكالة الرسمي*</label>
               <v-text-field
                 v-model="agencyEditDialog.data.agency_number"
                 placeholder="مثال: 44123456"
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
                 :rules="[(v) => !!v || 'رقم الوكالة مطلوب للتحقق النظامي']"
                 required
               />
             </v-col>
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">تاريخ صدور الوكالة*</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">تاريخ صدور الوكالة*</label>
               <DualDatePicker v-model="agencyEditDialog.data.date" />
             </v-col>
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">تاريخ انتهاء الوكالة</v-label
-              >
+              <label class="mb-2 font-weight-black text-gold">تاريخ انتهاء الوكالة</label>
               <DualDatePicker v-model="agencyEditDialog.data.expiry_date" />
             </v-col>
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">جهة الإصدار (كتابة عدل / منصة ناجز)</v-label
+              <label class="mb-2 font-weight-black text-gold"
+                >جهة الإصدار (كتابة عدل / منصة ناجز)</label
               >
               <v-text-field
                 v-model="agencyEditDialog.data.court"
                 placeholder="مثال: كتابة العدل الأولى بالرياض"
                 variant="outlined"
-                class="glass-input glass-input"
+                class="glass-input"
               >
                 <template #prepend-inner>
                   <LucideIcon name="landmark" :size="20" class="text-gold opacity-50" />
@@ -72,7 +75,8 @@
               </v-text-field>
             </v-col>
             <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">نطاق الوكالة / الصلاحيات الممنوحة</v-label
+              <label class="mb-2 font-weight-black text-gold"
+                >نطاق الوكالة / الصلاحيات الممنوحة</label
               >
               <v-textarea
                 v-model="agencyEditDialog.data.notes"
@@ -91,7 +95,7 @@
       </v-card-text>
 
       <v-divider class="border-gold opacity-10"></v-divider>
-      <v-card-actions class="pa-8 modal-footer-solid glass-card">
+      <v-card-actions class="pa-8 modal-footer-solid">
         <v-btn
           variant="flat"
           size="large"

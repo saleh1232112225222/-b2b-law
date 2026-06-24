@@ -5,8 +5,10 @@ export function initApiAdapter(): void {
 
   if (isWeb) {
     setApiMode('cloud')
-    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
-    setCloudBaseUrl(isLocalhost ? '/api' : (__API_BASE_URL__ || '/api'))
+    const isLocalhost =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+    setCloudBaseUrl(isLocalhost ? '/api' : __API_BASE_URL__ || '/api')
     window.api = api
   }
 }

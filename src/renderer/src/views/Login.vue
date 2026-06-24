@@ -82,7 +82,12 @@
               </div>
 
               <!-- Google Sign-in Button -->
-              <v-btn block height="50" class="google-signin-btn mb-6 premium-btn-gold-gradient" @click="handleGoogleLogin">
+              <v-btn
+                block
+                height="50"
+                class="google-signin-btn mb-6 premium-btn-gold-gradient"
+                @click="handleGoogleLogin"
+              >
                 <template #prepend>
                   <svg width="20" height="20" viewBox="0 0 48 48">
                     <path
@@ -136,12 +141,15 @@
 
         <!-- Recovery Modal -->
         <v-dialog v-model="recoveryDialog" max-width="500" persistent>
-          <v-card class="premium-glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4 glass-card">
+          <v-card
+            class="premium-glass-card border-gold border-2 overflow-hidden rounded-2xl ga-4 glass-card"
+          >
             <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
               <LucideIcon name="shield-key" :size="24" class="me-3" />
               <span class="text-h6 font-weight-black">استعادة كلمة المرور</span>
               <v-spacer />
-              <v-btn class="premium-btn-gold-gradient"
+              <v-btn
+                class="premium-btn-gold-gradient"
                 icon
                 variant="text"
                 color="ebony"
@@ -152,7 +160,7 @@
               </v-btn>
             </div>
 
-            <v-card-text class="pa-8 rtl glass-card">
+            <v-card-text class="pa-8 rtl">
               <div v-if="recoveryStep === 1">
                 <div class="text-subtitle-1 text-gold mb-6 font-weight-bold">
                   الخطوة 1: التحقق من الهوية
@@ -242,7 +250,7 @@
               </v-fade-transition>
             </v-card-text>
 
-            <v-card-actions v-if="recoveryStep !== 3" class="pa-8 pt-0 ga-3 glass-card">
+            <v-card-actions v-if="recoveryStep !== 3" class="pa-8 pt-0 ga-3">
               <v-btn
                 variant="text"
                 color="gold"
@@ -276,7 +284,7 @@
               </v-btn>
             </v-card-actions>
 
-            <v-card-actions v-else class="pa-8 pt-0 justify-center glass-card">
+            <v-card-actions v-else class="pa-8 pt-0 justify-center">
               <v-btn
                 color="gold"
                 variant="flat"

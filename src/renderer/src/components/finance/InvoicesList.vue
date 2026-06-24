@@ -82,7 +82,7 @@
 
     <!-- Add Invoice Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="showDialog" class="rounded-xl modal-card">
+      <v-card v-if="showDialog" class="rounded-xl modal-card glass-card">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="file-edit" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white"
@@ -102,6 +102,7 @@
               <v-col cols="12" md="4">
                 <v-text-field
                   v-model="editItem.invoice_number"
+                  class="glass-input"
                   label="رقم الفاتورة*"
                   variant="outlined"
                   required
@@ -110,6 +111,7 @@
               <v-col cols="12" md="4">
                 <v-select
                   v-model="editItem.client_id"
+                  class="glass-input"
                   :items="safeArray(clientsStore.clients)"
                   item-title="name"
                   item-value="id"
@@ -121,6 +123,7 @@
               <v-col cols="12" md="4">
                 <v-select
                   v-model.number="vat_rate"
+                  class="glass-input"
                   :items="[
                     { title: 'بدون ضريبة', value: 0 },
                     { title: '15%', value: 0.15 }
@@ -148,6 +151,7 @@
                   <v-col cols="8">
                     <v-text-field
                       v-model="line.description"
+                      class="glass-input"
                       label="وصف الخدمة"
                       variant="outlined"
                       density="compact"
@@ -157,6 +161,7 @@
                   <v-col cols="3">
                     <v-text-field
                       v-model.number="line.amount"
+                      class="glass-input"
                       type="number"
                       label="المبلغ"
                       variant="outlined"
@@ -178,7 +183,7 @@
               </v-col>
 
               <v-col cols="12">
-                <v-card border flat class="pa-4 bg-grey-lighten-4">
+                <v-card border flat class="pa-4 bg-grey-lighten-4 glass-card">
                   <div class="d-flex justify-space-between mb-1">
                     <span>المجموع الفرعي:</span>
                     <span>{{ (editItem.amount || 0).toLocaleString('ar-SA') }} ريال</span>
@@ -213,7 +218,7 @@
     </v-dialog>
 
     <v-dialog v-model="showInvoiceViewDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="invoiceToView" class="rounded-xl modal-card">
+      <v-card v-if="invoiceToView" class="rounded-xl modal-card glass-card">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="receipt-text" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white">عرض الفاتورة</v-toolbar-title>

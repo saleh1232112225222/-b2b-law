@@ -20,50 +20,43 @@
       <v-btn
         variant="text"
         color="accent"
-        class="px-0 font-weight-black text-subtitle-1 premium-btn-gold-gradient"
+        class="px-0 font-weight-black text-body-2"
         :to="'/cases/' + item.id"
       >
         {{ item.case_number }}
       </v-btn>
     </template>
     <template #[`item.client_name`]="{ item }">
-      <div class="d-flex flex-column ga-1">
-        <div class="d-flex align-center ga-2 case-parties-row">
+      <div class="d-flex flex-column">
+        <div class="d-flex align-center flex-wrap ga-1">
           <v-btn
             v-if="getCaseClientId(item)"
             variant="text"
             color="accent"
-            class="px-0 font-weight-bold text-body-2 case-parties-client premium-btn-gold-gradient"
+            class="px-0 font-weight-black text-body-2"
             :to="'/clients/' + getCaseClientId(item)"
             density="compact"
           >
             {{ getCaseClientName(item) || 'بدون موكل' }}
-            <v-tooltip activator="parent" location="top">انتقال لملف الموكل</v-tooltip>
           </v-btn>
-          <div v-else class="font-weight-bold text-body-2 text-gold case-parties-client">
+          <div v-else class="font-weight-black text-body-2 text-accent">
             {{ getCaseClientName(item) || 'بدون موكل' }}
           </div>
-          <v-chip
+          <span
             v-if="getCaseOpponentsCount(item) > 0"
-            size="x-small"
-            color="accent"
-            variant="tonal"
-            class="font-weight-black rounded-lg"
-            >ضد</v-chip
+            class="text-caption font-weight-black text-error mx-1"
+            >ضد</span
           >
-          <div
-            v-if="getCaseOpponentName(item)"
-            class="text-caption text-text-muted case-parties-opponent"
-          >
+          <div v-if="getCaseOpponentName(item)" class="text-body-2 font-weight-bold text-ebony">
             {{ getCaseOpponentName(item) }}
           </div>
-          <div v-else class="text-caption text-text-muted opacity-70 case-parties-opponent">
+          <div v-else class="text-caption font-weight-bold text-grey-darken-1 opacity-70">
             بدون خصم
           </div>
         </div>
         <div
           v-if="getCaseExtraPartiesCount(item) > 0"
-          class="text-caption text-text-muted opacity-70"
+          class="text-caption font-weight-bold text-grey-darken-1 opacity-70 mt-1"
         >
           +{{ getCaseExtraPartiesCount(item) }} أطراف إضافية
         </div>
@@ -79,59 +72,54 @@
       >
     </template>
     <template #[`item.responsible_name`]="{ item }">
-      <v-chip
-        size="small"
-        variant="tonal"
-        color="accent"
-        class="font-weight-black rounded-xl bg-accent-alpha"
-      >
-        <LucideIcon name="user-check" :size="14" class="me-2" />{{
-          item.responsible_name || 'غير محدد'
-        }}
-      </v-chip>
+      <div class="d-flex align-center text-body-2 font-weight-bold text-ebony">
+        <LucideIcon name="user-check" :size="16" class="me-2 text-accent" />
+        {{ item.responsible_name || 'غير محدد' }}
+      </div>
     </template>
     <template #[`item.priority`]="{ item }">
       <v-chip
         :color="getPriorityColor(item.priority)"
         size="small"
         variant="tonal"
-        class="font-weight-black rounded-xl bg-opacity-10 border"
+        class="font-weight-black rounded-lg border"
       >
-        <LucideIcon name="flag" :size="14" class="me-2" />{{ item.priority }}
+        <LucideIcon name="flag" :size="14" class="me-1" /> {{ item.priority }}
       </v-chip>
     </template>
     <template #[`item.subject`]="{ item }">
-      <div class="text-body-2 text-visible-high text-truncate" style="max-width: 300px">
+      <div class="text-body-2 font-weight-bold text-ebony text-truncate" style="max-width: 300px">
         {{ item.subject || '—' }}
       </div>
     </template>
     <template #[`item.sub_classification`]="{ item }">
-      <v-chip size="small" variant="tonal" color="primary" class="font-weight-black rounded-lg">{{
-        item.sub_classification || '—'
-      }}</v-chip>
+      <div class="text-body-2 font-weight-bold text-ebony">
+        {{ item.sub_classification || '—' }}
+      </div>
+    </template>
+    <template #[`item.case_type`]="{ item }">
+      <div class="text-body-2 font-weight-bold text-ebony">
+        {{ item.case_type || '—' }}
+      </div>
+    </template>
+    <template #[`item.court`]="{ item }">
+      <div class="text-body-2 font-weight-bold text-ebony">
+        {{ item.court || '—' }}
+      </div>
     </template>
     <template #[`item.phase`]="{ item }">
-      <v-chip size="small" variant="tonal" color="indigo" class="font-weight-black rounded-lg">{{
-        item.phase || '—'
-      }}</v-chip>
+      <div class="text-body-2 font-weight-bold text-ebony">
+        {{ item.phase || '—' }}
+      </div>
     </template>
     <template #[`item.registration_date`]="{ item }">
       <div class="d-flex flex-column align-start">
-        <v-chip
-          size="small"
-          color="accent"
-          variant="tonal"
-          class="font-weight-black rounded-xl bg-accent-alpha"
-          >{{ formatGregorianDate(item.registration_date) }} م</v-chip
-        >
-        <v-chip
-          size="x-small"
-          color="accent"
-          variant="outlined"
-          class="mt-1 font-weight-black rounded-lg border-accent"
-          density="compact"
-          >{{ item.registration_date_hijri }} هـ</v-chip
-        >
+        <div class="text-body-2 font-weight-black text-accent">
+          {{ formatGregorianDate(item.registration_date) }} م
+        </div>
+        <div class="text-caption font-weight-bold text-grey-darken-1 mt-1">
+          {{ item.registration_date_hijri }} هـ
+        </div>
       </div>
     </template>
     <template #[`item.actions`]="{ item }">
@@ -291,11 +279,11 @@ const getStatusColor = (status: string): string => {
 
 const getPriorityColor = (priority: string): string => {
   const map: Record<string, string> = {
-    عالية: 'var(--status-error)',
-    متوسط: 'var(--status-warning)',
-    منخفض: 'var(--status-success)',
-    حرجة: 'var(--status-error-dark)'
+    عالية: 'error',
+    متوسط: 'warning',
+    منخفض: 'success',
+    حرجة: 'red-darken-4'
   }
-  return map[priority] || 'var(--text-muted)'
+  return map[priority] || 'grey'
 }
 </script>

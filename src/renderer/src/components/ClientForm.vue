@@ -121,10 +121,7 @@
       <!-- Birth Date -->
       <v-col cols="12">
         <v-label class="mb-2 font-weight-black">تاريخ الميلاد (هجري/ميلادي)</v-label>
-        <DualDatePicker
-          v-model="modelValue.birth_date"
-          :icon="ICONS.UI.BIRTHDAY"
-        />
+        <DualDatePicker v-model="modelValue.birth_date" :icon="ICONS.UI.BIRTHDAY" />
       </v-col>
 
       <!-- Notes -->

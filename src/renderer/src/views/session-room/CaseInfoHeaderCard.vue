@@ -1,5 +1,8 @@
 <template>
-  <v-card class="rounded-xl overflow-hidden mb-4 glass-card shadow-premium border glass-card" elevation="0">
+  <v-card
+    class="rounded-xl overflow-hidden mb-4 glass-card shadow-premium border glass-card"
+    elevation="0"
+  >
     <div class="px-6 py-4 d-flex justify-space-between align-center glass-card-noir border-b">
       <div style="min-width: 0">
         <div class="d-flex align-center ga-3">

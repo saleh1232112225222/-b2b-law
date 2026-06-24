@@ -4,7 +4,13 @@
     <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
-          <v-btn icon variant="text" color="gold" class="me-4 premium-hover premium-btn-gold-gradient" @click="goBack">
+          <v-btn
+            icon
+            variant="text"
+            color="gold"
+            class="me-4 premium-hover premium-btn-gold-gradient"
+            @click="goBack"
+          >
             <LucideIcon name="arrow-right" :size="24" />
           </v-btn>
           <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">

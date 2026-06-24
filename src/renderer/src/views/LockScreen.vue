@@ -7,8 +7,9 @@
           <div class="text-body-2 mb-4">أدخل كلمة المرور للمتابعة</div>
 
           <v-form @submit.prevent="handleUnlock">
-            <v-text-field class="glass-input"
+            <v-text-field
               v-model="password"
+              class="glass-input"
               type="password"
               label="كلمة المرور"
               :disabled="loading"
@@ -20,11 +21,23 @@
             </v-alert>
 
             <div class="d-flex gap-2 mt-4">
-              <v-btn class="premium-btn-gold-gradient" color="primary" type="submit" :loading="loading" block>فتح القفل</v-btn>
+              <v-btn
+                class="premium-btn-gold-gradient"
+                color="primary"
+                type="submit"
+                :loading="loading"
+                block
+                >فتح القفل</v-btn
+              >
             </div>
 
             <div class="d-flex justify-end mt-3">
-              <v-btn class="premium-btn-gold-gradient" variant="text" color="error" :disabled="loading" @click="handleLogout"
+              <v-btn
+                class="premium-btn-gold-gradient"
+                variant="text"
+                color="error"
+                :disabled="loading"
+                @click="handleLogout"
                 >تسجيل خروج</v-btn
               >
             </div>

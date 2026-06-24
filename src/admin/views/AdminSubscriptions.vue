@@ -368,7 +368,11 @@
 // @ts-nocheck
 import { ref, reactive, onMounted } from 'vue'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'https://b2b-law-g2qr.onrender.com'
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? ''
+    : 'https://b2b-law-g2qr.onrender.com')
 
 async function apiRequest(method, path, body = null) {
   const token = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token')
