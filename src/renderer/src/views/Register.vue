@@ -141,15 +141,18 @@
               <label class="input-label">اسم المستخدم (للدخول)</label>
               <v-text-field
                 v-model="username"
+                @update:model-value="debouncedCheckAvailability('username', username)"
                 placeholder="اسم المستخدم بالأحرف الإنجليزية"
                 variant="outlined"
                 class="premium-input glass-input"
-                hide-details
+                hide-details="auto"
+                :error-messages="usernameStatus === 'taken' ? 'اسم المستخدم مسجل مسبقاً ❌' : ''"
+                :success-messages="usernameStatus === 'available' ? 'اسم المستخدم متاح ✅' : ''"
                 :rules="[
                   (v) => !!v || 'اسم المستخدم مطلوب',
                   (v) =>
-                    /^[a-zA-Z0-9_]{3,20}$/.test(v) ||
-                    'اسم المستخدم يجب أن يكون إنجليزي بدون مسافات (3-20 حرف)'
+                    /^[a-zA-Z0-9_]{4,20}$/.test(v) ||
+                    'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)'
                 ]"
                 required
               >
@@ -164,13 +167,16 @@
               <label class="input-label">البريد الإلكتروني</label>
               <v-text-field
                 v-model="email"
+                @update:model-value="debouncedCheckAvailability('email', email)"
                 placeholder="example@email.com"
                 variant="outlined"
                 class="premium-input glass-input"
-                hide-details
+                hide-details="auto"
+                :error-messages="emailStatus === 'taken' ? 'البريد الإلكتروني مسجل مسبقاً ❌' : ''"
+                :success-messages="emailStatus === 'available' ? 'البريد الإلكتروني متاح ✅' : ''"
                 :rules="[
                   (v) => !!v || 'البريد الإلكتروني مطلوب',
-                  (v) => /.+@.+\..+/.test(v) || 'البريد الإلكتروني غير صحيح'
+                  (v) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح'
                 ]"
                 required
               >
@@ -185,14 +191,17 @@
               <label class="input-label">رقم الجوال (لالتفعيل عبر رسالة نصية)</label>
               <v-text-field
                 v-model="phone"
+                @update:model-value="debouncedCheckAvailability('phone', phone)"
                 placeholder="05xxxxxxxx"
                 variant="outlined"
                 class="premium-input glass-input"
-                hide-details
+                hide-details="auto"
+                :error-messages="phoneStatus === 'taken' ? 'رقم الجوال مسجل مسبقاً ❌' : ''"
+                :success-messages="phoneStatus === 'available' ? 'رقم الجوال متاح ✅' : ''"
                 :rules="[
                   (v) => !!v || 'رقم الجوال مطلوب',
                   (v) =>
-                    /^(05|5)\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
+                    /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح من 10 أرقام (مثال: 0512345678)'
                 ]"
                 required
               >
@@ -211,10 +220,10 @@
                 type="password"
                 variant="outlined"
                 class="premium-input glass-input"
-                hide-details
+                hide-details="auto"
                 :rules="[
                   (v) => !!v || 'كلمة المرور مطلوبة',
-                  (v) => v.length >= 6 || 'يجب أن لا تقل عن 6 أحرف'
+                  (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v) || 'كلمة المرور ضعيفة! يجب أن تحتوي على: حرف كبير، حرف صغير، رقم، ورمز خاص (@$!%*?&)، وبحد أدنى 8 أحرف.'
                 ]"
                 required
               >
@@ -233,7 +242,7 @@
                 type="password"
                 variant="outlined"
                 class="premium-input glass-input"
-                hide-details
+                hide-details="auto"
                 :rules="[
                   (v) => !!v || 'تأكيد كلمة المرور مطلوب',
                   (v) => v === password || 'كلمتا المرور غير متطابقتين'
@@ -316,6 +325,36 @@ const loading = ref(false)
 const error = ref('')
 const success = ref(false)
 const formValid = ref(false)
+
+const usernameStatus = ref<'idle' | 'checking' | 'available' | 'taken'>('idle')
+const emailStatus = ref<'idle' | 'checking' | 'available' | 'taken'>('idle')
+const phoneStatus = ref<'idle' | 'checking' | 'available' | 'taken'>('idle')
+
+let availabilityTimeout: ReturnType<typeof setTimeout> | null = null
+
+const debouncedCheckAvailability = (field: 'username' | 'email' | 'phone', value: string) => {
+  if (availabilityTimeout) clearTimeout(availabilityTimeout)
+  
+  if (field === 'username') usernameStatus.value = 'idle'
+  if (field === 'email') emailStatus.value = 'idle'
+  if (field === 'phone') phoneStatus.value = 'idle'
+
+  if (!value || value.length < 4) return
+
+  availabilityTimeout = setTimeout(async () => {
+    try {
+      const api = (window as any).api
+      if (!api?.auth?.checkAvailability) return
+      
+      const res = await api.auth.checkAvailability(field, value)
+      if (field === 'username') usernameStatus.value = res.available ? 'available' : 'taken'
+      if (field === 'email') emailStatus.value = res.available ? 'available' : 'taken'
+      if (field === 'phone') phoneStatus.value = res.available ? 'available' : 'taken'
+    } catch (e) {
+      console.error('Availability check error', e)
+    }
+  }, 600)
+}
 
 // OTP verification states
 const isVerifying = ref(false)

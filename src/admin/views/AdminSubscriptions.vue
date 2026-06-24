@@ -194,6 +194,11 @@
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-account"
+                  hide-details="auto"
+                  :rules="[
+                    (v) => !!v || 'اسم المستخدم مطلوب',
+                    (v) => /^[a-zA-Z0-9_]{4,20}$/.test(v) || 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)'
+                  ]"
                   required
                 ></v-text-field>
               </v-col>
@@ -205,6 +210,11 @@
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-lock"
+                  hide-details="auto"
+                  :rules="[
+                    (v) => !!v || 'كلمة المرور مطلوبة',
+                    (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v) || 'كلمة المرور يجب أن تكون قوية'
+                  ]"
                   required
                 ></v-text-field>
               </v-col>
@@ -216,6 +226,11 @@
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-email"
+                  hide-details="auto"
+                  :rules="[
+                    (v) => !!v || 'البريد الإلكتروني مطلوب',
+                    (v) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح'
+                  ]"
                   required
                 ></v-text-field>
               </v-col>
@@ -227,6 +242,11 @@
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-phone"
+                  hide-details="auto"
+                  :rules="[
+                    (v) => !!v || 'رقم الجوال مطلوب',
+                    (v) => /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
+                  ]"
                   required
                 ></v-text-field>
               </v-col>
@@ -654,7 +674,8 @@ async function createSubscriber() {
     await fetchData()
   } catch (error) {
     console.error('Failed to create subscriber:', error)
-    alert('حدث خطأ أثناء إنشاء المشترك. يرجى التأكد من أن البيانات المدخلة غير مكررة.')
+    const backendMsg = error.response?.data?.message || error.response?.data?.error
+    alert(backendMsg || 'حدث خطأ أثناء إنشاء المشترك. يرجى التأكد من أن البيانات المدخلة غير مكررة.')
   } finally {
     isCreatingSubscriber.value = false
   }

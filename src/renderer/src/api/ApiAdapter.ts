@@ -488,6 +488,14 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:unlock', password)
         : cloudRequest({ method: 'POST', url: '/auth/unlock', data: { password } }),
+    checkAvailability: (field: string, value: string) =>
+      mode === 'desktop'
+        ? Promise.resolve({ available: true }) // In desktop, uniqueness relies on DB error or sync
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/check-availability',
+            data: { field, value }
+          }),
     register: (
       companyName: string,
       username: string,

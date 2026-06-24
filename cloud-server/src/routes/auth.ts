@@ -425,11 +425,75 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
   }
 })
 
+authRouter.post('/check-availability', authRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { field, value } = req.body
+    if (!field || !value) {
+      res.status(400).json({ error: 'Missing parameters' })
+      return
+    }
+
+    if (field === 'phone') {
+      const exists = await query('SELECT id FROM companies WHERE phone = $1', [value.trim()])
+      res.json({ available: exists.rows.length === 0 })
+    } else if (field === 'email') {
+      const exists = await query('SELECT id FROM companies WHERE email = $1', [value.trim().toLowerCase()])
+      res.json({ available: exists.rows.length === 0 })
+    } else if (field === 'username') {
+      const exists = await query('SELECT id FROM users WHERE username = $1', [value.trim()])
+      res.json({ available: exists.rows.length === 0 })
+    } else {
+      res.status(400).json({ error: 'Invalid field' })
+    }
+  } catch (err) {
+    console.error('[AUTH] Check availability error:', err)
+    res.status(500).json({ error: 'Check failed' })
+  }
+})
+
 authRouter.post('/register', authRateLimiter, async (req: Request, res: Response) => {
   try {
-    const { companyName, username, email, phone, password } = req.body
+    let { companyName, username, email, phone, password } = req.body
+
+    // 0. Sanitization and Normalization
+    companyName = (companyName || '').trim()
+    username = (username || '').trim()
+    email = (email || '').trim().toLowerCase()
+    phone = (phone || '').trim().replace(/\s+/g, '')
+    password = password || ''
+
+    // XSS Sanitization for office name and length limit
+    companyName = companyName.replace(/[<>"'&]/g, '')
+    if (companyName.length > 150) {
+      companyName = companyName.substring(0, 150)
+    }
+
     if (!companyName || !username || !email || !phone || !password) {
-      res.status(400).json({ error: 'All fields are required' })
+      res.status(400).json({ error: 'All fields are required', message: 'جميع الحقول مطلوبة' })
+      return
+    }
+
+    // Regex Rules
+    const phoneRegex = /^05\d{8}$/
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+    const usernameRegex = /^[a-zA-Z0-9_]{4,20}$/
+    // Password: At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
+
+    if (!phoneRegex.test(phone)) {
+      res.status(400).json({ error: 'InvalidPhone', message: 'رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 05' })
+      return
+    }
+    if (!emailRegex.test(email)) {
+      res.status(400).json({ error: 'InvalidEmail', message: 'صيغة البريد الإلكتروني غير صحيحة' })
+      return
+    }
+    if (!usernameRegex.test(username)) {
+      res.status(400).json({ error: 'InvalidUsername', message: 'اسم المستخدم يجب أن يكون باللغة الإنجليزية (من 4 إلى 20 حرف)' })
+      return
+    }
+    if (!passwordRegex.test(password)) {
+      res.status(400).json({ error: 'WeakPassword', message: 'يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص، وبحد أدنى 8 أحرف' })
       return
     }
 
@@ -442,7 +506,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
           subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
         }).catch(() => {})
-        res.status(400).json({ error: 'UsernameAlreadyExists' })
+        res.status(400).json({ error: 'UsernameAlreadyExists', message: 'اسم المستخدم مسجل مسبقاً' })
         return
       }
 
@@ -455,7 +519,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
           subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
         }).catch(() => {})
-        res.status(400).json({ error: 'EmailAlreadyExists' })
+        res.status(400).json({ error: 'EmailAlreadyExists', message: 'البريد الإلكتروني مسجل مسبقاً' })
         return
       }
 
@@ -468,7 +532,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
           subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
           text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
         }).catch(() => {})
-        res.status(400).json({ error: 'PhoneAlreadyExists' })
+        res.status(400).json({ error: 'PhoneAlreadyExists', message: 'رقم الجوال مسجل مسبقاً' })
         return
       }
 
