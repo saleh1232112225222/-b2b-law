@@ -49,17 +49,17 @@ g:\w2w\
 
 ### Phase 2: File Splitting (9 Large Vue Files → 24 Sub-components)
 
-| Original File | Lines (Before) | Lines (After) | Sub-components |
-|---|---|---|---|
-| Cases.vue | 2585 | ~250 | 9 |
-| CaseDetails.vue | 2813 | ~200 | 7 |
-| Dashboard.vue | 1527 | ~978 | 7 |
-| Settings.vue | 1566 | ~1368 | 4 |
-| Tasks.vue | 1640 | ~1347 | 4 |
-| Sessions.vue | 1142 | ~170 | 5 |
-| UsersManagement.vue | 1316 | ~150 | 7 |
-| SessionRoom.vue | 1476 | ~310 | 7 |
-| Contracts.vue | 1746 | ~170 | 5 |
+| Original File       | Lines (Before) | Lines (After) | Sub-components |
+| ------------------- | -------------- | ------------- | -------------- |
+| Cases.vue           | 2585           | ~250          | 9              |
+| CaseDetails.vue     | 2813           | ~200          | 7              |
+| Dashboard.vue       | 1527           | ~978          | 7              |
+| Settings.vue        | 1566           | ~1368         | 4              |
+| Tasks.vue           | 1640           | ~1347         | 4              |
+| Sessions.vue        | 1142           | ~170          | 5              |
+| UsersManagement.vue | 1316           | ~150          | 7              |
+| SessionRoom.vue     | 1476           | ~310          | 7              |
+| Contracts.vue       | 1746           | ~170          | 5              |
 
 All pass `vue-tsc --noEmit` typecheck.
 
@@ -93,33 +93,33 @@ All pass `vue-tsc --noEmit` typecheck.
 
 ## Key Decisions
 
-| Decision | Rationale |
-|---|---|
-| `emptyOutDir: false` in `vite.config.ts` | Windows EPERM on `dist/web/assets/` (file handle lock) |
-| Supabase CLI + Docker for migrations | No local Postgres access (admin rights, shared memory) |
-| All sub-components are self-contained dialogs | Dialogs manage own API calls, emit `done` events |
-| Tailwind `tw-` prefix + Preflight disabled | Vuetify coexistence |
-| `cloud-server/.env` never committed | Production DB password + JWT secret |
+| Decision                                      | Rationale                                              |
+| --------------------------------------------- | ------------------------------------------------------ |
+| `emptyOutDir: false` in `vite.config.ts`      | Windows EPERM on `dist/web/assets/` (file handle lock) |
+| Supabase CLI + Docker for migrations          | No local Postgres access (admin rights, shared memory) |
+| All sub-components are self-contained dialogs | Dialogs manage own API calls, emit `done` events       |
+| Tailwind `tw-` prefix + Preflight disabled    | Vuetify coexistence                                    |
+| `cloud-server/.env` never committed           | Production DB password + JWT secret                    |
 
 ---
 
 ## Blockers
 
-| Issue | Status |
-|---|---|
-| Local PostgreSQL inaccessible | Admin rights needed for `pg_hba.conf`, password unknown for `postgres` user |
-| Second PG instance fails | Windows shared memory conflict between instances |
-| Docker Desktop not installed | Supervisor will test `docker compose up -d` on his machine |
-| `uiAudits.test.ts` pre-existing failure | Looks for `src/main` (Electron dir) — not related to web build |
+| Issue                                   | Status                                                                      |
+| --------------------------------------- | --------------------------------------------------------------------------- |
+| Local PostgreSQL inaccessible           | Admin rights needed for `pg_hba.conf`, password unknown for `postgres` user |
+| Second PG instance fails                | Windows shared memory conflict between instances                            |
+| Docker Desktop not installed            | Supervisor will test `docker compose up -d` on his machine                  |
+| `uiAudits.test.ts` pre-existing failure | Looks for `src/main` (Electron dir) — not related to web build              |
 
 ---
 
 ## GitHub Secrets Required
 
-| Secret | Purpose |
-|---|---|
-| `NETLIFY_AUTH_TOKEN` | Netlify deploy auth |
-| `NETLIFY_SITE_ID` | Netlify site identifier |
+| Secret                   | Purpose                   |
+| ------------------------ | ------------------------- |
+| `NETLIFY_AUTH_TOKEN`     | Netlify deploy auth       |
+| `NETLIFY_SITE_ID`        | Netlify site identifier   |
 | `RENDER_DEPLOY_HOOK_URL` | Render deploy webhook URL |
 
 ---

@@ -16,8 +16,10 @@ const isProduction = process.env.NODE_ENV === 'production'
 
 if (!JWT_SECRET || DEFAULT_SECRETS.includes(JWT_SECRET)) {
   if (isProduction) {
-    console.error('❌ CRITICAL: JWT_SECRET is not set, is still a default value, or is a development secret!');
-    process.exit(1);
+    console.error(
+      '❌ CRITICAL: JWT_SECRET is not set, is still a default value, or is a development secret!'
+    )
+    process.exit(1)
   }
 }
 
@@ -47,7 +49,11 @@ export function verifyToken(token: string): AuthPayload {
   return jwt.verify(token, JWT_SECRET) as AuthPayload
 }
 
-export async function authMiddleware(req: Request, res: Response, next: NextFunction): Promise<void> {
+export async function authMiddleware(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
     res.status(401).json({ error: 'Unauthorized: No token provided' })
@@ -55,7 +61,7 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
   try {
     const payload = verifyToken(header.substring(7))
-    
+
     // Check subscription status from subscriptions table
     const subResult = await query(
       `SELECT status, current_period_end, trial_end FROM subscriptions
@@ -78,10 +84,9 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       }
     } else {
       // Fallback to companies.trial_expires_at for backward compatibility
-      const companyResult = await query(
-        'SELECT trial_expires_at FROM companies WHERE id = $1',
-        [payload.companyId]
-      )
+      const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
+        payload.companyId
+      ])
       if (companyResult.rows.length > 0 && companyResult.rows[0].trial_expires_at) {
         fallbackEnd = new Date(companyResult.rows[0].trial_expires_at)
         if (fallbackEnd < new Date()) {
@@ -90,8 +95,8 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
       }
     }
 
-    const isExcludedPath = 
-      req.path.startsWith('/system/') || 
+    const isExcludedPath =
+      req.path.startsWith('/system/') ||
       req.originalUrl.includes('/system/') ||
       req.path.startsWith('/subscriptions/') ||
       req.originalUrl.includes('/subscriptions/') ||

@@ -10,9 +10,7 @@ subscriptionRouter.use(authMiddleware)
 // GET /api/subscriptions/plans - List all active plans
 subscriptionRouter.get('/plans', async (_req: Request, res: Response) => {
   try {
-    const result = await query(
-      'SELECT * FROM plans WHERE is_active = true ORDER BY sort_order ASC'
-    )
+    const result = await query('SELECT * FROM plans WHERE is_active = true ORDER BY sort_order ASC')
     res.json(result.rows)
   } catch (err) {
     console.error('[SUBSCRIPTIONS] Failed to fetch plans:', err)
@@ -47,7 +45,10 @@ subscriptionRouter.get('/status', async (req: Request, res: Response) => {
       const company = companyResult.rows[0]
       const trialEnd = new Date(company.trial_expires_at)
       const now = new Date()
-      const daysLeft = Math.max(0, Math.floor((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+      const daysLeft = Math.max(
+        0,
+        Math.floor((trialEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      )
 
       res.json({
         status: 'trial',
@@ -70,7 +71,10 @@ subscriptionRouter.get('/status', async (req: Request, res: Response) => {
       const endDate = sub.current_period_end
         ? new Date(sub.current_period_end)
         : new Date(sub.trial_end)
-      daysLeft = Math.max(0, Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)))
+      daysLeft = Math.max(
+        0,
+        Math.floor((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+      )
       isExpired = endDate < now
     }
 
@@ -108,7 +112,9 @@ subscriptionRouter.post('/create-payment-intent', async (req: Request, res: Resp
     }
 
     // Get plan details
-    const planResult = await query('SELECT * FROM plans WHERE id = $1 AND is_active = true', [planId])
+    const planResult = await query('SELECT * FROM plans WHERE id = $1 AND is_active = true', [
+      planId
+    ])
     if (planResult.rows.length === 0) {
       res.status(404).json({ error: 'Plan not found' })
       return
@@ -180,10 +186,10 @@ subscriptionRouter.post('/confirm-payment/:paymentId', async (req: Request, res:
     const { paymentId } = req.params
 
     // Get payment record
-    const paymentResult = await query(
-      'SELECT * FROM payments WHERE id = $1 AND company_id = $2',
-      [paymentId, auth.companyId]
-    )
+    const paymentResult = await query('SELECT * FROM payments WHERE id = $1 AND company_id = $2', [
+      paymentId,
+      auth.companyId
+    ])
     if (paymentResult.rows.length === 0) {
       res.status(404).json({ error: 'Payment not found' })
       return
@@ -255,17 +261,17 @@ subscriptionRouter.post('/confirm-payment/:paymentId', async (req: Request, res:
       [auth.companyId]
     )
     if (subResult.rows.length > 0) {
-      await query(
-        'UPDATE payments SET subscription_id = $1 WHERE id = $2',
-        [subResult.rows[0].id, paymentId]
-      )
+      await query('UPDATE payments SET subscription_id = $1 WHERE id = $2', [
+        subResult.rows[0].id,
+        paymentId
+      ])
     }
 
     // Extend trial_expires_at in companies table to prevent write blocking
-    await query(
-      'UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2',
-      [periodEnd, auth.companyId]
-    )
+    await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
+      periodEnd,
+      auth.companyId
+    ])
 
     res.json({
       success: true,
@@ -320,10 +326,9 @@ subscriptionRouter.post('/start-trial', async (req: Request, res: Response) => {
     trialEnd.setDate(trialEnd.getDate() + 7)
 
     // Check if subscription already exists
-    const existing = await query(
-      'SELECT id FROM subscriptions WHERE company_id = $1',
-      [auth.companyId]
-    )
+    const existing = await query('SELECT id FROM subscriptions WHERE company_id = $1', [
+      auth.companyId
+    ])
 
     if (existing.rows.length === 0) {
       await query(

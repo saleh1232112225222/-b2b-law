@@ -197,7 +197,9 @@
                   hide-details="auto"
                   :rules="[
                     (v) => !!v || 'اسم المستخدم مطلوب',
-                    (v) => /^[a-zA-Z0-9_]{4,20}$/.test(v) || 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)'
+                    (v) =>
+                      /^[a-zA-Z0-9_]{4,20}$/.test(v) ||
+                      'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)'
                   ]"
                   required
                 ></v-text-field>
@@ -213,7 +215,10 @@
                   hide-details="auto"
                   :rules="[
                     (v) => !!v || 'كلمة المرور مطلوبة',
-                    (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v) || 'كلمة المرور يجب أن تكون قوية'
+                    (v) =>
+                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+                        v
+                      ) || 'كلمة المرور يجب أن تكون قوية'
                   ]"
                   required
                 ></v-text-field>
@@ -229,7 +234,9 @@
                   hide-details="auto"
                   :rules="[
                     (v) => !!v || 'البريد الإلكتروني مطلوب',
-                    (v) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح'
+                    (v) =>
+                      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
+                      'البريد الإلكتروني غير صحيح'
                   ]"
                   required
                 ></v-text-field>
@@ -675,7 +682,9 @@ async function createSubscriber() {
   } catch (error) {
     console.error('Failed to create subscriber:', error)
     const backendMsg = error.response?.data?.message || error.response?.data?.error
-    alert(backendMsg || 'حدث خطأ أثناء إنشاء المشترك. يرجى التأكد من أن البيانات المدخلة غير مكررة.')
+    alert(
+      backendMsg || 'حدث خطأ أثناء إنشاء المشترك. يرجى التأكد من أن البيانات المدخلة غير مكررة.'
+    )
   } finally {
     isCreatingSubscriber.value = false
   }

@@ -66,7 +66,11 @@ const buildSalarySchedule = (params: {
 }
 
 // Helper: ensure contract party is created in database transaction
-async function ensureOfficeParty(client: any, companyId: string, displayName: string): Promise<string> {
+async function ensureOfficeParty(
+  client: any,
+  companyId: string,
+  displayName: string
+): Promise<string> {
   const existing = await client.query(
     `SELECT id FROM contract_parties 
      WHERE party_type_key = 'office' AND company_id = $1 
@@ -83,7 +87,13 @@ async function ensureOfficeParty(client: any, companyId: string, displayName: st
   return id
 }
 
-async function ensureUserParty(client: any, companyId: string, userId: string, displayName: string, role = 'employee'): Promise<string> {
+async function ensureUserParty(
+  client: any,
+  companyId: string,
+  userId: string,
+  displayName: string,
+  role = 'employee'
+): Promise<string> {
   const existing = await client.query(
     `SELECT id FROM contract_parties 
      WHERE party_type_key = $1 AND user_id = $2 AND company_id = $3 
@@ -100,7 +110,12 @@ async function ensureUserParty(client: any, companyId: string, userId: string, d
   return id
 }
 
-async function ensureClientParty(client: any, companyId: string, clientId: string, displayName: string): Promise<string> {
+async function ensureClientParty(
+  client: any,
+  companyId: string,
+  clientId: string,
+  displayName: string
+): Promise<string> {
   const existing = await client.query(
     `SELECT id FROM contract_parties 
      WHERE party_type_key = 'client' AND client_id = $1 AND company_id = $2 
@@ -117,7 +132,12 @@ async function ensureClientParty(client: any, companyId: string, clientId: strin
   return id
 }
 
-async function ensureDefendantParty(client: any, companyId: string, defendantId: string, displayName: string): Promise<string> {
+async function ensureDefendantParty(
+  client: any,
+  companyId: string,
+  defendantId: string,
+  displayName: string
+): Promise<string> {
   const existing = await client.query(
     `SELECT id FROM contract_parties 
      WHERE party_type_key = 'defendant' AND defendant_id = $1 AND company_id = $2 
@@ -134,7 +154,13 @@ async function ensureDefendantParty(client: any, companyId: string, defendantId:
   return id
 }
 
-async function createFreeParty(client: any, companyId: string, partyTypeKey: string, displayName: string, metadata: any): Promise<string> {
+async function createFreeParty(
+  client: any,
+  companyId: string,
+  partyTypeKey: string,
+  displayName: string,
+  metadata: any
+): Promise<string> {
   const id = uuidv4()
   const metadata_json = metadata ? JSON.stringify(metadata) : null
   await client.query(
@@ -145,7 +171,13 @@ async function createFreeParty(client: any, companyId: string, partyTypeKey: str
   return id
 }
 
-async function ensureSignature(client: any, companyId: string, contractId: string, participantId: string, partyId: string) {
+async function ensureSignature(
+  client: any,
+  companyId: string,
+  contractId: string,
+  participantId: string,
+  partyId: string
+) {
   const existing = await client.query(
     `SELECT id FROM contract_signatures WHERE participant_id = $1 AND contract_id = $2 AND company_id = $3`,
     [participantId, contractId, companyId]
@@ -248,10 +280,10 @@ contractsRouter.put('/templates/:id', async (req: Request, res: Response) => {
 contractsRouter.delete('/templates/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
-    await query(
-      `DELETE FROM contract_templates WHERE id = $1 AND company_id = $2`,
-      [req.params.id, companyId]
-    )
+    await query(`DELETE FROM contract_templates WHERE id = $1 AND company_id = $2`, [
+      req.params.id,
+      companyId
+    ])
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Delete template error:', err)
@@ -312,11 +344,11 @@ contractsRouter.get('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const id = req.params.id
-    
-    const contractRes = await query(
-      `SELECT * FROM contracts WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
+
+    const contractRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [
+      id,
+      companyId
+    ])
     if (contractRes.rows.length === 0) {
       res.status(404).json({ error: 'Contract not found' })
       return
@@ -328,7 +360,7 @@ contractsRouter.get('/:id', async (req: Request, res: Response) => {
       `SELECT * FROM contract_schedules WHERE contract_id = $1 AND company_id = $2 ORDER BY due_date ASC`,
       [id, companyId]
     )
-    
+
     // Fetch links
     const linksRes = await query(
       `SELECT * FROM contract_links WHERE contract_id = $1 AND company_id = $2`,
@@ -401,7 +433,10 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
     const start_date = normalizeIso(payload.start_date)
     let end_date = normalizeIso(payload.end_date)
     const is_fixed_term = payload.is_fixed_term ? true : false
-    const term_years = (payload.term_years === null || payload.term_years === undefined) ? null : Number(payload.term_years)
+    const term_years =
+      payload.term_years === null || payload.term_years === undefined
+        ? null
+        : Number(payload.term_years)
 
     if (is_fixed_term) {
       if (!start_date) {
@@ -421,7 +456,10 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
 
     const total_amount = Number(payload.total_amount || 0)
     const salary_amount = Number(payload.salary_amount || 0)
-    const salary_due_day = (payload.salary_due_day === null || payload.salary_due_day === undefined) ? null : Number(payload.salary_due_day)
+    const salary_due_day =
+      payload.salary_due_day === null || payload.salary_due_day === undefined
+        ? null
+        : Number(payload.salary_due_day)
     const feeSchedules = payload.feeSchedules || []
 
     if (contract_type === 'fee_agreement') {
@@ -537,7 +575,15 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
         await client.query(
           `INSERT INTO contract_schedules (id, company_id, contract_id, schedule_type, title, amount, due_date, milestone_key, status, created_at, updated_at)
            VALUES ($1, $2, $3, 'fee_installment', $4, $5, $6, $7, 'open', NOW(), NOW())`,
-          [uuidv4(), companyId, id, s.title, s.amount, normalizeIso(s.due_date) || null, s.milestone_key || null]
+          [
+            uuidv4(),
+            companyId,
+            id,
+            s.title,
+            s.amount,
+            normalizeIso(s.due_date) || null,
+            s.milestone_key || null
+          ]
         )
       }
     }
@@ -559,7 +605,7 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
 
     // Ensure default Office party
     const officePartyId = await ensureOfficeParty(client, companyId, 'المكتب')
-    
+
     // Add Office participant
     const officeParticipantId = uuidv4()
     await client.query(
@@ -571,10 +617,18 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
 
     if (contract_type === 'fee_agreement') {
       // Add Client party & participant
-      const clientDetails = await client.query('SELECT name FROM clients WHERE id = $1 AND company_id = $2', [payload.client_id, companyId])
+      const clientDetails = await client.query(
+        'SELECT name FROM clients WHERE id = $1 AND company_id = $2',
+        [payload.client_id, companyId]
+      )
       const clientName = clientDetails.rows[0]?.name || ''
-      const clientPartyId = await ensureClientParty(client, companyId, payload.client_id, clientName)
-      
+      const clientPartyId = await ensureClientParty(
+        client,
+        companyId,
+        payload.client_id,
+        clientName
+      )
+
       const clientParticipantId = uuidv4()
       await client.query(
         `INSERT INTO contract_participants (id, company_id, contract_id, party_id, role_key, role_label, side_key, sort_order, created_at)
@@ -584,9 +638,18 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
       await ensureSignature(client, companyId, id, clientParticipantId, clientPartyId)
 
       // Add Representative (user) party & participant
-      const repDetails = await client.query('SELECT COALESCE(full_name, username) as n FROM users WHERE id = $1 AND company_id = $2', [payload.representative_user_id, companyId])
+      const repDetails = await client.query(
+        'SELECT COALESCE(full_name, username) as n FROM users WHERE id = $1 AND company_id = $2',
+        [payload.representative_user_id, companyId]
+      )
       const repName = repDetails.rows[0]?.n || ''
-      const repPartyId = await ensureUserParty(client, companyId, payload.representative_user_id, repName, 'employee')
+      const repPartyId = await ensureUserParty(
+        client,
+        companyId,
+        payload.representative_user_id,
+        repName,
+        'employee'
+      )
 
       const repParticipantId = uuidv4()
       await client.query(
@@ -599,9 +662,18 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
 
     if (contract_type === 'employment') {
       // Add Employee (user) party & participant
-      const empDetails = await client.query('SELECT COALESCE(full_name, username) as n FROM users WHERE id = $1 AND company_id = $2', [payload.employee_user_id, companyId])
+      const empDetails = await client.query(
+        'SELECT COALESCE(full_name, username) as n FROM users WHERE id = $1 AND company_id = $2',
+        [payload.employee_user_id, companyId]
+      )
       const empName = empDetails.rows[0]?.n || ''
-      const empPartyId = await ensureUserParty(client, companyId, payload.employee_user_id, empName, 'employee')
+      const empPartyId = await ensureUserParty(
+        client,
+        companyId,
+        payload.employee_user_id,
+        empName,
+        'employee'
+      )
 
       const empParticipantId = uuidv4()
       await client.query(
@@ -616,19 +688,39 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
     for (const p of payload.extraParties || []) {
       let partyId = ''
       if (p.kind === 'user') {
-        partyId = await ensureUserParty(client, companyId, p.user_id, p.display_name, p.party_type_key || 'employee')
+        partyId = await ensureUserParty(
+          client,
+          companyId,
+          p.user_id,
+          p.display_name,
+          p.party_type_key || 'employee'
+        )
       } else if (p.kind === 'client') {
         partyId = await ensureClientParty(client, companyId, p.client_id, p.display_name)
       } else if (p.kind === 'defendant') {
         partyId = await ensureDefendantParty(client, companyId, p.defendant_id, p.display_name)
       } else {
-        partyId = await createFreeParty(client, companyId, p.party_type_key, p.display_name, p.metadata)
+        partyId = await createFreeParty(
+          client,
+          companyId,
+          p.party_type_key,
+          p.display_name,
+          p.metadata
+        )
       }
       const participantId = uuidv4()
       await client.query(
         `INSERT INTO contract_participants (id, company_id, contract_id, party_id, role_key, role_label, side_key, sort_order, created_at)
          VALUES ($1, $2, $3, $4, $5, $6, $7, 10, NOW())`,
-        [participantId, companyId, id, partyId, p.role_key, p.role_label || null, p.side_key || null]
+        [
+          participantId,
+          companyId,
+          id,
+          partyId,
+          p.role_key,
+          p.role_label || null,
+          p.side_key || null
+        ]
       )
       await ensureSignature(client, companyId, id, participantId, partyId)
     }
@@ -651,10 +743,10 @@ contractsRouter.put('/:id', async (req: Request, res: Response) => {
     const id = req.params.id
     const payload = req.body
 
-    const existingRes = await query(
-      `SELECT * FROM contracts WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
+    const existingRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [
+      id,
+      companyId
+    ])
     if (existingRes.rows.length === 0) {
       res.status(404).json({ error: 'العقد غير موجود' })
       return
@@ -666,9 +758,21 @@ contractsRouter.put('/:id', async (req: Request, res: Response) => {
     }
 
     const allowed = [
-      'title', 'template_id', 'case_id', 'client_id', 'employee_user_id', 'representative_user_id',
-      'contract_date', 'start_date', 'end_date', 'is_fixed_term', 'term_years', 'total_amount',
-      'salary_amount', 'salary_due_day', 'text_content'
+      'title',
+      'template_id',
+      'case_id',
+      'client_id',
+      'employee_user_id',
+      'representative_user_id',
+      'contract_date',
+      'start_date',
+      'end_date',
+      'is_fixed_term',
+      'term_years',
+      'total_amount',
+      'salary_amount',
+      'salary_due_day',
+      'text_content'
     ]
 
     const sets: string[] = []
@@ -691,7 +795,8 @@ contractsRouter.put('/:id', async (req: Request, res: Response) => {
       return
     }
 
-    const nextIsFixed = payload.is_fixed_term === undefined ? existing.is_fixed_term : payload.is_fixed_term
+    const nextIsFixed =
+      payload.is_fixed_term === undefined ? existing.is_fixed_term : payload.is_fixed_term
     const nextStart = normalizeIso(payload.start_date ?? existing.start_date)
     const nextEnd = normalizeIso(payload.end_date ?? existing.end_date)
     const nextYears = payload.term_years === undefined ? existing.term_years : payload.term_years
@@ -736,10 +841,10 @@ contractsRouter.post('/:id/approve', async (req: Request, res: Response) => {
     const userId = req.auth!.userId
     const id = req.params.id
 
-    const existingRes = await query(
-      `SELECT * FROM contracts WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
+    const existingRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [
+      id,
+      companyId
+    ])
     if (existingRes.rows.length === 0) {
       res.status(404).json({ error: 'العقد غير موجود' })
       return
@@ -766,10 +871,10 @@ contractsRouter.put('/:id/archive', async (req: Request, res: Response) => {
     const id = req.params.id
     const { reason } = req.body
 
-    const existingRes = await query(
-      `SELECT * FROM contracts WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
+    const existingRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [
+      id,
+      companyId
+    ])
     if (existingRes.rows.length === 0) {
       res.status(404).json({ error: 'العقد غير موجود' })
       return
@@ -819,7 +924,16 @@ contractsRouter.post('/:contractId/participants', async (req: Request, res: Resp
     await client.query(
       `INSERT INTO contract_participants (id, company_id, contract_id, party_id, role_key, role_label, side_key, sort_order, created_at) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())`,
-      [id, companyId, contractId, party_id, role_key, role_label || null, side_key || null, sort_order || 0]
+      [
+        id,
+        companyId,
+        contractId,
+        party_id,
+        role_key,
+        role_label || null,
+        side_key || null,
+        sort_order || 0
+      ]
     )
 
     await ensureSignature(client, companyId, contractId, id, party_id)
@@ -836,75 +950,81 @@ contractsRouter.post('/:contractId/participants', async (req: Request, res: Resp
 })
 
 // 14. Update Participant
-contractsRouter.put('/:contractId/participants/:participantId', async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { role_key, role_label, side_key, sort_order } = req.body
-    const sets: string[] = []
-    const params: any[] = [req.params.participantId, companyId]
-    let paramIndex = 3
-    if (role_key !== undefined) {
-      sets.push(`role_key = $${paramIndex++}`)
-      params.push(role_key)
-    }
-    if (role_label !== undefined) {
-      sets.push(`role_label = $${paramIndex++}`)
-      params.push(role_label)
-    }
-    if (side_key !== undefined) {
-      sets.push(`side_key = $${paramIndex++}`)
-      params.push(side_key)
-    }
-    if (sort_order !== undefined) {
-      sets.push(`sort_order = $${paramIndex++}`)
-      params.push(sort_order)
-    }
-    if (sets.length === 0) {
+contractsRouter.put(
+  '/:contractId/participants/:participantId',
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { role_key, role_label, side_key, sort_order } = req.body
+      const sets: string[] = []
+      const params: any[] = [req.params.participantId, companyId]
+      let paramIndex = 3
+      if (role_key !== undefined) {
+        sets.push(`role_key = $${paramIndex++}`)
+        params.push(role_key)
+      }
+      if (role_label !== undefined) {
+        sets.push(`role_label = $${paramIndex++}`)
+        params.push(role_label)
+      }
+      if (side_key !== undefined) {
+        sets.push(`side_key = $${paramIndex++}`)
+        params.push(side_key)
+      }
+      if (sort_order !== undefined) {
+        sets.push(`sort_order = $${paramIndex++}`)
+        params.push(sort_order)
+      }
+      if (sets.length === 0) {
+        res.json({ success: true })
+        return
+      }
+      await query(
+        `UPDATE contract_participants SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2`,
+        params
+      )
       res.json({ success: true })
-      return
+    } catch (err) {
+      console.error('[Contracts] Update participant error:', err)
+      res.status(500).json({ error: 'Failed to update participant' })
     }
-    await query(
-      `UPDATE contract_participants SET ${sets.join(', ')} WHERE id = $1 AND company_id = $2`,
-      params
-    )
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[Contracts] Update participant error:', err)
-    res.status(500).json({ error: 'Failed to update participant' })
   }
-})
+)
 
 // 15. Remove Participant
-contractsRouter.delete('/:contractId/participants/:participantId', async (req: Request, res: Response) => {
-  const client = await getClient()
-  try {
-    const companyId = getCompanyId(req)
-    const participantId = req.params.participantId
+contractsRouter.delete(
+  '/:contractId/participants/:participantId',
+  async (req: Request, res: Response) => {
+    const client = await getClient()
+    try {
+      const companyId = getCompanyId(req)
+      const participantId = req.params.participantId
 
-    await client.query('BEGIN')
+      await client.query('BEGIN')
 
-    // Remove associated signatures
-    await client.query(
-      `DELETE FROM contract_signatures WHERE participant_id = $1 AND company_id = $2`,
-      [participantId, companyId]
-    )
+      // Remove associated signatures
+      await client.query(
+        `DELETE FROM contract_signatures WHERE participant_id = $1 AND company_id = $2`,
+        [participantId, companyId]
+      )
 
-    // Delete participant
-    await client.query(
-      `DELETE FROM contract_participants WHERE id = $1 AND company_id = $2`,
-      [participantId, companyId]
-    )
+      // Delete participant
+      await client.query(`DELETE FROM contract_participants WHERE id = $1 AND company_id = $2`, [
+        participantId,
+        companyId
+      ])
 
-    await client.query('COMMIT')
-    res.json({ success: true })
-  } catch (err: any) {
-    await client.query('ROLLBACK')
-    console.error('[Contracts] Remove participant error:', err)
-    res.status(500).json({ error: err.message || 'Failed to remove participant' })
-  } finally {
-    client.release()
+      await client.query('COMMIT')
+      res.json({ success: true })
+    } catch (err: any) {
+      await client.query('ROLLBACK')
+      console.error('[Contracts] Remove participant error:', err)
+      res.status(500).json({ error: err.message || 'Failed to remove participant' })
+    } finally {
+      client.release()
+    }
   }
-})
+)
 
 // 16. Update Signature
 contractsRouter.put('/:contractId/signatures/:signatureId', async (req: Request, res: Response) => {

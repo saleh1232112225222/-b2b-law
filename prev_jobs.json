@@ -141,9 +141,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/saleh1232112225222/-b2b-law/check-runs/82814949355",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000389,
       "runner_name": "GitHub Actions 1000000389",
       "runner_group_id": 0,
@@ -166,13 +164,9 @@
       "started_at": "2026-06-22T20:35:42Z",
       "completed_at": "2026-06-22T20:35:42Z",
       "name": "Build",
-      "steps": [
-
-      ],
+      "steps": [],
       "check_run_url": "https://api.github.com/repos/saleh1232112225222/-b2b-law/check-runs/82815048507",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": null,
       "runner_name": null,
       "runner_group_id": null,
@@ -195,13 +189,9 @@
       "started_at": "2026-06-22T20:35:43Z",
       "completed_at": "2026-06-22T20:35:42Z",
       "name": "Deploy",
-      "steps": [
-
-      ],
+      "steps": [],
       "check_run_url": "https://api.github.com/repos/saleh1232112225222/-b2b-law/check-runs/82815050323",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": null,
       "runner_name": null,
       "runner_group_id": null,

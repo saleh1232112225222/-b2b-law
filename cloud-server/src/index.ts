@@ -1,29 +1,37 @@
 // Load .env FIRST before any imports that depend on process.env
-import * as _fs from 'fs';
-import * as _path from 'path';
+import * as _fs from 'fs'
+import * as _path from 'path'
 try {
-  const envPath = _path.resolve(process.cwd(), '.env');
+  const envPath = _path.resolve(process.cwd(), '.env')
   if (_fs.existsSync(envPath)) {
-    _fs.readFileSync(envPath, 'utf8').split('\n').forEach((line: string) => {
-      const parts = line.split('=');
-      if (parts.length >= 2) {
-        const key = parts[0].trim();
-        const value = parts.slice(1).join('=').trim().replace(/^['"]|['"]$/g, '');
-        if (key && value && !process.env[key]) {
-          process.env[key] = value;
+    _fs
+      .readFileSync(envPath, 'utf8')
+      .split('\n')
+      .forEach((line: string) => {
+        const parts = line.split('=')
+        if (parts.length >= 2) {
+          const key = parts[0].trim()
+          const value = parts
+            .slice(1)
+            .join('=')
+            .trim()
+            .replace(/^['"]|['"]$/g, '')
+          if (key && value && !process.env[key]) {
+            process.env[key] = value
+          }
         }
-      }
-    });
-    console.log('[ENV] Loaded .env file');
+      })
+    console.log('[ENV] Loaded .env file')
   }
-} catch (e) { console.warn('[ENV] Failed to load .env:', e); }
+} catch (e) {
+  console.warn('[ENV] Failed to load .env:', e)
+}
 
-import express from 'express';
-import cors from 'cors';
-import { healthCheck, query } from './db/connection';
-import { authRouter } from './routes/auth';
-import { debugRouter } from './routes/debug';
-
+import express from 'express'
+import cors from 'cors'
+import { healthCheck, query } from './db/connection'
+import { authRouter } from './routes/auth'
+import { debugRouter } from './routes/debug'
 
 // Patch Express Router Layer to catch async errors
 try {
@@ -79,9 +87,7 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - start
     if (res.statusCode >= 400 || duration > 2000) {
-      console.log(
-        `[REQUEST] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`
-      )
+      console.log(`[REQUEST] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`)
     }
   })
   next()
@@ -103,10 +109,8 @@ app.use('/api/tasks', tasksRouter)
 app.use('/api/sessions', sessionsRouter)
 app.use('/api/subscriptions', subscriptionRouter)
 app.use('/api/admin/subscriptions', adminSubscriptionRouter)
-app.use('/api', marketingRouter);
-app.use('/api/debug', debugRouter);
-
-
+app.use('/api', marketingRouter)
+app.use('/api/debug', debugRouter)
 
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },
@@ -157,7 +161,9 @@ for (const entity of entityTables) {
   } else if (entity.name === 'employees') {
     readPermission = 'view_employees'
     writePermission = 'view_employees'
-  } else if (['finances', 'invoices', 'vouchers', 'receivables', 'credit-notes'].includes(entity.name)) {
+  } else if (
+    ['finances', 'invoices', 'vouchers', 'receivables', 'credit-notes'].includes(entity.name)
+  ) {
     readPermission = 'view_finances'
     writePermission = 'create_finances'
   } else if (['firm', 'accounts'].includes(entity.name)) {
@@ -197,135 +203,152 @@ for (const entity of entityTables) {
   if (readPermission || writePermission) {
     const { requirePermission } = require('./middleware/permission')
     const { authMiddleware } = require('./middleware/auth')
-    app.use(`/api/${entity.name}`, authMiddleware, (req: any, res: any, next: any) => {
-      const isRead = req.method === 'GET'
-      const perm = isRead ? readPermission : (writePermission || readPermission)
-      if (perm) {
-        requirePermission(perm)(req, res, next)
-      } else {
-        next()
-      }
-    }, entityRouter)
+    app.use(
+      `/api/${entity.name}`,
+      authMiddleware,
+      (req: any, res: any, next: any) => {
+        const isRead = req.method === 'GET'
+        const perm = isRead ? readPermission : writePermission || readPermission
+        if (perm) {
+          requirePermission(perm)(req, res, next)
+        } else {
+          next()
+        }
+      },
+      entityRouter
+    )
   } else {
     const { authMiddleware } = require('./middleware/auth')
     app.use(`/api/${entity.name}`, authMiddleware, entityRouter)
   }
 }
 
-app.get('/api/permissions', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
-  try {
-    const { getCompanyId } = require('./middleware/tenant')
-    const companyId = getCompanyId(req)
-    const { ensureDefaultPermissions } = require('./middleware/permission')
-    
-    await ensureDefaultPermissions(companyId)
+app.get(
+  '/api/permissions',
+  require('./middleware/auth').authMiddleware,
+  async (req: any, res: any) => {
+    try {
+      const { getCompanyId } = require('./middleware/tenant')
+      const companyId = getCompanyId(req)
+      const { ensureDefaultPermissions } = require('./middleware/permission')
 
-    const result = await query('SELECT * FROM permissions WHERE company_id = $1', [companyId])
-    res.json(result.rows)
-  } catch (err: any) {
-    console.error('Failed to get permissions:', err)
-    res.status(500).json({ error: 'Failed to retrieve permissions' })
+      await ensureDefaultPermissions(companyId)
+
+      const result = await query('SELECT * FROM permissions WHERE company_id = $1', [companyId])
+      res.json(result.rows)
+    } catch (err: any) {
+      console.error('Failed to get permissions:', err)
+      res.status(500).json({ error: 'Failed to retrieve permissions' })
+    }
   }
-})
+)
 
 app.use('/api/reports', reportsRouter)
 app.use('/api', systemRouter)
 
 // Briefing summary endpoint for BriefingDashboard
-app.get('/api/briefing/summary', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
-  try {
-    const { getCompanyId } = require('./middleware/tenant')
-    const { query: dbQuery } = require('./db/connection')
-    const companyId = getCompanyId(req)
-    const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
+app.get(
+  '/api/briefing/summary',
+  require('./middleware/auth').authMiddleware,
+  async (req: any, res: any) => {
+    try {
+      const { getCompanyId } = require('./middleware/tenant')
+      const { query: dbQuery } = require('./db/connection')
+      const companyId = getCompanyId(req)
+      const today = new Date().toLocaleDateString('en-CA') // YYYY-MM-DD
 
-    // Today sessions: sessions scheduled for today (regardless of status)
-    const todaySessionsRes = await dbQuery(
-      `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+      // Today sessions: sessions scheduled for today (regardless of status)
+      const todaySessionsRes = await dbQuery(
+        `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.date = $2
        ORDER BY s.time ASC`,
-      [companyId, today]
-    )
+        [companyId, today]
+      )
 
-    // Action required: past sessions that are not closed (overdue)
-    const actionRequiredRes = await dbQuery(
-      `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+      // Action required: past sessions that are not closed (overdue)
+      const actionRequiredRes = await dbQuery(
+        `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.date < $2 AND s.status NOT IN ('منتهية', 'ملغية', 'مؤجلة')
        ORDER BY s.date DESC LIMIT 30`,
-      [companyId, today]
-    )
+        [companyId, today]
+      )
 
-    // Urgent tasks: tasks due today or overdue
-    const urgentTasksRes = await dbQuery(
-      `SELECT t.*, c.case_number
+      // Urgent tasks: tasks due today or overdue
+      const urgentTasksRes = await dbQuery(
+        `SELECT t.*, c.case_number
        FROM tasks_v2 t
        LEFT JOIN cases c ON c.id = t.case_id
        WHERE t.company_id = $1 AND t.status NOT IN ('completed', 'closed', 'cancelled')
          AND (t.due_date <= $2 OR t.due_date IS NULL)
        ORDER BY t.due_date ASC LIMIT 20`,
-      [companyId, today]
-    )
+        [companyId, today]
+      )
 
-    // Active objections: judgments with appeal deadlines
-    const objectionsRes = await dbQuery(
-      `SELECT j.*, c.case_number, c.id as case_id
+      // Active objections: judgments with appeal deadlines
+      const objectionsRes = await dbQuery(
+        `SELECT j.*, c.case_number, c.id as case_id
        FROM judgments j
        LEFT JOIN cases c ON c.id = j.case_id
        WHERE j.company_id = $1 AND j.objection_deadline IS NOT NULL AND j.objection_deadline >= $2
        ORDER BY j.objection_deadline ASC LIMIT 20`,
-      [companyId, today]
-    )
+        [companyId, today]
+      )
 
-    // Awaiting enforcement: enforcement files with pending status
-    const enforcementRes = await dbQuery(
-      `SELECT ef.*, c.case_number
+      // Awaiting enforcement: enforcement files with pending status
+      const enforcementRes = await dbQuery(
+        `SELECT ef.*, c.case_number
        FROM enforcement_files ef
        LEFT JOIN cases c ON c.id = ef.case_id
        WHERE ef.company_id = $1 AND ef.status NOT IN ('completed', 'closed', 'cancelled')
        ORDER BY ef.created_at DESC LIMIT 20`,
-      [companyId]
-    ).catch(() => ({ rows: [] }))
+        [companyId]
+      ).catch(() => ({ rows: [] }))
 
-    res.json({
-      todaySessions: todaySessionsRes.rows,
-      actionRequired: actionRequiredRes.rows,
-      urgentTasks: urgentTasksRes.rows,
-      activeObjections: objectionsRes.rows,
-      awaitingEnforcement: enforcementRes.rows
-    })
-  } catch (err) {
-    console.error('[BRIEFING] Summary error:', err)
-    res.status(500).json({ error: 'Failed to get briefing summary' })
+      res.json({
+        todaySessions: todaySessionsRes.rows,
+        actionRequired: actionRequiredRes.rows,
+        urgentTasks: urgentTasksRes.rows,
+        activeObjections: objectionsRes.rows,
+        awaitingEnforcement: enforcementRes.rows
+      })
+    } catch (err) {
+      console.error('[BRIEFING] Summary error:', err)
+      res.status(500).json({ error: 'Failed to get briefing summary' })
+    }
   }
-})
+)
 
 // Activity logs DELETE endpoint
-app.delete('/api/activity-logs', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
-  try {
-    const { getCompanyId } = require('./middleware/tenant')
-    const { query: dbQuery } = require('./db/connection')
-    const companyId = getCompanyId(req)
-    const { before } = req.query
-    if (!before) {
-      res.status(400).json({ error: 'before date required' })
-      return
+app.delete(
+  '/api/activity-logs',
+  require('./middleware/auth').authMiddleware,
+  async (req: any, res: any) => {
+    try {
+      const { getCompanyId } = require('./middleware/tenant')
+      const { query: dbQuery } = require('./db/connection')
+      const companyId = getCompanyId(req)
+      const { before } = req.query
+      if (!before) {
+        res.status(400).json({ error: 'before date required' })
+        return
+      }
+      await dbQuery('DELETE FROM activity_logs WHERE company_id = $1 AND timestamp < $2', [
+        companyId,
+        before
+      ])
+      res.json({ success: true })
+    } catch (err) {
+      console.error('[ACTIVITY_LOGS] Delete error:', err)
+      res.status(500).json({ error: 'Failed to delete activity logs' })
     }
-    await dbQuery(
-      'DELETE FROM activity_logs WHERE company_id = $1 AND timestamp < $2',
-      [companyId, before]
-    )
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[ACTIVITY_LOGS] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete activity logs' })
   }
-})
+)
 
 app.use((err: any, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[ERROR]', err)
@@ -389,25 +412,31 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
 
   // Run migrations and seeding async — don't block server startup
-  Promise.all([autoMigrate(), seedSuperAdmin()]).then(() => {
-    console.log('[DB] Startup tasks completed')
-  }).catch((err) => {
-    console.error('[DB] Startup tasks failed:', err)
-  })
+  Promise.all([autoMigrate(), seedSuperAdmin()])
+    .then(() => {
+      console.log('[DB] Startup tasks completed')
+    })
+    .catch((err) => {
+      console.error('[DB] Startup tasks failed:', err)
+    })
 
   // Marketing report once daily at 7 AM Saudi time
   let lastReportDate = ''
   setInterval(() => {
-    const saudiHour = new Date().toLocaleString('en-US', { timeZone: 'Asia/Riyadh', hour: 'numeric', hour12: false })
+    const saudiHour = new Date().toLocaleString('en-US', {
+      timeZone: 'Asia/Riyadh',
+      hour: 'numeric',
+      hour12: false
+    })
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
     if (saudiHour === '7' && lastReportDate !== today) {
       lastReportDate = today
-      sendMarketingReport().catch(e => console.error('[MARKETING] Daily report error:', e))
+      sendMarketingReport().catch((e) => console.error('[MARKETING] Daily report error:', e))
     }
   }, 60_000)
   setTimeout(() => {
     lastReportDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
-    sendMarketingReport().catch(e => console.error('[MARKETING] Startup report error:', e))
+    sendMarketingReport().catch((e) => console.error('[MARKETING] Startup report error:', e))
   }, 30_000)
 })
 

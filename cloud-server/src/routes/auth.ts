@@ -5,11 +5,23 @@ import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
 import { generateToken, authMiddleware } from '../middleware/auth'
 import { getUserPermissions } from '../middleware/permission'
-import { sendOTP, sendEmail, getTransporter, notifyAdminOfNewRegistration } from '../services/notification'
+import {
+  sendOTP,
+  sendEmail,
+  getTransporter,
+  notifyAdminOfNewRegistration
+} from '../services/notification'
 
 export const authRouter = Router()
 
-async function logActivity(actor: string, actionKey: string, moduleKey: string, details: string, metadata?: any, companyId?: string): Promise<void> {
+async function logActivity(
+  actor: string,
+  actionKey: string,
+  moduleKey: string,
+  details: string,
+  metadata?: any,
+  companyId?: string
+): Promise<void> {
   try {
     const cid = companyId || '00000000-0000-0000-0000-000000000000'
     await query(
@@ -87,7 +99,12 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     }
 
     if (!user.password_hash) {
-      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - كلمة المرور غير معرفة')
+      await logActivity(
+        username,
+        'LOGIN_FAILED',
+        'auth',
+        'محاولة دخول فاشلة - كلمة المرور غير معرفة'
+      )
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }
@@ -102,7 +119,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     // Check trial verification & expiration
     let trialExpired = false
     let trialExpiresAt = null
-    const companyResult = await query('SELECT is_verified, trial_expires_at FROM companies WHERE id = $1', [user.company_id])
+    const companyResult = await query(
+      'SELECT is_verified, trial_expires_at FROM companies WHERE id = $1',
+      [user.company_id]
+    )
     if (companyResult.rows.length > 0) {
       const company = companyResult.rows[0]
       if (!company.is_verified) {
@@ -144,7 +164,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
     // Notify the admin of successful login
     query('SELECT email FROM companies WHERE id = $1', [user.company_id])
-      .then(emailResult => {
+      .then((emailResult) => {
         const companyEmail = emailResult.rows[0]?.email || 'غير متوفر'
         return sendEmail({
           to: 'slaehmap@gmail.com',
@@ -152,7 +172,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
           text: `مرحباً أستاذ صالح،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- البريد الإلكتروني للاسترداد: ${user.recovery_email || 'غير متوفر'}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
         })
       })
-      .catch(e => {
+      .catch((e) => {
         console.error('Failed to notify admin of manual login:', e)
       })
 
@@ -186,7 +206,9 @@ authRouter.post('/logout', (_req: Request, res: Response) => {
 
 authRouter.get('/session', authMiddleware, async (req: Request, res: Response) => {
   try {
-    const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [req.auth!.companyId])
+    const companyResult = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
+      req.auth!.companyId
+    ])
     let trialExpired = false
     let trialExpiresAt = null
     let subscriptionStatus = 'trial'
@@ -202,7 +224,11 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
     if (subCheck.rows.length > 0) {
       subscriptionStatus = subCheck.rows[0].status
     }
-    const permissions = await getUserPermissions(req.auth!.companyId, req.auth!.userId, req.auth!.roleKey)
+    const permissions = await getUserPermissions(
+      req.auth!.companyId,
+      req.auth!.userId,
+      req.auth!.roleKey
+    )
 
     res.json({
       id: req.auth!.userId,
@@ -321,7 +347,9 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     let trialExpiresAt = new Date()
     if (existing.rows.length > 0) {
       companyId = existing.rows[0].id
-      const compRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
+      const compRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
+        companyId
+      ])
       if (compRes.rows.length > 0) {
         trialExpiresAt = new Date(compRes.rows[0].trial_expires_at)
       }
@@ -335,25 +363,46 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       )
       // Seed firm_data defaults
       await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'officeName', JSON.stringify(googleName)
+        uuidv4(),
+        companyId,
+        'officeName',
+        JSON.stringify(googleName)
       ])
       await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'theme', JSON.stringify('light')
+        uuidv4(),
+        companyId,
+        'theme',
+        JSON.stringify('light')
       ])
       await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)
+        uuidv4(),
+        companyId,
+        'activityLogRetentionDays',
+        JSON.stringify(365)
       ])
       await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)
+        uuidv4(),
+        companyId,
+        'taskNotificationsEnabled',
+        JSON.stringify(true)
       ])
       await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)
+        uuidv4(),
+        companyId,
+        'taskNotificationLeadDays',
+        JSON.stringify(1)
       ])
     }
     // Create or find user
-    let userResult = await query('SELECT id, username, role_key FROM users WHERE company_id = $1 AND recovery_email = $2', [companyId, googleEmail])
+    let userResult = await query(
+      'SELECT id, username, role_key FROM users WHERE company_id = $1 AND recovery_email = $2',
+      [companyId, googleEmail]
+    )
     if (userResult.rows.length === 0) {
-      const baseUsername = googleEmail.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '_').substring(0, 20)
+      const baseUsername = googleEmail
+        .split('@')[0]
+        .replace(/[^a-zA-Z0-9_]/g, '_')
+        .substring(0, 20)
       username = baseUsername
       // Ensure unique username
       let counter = 1
@@ -378,7 +427,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         email: googleEmail,
         method: 'Google',
         trialExpiresAt
-      }).catch(e => {
+      }).catch((e) => {
         console.error('Failed to notify admin of Google signup:', e)
       })
 
@@ -389,17 +438,19 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         to: 'slaehmap@gmail.com',
         subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
         text: `مرحباً أستاذ صالح،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
-      }).catch(e => {
+      }).catch((e) => {
         console.error('Failed to notify admin of Google login:', e)
       })
     }
     const user = userResult.rows[0]
-    const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [companyId])
+    const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
+      companyId
+    ])
     let trialExpired = false
     if (companyRes.rows.length > 0) {
       trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
     }
-    
+
     let subscriptionStatus = 'trial'
     const subCheck = await query(
       `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
@@ -437,7 +488,9 @@ authRouter.post('/check-availability', authRateLimiter, async (req: Request, res
       const exists = await query('SELECT id FROM companies WHERE phone = $1', [value.trim()])
       res.json({ available: exists.rows.length === 0 })
     } else if (field === 'email') {
-      const exists = await query('SELECT id FROM companies WHERE email = $1', [value.trim().toLowerCase()])
+      const exists = await query('SELECT id FROM companies WHERE email = $1', [
+        value.trim().toLowerCase()
+      ])
       res.json({ available: exists.rows.length === 0 })
     } else if (field === 'username') {
       const exists = await query('SELECT id FROM users WHERE username = $1', [value.trim()])
@@ -481,7 +534,9 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
 
     if (!phoneRegex.test(phone)) {
-      res.status(400).json({ error: 'InvalidPhone', message: 'رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 05' })
+      res
+        .status(400)
+        .json({ error: 'InvalidPhone', message: 'رقم الجوال يجب أن يتكون من 10 أرقام ويبدأ بـ 05' })
       return
     }
     if (!emailRegex.test(email)) {
@@ -489,52 +544,79 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       return
     }
     if (!usernameRegex.test(username)) {
-      res.status(400).json({ error: 'InvalidUsername', message: 'اسم المستخدم يجب أن يكون باللغة الإنجليزية (من 4 إلى 20 حرف)' })
+      res
+        .status(400)
+        .json({
+          error: 'InvalidUsername',
+          message: 'اسم المستخدم يجب أن يكون باللغة الإنجليزية (من 4 إلى 20 حرف)'
+        })
       return
     }
     if (!passwordRegex.test(password)) {
-      res.status(400).json({ error: 'WeakPassword', message: 'يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص، وبحد أدنى 8 أحرف' })
+      res
+        .status(400)
+        .json({
+          error: 'WeakPassword',
+          message: 'يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص، وبحد أدنى 8 أحرف'
+        })
       return
     }
 
-      // 1. Verify username uniqueness globally
-      const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
-      if (checkUser.rows.length > 0) {
-        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - اسم المستخدم موجود مسبقاً')
-        sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
-          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
-        }).catch(() => {})
-        res.status(400).json({ error: 'UsernameAlreadyExists', message: 'اسم المستخدم مسجل مسبقاً' })
-        return
-      }
+    // 1. Verify username uniqueness globally
+    const checkUser = await query('SELECT id FROM users WHERE username = $1', [username])
+    if (checkUser.rows.length > 0) {
+      await logActivity(
+        username,
+        'REGISTER_FAILED',
+        'auth',
+        'فشل التسجيل - اسم المستخدم موجود مسبقاً'
+      )
+      sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
+        text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
+      }).catch(() => {})
+      res.status(400).json({ error: 'UsernameAlreadyExists', message: 'اسم المستخدم مسجل مسبقاً' })
+      return
+    }
 
-      // 2. Verify email uniqueness globally across companies
-      const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
-      if (checkEmail.rows.length > 0) {
-        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - البريد الإلكتروني موجود مسبقاً')
-        sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
-          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-        }).catch(() => {})
-        res.status(400).json({ error: 'EmailAlreadyExists', message: 'البريد الإلكتروني مسجل مسبقاً' })
-        return
-      }
+    // 2. Verify email uniqueness globally across companies
+    const checkEmail = await query('SELECT id FROM companies WHERE email = $1', [email])
+    if (checkEmail.rows.length > 0) {
+      await logActivity(
+        username,
+        'REGISTER_FAILED',
+        'auth',
+        'فشل التسجيل - البريد الإلكتروني موجود مسبقاً'
+      )
+      sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
+        text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
+      }).catch(() => {})
+      res
+        .status(400)
+        .json({ error: 'EmailAlreadyExists', message: 'البريد الإلكتروني مسجل مسبقاً' })
+      return
+    }
 
-      // 3. Verify phone uniqueness globally across companies
-      const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
-      if (checkPhone.rows.length > 0) {
-        await logActivity(username, 'REGISTER_FAILED', 'auth', 'فشل التسجيل - رقم الهاتف موجود مسبقاً')
-        sendEmail({
-          to: 'slaehmap@gmail.com',
-          subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
-          text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-        }).catch(() => {})
-        res.status(400).json({ error: 'PhoneAlreadyExists', message: 'رقم الجوال مسجل مسبقاً' })
-        return
-      }
+    // 3. Verify phone uniqueness globally across companies
+    const checkPhone = await query('SELECT id FROM companies WHERE phone = $1', [phone])
+    if (checkPhone.rows.length > 0) {
+      await logActivity(
+        username,
+        'REGISTER_FAILED',
+        'auth',
+        'فشل التسجيل - رقم الهاتف موجود مسبقاً'
+      )
+      sendEmail({
+        to: 'slaehmap@gmail.com',
+        subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
+        text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
+      }).catch(() => {})
+      res.status(400).json({ error: 'PhoneAlreadyExists', message: 'رقم الجوال مسجل مسبقاً' })
+      return
+    }
 
     const companyId = uuidv4()
     const trialExpiresAt = new Date()
@@ -607,25 +689,34 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     const smtpAvailable = getTransporter() !== null
     sendOTP(email, phone, otpCode)
 
-    await logActivity(username, 'REGISTER_SUCCESS', 'auth', 'تسجيل شركة جديدة', {
-      companyName,
-      email,
-      phone,
+    await logActivity(
+      username,
+      'REGISTER_SUCCESS',
+      'auth',
+      'تسجيل شركة جديدة',
+      {
+        companyName,
+        email,
+        phone,
+        companyId
+      },
       companyId
-    }, companyId)
+    )
 
     // Notify the admin of new registration attempt (before OTP verification)
     sendEmail({
       to: 'slaehmap@gmail.com',
       subject: `⏳ محاولة تسجيل جديدة في B2B Lawyer - ${companyName}`,
       text: `مرحباً أستاذ صالح،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n- رمز التفعيل (OTP): ${otpCode}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
-    }).catch(e => {
+    }).catch((e) => {
       console.error('Failed to notify admin of registration attempt:', e)
     })
 
     // If SMTP is not available, return OTP in response so the frontend can show it
     // This enables registration when email is not configured
-    res.status(201).json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
+    res
+      .status(201)
+      .json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)
     res.status(500).json({ error: 'Registration failed' })
@@ -650,7 +741,10 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
     const companyId = userResult.rows[0].company_id
 
     // Get the company details
-    const companyResult = await query('SELECT verification_code, is_verified FROM companies WHERE id = $1', [companyId])
+    const companyResult = await query(
+      'SELECT verification_code, is_verified FROM companies WHERE id = $1',
+      [companyId]
+    )
     if (companyResult.rows.length === 0) {
       res.status(404).json({ error: 'CompanyNotFound' })
       return
@@ -668,13 +762,22 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
     }
 
     // Activate/Verify the company
-    await query('UPDATE companies SET is_verified = TRUE, verification_code = NULL WHERE id = $1', [companyId])
+    await query('UPDATE companies SET is_verified = TRUE, verification_code = NULL WHERE id = $1', [
+      companyId
+    ])
 
-    await logActivity(username, 'VERIFY_SUCCESS', 'auth', 'تم تفعيل الحساب', { companyId }, companyId)
+    await logActivity(
+      username,
+      'VERIFY_SUCCESS',
+      'auth',
+      'تم تفعيل الحساب',
+      { companyId },
+      companyId
+    )
 
     // Notify the admin of manual signup verification completion
     query('SELECT name, email, phone, trial_expires_at FROM companies WHERE id = $1', [companyId])
-      .then(infoRes => {
+      .then((infoRes) => {
         if (infoRes.rows.length > 0) {
           const { name, email, phone, trial_expires_at } = infoRes.rows[0]
           return notifyAdminOfNewRegistration({
@@ -687,7 +790,7 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
         }
         return Promise.resolve()
       })
-      .catch(e => {
+      .catch((e) => {
         console.error('Failed to notify admin of manual signup verification:', e)
       })
 

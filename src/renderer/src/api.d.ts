@@ -74,10 +74,7 @@ declare global {
         touch: () => Promise<void>
         lock: () => Promise<boolean>
         unlock: (password: string) => Promise<boolean>
-        checkAvailability: (
-          field: string,
-          value: string
-        ) => Promise<{ available: boolean }>
+        checkAvailability: (field: string, value: string) => Promise<{ available: boolean }>
         onLockTriggered: (cb: () => void) => () => void
         register: (
           companyName: string,

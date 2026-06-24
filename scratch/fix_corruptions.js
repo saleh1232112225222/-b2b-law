@@ -1,39 +1,39 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const rootDir = process.cwd();
+const rootDir = process.cwd()
 const DIRS = [
   path.join(rootDir, 'src/renderer/src/views'),
   path.join(rootDir, 'src/renderer/src/components'),
   path.join(rootDir, 'src/renderer/src/layouts')
-];
-const APP_FILE = path.join(rootDir, 'src/renderer/src/App.vue');
+]
+const APP_FILE = path.join(rootDir, 'src/renderer/src/App.vue')
 
 function getVueFiles(dir) {
-  let results = [];
-  if (!fs.existsSync(dir)) return [];
-  const list = fs.readdirSync(dir);
+  let results = []
+  if (!fs.existsSync(dir)) return []
+  const list = fs.readdirSync(dir)
   list.forEach((file) => {
-    const fullPath = path.join(dir, file);
-    const stat = fs.statSync(fullPath);
+    const fullPath = path.join(dir, file)
+    const stat = fs.statSync(fullPath)
     if (stat && stat.isDirectory()) {
-      results = results.concat(getVueFiles(fullPath));
+      results = results.concat(getVueFiles(fullPath))
     } else if (file.endsWith('.vue')) {
-      results.push(fullPath);
+      results.push(fullPath)
     }
-  });
-  return results;
+  })
+  return results
 }
 
-let vueFiles = [];
-DIRS.forEach(dir => {
-  vueFiles = vueFiles.concat(getVueFiles(dir));
-});
+let vueFiles = []
+DIRS.forEach((dir) => {
+  vueFiles = vueFiles.concat(getVueFiles(dir))
+})
 if (fs.existsSync(APP_FILE)) {
-  vueFiles.push(APP_FILE);
+  vueFiles.push(APP_FILE)
 }
 
-console.log(`Scanning ${vueFiles.length} Vue files to fix class name corruptions...\n`);
+console.log(`Scanning ${vueFiles.length} Vue files to fix class name corruptions...\n`)
 
 const REPLACEMENTS = [
   // Class names starting with single hyphen inside class strings
@@ -61,25 +61,28 @@ const REPLACEMENTS = [
   { from: /\b-caption\b/g, to: 'text-caption' },
   { from: /\b-tiny\b/g, to: 'text-tiny' },
   // specific known corruptions
-  { from: /class="me-4 border-white-2 shadow-sm bg-"/g, to: 'class="me-4 border-white-2 shadow-sm bg-white"' },
+  {
+    from: /class="me-4 border-white-2 shadow-sm bg-"/g,
+    to: 'class="me-4 border-white-2 shadow-sm bg-white"'
+  },
   { from: /'juris-crystal-canvas':\s*,/g, to: "'juris-crystal-canvas': isDark," }
-];
+]
 
-let fixedCount = 0;
+let fixedCount = 0
 
-vueFiles.forEach(file => {
-  let content = fs.readFileSync(file, 'utf8');
-  let originalContent = content;
+vueFiles.forEach((file) => {
+  let content = fs.readFileSync(file, 'utf8')
+  let originalContent = content
 
-  REPLACEMENTS.forEach(rep => {
-    content = content.replace(rep.from, rep.to);
-  });
+  REPLACEMENTS.forEach((rep) => {
+    content = content.replace(rep.from, rep.to)
+  })
 
   if (content !== originalContent) {
-    fs.writeFileSync(file, content, 'utf8');
-    console.log(`Fixed corruptions in: ${path.relative(rootDir, file)}`);
-    fixedCount++;
+    fs.writeFileSync(file, content, 'utf8')
+    console.log(`Fixed corruptions in: ${path.relative(rootDir, file)}`)
+    fixedCount++
   }
-});
+})
 
-console.log(`\nDone! Fixed corruptions in ${fixedCount} files.`);
+console.log(`\nDone! Fixed corruptions in ${fixedCount} files.`)

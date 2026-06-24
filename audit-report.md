@@ -8,17 +8,17 @@
 
 ## ✅ 1. تنفيذ الخطة الأساسية — مطابقة 100%
 
-| البند | النتيجة | التفاصيل |
-|-------|---------|----------|
-| إضافة `lifetime` للـ Enum | ✅ | `subscriptions.ts:4` |
-| تطبيق Enum على الأعمدة | ✅ | `planIntervalEnum`, `subscriptionStatusEnum`, `paymentStatusEnum` |
-| إصلاح FK `defendant_id` | ✅ | يشير إلى `defendants.id` — `cases.ts:55` |
-| `isExcludedPath` في `auth.ts` | ✅ | أسطر 77-83 |
-| حذف `readOnlyOnExpired.ts` | ✅ | تم الحذف — لا يوجد في المشروع |
-| حذف `subscriptionCheck.ts` | ✅ | تم الحذف — لا يوجد في المشروع |
-| إزالة الاستيرادات من `index.ts`, `users.ts`, `tasks.ts`, `entity.ts` | ✅ | لا توجد أي إشارة متبقية |
-| إضافة `past_due` و `lifetime` إلى `AdminSubscriptions.vue` | ✅ | `getStatusColor()` و `getStatusText()` |
-| إصلاح `auth.service.ts` | ✅ | يقبل `isVerified` و `verificationCode` |
+| البند                                                                | النتيجة | التفاصيل                                                          |
+| -------------------------------------------------------------------- | ------- | ----------------------------------------------------------------- |
+| إضافة `lifetime` للـ Enum                                            | ✅      | `subscriptions.ts:4`                                              |
+| تطبيق Enum على الأعمدة                                               | ✅      | `planIntervalEnum`, `subscriptionStatusEnum`, `paymentStatusEnum` |
+| إصلاح FK `defendant_id`                                              | ✅      | يشير إلى `defendants.id` — `cases.ts:55`                          |
+| `isExcludedPath` في `auth.ts`                                        | ✅      | أسطر 77-83                                                        |
+| حذف `readOnlyOnExpired.ts`                                           | ✅      | تم الحذف — لا يوجد في المشروع                                     |
+| حذف `subscriptionCheck.ts`                                           | ✅      | تم الحذف — لا يوجد في المشروع                                     |
+| إزالة الاستيرادات من `index.ts`, `users.ts`, `tasks.ts`, `entity.ts` | ✅      | لا توجد أي إشارة متبقية                                           |
+| إضافة `past_due` و `lifetime` إلى `AdminSubscriptions.vue`           | ✅      | `getStatusColor()` و `getStatusText()`                            |
+| إصلاح `auth.service.ts`                                              | ✅      | يقبل `isVerified` و `verificationCode`                            |
 
 **الخلاصة:** الخطة نُفذت بدقة 100% بدون انحراف. عمل ممتاز من الوكيل.
 
@@ -33,12 +33,20 @@
 ```ts
 // ⛔ الحالي — ناقص subscriptionStatus
 const token = generateToken({
-  userId, companyId, username, roleKey, trialExpired
+  userId,
+  companyId,
+  username,
+  roleKey,
+  trialExpired
 })
 
 // ✅ المطلوب
 const token = generateToken({
-  userId, companyId, username, roleKey, trialExpired,
+  userId,
+  companyId,
+  username,
+  roleKey,
+  trialExpired,
   subscriptionStatus
 })
 ```
@@ -100,12 +108,14 @@ if (!JWT_SECRET || JWT_SECRET === 'b2b-law-cloud-jwt-secret-change-in-production
 **اكتشاف:** جداول `permissions`, `role_permissions`, `user_permissions` موجودة في قاعدة البيانات، ويتم إنشاؤها في الـ migration، ويتم تغذيتها من الواجهة الأمامية، لكن **لا يوجد أي middleware على الباك إند يتحقق من الصلاحيات لأي مسار**.
 
 **ماذا يعني هذا؟**
+
 - أي مستخدم لديه JWT صحيح يمكنه تنفيذ CRUD كامل على كل كيان في الشركة
 - `roleKey` يتم استخدامه فقط في واجهة المستخدم لتحديد الأزرار الظاهرة
 - يمكن لأي مستخدم تجاوز جميع قيود الصلاحيات عبر Postman أو أي أداة API مباشرة
 - لا يوجد فرق بين "مدير" و"موظف" و"مشاهد" على مستوى الـ API
 
 **الصلاحيات الحقيقية الوحيدة المطبقة:**
+
 1. التحقق من هوية المستخدم (JWT) — `authMiddleware`
 2. عزل الشركة (multi-tenancy) — `company_id`
 3. التحقق من هوية المالك (`companyId === '00000000-...'`) — فقط في مسارات `adminSubscriptions`
@@ -142,6 +152,7 @@ if (!JWT_SECRET || JWT_SECRET === 'b2b-law-cloud-jwt-secret-change-in-production
 ### HIGH-4: لا يوجد Rate Limiting على الإطلاق
 
 لا توجد حماية ضد:
+
 - هجمات تخمين كلمة السر على `POST /api/auth/login`
 - هجمات إنشاء حسابات عشوائية على `POST /api/auth/register`
 - هجمات تخمين OTP على `POST /api/auth/verify`
@@ -165,34 +176,39 @@ status TEXT NOT NULL DEFAULT 'pending'     ← سطر 39
 
 ## 🟡 4. مشاكل متوسطة — MEDIUM
 
-| # | الموقع | المشكلة | الحل |
-|---|--------|---------|------|
-| M1 | `auth.service.ts:44-75` | دالة `registerCompany` غير مستخدمة (orphaned)، تستخدم trial 7 أيام بدلاً من 30 | إزالة الدالة أو تصحيحها لتتماشى مع المسار الرئيسي |
-| M2 | `AdminSubscriptions.vue:468-475` | تسمية مزدوجة snake_case/camelCase في معالجة API — `r.plan_name \|\| r.planName` | توحيد التسمية إلى camelCase فقط |
-| M3 | `AdminSubscriptions.vue:475` | fallback ثلاثي: `r.current_period_end \|\| r.trial_expires_at \|\| r.expiryDate` — قد يؤدي لقراءة قيمة خاطئة | توحيد حقل واحد للتاريخ |
-| M4 | `seed.ts:16-18` | لا ينشئ سجل اشتراك للشركة المزروعة | إضافة `INSERT INTO subscriptions` بعد إنشاء الشركة |
-| M5 | `adminSubscriptions.ts:255-258` | لا يوجد حد أقصى لمدة الاشتراك (يمكن إدخال 999999 شهر) | إضافة `Math.min(durationMonths, 1200)` و `Math.min(durationYears, 100)` |
-| M6 | `adminSubscriptions.ts:398` | `canceled_at` يُضبط أثناء عملية التعليق (suspend) — خطأ دلالي | استخدام حقل `suspended_at` منفصل بدلاً من إعادة استخدام `canceled_at` |
-| M7 | `auth.ts:27` | متغير `JWT_EXPIRY` معرف في السطر 6 لكن غير مستخدم في السطر 27 | استخدام `JWT_EXPIRY` في دالة `generateToken()` بدلاً من '24h' الثابت |
-| M8 | `entity.ts:233` | `created_by` يُضبط بقيمة `companyId` بدلاً من `userId` | تغيير إلى `getUserId(req)` بدلاً من `getCompanyId(req)` |
-| M9 | `adminSubscriptions.ts:479, 553` | مساران مكرران يفعلان نفس الشيء: `activate` (سطر 232) و `activate-company` (سطر 479) | إزالة المسار المكرر أو دمج المنطق |
-| M10 | `router/index.ts:326-341` | الفحص الأمامي للأدمن يتحقق من `companyId` فقط، لا يتأكد من `roleKey === 'admin'` | إضافة التحقق من `roleKey` مع `companyId` |
+| #   | الموقع                           | المشكلة                                                                                                      | الحل                                                                    |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------- |
+| M1  | `auth.service.ts:44-75`          | دالة `registerCompany` غير مستخدمة (orphaned)، تستخدم trial 7 أيام بدلاً من 30                               | إزالة الدالة أو تصحيحها لتتماشى مع المسار الرئيسي                       |
+| M2  | `AdminSubscriptions.vue:468-475` | تسمية مزدوجة snake_case/camelCase في معالجة API — `r.plan_name \|\| r.planName`                              | توحيد التسمية إلى camelCase فقط                                         |
+| M3  | `AdminSubscriptions.vue:475`     | fallback ثلاثي: `r.current_period_end \|\| r.trial_expires_at \|\| r.expiryDate` — قد يؤدي لقراءة قيمة خاطئة | توحيد حقل واحد للتاريخ                                                  |
+| M4  | `seed.ts:16-18`                  | لا ينشئ سجل اشتراك للشركة المزروعة                                                                           | إضافة `INSERT INTO subscriptions` بعد إنشاء الشركة                      |
+| M5  | `adminSubscriptions.ts:255-258`  | لا يوجد حد أقصى لمدة الاشتراك (يمكن إدخال 999999 شهر)                                                        | إضافة `Math.min(durationMonths, 1200)` و `Math.min(durationYears, 100)` |
+| M6  | `adminSubscriptions.ts:398`      | `canceled_at` يُضبط أثناء عملية التعليق (suspend) — خطأ دلالي                                                | استخدام حقل `suspended_at` منفصل بدلاً من إعادة استخدام `canceled_at`   |
+| M7  | `auth.ts:27`                     | متغير `JWT_EXPIRY` معرف في السطر 6 لكن غير مستخدم في السطر 27                                                | استخدام `JWT_EXPIRY` في دالة `generateToken()` بدلاً من '24h' الثابت    |
+| M8  | `entity.ts:233`                  | `created_by` يُضبط بقيمة `companyId` بدلاً من `userId`                                                       | تغيير إلى `getUserId(req)` بدلاً من `getCompanyId(req)`                 |
+| M9  | `adminSubscriptions.ts:479, 553` | مساران مكرران يفعلان نفس الشيء: `activate` (سطر 232) و `activate-company` (سطر 479)                          | إزالة المسار المكرر أو دمج المنطق                                       |
+| M10 | `router/index.ts:326-341`        | الفحص الأمامي للأدمن يتحقق من `companyId` فقط، لا يتأكد من `roleKey === 'admin'`                             | إضافة التحقق من `roleKey` مع `companyId`                                |
 
 ---
 
 ## 🟢 5. مشاكل بسيطة — LOW
 
 ### L1: مسار `/api/marketing/report` بدون أي مصادقة
+
 أي شخص يمكنه تشغيل تقرير تسويقي. ضرر محدود (مجرد إرسال إيميل) لكنه نمط سيئ.
 
 ### L2: التوكن يظهر في URL أثناء Google OAuth
+
 `auth.ts:366`:
+
 ```
 redirect(`${frontendUrl}/#/login?google_token=${token}`)
 ```
+
 التوكن يظهر في سجل المتصفح، سجلات السيرفر، وروابط الإحالة.
 
 ### L3: لا يوجد سبب إلزامي للإلغاء (Cancel)
+
 `adminSubscriptions.ts:416` — لا يُطلب سبب للإلغاء، على عكس التعليق (suspend) الذي يقبل `reason`.
 
 ---
@@ -211,22 +227,22 @@ redirect(`${frontendUrl}/#/login?google_token=${token}`)
 
 ## 🎯 7. ملخص التوجيه للوكيل — Priority Matrix
 
-| الأولوية | المهمة | الموقع | الوقت التقديري |
-|----------|--------|--------|---------------|
-| 🔴 **فوراً** | إضافة `subscriptionStatus` إلى Google OAuth token | `auth.ts:363` | دقيقتان |
-| 🔴 **فوراً** | إضافة `'lifetime'` إلى شروط `isReadOnly` في `licensing.ts` و `router/index.ts` | `licensing.ts:122,135` + `router/index.ts:313` | 5 دقائق |
-| 🔴 **فوراً** | Check إيقاف تشغيل إذا JWT_SECRET لا يزال افتراضي | `auth.ts:5` | 5 دقائق |
-| 🟠 **عاجل** | `must_change_password = TRUE` للمالك | `index.ts:253` | دقيقة |
-| 🟠 **عاجل** | إضافة `requireAdminRole` على `clear-all-data` و `import-snapshot` | `system.ts` | 10 دقائق |
-| 🟠 **عاجل** | Rate Limiting على auth endpoints | `index.ts` | 15 دقيقة |
-| 🟡 **متوسط** | توحيد التسمية (camelCase) في `AdminSubscriptions.vue` | `AdminSubscriptions.vue:468-475` | 10 دقائق |
-| 🟡 **متوسط** | إصلاح أو إزالة `auth.service.ts` (orphaned + trial 7d) | `auth.service.ts` | 10 دقائق |
-| 🟡 **متوسط** | دمج migration 0001 + 0002 لضمان الاتساق | `migrations/` | 20 دقيقة |
-| 🟡 **متوسط** | إضافة حد أقصى لمدة الاشتراك (100 سنة max) | `adminSubscriptions.ts:255` | 5 دقائق |
-| 🟢 **بسيط** | إصلاح `canceled_at` أثناء التعليق (استخدام `suspended_at`) | `adminSubscriptions.ts:398` | 5 دقائق |
-| 🟢 **بسيط** | استخدام `JWT_EXPIRY` بدلاً من '24h' الثابت | `auth.ts:27` | دقيقتان |
-| 🟢 **بسيط** | إصلاح `entity.ts:233` — `created_by` يعين `companyId` بدلاً من `userId` | `entity.ts:233` | دقيقة |
+| الأولوية     | المهمة                                                                         | الموقع                                         | الوقت التقديري |
+| ------------ | ------------------------------------------------------------------------------ | ---------------------------------------------- | -------------- |
+| 🔴 **فوراً** | إضافة `subscriptionStatus` إلى Google OAuth token                              | `auth.ts:363`                                  | دقيقتان        |
+| 🔴 **فوراً** | إضافة `'lifetime'` إلى شروط `isReadOnly` في `licensing.ts` و `router/index.ts` | `licensing.ts:122,135` + `router/index.ts:313` | 5 دقائق        |
+| 🔴 **فوراً** | Check إيقاف تشغيل إذا JWT_SECRET لا يزال افتراضي                               | `auth.ts:5`                                    | 5 دقائق        |
+| 🟠 **عاجل**  | `must_change_password = TRUE` للمالك                                           | `index.ts:253`                                 | دقيقة          |
+| 🟠 **عاجل**  | إضافة `requireAdminRole` على `clear-all-data` و `import-snapshot`              | `system.ts`                                    | 10 دقائق       |
+| 🟠 **عاجل**  | Rate Limiting على auth endpoints                                               | `index.ts`                                     | 15 دقيقة       |
+| 🟡 **متوسط** | توحيد التسمية (camelCase) في `AdminSubscriptions.vue`                          | `AdminSubscriptions.vue:468-475`               | 10 دقائق       |
+| 🟡 **متوسط** | إصلاح أو إزالة `auth.service.ts` (orphaned + trial 7d)                         | `auth.service.ts`                              | 10 دقائق       |
+| 🟡 **متوسط** | دمج migration 0001 + 0002 لضمان الاتساق                                        | `migrations/`                                  | 20 دقيقة       |
+| 🟡 **متوسط** | إضافة حد أقصى لمدة الاشتراك (100 سنة max)                                      | `adminSubscriptions.ts:255`                    | 5 دقائق        |
+| 🟢 **بسيط**  | إصلاح `canceled_at` أثناء التعليق (استخدام `suspended_at`)                     | `adminSubscriptions.ts:398`                    | 5 دقائق        |
+| 🟢 **بسيط**  | استخدام `JWT_EXPIRY` بدلاً من '24h' الثابت                                     | `auth.ts:27`                                   | دقيقتان        |
+| 🟢 **بسيط**  | إصلاح `entity.ts:233` — `created_by` يعين `companyId` بدلاً من `userId`        | `entity.ts:233`                                | دقيقة          |
 
 ---
 
-*تم إعداد التقرير بواسطة المراجع التقني — 2026-06-20*
+_تم إعداد التقرير بواسطة المراجع التقني — 2026-06-20_

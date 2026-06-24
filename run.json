@@ -15,9 +15,7 @@
   "check_suite_node_id": "CS_kwDOSyzvh88AAAARpmHDYg",
   "url": "https://api.github.com/repos/saleh1232112225222/-b2b-law/actions/runs/28102606496",
   "html_url": "https://github.com/saleh1232112225222/-b2b-law/actions/runs/28102606496",
-  "pull_requests": [
-
-  ],
+  "pull_requests": [],
   "created_at": "2026-06-24T13:37:32Z",
   "updated_at": "2026-06-24T13:40:39Z",
   "actor": {
@@ -42,9 +40,7 @@
     "site_admin": false
   },
   "run_attempt": 1,
-  "referenced_workflows": [
-
-  ],
+  "referenced_workflows": [],
   "run_started_at": "2026-06-24T13:37:32Z",
   "triggering_actor": {
     "login": "saleh1232112225222",

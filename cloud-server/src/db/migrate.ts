@@ -8,7 +8,11 @@ async function migrate() {
   const schemaPath = path.join(__dirname, '..', 'db', 'schema.sql')
   // Fallback to compiled location
   const altPath = path.join(__dirname, 'schema.sql')
-  const finalPath = fs.existsSync(schemaPath) ? schemaPath : (fs.existsSync(altPath) ? altPath : path.join(__dirname, '..', '..', '..', 'cloud-migration', 'schema_postgresql.sql'))
+  const finalPath = fs.existsSync(schemaPath)
+    ? schemaPath
+    : fs.existsSync(altPath)
+      ? altPath
+      : path.join(__dirname, '..', '..', '..', 'cloud-migration', 'schema_postgresql.sql')
   console.log('Schema path:', finalPath)
   const sql = fs.readFileSync(finalPath, 'utf8')
 

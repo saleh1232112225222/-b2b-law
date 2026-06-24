@@ -6,7 +6,8 @@ const bcrypt = require('bcryptjs')
 
 async function reset() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:1390@127.0.0.1:5432/b2b_law'
+    connectionString:
+      process.env.DATABASE_URL || 'postgresql://postgres:1390@127.0.0.1:5432/b2b_law'
   })
 
   const passwordHash = await bcrypt.hash('admin1390', 12)
@@ -26,4 +27,7 @@ async function reset() {
   process.exit(0)
 }
 
-reset().catch(err => { console.error(err); process.exit(1) })
+reset().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

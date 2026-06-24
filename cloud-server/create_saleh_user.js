@@ -3,7 +3,8 @@ const bcrypt = require('bcryptjs')
 
 async function run() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://postgres:1390@127.0.0.1:5432/b2b_law'
+    connectionString:
+      process.env.DATABASE_URL || 'postgresql://postgres:1390@127.0.0.1:5432/b2b_law'
   })
 
   const username = 'saleh'
@@ -33,4 +34,7 @@ async function run() {
   process.exit(0)
 }
 
-run().catch(err => { console.error(err); process.exit(1) })
+run().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})

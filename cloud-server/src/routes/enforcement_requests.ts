@@ -6,13 +6,14 @@ import { v4 as uuidv4 } from 'uuid'
 
 export const enforcementRequestsRouter = Router()
 
-enforcementRequestsRouter.use(authMiddleware)
+enforcementRequestsRouter
+  .use(authMiddleware)
 
-.use((req, res, next) => {
-  const { requirePermission } = require('../middleware/permission')
-  const perm = req.method === 'GET' ? 'view_enforcement' : 'create_enforcement'
-  requirePermission(perm)(req, res, next)
-})
+  .use((req, res, next) => {
+    const { requirePermission } = require('../middleware/permission')
+    const perm = req.method === 'GET' ? 'view_enforcement' : 'create_enforcement'
+    requirePermission(perm)(req, res, next)
+  })
 
 // 1. List Requests
 enforcementRequestsRouter.get('/', async (req: Request, res: Response) => {
@@ -77,13 +78,19 @@ enforcementRequestsRouter.get('/:id', async (req: Request, res: Response) => {
     let details: any = null
 
     if (base.request_type === 'financial') {
-      const detRes = await query('SELECT * FROM enf_financial_details WHERE request_id = $1', [requestId])
+      const detRes = await query('SELECT * FROM enf_financial_details WHERE request_id = $1', [
+        requestId
+      ])
       details = detRes.rows[0] || null
     } else if (base.request_type === 'personal') {
-      const detRes = await query('SELECT * FROM enf_personal_details WHERE request_id = $1', [requestId])
+      const detRes = await query('SELECT * FROM enf_personal_details WHERE request_id = $1', [
+        requestId
+      ])
       details = detRes.rows[0] || null
     } else if (base.request_type === 'direct') {
-      const detRes = await query('SELECT * FROM enf_direct_details WHERE request_id = $1', [requestId])
+      const detRes = await query('SELECT * FROM enf_direct_details WHERE request_id = $1', [
+        requestId
+      ])
       details = detRes.rows[0] || null
     }
 
@@ -91,7 +98,9 @@ enforcementRequestsRouter.get('/:id', async (req: Request, res: Response) => {
       'SELECT * FROM enf_decisions WHERE request_id = $1 ORDER BY decision_date DESC',
       [requestId]
     )
-    const partiesRes = await query('SELECT * FROM enf_request_parties WHERE request_id = $1', [requestId])
+    const partiesRes = await query('SELECT * FROM enf_request_parties WHERE request_id = $1', [
+      requestId
+    ])
 
     res.json({
       ...base,
@@ -328,7 +337,10 @@ enforcementRequestsRouter.put('/:id', async (req: Request, res: Response) => {
 
     // 3. Sync Parties
     if (parties !== undefined) {
-      await client.query('DELETE FROM enf_request_parties WHERE request_id = $1 AND company_id = $2', [id, companyId])
+      await client.query(
+        'DELETE FROM enf_request_parties WHERE request_id = $1 AND company_id = $2',
+        [id, companyId]
+      )
       for (const p of parties) {
         await client.query(
           `INSERT INTO enf_request_parties (id, company_id, request_id, party_name, party_role, is_client, linked_entity_id, created_at)
@@ -348,7 +360,10 @@ enforcementRequestsRouter.put('/:id', async (req: Request, res: Response) => {
 
     // 4. Sync Decisions
     if (decisions !== undefined) {
-      await client.query('DELETE FROM enf_decisions WHERE request_id = $1 AND company_id = $2', [id, companyId])
+      await client.query('DELETE FROM enf_decisions WHERE request_id = $1 AND company_id = $2', [
+        id,
+        companyId
+      ])
       for (const d of decisions) {
         await client.query(
           `INSERT INTO enf_decisions (id, company_id, request_id, decision_type, decision_date, notes, created_at)

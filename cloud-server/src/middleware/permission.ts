@@ -39,32 +39,61 @@ export const DEFAULT_PERMISSIONS = [
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
   licensed_lawyer: [
-    'view_cases', 'create_cases', 'edit_cases',
-    'view_sessions', 'create_sessions', 'edit_sessions',
-    'view_tasks', 'create_tasks', 'edit_tasks', 'cancel_tasks', 'close_tasks', 'reopen_tasks',
-    'view_clients', 'create_clients', 'edit_clients',
-    'view_defendants', 'create_defendants', 'edit_defendants',
-    'view_documents', 'create_documents',
-    'view_contracts', 'create_contracts',
-    'view_enforcement', 'create_enforcement',
-    'export_reports', 'view_files'
+    'view_cases',
+    'create_cases',
+    'edit_cases',
+    'view_sessions',
+    'create_sessions',
+    'edit_sessions',
+    'view_tasks',
+    'create_tasks',
+    'edit_tasks',
+    'cancel_tasks',
+    'close_tasks',
+    'reopen_tasks',
+    'view_clients',
+    'create_clients',
+    'edit_clients',
+    'view_defendants',
+    'create_defendants',
+    'edit_defendants',
+    'view_documents',
+    'create_documents',
+    'view_contracts',
+    'create_contracts',
+    'view_enforcement',
+    'create_enforcement',
+    'export_reports',
+    'view_files'
   ],
   trainee_lawyer: [
     'view_cases',
     'view_sessions',
-    'view_tasks', 'create_tasks', 'edit_tasks',
+    'view_tasks',
+    'create_tasks',
+    'edit_tasks',
     'view_clients',
     'view_defendants',
-    'view_documents', 'create_documents',
+    'view_documents',
+    'create_documents',
     'view_files'
   ],
   secretary: [
     'view_cases',
-    'view_sessions', 'create_sessions', 'edit_sessions',
-    'view_tasks', 'create_tasks', 'edit_tasks',
-    'view_clients', 'create_clients', 'edit_clients',
-    'view_defendants', 'create_defendants', 'edit_defendants',
-    'view_documents', 'create_documents',
+    'view_sessions',
+    'create_sessions',
+    'edit_sessions',
+    'view_tasks',
+    'create_tasks',
+    'edit_tasks',
+    'view_clients',
+    'create_clients',
+    'edit_clients',
+    'view_defendants',
+    'create_defendants',
+    'edit_defendants',
+    'view_documents',
+    'create_documents',
     'view_files'
   ]
 }
@@ -75,10 +104,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
  */
 export async function ensureDefaultPermissions(companyId: string): Promise<void> {
   try {
-    const check = await query(
-      'SELECT 1 FROM permissions WHERE company_id = $1 LIMIT 1',
-      [companyId]
-    )
+    const check = await query('SELECT 1 FROM permissions WHERE company_id = $1 LIMIT 1', [
+      companyId
+    ])
     if (check.rows.length === 0) {
       console.log(`[PERMISSIONS] Seeding default permissions for company ${companyId}...`)
       // Insert permissions
@@ -106,18 +134,25 @@ export async function ensureDefaultPermissions(companyId: string): Promise<void>
       console.log(`[PERMISSIONS] Default permissions seeded successfully for company ${companyId}.`)
     }
   } catch (err: any) {
-    console.error(`[PERMISSIONS] Failed to seed default permissions for company ${companyId}:`, err.message)
+    console.error(
+      `[PERMISSIONS] Failed to seed default permissions for company ${companyId}:`,
+      err.message
+    )
   }
 }
 
 /**
  * Get all active permissions for a user from database.
  */
-export async function getUserPermissions(companyId: string, userId: string, roleKey: string): Promise<string[]> {
+export async function getUserPermissions(
+  companyId: string,
+  userId: string,
+  roleKey: string
+): Promise<string[]> {
   await ensureDefaultPermissions(companyId)
 
   if (roleKey === 'admin') {
-    return DEFAULT_PERMISSIONS.map(p => p.key)
+    return DEFAULT_PERMISSIONS.map((p) => p.key)
   }
 
   // 1. Fetch default role permissions
@@ -125,7 +160,7 @@ export async function getUserPermissions(companyId: string, userId: string, role
     'SELECT permission_key FROM role_permissions WHERE company_id = $1 AND role_key = $2',
     [companyId, roleKey]
   )
-  const rolePerms = new Set(rolePermsResult.rows.map(r => r.permission_key))
+  const rolePerms = new Set(rolePermsResult.rows.map((r) => r.permission_key))
 
   // 2. Fetch user overrides
   const overridesResult = await query(

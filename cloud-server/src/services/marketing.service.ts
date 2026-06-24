@@ -32,10 +32,14 @@ async function checkTrialExpiry(): Promise<string[]> {
   if (expiring.rows.length > 0) {
     lines.push('<h3 style="color:#e9c349;">⚠️ مشتركين تنتهي تجربتهم خلال 3 أيام</h3>')
     lines.push('<table style="width:100%;border-collapse:collapse;font-size:14px;color:#fff;">')
-    lines.push('<tr style="background:rgba(233,195,73,0.15);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الاسم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">ينتهي في</th></tr>')
+    lines.push(
+      '<tr style="background:rgba(233,195,73,0.15);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الاسم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">ينتهي في</th></tr>'
+    )
     for (const row of expiring.rows) {
       const d = new Date(row.trial_expires_at).toLocaleDateString('ar-SA')
-      lines.push(`<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}</td><td style="padding:6px 8px;">${row.email}</td><td style="padding:6px 8px;">${d}</td></tr>`)
+      lines.push(
+        `<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}</td><td style="padding:6px 8px;">${row.email}</td><td style="padding:6px 8px;">${d}</td></tr>`
+      )
     }
     lines.push('</table>')
   }
@@ -43,10 +47,14 @@ async function checkTrialExpiry(): Promise<string[]> {
   if (expired.rows.length > 0) {
     lines.push('<h3 style="color:#e74c3c;margin-top:24px;">🔴 مشتركين انتهت تجربتهم</h3>')
     lines.push('<table style="width:100%;border-collapse:collapse;font-size:14px;color:#fff;">')
-    lines.push('<tr style="background:rgba(231,76,60,0.15);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الاسم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">انتهت في</th></tr>')
+    lines.push(
+      '<tr style="background:rgba(231,76,60,0.15);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الاسم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">انتهت في</th></tr>'
+    )
     for (const row of expired.rows) {
       const d = new Date(row.trial_expires_at).toLocaleDateString('ar-SA')
-      lines.push(`<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}</td><td style="padding:6px 8px;">${row.email}</td><td style="padding:6px 8px;">${d}</td></tr>`)
+      lines.push(
+        `<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}</td><td style="padding:6px 8px;">${row.email}</td><td style="padding:6px 8px;">${d}</td></tr>`
+      )
     }
     lines.push('</table>')
   }
@@ -74,12 +82,18 @@ async function checkInactiveUsers(): Promise<string[]> {
 
     if (res.rows.length > 0) {
       const color = days === 30 ? '#e74c3c' : days === 14 ? '#e9c349' : '#f39c12'
-      lines.push(`<h3 style="color:${color};margin-top:24px;">😴 مستخدمين غير نشطين (${days}+ يوم)</h3>`)
+      lines.push(
+        `<h3 style="color:${color};margin-top:24px;">😴 مستخدمين غير نشطين (${days}+ يوم)</h3>`
+      )
       lines.push('<table style="width:100%;border-collapse:collapse;font-size:14px;color:#fff;">')
-      lines.push('<tr style="background:rgba(255,255,255,0.05);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">المستخدم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الشركة</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">آخر نشاط</th></tr>')
+      lines.push(
+        '<tr style="background:rgba(255,255,255,0.05);"><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">المستخدم</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">البريد</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">الشركة</th><th style="padding:8px;text-align:right;border-bottom:1px solid rgba(255,255,255,0.1);">آخر نشاط</th></tr>'
+      )
       for (const row of res.rows) {
         const d = new Date(row.last_active).toLocaleDateString('ar-SA')
-        lines.push(`<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.full_name}</td><td style="padding:6px 8px;">${row.recovery_email}</td><td style="padding:6px 8px;">${row.company_name}</td><td style="padding:6px 8px;">${d}</td></tr>`)
+        lines.push(
+          `<tr><td style="padding:6px 8px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.full_name}</td><td style="padding:6px 8px;">${row.recovery_email}</td><td style="padding:6px 8px;">${row.company_name}</td><td style="padding:6px 8px;">${d}</td></tr>`
+        )
       }
       lines.push('</table>')
     }
@@ -121,7 +135,9 @@ async function getUsageStats(): Promise<string[]> {
   let i = 1
   for (const row of res.rows) {
     const d = new Date(row.created_at).toLocaleDateString('ar-SA')
-    lines.push(`<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);">${i++}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}<br><small style="color:rgba(255,255,255,0.5);">${row.email}</small></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.session_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.task_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.case_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.user_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${d}</td></tr>`)
+    lines.push(
+      `<tr><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);color:rgba(255,255,255,0.5);">${i++}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.name}<br><small style="color:rgba(255,255,255,0.5);">${row.email}</small></td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.session_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.task_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.case_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${row.user_count}</td><td style="padding:6px;border-bottom:1px solid rgba(255,255,255,0.05);">${d}</td></tr>`
+    )
   }
 
   lines.push('</table>')
@@ -148,7 +164,9 @@ export async function sendMarketingReport(): Promise<void> {
   sections.push(...usageSection)
 
   if (sections.length <= 4) {
-    sections.push('<p style="color:rgba(255,255,255,0.5);text-align:center;">لا توجد بيانات جديدة حالياً.</p>')
+    sections.push(
+      '<p style="color:rgba(255,255,255,0.5);text-align:center;">لا توجد بيانات جديدة حالياً.</p>'
+    )
   }
 
   const html = `

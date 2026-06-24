@@ -1,4 +1,13 @@
-import { pgTable, uuid, text, boolean, timestamp, numeric, date, integer } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  timestamp,
+  numeric,
+  date,
+  integer
+} from 'drizzle-orm/pg-core'
 import { cases } from './cases'
 import { users, clients, defendants } from './core'
 
@@ -13,7 +22,9 @@ export const contracts = pgTable('contracts', {
   caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
   clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
   employeeUserId: uuid('employee_user_id').references(() => users.id, { onDelete: 'set null' }),
-  representativeUserId: uuid('representative_user_id').references(() => users.id, { onDelete: 'set null' }),
+  representativeUserId: uuid('representative_user_id').references(() => users.id, {
+    onDelete: 'set null'
+  }),
   contractDate: date('contract_date'),
   startDate: date('start_date'),
   endDate: date('end_date'),
@@ -43,7 +54,9 @@ export const contractPartyTypes = pgTable('contract_party_types', {
 export const contractParties = pgTable('contract_parties', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  partyTypeKey: text('party_type_key').notNull().references(() => contractPartyTypes.partyTypeKey),
+  partyTypeKey: text('party_type_key')
+    .notNull()
+    .references(() => contractPartyTypes.partyTypeKey),
   userId: uuid('user_id').references(() => users.id, { onDelete: 'set null' }),
   clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
   defendantId: uuid('defendant_id').references(() => defendants.id, { onDelete: 'set null' }),
@@ -57,8 +70,12 @@ export const contractParties = pgTable('contract_parties', {
 export const contractParticipants = pgTable('contract_participants', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  contractId: uuid('contract_id').notNull().references(() => contracts.id, { onDelete: 'cascade' }),
-  partyId: uuid('party_id').notNull().references(() => contractParties.id, { onDelete: 'cascade' }),
+  contractId: uuid('contract_id')
+    .notNull()
+    .references(() => contracts.id, { onDelete: 'cascade' }),
+  partyId: uuid('party_id')
+    .notNull()
+    .references(() => contractParties.id, { onDelete: 'cascade' }),
   roleKey: text('role_key').notNull(),
   roleLabel: text('role_label'),
   sideKey: text('side_key'),
@@ -69,9 +86,15 @@ export const contractParticipants = pgTable('contract_participants', {
 export const contractSignatures = pgTable('contract_signatures', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  contractId: uuid('contract_id').notNull().references(() => contracts.id, { onDelete: 'cascade' }),
-  participantId: uuid('participant_id').notNull().references(() => contractParticipants.id, { onDelete: 'cascade' }),
-  partyId: uuid('party_id').notNull().references(() => contractParties.id, { onDelete: 'cascade' }),
+  contractId: uuid('contract_id')
+    .notNull()
+    .references(() => contracts.id, { onDelete: 'cascade' }),
+  participantId: uuid('participant_id')
+    .notNull()
+    .references(() => contractParticipants.id, { onDelete: 'cascade' }),
+  partyId: uuid('party_id')
+    .notNull()
+    .references(() => contractParties.id, { onDelete: 'cascade' }),
   signatureStatus: text('signature_status').default('pending'),
   signaturePayloadJson: text('signature_payload_json'),
   signedAt: timestamp('signed_at', { withTimezone: true }),
@@ -82,7 +105,9 @@ export const contractSignatures = pgTable('contract_signatures', {
 export const contractSchedules = pgTable('contract_schedules', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  contractId: uuid('contract_id').notNull().references(() => contracts.id, { onDelete: 'cascade' }),
+  contractId: uuid('contract_id')
+    .notNull()
+    .references(() => contracts.id, { onDelete: 'cascade' }),
   scheduleType: text('schedule_type').notNull(),
   title: text('title').notNull(),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
@@ -99,7 +124,9 @@ export const contractSchedules = pgTable('contract_schedules', {
 export const contractLinks = pgTable('contract_links', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  contractId: uuid('contract_id').notNull().references(() => contracts.id, { onDelete: 'cascade' }),
+  contractId: uuid('contract_id')
+    .notNull()
+    .references(() => contracts.id, { onDelete: 'cascade' }),
   entityType: text('entity_type').notNull(),
   entityId: uuid('entity_id').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
@@ -108,7 +135,9 @@ export const contractLinks = pgTable('contract_links', {
 export const contractAmendments = pgTable('contract_amendments', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  contractId: uuid('contract_id').notNull().references(() => contracts.id, { onDelete: 'cascade' }),
+  contractId: uuid('contract_id')
+    .notNull()
+    .references(() => contracts.id, { onDelete: 'cascade' }),
   reason: text('reason').notNull(),
   content: text('content').notNull(),
   createdBy: uuid('created_by'),

@@ -9,7 +9,7 @@ async function run() {
     connectionString: 'postgresql://postgres:1390@127.0.0.1:5432/postgres'
   })
   await client.connect()
-  
+
   try {
     await client.query('DROP DATABASE IF EXISTS b2b_law_temp')
     await client.query('CREATE DATABASE b2b_law_temp')
@@ -29,7 +29,7 @@ async function run() {
     const migrationsFolder = path.join(__dirname, 'dist', 'db', 'migrations')
     console.log('Running migrations on temp database using folder:', migrationsFolder)
     await migrate(db, { migrationsFolder })
-    
+
     // 3. Query the drizzle.__drizzle_migrations table
     const res = await tempClient.query('SELECT * FROM "drizzle"."__drizzle_migrations"')
     console.log('--- Migration Entries ---')

@@ -59,14 +59,20 @@ export async function getCaseCount(companyId: string, filters: Record<string, an
     params.push(`%${filters.q}%`)
     params.push(`%${filters.q}%`)
     params.push(`%${filters.q}%`)
-    conditions.push(`(LOWER(case_number) LIKE LOWER($${idx++}) OR LOWER(subject) LIKE LOWER($${idx++}) OR LOWER(client_name) LIKE LOWER($${idx++}))`)
+    conditions.push(
+      `(LOWER(case_number) LIKE LOWER($${idx++}) OR LOWER(subject) LIKE LOWER($${idx++}) OR LOWER(client_name) LIKE LOWER($${idx++}))`
+    )
   }
 
   const result = await query(`SELECT COUNT(*) FROM cases WHERE ${conditions.join(' AND ')}`, params)
   return parseInt(result.rows[0].count) || 0
 }
 
-export async function checkUniqueCaseNumber(companyId: string, caseNumber: string, excludeId?: string) {
+export async function checkUniqueCaseNumber(
+  companyId: string,
+  caseNumber: string,
+  excludeId?: string
+) {
   const params: any[] = [companyId, caseNumber]
   let sql = 'SELECT COUNT(*) FROM cases WHERE company_id = $1 AND case_number = $2'
   if (excludeId) {
@@ -105,7 +111,17 @@ export async function createCase(companyId: string, userId: string, data: any) {
       const partyId = uuidv4()
       await query(
         `INSERT INTO case_parties (id, company_id, case_id, party_type, client_id, defendant_id, name, phone, role) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [partyId, companyId, caseData.id, party.party_type, party.client_id || null, party.defendant_id || null, party.name || '', party.phone || '', party.role || '']
+        [
+          partyId,
+          companyId,
+          caseData.id,
+          party.party_type,
+          party.client_id || null,
+          party.defendant_id || null,
+          party.name || '',
+          party.phone || '',
+          party.role || ''
+        ]
       )
     }
   }

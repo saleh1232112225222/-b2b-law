@@ -994,9 +994,19 @@ const injectManualSnapshot = async (): Promise<void> => {
       showSnackbar(res?.message || 'فشل حقن البيانات', 'error')
       return
     }
-    showSnackbar('تم حقن البيانات بنجاح — جاري إعادة تحميل الصفحة...', 'success')
-    await fetchInventory()
-    setTimeout(() => window.location.reload(), 1200)
+    if (res?.errors && res.errors.length > 0) {
+      console.error('[Import Errors]:', res.errors)
+      showSnackbar(
+        `تم الحقن مع تجاهل ${res.errors.length} سجل بسبب تعارضات. راجع الـ Console للتفاصيل.`,
+        'warning'
+      )
+      await fetchInventory()
+      setTimeout(() => window.location.reload(), 3000)
+    } else {
+      showSnackbar('تم حقن البيانات بنجاح — جاري إعادة تحميل الصفحة...', 'success')
+      await fetchInventory()
+      setTimeout(() => window.location.reload(), 1200)
+    }
   } catch (e: unknown) {
     showSnackbar('خطأ في حقن البيانات: ' + (e as Error).message, 'error')
   } finally {

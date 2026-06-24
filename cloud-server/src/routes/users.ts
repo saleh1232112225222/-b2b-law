@@ -29,11 +29,11 @@ usersRouter.get('/assignable', async (req: Request, res: Response) => {
 })
 
 // 11. Self get recovery info
-usersRouter.get('/recovery-info',  async (req: Request, res: Response) => {
+usersRouter.get('/recovery-info', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
-    
+
     const result = await query(
       `SELECT recovery_email, security_question FROM users WHERE id = $1 AND company_id = $2`,
       [userId, companyId]
@@ -50,17 +50,17 @@ usersRouter.get('/recovery-info',  async (req: Request, res: Response) => {
 })
 
 // 12. Self update recovery info
-usersRouter.put('/recovery-info',  async (req: Request, res: Response) => {
+usersRouter.put('/recovery-info', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.auth!.userId
     const { email, question, answer } = req.body
-    
+
     let answerHash: string | null = null
     if (answer) {
       answerHash = await bcrypt.hash(answer, 12)
     }
-    
+
     await query(
       `UPDATE users 
        SET recovery_email = $1, security_question = $2, security_answer_hash = COALESCE($3, security_answer_hash), updated_at = NOW() 
@@ -74,13 +74,13 @@ usersRouter.put('/recovery-info',  async (req: Request, res: Response) => {
   }
 })
 
-usersRouter.use( (req, res, next) => {
+usersRouter.use((req, res, next) => {
   const { requirePermission } = require('../middleware/permission')
   requirePermission('manage_users')(req, res, next)
 })
 
 // 2. Get Active Staff
-usersRouter.get('/active-staff',  async (req: Request, res: Response) => {
+usersRouter.get('/active-staff', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const result = await query(
@@ -98,12 +98,12 @@ usersRouter.get('/active-staff',  async (req: Request, res: Response) => {
 })
 
 // 3. Toggle Active
-usersRouter.put('/:id/toggle-active',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/toggle-active', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { isActive } = req.body
-    
+
     await query(
       `UPDATE users SET is_active = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3`,
       [isActive, userId, companyId]
@@ -116,12 +116,12 @@ usersRouter.put('/:id/toggle-active',  async (req: Request, res: Response) => {
 })
 
 // 4. Set Role
-usersRouter.put('/:id/role',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/role', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { roleKey } = req.body
-    
+
     await query(
       `UPDATE users SET role_key = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3`,
       [roleKey, userId, companyId]
@@ -134,11 +134,11 @@ usersRouter.put('/:id/role',  async (req: Request, res: Response) => {
 })
 
 // 5. Get Scope
-usersRouter.get('/:id/scope',  async (req: Request, res: Response) => {
+usersRouter.get('/:id/scope', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
-    
+
     const casesRes = await query(
       `SELECT case_id, access_level FROM user_case_access WHERE user_id = $1 AND company_id = $2`,
       [userId, companyId]
@@ -147,7 +147,7 @@ usersRouter.get('/:id/scope',  async (req: Request, res: Response) => {
       `SELECT client_id, access_level FROM user_client_access WHERE user_id = $1 AND company_id = $2`,
       [userId, companyId]
     )
-    
+
     res.json({
       caseScopes: casesRes.rows,
       clientScopes: clientsRes.rows
@@ -159,28 +159,34 @@ usersRouter.get('/:id/scope',  async (req: Request, res: Response) => {
 })
 
 // 6. Set Scope
-usersRouter.put('/:id/scope',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/scope', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { caseScopes = [], clientScopes = [] } = req.body
-    
-    await query('DELETE FROM user_case_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+
+    await query('DELETE FROM user_case_access WHERE user_id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
     for (const sc of caseScopes) {
       await query(
         `INSERT INTO user_case_access (company_id, user_id, case_id, access_level) VALUES ($1, $2, $3, $4)`,
         [companyId, userId, sc.case_id, sc.access_level]
       )
     }
-    
-    await query('DELETE FROM user_client_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+
+    await query('DELETE FROM user_client_access WHERE user_id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
     for (const sc of clientScopes) {
       await query(
         `INSERT INTO user_client_access (company_id, user_id, client_id, access_level) VALUES ($1, $2, $3, $4)`,
         [companyId, userId, sc.client_id, sc.access_level]
       )
     }
-    
+
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Set scope error:', err)
@@ -189,11 +195,11 @@ usersRouter.put('/:id/scope',  async (req: Request, res: Response) => {
 })
 
 // 7. Get Permission Overrides
-usersRouter.get('/:id/permission-overrides',  async (req: Request, res: Response) => {
+usersRouter.get('/:id/permission-overrides', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
-    
+
     const result = await query(
       `SELECT permission_key, is_allowed FROM user_permissions WHERE user_id = $1 AND company_id = $2`,
       [userId, companyId]
@@ -206,13 +212,13 @@ usersRouter.get('/:id/permission-overrides',  async (req: Request, res: Response
 })
 
 // 8. Set Permission Override
-usersRouter.put('/:id/permissions/:permissionKey',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/permissions/:permissionKey', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { permissionKey } = req.params
     const { isAllowed } = req.body
-    
+
     await query(
       `INSERT INTO user_permissions (company_id, user_id, permission_key, is_allowed)
        VALUES ($1, $2, $3, $4)
@@ -228,12 +234,12 @@ usersRouter.put('/:id/permissions/:permissionKey',  async (req: Request, res: Re
 })
 
 // 9. Set Bulk Overrides
-usersRouter.put('/:id/permissions/bulk',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/permissions/bulk', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { isAllowed, permissionKeys = [] } = req.body
-    
+
     for (const key of permissionKeys) {
       await query(
         `INSERT INTO user_permissions (company_id, user_id, permission_key, is_allowed)
@@ -251,19 +257,19 @@ usersRouter.put('/:id/permissions/bulk',  async (req: Request, res: Response) =>
 })
 
 // 10. Update Username
-usersRouter.put('/:id/username',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/username', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { newUsername } = req.body
-    
+
     // Check if newUsername is already taken
     const exists = await query(`SELECT id FROM users WHERE username = $1`, [newUsername])
     if (exists.rows.length > 0) {
       res.status(400).json({ error: 'UsernameAlreadyExists' })
       return
     }
-    
+
     await query(
       `UPDATE users SET username = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3`,
       [newUsername, userId, companyId]
@@ -276,17 +282,17 @@ usersRouter.put('/:id/username',  async (req: Request, res: Response) => {
 })
 
 // 13. Admin updates user recovery info
-usersRouter.put('/:id/recovery-info',  async (req: Request, res: Response) => {
+usersRouter.put('/:id/recovery-info', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
     const { email, question, answer } = req.body
-    
+
     let answerHash: string | null = null
     if (answer) {
       answerHash = await bcrypt.hash(answer, 12)
     }
-    
+
     await query(
       `UPDATE users 
        SET recovery_email = $1, security_question = $2, security_answer_hash = COALESCE($3, security_answer_hash), updated_at = NOW() 
@@ -301,7 +307,7 @@ usersRouter.put('/:id/recovery-info',  async (req: Request, res: Response) => {
 })
 
 // 14. Create user
-usersRouter.post('/',  async (req: Request, res: Response) => {
+usersRouter.post('/', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { username, full_name, role_key, password, employee_id } = req.body
@@ -323,7 +329,15 @@ usersRouter.post('/',  async (req: Request, res: Response) => {
     await query(
       `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, employee_id, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE, $7, NOW())`,
-      [userId, companyId, username, full_name || username, passwordHash, role_key || 'secretary', employee_id || null]
+      [
+        userId,
+        companyId,
+        username,
+        full_name || username,
+        passwordHash,
+        role_key || 'secretary',
+        employee_id || null
+      ]
     )
 
     res.status(201).json({ success: true, userId })
@@ -334,15 +348,15 @@ usersRouter.post('/',  async (req: Request, res: Response) => {
 })
 
 // 15. Delete user
-usersRouter.delete('/:id',  async (req: Request, res: Response) => {
+usersRouter.delete('/:id', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const userId = req.params.id
 
-    const userCheck = await query(
-      'SELECT username FROM users WHERE id = $1 AND company_id = $2',
-      [userId, companyId]
-    )
+    const userCheck = await query('SELECT username FROM users WHERE id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
     if (userCheck.rows.length === 0) {
       res.status(404).json({ error: 'User not found' })
       return
@@ -352,9 +366,18 @@ usersRouter.delete('/:id',  async (req: Request, res: Response) => {
       return
     }
 
-    await query('DELETE FROM user_case_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
-    await query('DELETE FROM user_client_access WHERE user_id = $1 AND company_id = $2', [userId, companyId])
-    await query('DELETE FROM user_permissions WHERE user_id = $1 AND company_id = $2', [userId, companyId])
+    await query('DELETE FROM user_case_access WHERE user_id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
+    await query('DELETE FROM user_client_access WHERE user_id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
+    await query('DELETE FROM user_permissions WHERE user_id = $1 AND company_id = $2', [
+      userId,
+      companyId
+    ])
     await query('DELETE FROM users WHERE id = $1 AND company_id = $2', [userId, companyId])
 
     res.json({ success: true })

@@ -17,11 +17,11 @@
 
 تم تعديل الـ breakpoint بعد مراجعة المشرف: `<= 768px` يشمل iPad Mini (744–820px) في 2026 ويعطيه تجربة هاتف مضغوطة. يستخدم الآن **ثلاثة مستويات**:
 
-| المستوى | العرض | التخطيط | الجمهور |
-|---|---|---|---|
-| **هاتف صغير** | `<= 480px` | MobileAppShell (ضيق) | iPhone SE, Galaxy S10e |
-| **هاتف كبير / تابلت صغير** | `481–768px` | MobileAppShell (واسع، Cards أكبر) | iPhone 15 Pro Max, iPad Mini |
-| **سطح المكتب / تابلت كبير** | `> 768px` | DesktopLayout الحالي | Laptop, iPad Air/Pro, Desktop |
+| المستوى                     | العرض       | التخطيط                           | الجمهور                       |
+| --------------------------- | ----------- | --------------------------------- | ----------------------------- |
+| **هاتف صغير**               | `<= 480px`  | MobileAppShell (ضيق)              | iPhone SE, Galaxy S10e        |
+| **هاتف كبير / تابلت صغير**  | `481–768px` | MobileAppShell (واسع، Cards أكبر) | iPhone 15 Pro Max, iPad Mini  |
+| **سطح المكتب / تابلت كبير** | `> 768px`   | DesktopLayout الحالي              | Laptop, iPad Air/Pro, Desktop |
 
 ### آلية الكشف
 
@@ -66,12 +66,12 @@ const DesktopLayout = defineAsyncComponent(() => import('./layouts/DesktopLayout
 const MobileAppShell = defineAsyncComponent(() => import('./components/mobile/MobileAppShell.vue'))
 
 const layoutComponent = computed(() =>
-  hideLayout.value ? null : (isMobile.value ? MobileAppShell : DesktopLayout)
+  hideLayout.value ? null : isMobile.value ? MobileAppShell : DesktopLayout
 )
 </script>
 ```
 
-- `hideLayout` (سطر 667) لا يزال يعمل: يخفي *كلا* التخطيطين لصفحات Login/Register.
+- `hideLayout` (سطر 667) لا يزال يعمل: يخفي _كلا_ التخطيطين لصفحات Login/Register.
 - `DesktopLayout.vue` (جديد): ينقل إليه محتوى `App.vue` الحالي (sidebar + app bar + router-view).
 - هذا يمنع زيادة تعقيد `App.vue` ويحافظ على الفصل النظيف.
 
@@ -79,35 +79,37 @@ const layoutComponent = computed(() =>
 
 كلها توضع في: `src/renderer/src/components/mobile/`
 
-| المكون | المسار | الوصف |
-|---|---|---|
-| `MobileAppShell.vue` | `components/mobile/MobileAppShell.vue` | الهيكل الرئيسي: Header ثابت + BottomNav + ErrorBoundary + router-view مع transition |
-| `MobileBottomNav.vue` | `components/mobile/MobileBottomNav.vue` | شريط سفلي بـ 5 تبويبات مع أيقونات Mdi، تظهر/تختفي مع scroll |
-| `MobileHeader.vue` | `components/mobile/MobileHeader.vue` | شريط علوي ثابت (عنوان الصفحة + زر القائمة الجانبية) |
-| `MobileDrawer.vue` | `components/mobile/MobileDrawer.vue` | القائمة الجانبية المنزلقة (Profile + الروابط + تبديل الثيم + تسجيل الخروج) |
-| `MobileCardList.vue` | `components/mobile/MobileCardList.vue` | **عرض البطاقات فقط** — لا يحتوي على تفاعلات Gestures (انظر 3.4) |
-| `MobileActionSheet.vue` | `components/mobile/MobileActionSheet.vue` | BottomSheet عام لأزرار الإجراءات (إضافة، تعديل، حذف) |
-| `MobileErrorBoundary.vue` | `components/mobile/MobileErrorBoundary.vue` | ErrorBoundary يمنع انهيار التطبيق بأكمله عند خطأ في مكون |
+| المكون                    | المسار                                      | الوصف                                                                               |
+| ------------------------- | ------------------------------------------- | ----------------------------------------------------------------------------------- |
+| `MobileAppShell.vue`      | `components/mobile/MobileAppShell.vue`      | الهيكل الرئيسي: Header ثابت + BottomNav + ErrorBoundary + router-view مع transition |
+| `MobileBottomNav.vue`     | `components/mobile/MobileBottomNav.vue`     | شريط سفلي بـ 5 تبويبات مع أيقونات Mdi، تظهر/تختفي مع scroll                         |
+| `MobileHeader.vue`        | `components/mobile/MobileHeader.vue`        | شريط علوي ثابت (عنوان الصفحة + زر القائمة الجانبية)                                 |
+| `MobileDrawer.vue`        | `components/mobile/MobileDrawer.vue`        | القائمة الجانبية المنزلقة (Profile + الروابط + تبديل الثيم + تسجيل الخروج)          |
+| `MobileCardList.vue`      | `components/mobile/MobileCardList.vue`      | **عرض البطاقات فقط** — لا يحتوي على تفاعلات Gestures (انظر 3.4)                     |
+| `MobileActionSheet.vue`   | `components/mobile/MobileActionSheet.vue`   | BottomSheet عام لأزرار الإجراءات (إضافة، تعديل، حذف)                                |
+| `MobileErrorBoundary.vue` | `components/mobile/MobileErrorBoundary.vue` | ErrorBoundary يمنع انهيار التطبيق بأكمله عند خطأ في مكون                            |
 
 ### 3.3 Composable Archives — منفصلة عن المكونات (معدّل — تم تقسيم God Component)
 
 بعد ملاحظة المشرف، **`MobileCardList` لا يحتوي على Pull-to-Refresh ولا Swipe ولا Long-press** — كل تفاعل هو composable منفصل:
 
-| Composable | الملف | الوظيفة | المصدر |
-|---|---|---|---|
-| `useMobileLayout` | `composables/useMobileLayout.ts` | `isPhone`, `isSmallTablet`, `isMobile` | `useMediaQuery` من VueUse |
-| `usePullToRefresh` | `composables/usePullToRefresh.ts` | سحب للأسفل → تحديث البيانات | غلاف لـ `pulltorefreshjs` (وليس touchstart يدوي) |
-| `useInfiniteScroll` | `composables/useInfiniteScroll.ts` | IntersectionObserver → تحميل المزيد | مدمج مع `MobileCardList` |
-| `useSwipeAction` | `composables/useSwipeAction.ts` | سحب أفقي → إظهار أزرار إجراءات | `@vueuse/gesture` (غلاف) |
-| `useLongPress` | `composables/useLongPress.ts` | ضغط مطول → فتح MobileActionSheet | `@vueuse/gesture` (غلاف) |
-| `useKeyboardAware` | `composables/useKeyboardAware.ts` | رفع الـ inputs عند ظهور keyboard + تجنب التداخل مع BottomNav | VisualViewport API |
+| Composable          | الملف                              | الوظيفة                                                      | المصدر                                           |
+| ------------------- | ---------------------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| `useMobileLayout`   | `composables/useMobileLayout.ts`   | `isPhone`, `isSmallTablet`, `isMobile`                       | `useMediaQuery` من VueUse                        |
+| `usePullToRefresh`  | `composables/usePullToRefresh.ts`  | سحب للأسفل → تحديث البيانات                                  | غلاف لـ `pulltorefreshjs` (وليس touchstart يدوي) |
+| `useInfiniteScroll` | `composables/useInfiniteScroll.ts` | IntersectionObserver → تحميل المزيد                          | مدمج مع `MobileCardList`                         |
+| `useSwipeAction`    | `composables/useSwipeAction.ts`    | سحب أفقي → إظهار أزرار إجراءات                               | `@vueuse/gesture` (غلاف)                         |
+| `useLongPress`      | `composables/useLongPress.ts`      | ضغط مطول → فتح MobileActionSheet                             | `@vueuse/gesture` (غلاف)                         |
+| `useKeyboardAware`  | `composables/useKeyboardAware.ts`  | رفع الـ inputs عند ظهور keyboard + تجنب التداخل مع BottomNav | VisualViewport API                               |
 
 > **مكتبات خارجية:** سنستخدم `@vueuse/gesture` للـ touch gestures و `pulltorefreshjs` لـ Pull-to-Refresh.  
 > ⚠️ **ملاحظة مهمة — تم التحقق:** هذه الحزم **غير مثبتة حالياً** في المشروع. المتوفر فقط `@vueuse/core ^14.2.1` (لا يتضمن gesture افتراضياً).  
 > **خطوة إلزامية قبل البدء:**
+>
 > ```
 > npm install @vueuse/gesture pulltorefreshjs
-> ```  
+> ```
+>
 > **البديل (في حال تعارض الإصدارات مع Vue 3.5.25 / Vuetify 3.7.15):** composable يدوي باستخدام raw touch events + `requestAnimationFrame`، مع اختبار مكثف على أجهزة حقيقية.
 
 ### 3.4 MobileCardList — مسؤولية واحدة فقط (Single Responsibility)
@@ -129,22 +131,22 @@ MobileCardList.vue
 
 لأن Pull-to-Refresh + Swipe + Long-press + Scroll كلها تعتمد على `touchstart/move/end`:
 
-| المشكلة | الحل |
-|---|---|
-| سحب البطاقة أفقياً ينفذ Pull-to-Refresh | `touch-action: pan-y` على `.mobile-card` ← يمنع السحب الأفقي على مستوى المتصفح |
-| الضغط المطوّل يظهر native text selection / context menu | `user-select: none`, `-webkit-touch-callout: none` على البطاقات |
-| التمييز بين سحب عمودي (pull) وأفقي (swipe) | زاوية السحب angle > 45° → Pull-to-Refresh؛ < 45° → Swipe (يتم حسابه من `@vueuse/gesture`) |
-| Pull-to-Refresh يتعارض مع Infinite Scroll | IntersectionObserver + `rootMargin: '200px'` للتحميل المسبق قبل الوصول للنهاية |
+| المشكلة                                                 | الحل                                                                                      |
+| ------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| سحب البطاقة أفقياً ينفذ Pull-to-Refresh                 | `touch-action: pan-y` على `.mobile-card` ← يمنع السحب الأفقي على مستوى المتصفح            |
+| الضغط المطوّل يظهر native text selection / context menu | `user-select: none`, `-webkit-touch-callout: none` على البطاقات                           |
+| التمييز بين سحب عمودي (pull) وأفقي (swipe)              | زاوية السحب angle > 45° → Pull-to-Refresh؛ < 45° → Swipe (يتم حسابه من `@vueuse/gesture`) |
+| Pull-to-Refresh يتعارض مع Infinite Scroll               | IntersectionObserver + `rootMargin: '200px'` للتحميل المسبق قبل الوصول للنهاية            |
 
 ### 3.6 Bottom Navigation — 5 تبويبات
 
-| التبويب | الأيقونة | الرابط | متى يظهر (حسب `can()`) |
-|---|---|---|---|
-| لوحة التحكم | `mdi-view-dashboard` | `/dashboard` | دائماً |
-| العملاء | `mdi-account-group` | `/clients` | `can('view_clients')` |
-| القضايا | `mdi-scale-balance` | `/cases` | `can('view_cases')` |
-| الجلسات | `mdi-calendar-clock` | `/sessions` | `can('view_sessions')` |
-| المزيد | `mdi-dots-horizontal` | — | دائماً (قائمة منسدلة للصفحات الأخرى) |
+| التبويب     | الأيقونة              | الرابط       | متى يظهر (حسب `can()`)               |
+| ----------- | --------------------- | ------------ | ------------------------------------ |
+| لوحة التحكم | `mdi-view-dashboard`  | `/dashboard` | دائماً                               |
+| العملاء     | `mdi-account-group`   | `/clients`   | `can('view_clients')`                |
+| القضايا     | `mdi-scale-balance`   | `/cases`     | `can('view_cases')`                  |
+| الجلسات     | `mdi-calendar-clock`  | `/sessions`  | `can('view_sessions')`               |
+| المزيد      | `mdi-dots-horizontal` | —            | دائماً (قائمة منسدلة للصفحات الأخرى) |
 
 **قائمة "المزيد":** المهام، المالية، المستندات، المذكرات، العقود، التنفيذ، الملفات، التقارير، الملف الشخصي، الإعدادات. تظهر حسب صلاحيات `can()` لكل بند.
 
@@ -167,6 +169,7 @@ MobileCardList.vue
 ### 3.9 Safe Area + Dark Mode — (جديد — نقاط مفقودة)
 
 **Safe Area:**
+
 ```css
 .mobile-app-shell {
   padding-top: env(safe-area-inset-top);
@@ -181,6 +184,7 @@ MobileCardList.vue
 ```
 
 **Dark Mode:**
+
 - `MobileDrawer` يحتوي على زر `mdi-weather-night` / `mdi-weather-sunny`
 - يستخدم `useTheme()` من Vuetify: `theme.global.name.value = isDark ? 'dark' : 'light'`
 - جميع المكونات الجديدة تستخدم CSS Variables من `main.css` (التي تدعم dark/light theme مسبقاً)
@@ -217,10 +221,12 @@ MobileCardList.vue
 ### 4.1 Dashboard (`Dashboard.vue` — ~300 سطر)
 
 **الوضع الحالي (Desktop):**
+
 - 3 أقسام (تقويم، رسوم بيانية، مقاييس) تظهر حسب `isMobile` inline class
 - بطاقات: إجمالي القضايا، العملاء، الجلسات القادمة، الإيرادات
 
 **التصميم للموبايل:**
+
 - **شاشة واحدة قابلة للتمرير** بدلاً من التبويبات الثلاثة
 - **بطاقات المقاييس الأربع:** 2×2 Grid (بدلاً من 4 أعمدة في Desktop) على الهاتف الصغير، 3×2 على التابلت الصغير
 - **آخر 5 جلسات قادمة:** قائمة بطاقات مصغرة
@@ -233,10 +239,12 @@ MobileCardList.vue
 ### 4.2 العملاء (`Clients.vue` — يوجد بالفعل inline mobile code ~148 سطر)
 
 **الوضع الحالي:**
+
 - Desktop: VDataTable مع أزرار تصدير
 - Mobile: `المحامين` inline section مع `v-list` — ولكنه مدمج داخل الملف
 
 **التصميم للموبايل:**
+
 - `MobileCardList` مع `fields` للعميل: الاسم، رقم الهاتف، النوع
 - شريط بحث في أعلى الصفحة (VTextField مع Debounce 300ms)
 - FAB لإضافة عميل جديد (+) — يختفي عند التمرير للأسفل
@@ -249,10 +257,12 @@ MobileCardList.vue
 ### 4.3 القضايا (`Cases.vue` — يستخدم `CaseMobileList.vue` بالفعل)
 
 **الوضع الحالي:**
+
 - `CaseMobileList.vue` (~200 سطر) — بطاقات قضايا مع أزرار `x-small` (16px — مخالفة للمعايير)
 - لا يوجد Pull-to-Refresh ولا Infinite Scroll
 
 **التعديلات:**
+
 - إعادة كتابة `CaseMobileList.vue` باستخدام `MobileCardList` + `usePullToRefresh` + `useInfiniteScroll`
 - إضافة FAB لإضافة قضية جديدة — يختفي عند التمرير للأسفل
 - تغيير جميع الأزرار إلى 44px كحد أدنى
@@ -262,9 +272,11 @@ MobileCardList.vue
 ### 4.4 الجلسات (`Sessions.vue` — يستخدم `SessionCardMobile.vue` + 1023px breakpoint خطأ)
 
 **المشكلة:**
+
 - يستخدم `<= 1023px` بدلاً من composable الموحد (سطر ~100 من `Sessions.vue`)
 
 **التعديلات:**
+
 - إصلاح الـ breakpoint لاستخدام `useMobileLayout().isMobile`
 - إعادة كتابة `SessionCardMobile.vue` (~150 سطر) باستخدام `MobileCardList`
 - إضافة FAB لإضافة جلسة جديدة — يختفي عند التمرير
@@ -275,9 +287,11 @@ MobileCardList.vue
 ### 4.5 المهام (`Tasks.vue`)
 
 **الوضع الحالي:**
+
 - Desktop: VDataTable مع مرشحات
 
 **التصميم للموبايل:**
+
 - `MobileCardList` مع حقول: المهمة (عنوان)، الميعاد، القضية المرتبطة، الحالة
 - FAB لإضافة مهمة (+) — يختفي عند التمرير
 - خيارات تصفية (الكل / اليوم / هذا الأسبوع / المتأخرة)
@@ -287,9 +301,11 @@ MobileCardList.vue
 ### 4.6 المالية (`Finance.vue`)
 
 **الوضع الحالي:**
+
 - لوحة تحكم مالية مع VDataTables متعددة (المعاملات، الفواتير، السندات، الذمم)
 
 **التصميم للموبايل:**
+
 - **شاشة مقسمة إلى 3 أقسام قابلة للتبديل (Tabs):**
   1. المعاملات (قائمة بطاقات)
   2. الفواتير (قائمة بطاقات)
@@ -303,9 +319,11 @@ MobileCardList.vue
 ### 4.7 المستندات (`Documents.vue`)
 
 **الوضع الحالي:**
+
 - Desktop: VDataTable مع روابط تحميل ومعاينة
 
 **التصميم للموبايل:**
+
 - `MobileCardList` مع حقول: اسم المستند، نوعه، تاريخ الرفع، القضية المرتبطة
 - Swipe لليسار: تحميل / معاينة
 - FAB لرفع مستند جديد (يفتح BottomSheet مع خيارات الرفع)
@@ -314,6 +332,7 @@ MobileCardList.vue
 ### 4.8 المذكرات (`Memoranda.vue`)
 
 **التصميم للموبايل:**
+
 - `MobileCardList` مع حقول: عنوان المذكرة، تاريخها، نوعها (دفاع / شرح / طلب)
 - Swipe: عرض / تعديل / تصدير PDF
 - FAB لإضافة مذكرة جديدة — يختفي عند التمرير
@@ -332,6 +351,7 @@ MobileCardList.vue
 
 **سابقاً:** "لا يتم تحويلها للموبايل" → تجربة مكسورة.
 **الآن:**
+
 - شاشة **قائمة تقارير** بسيطة (أسماء + أيقونات)
 - عند النقر على تقرير: يظهر **رسالة:** "يفضل فتح هذه الصفحة على سطح المكتب للاستفادة من جميع الميزات" مع:
   - زر "عرض نسخة PDF" (تحميل التقرير كـ PDF مباشر)
@@ -358,15 +378,15 @@ MobileCardList.vue
 
 النماذج هي نقطة ضعف في أي تطبيق موبايل. المعالجة:
 
-| المشكلة | الحل |
-|---|---|
-| الكيبورد يغطي حقل الإدخال | `useKeyboardAware` composable: يستخدم `VisualViewport API` لضبط `scroll-margin` للحقل النشط |
-| الكيبورد + BottomNav يغطيان 70% من الشاشة | BottomNav يختفي عند فتح الكيبورد (عبر `useKeyboardAware.resize` event) |
-| Vuetify Date Picker لا يعمل جيداً على الموبايل | استخدام `<input type="date">` الأصلي + أيقونة `mdi-calendar` |
-| رفع الملفات (File Upload) | `<input type="file" capture>` لالتقاط صورة مباشرة من الكاميرا، أو `document` لاختيار ملف |
-| الحقول الطويلة (مثل `description`) | `v-textarea` مع `auto-grow` بحيث يتمدد مع النص ولا يحتاج لسكرول داخلي |
-| أزرار الحفظ | زر "حفظ" كبير (`min-height: 48px`) في أسفل النموذج (فوق الـ safe area) |
-| Undo بعد الحذف | Snackbar مع زر "تراجع" لمدة 3 ثوانٍ، أو Confirmation BottomSheet قبل الحذف النهائي |
+| المشكلة                                        | الحل                                                                                        |
+| ---------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| الكيبورد يغطي حقل الإدخال                      | `useKeyboardAware` composable: يستخدم `VisualViewport API` لضبط `scroll-margin` للحقل النشط |
+| الكيبورد + BottomNav يغطيان 70% من الشاشة      | BottomNav يختفي عند فتح الكيبورد (عبر `useKeyboardAware.resize` event)                      |
+| Vuetify Date Picker لا يعمل جيداً على الموبايل | استخدام `<input type="date">` الأصلي + أيقونة `mdi-calendar`                                |
+| رفع الملفات (File Upload)                      | `<input type="file" capture>` لالتقاط صورة مباشرة من الكاميرا، أو `document` لاختيار ملف    |
+| الحقول الطويلة (مثل `description`)             | `v-textarea` مع `auto-grow` بحيث يتمدد مع النص ولا يحتاج لسكرول داخلي                       |
+| أزرار الحفظ                                    | زر "حفظ" كبير (`min-height: 48px`) في أسفل النموذج (فوق الـ safe area)                      |
+| Undo بعد الحذف                                 | Snackbar مع زر "تراجع" لمدة 3 ثوانٍ، أو Confirmation BottomSheet قبل الحذف النهائي          |
 
 ---
 
@@ -398,13 +418,13 @@ MobileCardList.vue
 
 نظام الأمان الحالي يبقى كما هو دون أي تعديل:
 
-| المكون | الحالة | المرجع |
-|---|---|---|
-| `router.beforeEach` | يُعاد استخدامه | `router/index.ts:300-372` |
-| `usePermissions().can()` | يُعاد استخدامه | `composables/usePermissions.ts` |
-| `session`, `roleKey` | يُعاد استخدامه | `usePermissions.ts` |
-| Subscription/readonly | يُعاد استخدامه | `router/index.ts:319-329` |
-| `hideLayout` | يخفي التخطيطين معاً | `App.vue:667` |
+| المكون                   | الحالة              | المرجع                          |
+| ------------------------ | ------------------- | ------------------------------- |
+| `router.beforeEach`      | يُعاد استخدامه      | `router/index.ts:300-372`       |
+| `usePermissions().can()` | يُعاد استخدامه      | `composables/usePermissions.ts` |
+| `session`, `roleKey`     | يُعاد استخدامه      | `usePermissions.ts`             |
+| Subscription/readonly    | يُعاد استخدامه      | `router/index.ts:319-329`       |
+| `hideLayout`             | يخفي التخطيطين معاً | `App.vue:667`                   |
 
 - **BottomNav** يخفي التبويبات التي لا يملك المستخدم صلاحية الوصول إليها (عبر `v-if="can('view_clients')"`)
 - **FABs** تظهر فقط مع `can('create_cases')`، وهكذا
@@ -450,52 +470,52 @@ Desktop يستخدم `page` و `pageSize` الحالية في `clients.ts` و `c
 
 ### Sprint 1 — الهيكل الأساسي + POC (الأولوية القصوى)
 
-| المهمة | الملفات | التقدير الواقعي |
-|---|---|---|
-| POC: إنشاء فرع `feat/mobile-shell` | — | ساعة واحدة (تجهيز الفرع) |
-| إنشاء `useMobileLayout.ts` | `composables/useMobileLayout.ts` | ساعة واحدة |
-| إنشاء `DesktopLayout.vue` (استخراج من App.vue) | `layouts/DesktopLayout.vue` | ساعتان |
-| إنشاء `MobileAppShell.vue` + ErrorBoundary | `components/mobile/` | 3 ساعات |
-| إنشاء `MobileBottomNav.vue` | `components/mobile/MobileBottomNav.vue` | ساعتان |
-| إنشاء `MobileHeader.vue` + MobileDrawer.vue | `components/mobile/` | 4 ساعات (RTL + animations + permissions + dark mode) |
-| إنشاء `MobileCardList.vue` (عرض فقط) | `components/mobile/MobileCardList.vue` | ساعتان |
-| إنشاء `MobileActionSheet.vue` | `components/mobile/MobileActionSheet.vue` | ساعة ونصف |
-| إنشاء `usePullToRefresh.ts` (غلاف pulltorefreshjs) | `composables/usePullToRefresh.ts` | ساعتان |
-| إنشاء `useInfiniteScroll.ts` | `composables/useInfiniteScroll.ts` | ساعة ونصف |
-| إنشاء `useSwipeAction.ts` + `useLongPress.ts` (غلاف @vueuse/gesture) | `composables/` | 4–5 ساعات (debugging على أجهزة حقيقية) |
-| إنشاء `useKeyboardAware.ts` | `composables/useKeyboardAware.ts` | ساعتان (VisualViewport API + اختبار) |
-| إنشاء `useMobilePagination.ts` | `composables/useMobilePagination.ts` | ساعة ونصف |
-| تعديل `App.vue` (نقل DesktopLayout) | `App.vue` | ساعتان |
-| اختبار POC على جهاز حقيقي | — | 4 ساعات (iPhone + Android + iPad) |
-| **المجموع Sprint 1** | | **~30 ساعة** |
+| المهمة                                                               | الملفات                                   | التقدير الواقعي                                      |
+| -------------------------------------------------------------------- | ----------------------------------------- | ---------------------------------------------------- |
+| POC: إنشاء فرع `feat/mobile-shell`                                   | —                                         | ساعة واحدة (تجهيز الفرع)                             |
+| إنشاء `useMobileLayout.ts`                                           | `composables/useMobileLayout.ts`          | ساعة واحدة                                           |
+| إنشاء `DesktopLayout.vue` (استخراج من App.vue)                       | `layouts/DesktopLayout.vue`               | ساعتان                                               |
+| إنشاء `MobileAppShell.vue` + ErrorBoundary                           | `components/mobile/`                      | 3 ساعات                                              |
+| إنشاء `MobileBottomNav.vue`                                          | `components/mobile/MobileBottomNav.vue`   | ساعتان                                               |
+| إنشاء `MobileHeader.vue` + MobileDrawer.vue                          | `components/mobile/`                      | 4 ساعات (RTL + animations + permissions + dark mode) |
+| إنشاء `MobileCardList.vue` (عرض فقط)                                 | `components/mobile/MobileCardList.vue`    | ساعتان                                               |
+| إنشاء `MobileActionSheet.vue`                                        | `components/mobile/MobileActionSheet.vue` | ساعة ونصف                                            |
+| إنشاء `usePullToRefresh.ts` (غلاف pulltorefreshjs)                   | `composables/usePullToRefresh.ts`         | ساعتان                                               |
+| إنشاء `useInfiniteScroll.ts`                                         | `composables/useInfiniteScroll.ts`        | ساعة ونصف                                            |
+| إنشاء `useSwipeAction.ts` + `useLongPress.ts` (غلاف @vueuse/gesture) | `composables/`                            | 4–5 ساعات (debugging على أجهزة حقيقية)               |
+| إنشاء `useKeyboardAware.ts`                                          | `composables/useKeyboardAware.ts`         | ساعتان (VisualViewport API + اختبار)                 |
+| إنشاء `useMobilePagination.ts`                                       | `composables/useMobilePagination.ts`      | ساعة ونصف                                            |
+| تعديل `App.vue` (نقل DesktopLayout)                                  | `App.vue`                                 | ساعتان                                               |
+| اختبار POC على جهاز حقيقي                                            | —                                         | 4 ساعات (iPhone + Android + iPad)                    |
+| **المجموع Sprint 1**                                                 |                                           | **~30 ساعة**                                         |
 
 ### Sprint 2 — تحويل الصفحات
 
-| المهمة | الملفات | التقدير الواقعي |
-|---|---|---|
-| MobileDashboard.vue | `Dashboard.vue` (تعديل) + إنشاء `MobileDashboard.vue` | 5 ساعات (بطاقات + رسوم بيانية مبسطة) |
-| تحويل Clients.vue | `Clients.vue` (تعديل) | 4 ساعات (بحث + FAB + swipe + form mobile) |
-| تحويل Cases.vue | `CaseMobileList.vue` (إعادة كتابة) | 4 ساعات |
-| تحويل Sessions.vue | `SessionCardMobile.vue` (إعادة كتابة) + إصلاح breakpoint | 4 ساعات |
-| تحويل Tasks.vue | `Tasks.vue` (تعديل) | 3 ساعات |
-| تحويل Finance.vue | `Finance.vue` (تعديل) | 6 ساعات (3 تبويبات + ملخص + FAB) |
-| تحويل Documents.vue | `Documents.vue` (تعديل) | 4 ساعات |
-| تحويل Memoranda.vue | `Memoranda.vue` (تعديل) | 3 ساعات |
-| تحويل Contracts / Enforcement (إن وجد) | الملفات المعنية | 3 ساعات |
-| تحويل Reports | `Reports*.vue` (تعديل) | ساعتان (قائمة + تحميل PDF + رسالة) |
-| تحويل FileVault.vue / Profile.vue | الملفات المعنية | 3 ساعات |
-| **المجموع Sprint 2** | | **~41 ساعة** |
+| المهمة                                 | الملفات                                                  | التقدير الواقعي                           |
+| -------------------------------------- | -------------------------------------------------------- | ----------------------------------------- |
+| MobileDashboard.vue                    | `Dashboard.vue` (تعديل) + إنشاء `MobileDashboard.vue`    | 5 ساعات (بطاقات + رسوم بيانية مبسطة)      |
+| تحويل Clients.vue                      | `Clients.vue` (تعديل)                                    | 4 ساعات (بحث + FAB + swipe + form mobile) |
+| تحويل Cases.vue                        | `CaseMobileList.vue` (إعادة كتابة)                       | 4 ساعات                                   |
+| تحويل Sessions.vue                     | `SessionCardMobile.vue` (إعادة كتابة) + إصلاح breakpoint | 4 ساعات                                   |
+| تحويل Tasks.vue                        | `Tasks.vue` (تعديل)                                      | 3 ساعات                                   |
+| تحويل Finance.vue                      | `Finance.vue` (تعديل)                                    | 6 ساعات (3 تبويبات + ملخص + FAB)          |
+| تحويل Documents.vue                    | `Documents.vue` (تعديل)                                  | 4 ساعات                                   |
+| تحويل Memoranda.vue                    | `Memoranda.vue` (تعديل)                                  | 3 ساعات                                   |
+| تحويل Contracts / Enforcement (إن وجد) | الملفات المعنية                                          | 3 ساعات                                   |
+| تحويل Reports                          | `Reports*.vue` (تعديل)                                   | ساعتان (قائمة + تحميل PDF + رسالة)        |
+| تحويل FileVault.vue / Profile.vue      | الملفات المعنية                                          | 3 ساعات                                   |
+| **المجموع Sprint 2**                   |                                                          | **~41 ساعة**                              |
 
 ### Sprint 3 — الصقل والاختبار
 
-| المهمة | التقدير الواقعي |
-|---|---|
-| اختبار الإيماءات على 5+ أجهزة (iPhone 14/15/SE, Galaxy S23, iPad Mini, Galaxy Tab) | 8 ساعات |
-| Playwright E2E tests للشاشات الرئيسية (تنقل، إضافة، تعديل، حذف) | 8 ساعات |
-| تصحيح الأخطاء | 8 ساعات |
-| اختبار Safe Area على أجهزة Notch / Dynamic Island | 3 ساعات |
-| اختبار الأداء مع 1000+ عنصر (Infinite Scroll) | 3 ساعات |
-| **المجموع Sprint 3** | **~30 ساعة** |
+| المهمة                                                                             | التقدير الواقعي |
+| ---------------------------------------------------------------------------------- | --------------- |
+| اختبار الإيماءات على 5+ أجهزة (iPhone 14/15/SE, Galaxy S23, iPad Mini, Galaxy Tab) | 8 ساعات         |
+| Playwright E2E tests للشاشات الرئيسية (تنقل، إضافة، تعديل، حذف)                    | 8 ساعات         |
+| تصحيح الأخطاء                                                                      | 8 ساعات         |
+| اختبار Safe Area على أجهزة Notch / Dynamic Island                                  | 3 ساعات         |
+| اختبار الأداء مع 1000+ عنصر (Infinite Scroll)                                      | 3 ساعات         |
+| **المجموع Sprint 3**                                                               | **~30 ساعة**    |
 
 ### إجمالي التقدير الواقعي: **70–100 ساعة** (حسب عدد الأجهزة للاختبار وسرعة التصحيح)
 
@@ -505,16 +525,16 @@ Desktop يستخدم `page` و `pageSize` الحالية في `clients.ts` و `c
 
 - جميع ألوان الموبايل تستخدم نفس **CSS Variables** المعرفة في `main.css`
 
-| المتغير | الاستخدام |
-|---|---|
-| `--primary` (#1A437D / #E9C349) | خلفية الأزرار الرئيسية، الـ Header |
-| `--accent` (#E9C349 / gold) | الأيقونات النشطة في BottomNav، الـ Badges |
-| `--gold` (#B8941E) | النصوص الذهبية، حدود البطاقات النشطة |
-| `--glass-bg` | خلفية زجاجية للـ Header و BottomNav |
-| `--radius-xl` (16px) | زوايا البطاقات |
-| `--shadow-premium` | ظل البطاقات |
-| `--surface` / `--on-surface` | خلفية البطاقات والنصوص |
-| `--success` / `--error` / `--warning` | ألوان الحالات |
+| المتغير                               | الاستخدام                                 |
+| ------------------------------------- | ----------------------------------------- |
+| `--primary` (#1A437D / #E9C349)       | خلفية الأزرار الرئيسية، الـ Header        |
+| `--accent` (#E9C349 / gold)           | الأيقونات النشطة في BottomNav، الـ Badges |
+| `--gold` (#B8941E)                    | النصوص الذهبية، حدود البطاقات النشطة      |
+| `--glass-bg`                          | خلفية زجاجية للـ Header و BottomNav       |
+| `--radius-xl` (16px)                  | زوايا البطاقات                            |
+| `--shadow-premium`                    | ظل البطاقات                               |
+| `--surface` / `--on-surface`          | خلفية البطاقات والنصوص                    |
+| `--success` / `--error` / `--warning` | ألوان الحالات                             |
 
 - يضاف `mobile.css` في `assets/mobile.css` — يحتوي فقط على:
   - `safe-area-inset-*` padding
@@ -527,16 +547,20 @@ Desktop يستخدم `page` و `pageSize` الحالية في `clients.ts` و `c
 ## 13. الحالات الخاصة
 
 ### 13.1 صفحة غير موجودة (404) — `NotFound.vue`
+
 - عرض نص "الصفحة غير موجودة" مع زر العودة للرئيسية
 
 ### 13.2 صفحة ممنوع (403) — `Forbidden.vue`
+
 - عرض نص "ليس لديك صلاحية" مع زر العودة
 
 ### 13.3 خطأ عام / تحميل
+
 - `loading` spinner من Vuetify (`v-progress-circular`)
 - رسالة خطأ مع زر إعادة المحاولة — داخل `MobileErrorBoundary`
 
 ### 13.4 قائمة فارغة
+
 - أيقونة + نص: "لا توجد بيانات" + زر إنشاء أول عنصر (إذا كان لديه صلاحية)
 
 ---
@@ -601,4 +625,4 @@ Desktop يستخدم `page` و `pageSize` الحالية في `clients.ts` و `c
 
 ---
 
-*انتهت الخطة (v2 — بعد ملاحظات المشرف). في انتظار الموافقة للبدء بالمرحلة 1 (POC).*
+_انتهت الخطة (v2 — بعد ملاحظات المشرف). في انتظار الموافقة للبدء بالمرحلة 1 (POC)._

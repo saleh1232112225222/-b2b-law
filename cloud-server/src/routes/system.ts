@@ -45,7 +45,7 @@ systemRouter.get('/system/settings', async (req: Request, res: Response) => {
   }
 })
 
-systemRouter.put('/system/settings',  async (req: Request, res: Response) => {
+systemRouter.put('/system/settings', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const body = req.body
@@ -68,7 +68,7 @@ systemRouter.put('/system/settings',  async (req: Request, res: Response) => {
 
 systemRouter.get(
   '/system/database-inventory',
-  
+
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
@@ -99,7 +99,7 @@ systemRouter.get(
 
 systemRouter.post(
   '/system/export-snapshot',
-  
+
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
@@ -131,7 +131,7 @@ systemRouter.post(
 
 systemRouter.post(
   '/system/import-snapshot',
-  
+
   requireAdminRole,
   async (req: Request, res: Response) => {
     const client = await getClient()
@@ -145,8 +145,7 @@ systemRouter.post(
 
       const importMode = mode === 'replace' ? 'replace' : 'merge'
       const counts: Record<string, { received: number; imported: number }> = {}
-
-      // Fetch all foreign key constraints in the database schema once
+      const importErrors: string[] = []
       const fkResult = await client.query(`
         SELECT
             tc.table_name AS source_table,
@@ -165,7 +164,10 @@ systemRouter.post(
       `)
 
       // Map: source_table -> Array of { source_column, referenced_table, referenced_column }
-      const fkMap: Record<string, Array<{ source_column: string; referenced_table: string; referenced_column: string }>> = {}
+      const fkMap: Record<
+        string,
+        Array<{ source_column: string; referenced_table: string; referenced_column: string }>
+      > = {}
       for (const row of fkResult.rows) {
         const t = row.source_table
         if (!fkMap[t]) fkMap[t] = []
@@ -183,33 +185,44 @@ systemRouter.post(
         if (existingIds[table]) return existingIds[table]
         const set = new Set<string>()
         try {
-          const hasCompanyCol = await client.query(`
+          const hasCompanyCol = await client.query(
+            `
             SELECT column_name
             FROM information_schema.columns
             WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'company_id'
-          `, [table])
+          `,
+            [table]
+          )
 
           let rows: any[] = []
           if (hasCompanyCol.rows.length > 0) {
-            const res = await client.query(`SELECT id FROM ${table} WHERE company_id = $1`, [companyId])
+            const res = await client.query(`SELECT id FROM ${table} WHERE company_id = $1`, [
+              companyId
+            ])
             rows = res.rows
           } else {
-            const idColRes = await client.query(`
+            const idColRes = await client.query(
+              `
               SELECT column_name
               FROM information_schema.columns
               WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'id'
-            `, [table])
+            `,
+              [table]
+            )
 
             if (idColRes.rows.length > 0) {
               const res = await client.query(`SELECT id FROM ${table}`)
               rows = res.rows
             } else {
-              const pkRes = await client.query(`
+              const pkRes = await client.query(
+                `
                 SELECT kcu.column_name
                 FROM information_schema.table_constraints tc
                 JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
                 WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_name = $1 AND tc.table_schema = 'public'
-              `, [table])
+              `,
+                [table]
+              )
               if (pkRes.rows.length > 0) {
                 const pkCol = pkRes.rows[0].column_name
                 const res = await client.query(`SELECT ${pkCol} AS id FROM ${table}`)
@@ -360,10 +373,14 @@ systemRouter.post(
                   // Referenced ID doesn't exist
                   const isNullable = colMap[fk.source_column]?.nullable ?? true
                   if (isNullable) {
-                    console.log(`[ImportSnapshot] Nullifying FK ${table}.${fk.source_column} = ${val} because referenced row in ${fk.referenced_table} is missing`)
+                    const msg = `[ImportSnapshot] Nullifying FK ${table}.${fk.source_column} = ${val} because referenced row in ${fk.referenced_table} is missing`
+                    console.log(msg)
+                    importErrors.push(msg)
                     sanitized[colIndex] = null
                   } else {
-                    console.log(`[ImportSnapshot] Skipping row in ${table} because non-nullable FK ${fk.source_column} = ${val} references missing row in ${fk.referenced_table}`)
+                    const msg = `[ImportSnapshot] Skipping row in ${table} because non-nullable FK ${fk.source_column} = ${val} references missing row in ${fk.referenced_table}`
+                    console.log(msg)
+                    importErrors.push(msg)
                     skipRow = true
                     break
                   }
@@ -419,13 +436,15 @@ systemRouter.post(
             counts[table].imported++
           } catch (err) {
             await client.query('ROLLBACK TO SAVEPOINT row_insert')
-            console.error(`[ImportSnapshot] FAILED row in ${table}:`, (err as Error).message)
+            const errMsg = `[ImportSnapshot] FAILED row in ${table}: ${(err as Error).message}`
+            console.error(errMsg)
+            importErrors.push(errMsg)
           }
         }
       }
 
       await client.query('COMMIT')
-      res.json({ success: true, counts })
+      res.json({ success: true, counts, errors: importErrors })
     } catch (err) {
       try {
         await client.query('ROLLBACK')
@@ -440,99 +459,103 @@ systemRouter.post(
   }
 )
 
-systemRouter.post('/system/clear-all-data',  requireAdminRole, async (req: Request, res: Response) => {
-  const client = await getClient()
-  try {
-    const companyId = getCompanyId(req)
-    const tablesToClear = [
-      'invoice_items',
-      'invoices',
-      'vouchers',
-      'receivables',
-      'finances',
-      'finances_new',
-      'collections_payments',
-      'collections_claims',
-      'enf_attachments',
-      'enf_decisions',
-      'enf_request_parties',
-      'enf_financial_details',
-      'enf_personal_details',
-      'enf_direct_details',
-      'enforcement_requests',
-      'enforcement_actions',
-      'enforcement_parties',
-      'enforcement_files',
-      'session_outcomes',
-      'sessions',
-      'judgments',
-      'tasks_v2',
-      'tasks',
-      'documents_v2',
-      'documents',
-      'file_assets',
-      'communications',
-      'evidence',
-      'experts',
-      'agencies',
-      'user_case_access',
-      'user_client_access',
-      'user_permissions',
-      'cases',
-      'case_parties',
-      'clients',
-      'defendants',
-      'case_actions',
-      'assignment_logs',
-      'professional_liability_logs',
-      'judgment_amendments',
-      'contract_signatures',
-      'contract_participants',
-      'contract_parties',
-      'contract_party_types',
-      'contract_party_audits',
-      'contract_links',
-      'contract_schedules',
-      'contract_amendments',
-      'contracts',
-      'contract_templates',
-      'activity_logs',
-      'accounts'
-    ]
-
-    await client.query('BEGIN')
-
-    const tablesResult = await client.query(
-      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
-      []
-    )
-    const existingTables = new Set(tablesResult.rows.map((r: any) => r.table_name))
-
-    for (const table of tablesToClear) {
-      if (!existingTables.has(table)) {
-        continue
-      }
-      const colResult = await client.query(
-        "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'company_id'",
-        [table]
-      )
-      if (colResult.rows.length > 0) {
-        await client.query(`DELETE FROM ${table} WHERE company_id = $1`, [companyId])
-      }
-    }
-
-    await client.query('COMMIT')
-
-    res.json({ success: true })
-  } catch (err) {
+systemRouter.post(
+  '/system/clear-all-data',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    const client = await getClient()
     try {
-      await client.query('ROLLBACK')
-    } catch (e) {
-      console.error('Error during rollback/reset origin:', e)
+      const companyId = getCompanyId(req)
+      const tablesToClear = [
+        'invoice_items',
+        'invoices',
+        'vouchers',
+        'receivables',
+        'finances',
+        'finances_new',
+        'collections_payments',
+        'collections_claims',
+        'enf_attachments',
+        'enf_decisions',
+        'enf_request_parties',
+        'enf_financial_details',
+        'enf_personal_details',
+        'enf_direct_details',
+        'enforcement_requests',
+        'enforcement_actions',
+        'enforcement_parties',
+        'enforcement_files',
+        'session_outcomes',
+        'sessions',
+        'judgments',
+        'tasks_v2',
+        'tasks',
+        'documents_v2',
+        'documents',
+        'file_assets',
+        'communications',
+        'evidence',
+        'experts',
+        'agencies',
+        'user_case_access',
+        'user_client_access',
+        'user_permissions',
+        'cases',
+        'case_parties',
+        'clients',
+        'defendants',
+        'case_actions',
+        'assignment_logs',
+        'professional_liability_logs',
+        'judgment_amendments',
+        'contract_signatures',
+        'contract_participants',
+        'contract_parties',
+        'contract_party_types',
+        'contract_party_audits',
+        'contract_links',
+        'contract_schedules',
+        'contract_amendments',
+        'contracts',
+        'contract_templates',
+        'activity_logs',
+        'accounts'
+      ]
+
+      await client.query('BEGIN')
+
+      const tablesResult = await client.query(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
+        []
+      )
+      const existingTables = new Set(tablesResult.rows.map((r: any) => r.table_name))
+
+      for (const table of tablesToClear) {
+        if (!existingTables.has(table)) {
+          continue
+        }
+        const colResult = await client.query(
+          "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'company_id'",
+          [table]
+        )
+        if (colResult.rows.length > 0) {
+          await client.query(`DELETE FROM ${table} WHERE company_id = $1`, [companyId])
+        }
+      }
+
+      await client.query('COMMIT')
+
+      res.json({ success: true })
+    } catch (err) {
+      try {
+        await client.query('ROLLBACK')
+      } catch (e) {
+        console.error('Error during rollback/reset origin:', e)
+      }
+      console.error('[ClearAllData] Error:', err)
+      res.status(500).json({ error: 'Failed to clear all data' })
+    } finally {
+      client.release()
     }
-    console.error('[ClearAllData] Error:', err)
-    res.status(500).json({ error: 'Failed to clear all data' })
-  } finally {
-    client.release()
   }
-})
+)

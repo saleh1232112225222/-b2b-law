@@ -1,11 +1,12 @@
-const { Client } = require('pg');
+const { Client } = require('pg')
 const client = new Client({
-  connectionString: 'postgresql://b2b_law_db_user:qYBOp4HQMz9aePegF79xoJqmQiLiudBC@dpg-d8hhj6j7uimc73d10pb0-a.singapore-postgres.render.com/b2b_law_db?ssl=true',
+  connectionString:
+    'postgresql://b2b_law_db_user:qYBOp4HQMz9aePegF79xoJqmQiLiudBC@dpg-d8hhj6j7uimc73d10pb0-a.singapore-postgres.render.com/b2b_law_db?ssl=true',
   ssl: { rejectUnauthorized: false }
-});
+})
 async function run() {
   try {
-    await client.connect();
+    await client.connect()
     const res = await client.query(`
       SELECT u.username, c.verification_code, c.email, c.phone
       FROM users u 
@@ -13,12 +14,12 @@ async function run() {
       WHERE u.username = 'antigravity_test' 
       ORDER BY u.created_at DESC 
       LIMIT 1;
-    `);
-    console.log(JSON.stringify(res.rows[0] || { error: 'No user found' }));
+    `)
+    console.log(JSON.stringify(res.rows[0] || { error: 'No user found' }))
   } catch (err) {
-    console.error(err);
+    console.error(err)
   } finally {
-    await client.end();
+    await client.end()
   }
 }
-run();
+run()

@@ -10,127 +10,151 @@ export const casesRouter = Router()
 
 casesRouter.use(authMiddleware)
 
-casesRouter.get('/analytics/dashboard', requirePermission('view_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const data = await caseService.getDashboardAnalytics(companyId)
-    res.json(data)
-  } catch (err) {
-    console.error('[CASES] Dashboard analytics error:', err)
-    res.status(500).json({ error: 'Failed to load analytics' })
+casesRouter.get(
+  '/analytics/dashboard',
+  requirePermission('view_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const data = await caseService.getDashboardAnalytics(companyId)
+      res.json(data)
+    } catch (err) {
+      console.error('[CASES] Dashboard analytics error:', err)
+      res.status(500).json({ error: 'Failed to load analytics' })
+    }
   }
-})
+)
 
 // 2. Check Case Number Uniqueness
-casesRouter.get('/is-unique', requirePermission('view_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { caseNumber, ignoreId } = req.query
-    
-    let result
-    if (ignoreId) {
-      result = await query(
-        'SELECT COUNT(*) as count FROM cases WHERE case_number = $1 AND id != $2 AND company_id = $3',
-        [caseNumber, ignoreId, companyId]
-      )
-    } else {
-      result = await query(
-        'SELECT COUNT(*) as count FROM cases WHERE case_number = $1 AND company_id = $2',
-        [caseNumber, companyId]
-      )
+casesRouter.get(
+  '/is-unique',
+  requirePermission('view_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { caseNumber, ignoreId } = req.query
+
+      let result
+      if (ignoreId) {
+        result = await query(
+          'SELECT COUNT(*) as count FROM cases WHERE case_number = $1 AND id != $2 AND company_id = $3',
+          [caseNumber, ignoreId, companyId]
+        )
+      } else {
+        result = await query(
+          'SELECT COUNT(*) as count FROM cases WHERE case_number = $1 AND company_id = $2',
+          [caseNumber, companyId]
+        )
+      }
+
+      res.json(parseInt(result.rows[0].count) === 0)
+    } catch (err) {
+      console.error('[Cases] Check uniqueness error:', err)
+      res.status(500).json({ error: 'Failed to check uniqueness' })
     }
-    
-    res.json(parseInt(result.rows[0].count) === 0)
-  } catch (err) {
-    console.error('[Cases] Check uniqueness error:', err)
-    res.status(500).json({ error: 'Failed to check uniqueness' })
   }
-})
+)
 
 // 3. Get Cases by Client ID
-casesRouter.get('/by-client/:clientId', requirePermission('view_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
+casesRouter.get(
+  '/by-client/:clientId',
+  requirePermission('view_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
        FROM cases c
        LEFT JOIN clients cl ON c.client_id = cl.id
        LEFT JOIN users u ON c.responsible_user_id = u.id
        WHERE c.client_id = $1 AND c.company_id = $2
        ORDER BY c.created_at DESC`,
-      [req.params.clientId, companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[Cases] Get by client error:', err)
-    res.status(500).json({ error: 'Failed to get cases' })
+        [req.params.clientId, companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[Cases] Get by client error:', err)
+      res.status(500).json({ error: 'Failed to get cases' })
+    }
   }
-})
+)
 
 // 4. List Case Assignments
-casesRouter.get('/:id/assignments', requirePermission('view_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT al.*, COALESCE(u.full_name, u.username) as employee_name, u.role_key as employee_role
+casesRouter.get(
+  '/:id/assignments',
+  requirePermission('view_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT al.*, COALESCE(u.full_name, u.username) as employee_name, u.role_key as employee_role
        FROM assignment_logs al
        JOIN users u ON al.employee_id = u.id
        WHERE al.case_id = $1 AND al.company_id = $2
        ORDER BY al.created_at DESC`,
-      [req.params.id, companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[Cases] Get assignments error:', err)
-    res.status(500).json({ error: 'Failed to get case assignments' })
+        [req.params.id, companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[Cases] Get assignments error:', err)
+      res.status(500).json({ error: 'Failed to get case assignments' })
+    }
   }
-})
+)
 
 // 5. Assign Employee
-casesRouter.post('/:id/assignments', requirePermission('create_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const caseId = req.params.id
-    const { employeeId, role, notes } = req.body
-    const id = uuidv4()
-    
-    await query(
-      `INSERT INTO assignment_logs (id, company_id, case_id, employee_id, role, notes, created_at)
+casesRouter.post(
+  '/:id/assignments',
+  requirePermission('create_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const caseId = req.params.id
+      const { employeeId, role, notes } = req.body
+      const id = uuidv4()
+
+      await query(
+        `INSERT INTO assignment_logs (id, company_id, case_id, employee_id, role, notes, created_at)
        VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-      [id, companyId, caseId, employeeId, role, notes || '']
-    )
-    res.json(id)
-  } catch (err) {
-    console.error('[Cases] Assign employee error:', err)
-    res.status(500).json({ error: 'Failed to assign employee' })
+        [id, companyId, caseId, employeeId, role, notes || '']
+      )
+      res.json(id)
+    } catch (err) {
+      console.error('[Cases] Assign employee error:', err)
+      res.status(500).json({ error: 'Failed to assign employee' })
+    }
   }
-})
+)
 
 // 6. Remove Employee Assignment
-casesRouter.delete('/:id/assignments/:employeeId', requirePermission('edit_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    await query(
-      `DELETE FROM assignment_logs WHERE case_id = $1 AND employee_id = $2 AND company_id = $3`,
-      [req.params.id, req.params.employeeId, companyId]
-    )
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[Cases] Remove assignment error:', err)
-    res.status(500).json({ error: 'Failed to remove assignment' })
+casesRouter.delete(
+  '/:id/assignments/:employeeId',
+  requirePermission('edit_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      await query(
+        `DELETE FROM assignment_logs WHERE case_id = $1 AND employee_id = $2 AND company_id = $3`,
+        [req.params.id, req.params.employeeId, companyId]
+      )
+      res.json({ success: true })
+    } catch (err) {
+      console.error('[Cases] Remove assignment error:', err)
+      res.status(500).json({ error: 'Failed to remove assignment' })
+    }
   }
-})
+)
 
 // 7. Get Count of Cases
 casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const { q, status, priority, responsible_user_id } = req.query
-    
+
     let whereClause = 'WHERE company_id = $1'
     const params: any[] = [companyId]
     let paramIndex = 2
-    
+
     if (status && status !== 'الكل') {
       whereClause += ` AND status = $${paramIndex++}`
       params.push(status)
@@ -148,7 +172,7 @@ casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, 
       params.push(`%${q}%`)
       paramIndex++
     }
-    
+
     const result = await query(`SELECT COUNT(*) FROM cases ${whereClause}`, params)
     res.json({ count: parseInt(result.rows[0].count) })
   } catch (err) {
@@ -166,7 +190,7 @@ casesRouter.get('/search', requirePermission('view_cases'), async (req: Request,
       res.status(400).json({ error: 'Query required' })
       return
     }
-    
+
     const result = await query(
       `SELECT c.*, cl.name as client_name 
        FROM cases c
@@ -198,9 +222,9 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
       res.status(404).json({ error: 'Case not found' })
       return
     }
-    
+
     const caseData = result.rows[0]
-    
+
     // Fetch parties
     const partiesRes = await query(
       `SELECT cp.*, cl.name as client_linked_name, d.name as defendant_linked_name
@@ -211,7 +235,7 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
       [req.params.id, companyId]
     )
     caseData.parties = partiesRes.rows
-    
+
     res.json(caseData)
   } catch (err) {
     console.error('[Cases] GetById error:', err)
@@ -246,11 +270,11 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
     const { page = '1', pageSize = '25', q, status, priority, responsible_user_id } = req.query
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string)
     const limit = parseInt(pageSize as string)
-    
+
     let whereClause = 'WHERE c.company_id = $1'
     const params: any[] = [companyId]
     let paramIndex = 2
-    
+
     if (status && status !== 'الكل') {
       whereClause += ` AND c.status = $${paramIndex++}`
       params.push(status)
@@ -268,12 +292,9 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
       params.push(`%${q}%`)
       paramIndex++
     }
-    
-    const countRes = await query(
-      `SELECT COUNT(*) FROM cases c ${whereClause}`,
-      params
-    )
-    
+
+    const countRes = await query(`SELECT COUNT(*) FROM cases c ${whereClause}`, params)
+
     const dataRes = await query(
       `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
        FROM cases c
@@ -284,7 +305,7 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
        LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
       [...params, limit, offset]
     )
-    
+
     const caseList = dataRes.rows
     for (const c of caseList) {
       const parties = await query(
@@ -297,7 +318,7 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
       )
       c.parties = parties.rows
     }
-    
+
     res.json({
       data: caseList,
       total: parseInt(countRes.rows[0].count),
@@ -316,40 +337,59 @@ casesRouter.post('/', requirePermission('create_cases'), async (req: Request, re
   try {
     const companyId = getCompanyId(req)
     const caseData = req.body
-    
+
     const id = uuidv4()
-    
+
     const allowedFields = [
-      'case_number', 'client_id', 'responsible_user_id', 'case_type',
-      'main_classification', 'sub_classification', 'subject', 'court',
-      'circuit', 'opponent_name', 'opponent_id', 'opponent_nationality',
-      'opponent_city', 'opponent_phone', 'opponent_address', 'opponent_email',
-      'registration_date', 'registration_date_hijri', 'contract_date',
-      'contract_amount', 'client_role', 'assessment', 'client_requirement',
-      'plaintiff_requests', 'phase', 'status', 'priority', 'folder_link',
-      'najiz_url', 'notes'
+      'case_number',
+      'client_id',
+      'responsible_user_id',
+      'case_type',
+      'main_classification',
+      'sub_classification',
+      'subject',
+      'court',
+      'circuit',
+      'opponent_name',
+      'opponent_id',
+      'opponent_nationality',
+      'opponent_city',
+      'opponent_phone',
+      'opponent_address',
+      'opponent_email',
+      'registration_date',
+      'registration_date_hijri',
+      'contract_date',
+      'contract_amount',
+      'client_role',
+      'assessment',
+      'client_requirement',
+      'plaintiff_requests',
+      'phase',
+      'status',
+      'priority',
+      'folder_link',
+      'najiz_url',
+      'notes'
     ]
-    
+
     const keys = ['id', 'company_id']
     const values: any[] = [id, companyId]
-    
+
     for (const f of allowedFields) {
       if (caseData[f] !== undefined) {
         keys.push(f)
         values.push(caseData[f] === '' ? null : caseData[f])
       }
     }
-    
+
     const columns = keys.join(', ')
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
-    
+
     await client.query('BEGIN')
-    
-    await client.query(
-      `INSERT INTO cases (${columns}) VALUES (${placeholders})`,
-      values
-    )
-    
+
+    await client.query(`INSERT INTO cases (${columns}) VALUES (${placeholders})`, values)
+
     // Insert parties
     if (caseData.parties && caseData.parties.length > 0) {
       for (const p of caseData.parties) {
@@ -377,7 +417,7 @@ casesRouter.post('/', requirePermission('create_cases'), async (req: Request, re
         )
       }
     }
-    
+
     await client.query('COMMIT')
     res.status(201).json(id)
   } catch (err) {
@@ -396,41 +436,70 @@ casesRouter.put('/:id', requirePermission('edit_cases'), async (req: Request, re
     const companyId = getCompanyId(req)
     const id = req.params.id
     const caseData = req.body
-    
+
     const allowedFields = [
-      'case_number', 'client_id', 'responsible_user_id', 'case_type',
-      'main_classification', 'sub_classification', 'subject', 'court',
-      'circuit', 'opponent_name', 'opponent_id', 'opponent_nationality',
-      'opponent_city', 'opponent_phone', 'opponent_address', 'opponent_email',
-      'registration_date', 'registration_date_hijri', 'contract_date',
-      'contract_amount', 'client_role', 'assessment', 'client_requirement',
-      'plaintiff_requests', 'phase', 'status', 'priority', 'folder_link',
-      'najiz_url', 'notes', 'is_archived', 'archived_at', 'archived_by', 'archive_reason'
+      'case_number',
+      'client_id',
+      'responsible_user_id',
+      'case_type',
+      'main_classification',
+      'sub_classification',
+      'subject',
+      'court',
+      'circuit',
+      'opponent_name',
+      'opponent_id',
+      'opponent_nationality',
+      'opponent_city',
+      'opponent_phone',
+      'opponent_address',
+      'opponent_email',
+      'registration_date',
+      'registration_date_hijri',
+      'contract_date',
+      'contract_amount',
+      'client_role',
+      'assessment',
+      'client_requirement',
+      'plaintiff_requests',
+      'phase',
+      'status',
+      'priority',
+      'folder_link',
+      'najiz_url',
+      'notes',
+      'is_archived',
+      'archived_at',
+      'archived_by',
+      'archive_reason'
     ]
-    
+
     const sets: string[] = []
     const values: any[] = [id, companyId]
     let valIndex = 3
-    
+
     for (const f of allowedFields) {
       if (caseData[f] !== undefined) {
         sets.push(`${f} = $${valIndex++}`)
         values.push(caseData[f] === '' ? null : caseData[f])
       }
     }
-    
+
     await client.query('BEGIN')
-    
+
     if (sets.length > 0) {
       await client.query(
         `UPDATE cases SET ${sets.join(', ')}, updated_at = NOW() WHERE id = $1 AND company_id = $2`,
         values
       )
     }
-    
+
     // Update parties if provided
     if (caseData.parties !== undefined) {
-      await client.query('DELETE FROM case_parties WHERE case_id = $1 AND company_id = $2', [id, companyId])
+      await client.query('DELETE FROM case_parties WHERE case_id = $1 AND company_id = $2', [
+        id,
+        companyId
+      ])
       for (const p of caseData.parties) {
         await client.query(
           `INSERT INTO case_parties (
@@ -456,7 +525,7 @@ casesRouter.put('/:id', requirePermission('edit_cases'), async (req: Request, re
         )
       }
     }
-    
+
     await client.query('COMMIT')
     res.json({ success: true })
   } catch (err) {
@@ -474,27 +543,54 @@ casesRouter.delete('/:id', requirePermission('edit_cases'), async (req: Request,
   try {
     const companyId = getCompanyId(req)
     const id = req.params.id
-    
+
     await client.query('BEGIN')
-    
+
     // Manual cascades to replicate SQLite cleanup
-    await client.query('DELETE FROM session_outcomes WHERE session_id IN (SELECT id FROM sessions WHERE case_id = $1) AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM sessions WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM tasks_v2 WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM judgments WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM case_parties WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM case_actions WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM memoranda WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    await client.query('DELETE FROM assignment_logs WHERE case_id = $1 AND company_id = $2', [id, companyId])
-    
-    const result = await client.query('DELETE FROM cases WHERE id = $1 AND company_id = $2', [id, companyId])
-    
+    await client.query(
+      'DELETE FROM session_outcomes WHERE session_id IN (SELECT id FROM sessions WHERE case_id = $1) AND company_id = $2',
+      [id, companyId]
+    )
+    await client.query('DELETE FROM sessions WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM tasks_v2 WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM judgments WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM case_parties WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM case_actions WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM memoranda WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+    await client.query('DELETE FROM assignment_logs WHERE case_id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+
+    const result = await client.query('DELETE FROM cases WHERE id = $1 AND company_id = $2', [
+      id,
+      companyId
+    ])
+
     if (result.rowCount === 0) {
       await client.query('ROLLBACK')
       res.status(404).json({ error: 'Case not found' })
       return
     }
-    
+
     await client.query('COMMIT')
     res.json({ success: true })
   } catch (err) {

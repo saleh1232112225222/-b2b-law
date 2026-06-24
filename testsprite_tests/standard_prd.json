@@ -4,7 +4,12 @@
   "features": [
     {
       "category": "Authentication",
-      "items": ["Login with username/password", "Google OAuth", "Password recovery", "Session management"]
+      "items": [
+        "Login with username/password",
+        "Google OAuth",
+        "Password recovery",
+        "Session management"
+      ]
     },
     {
       "category": "Dashboard",

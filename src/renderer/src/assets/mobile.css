@@ -31,7 +31,9 @@ html {
   bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
   inset-inline-end: 16px;
   z-index: 100;
-  transition: transform 0.3s ease, opacity 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    opacity 0.3s ease;
 }
 
 .mobile-fab--hidden {
@@ -106,7 +108,9 @@ html {
 
 .v-main.mobile-app-shell {
   overflow-y: auto !important;
-  max-height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)) !important;
+  max-height: calc(
+    100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)
+  ) !important;
 }
 
 .main-body-wrapper {

@@ -21,37 +21,40 @@ Redesign and modernize the front-end of a cloud-based law practice management sy
 
 ## Scope — What You CAN Touch
 
-| Area | Details |
-|------|---------|
-| **Visual design** | Colors, typography, spacing, shadows, borders, glassmorphism, gradients |
-| **Layout** | Sidebar, header, content area, responsive breakpoints, grid structure |
-| **Animations** | Page transitions, hover states, skeleton loaders, micro-interactions, loading states |
-| **Components styling** | Buttons, cards, tables, dialogs, forms, notifications, chips, badges |
-| **Dashboard** | KPI cards, charts (Chart.js / ApexCharts), stats layout, quick actions |
-| **Reports** | Interactive filtering, PDF/Excel export buttons, chart integration, KPI display |
-| **Responsive** | Mobile navigation (bottom nav / drawer), touch-friendly tables, collapsible sections |
-| **Theme** | Dark/Light mode refinement, CSS variable consistency, Tailwind integration |
-| **Design system** | Unified component tokens, consistent border-radius, elevation, spacing scale |
+| Area                   | Details                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------ |
+| **Visual design**      | Colors, typography, spacing, shadows, borders, glassmorphism, gradients              |
+| **Layout**             | Sidebar, header, content area, responsive breakpoints, grid structure                |
+| **Animations**         | Page transitions, hover states, skeleton loaders, micro-interactions, loading states |
+| **Components styling** | Buttons, cards, tables, dialogs, forms, notifications, chips, badges                 |
+| **Dashboard**          | KPI cards, charts (Chart.js / ApexCharts), stats layout, quick actions               |
+| **Reports**            | Interactive filtering, PDF/Excel export buttons, chart integration, KPI display      |
+| **Responsive**         | Mobile navigation (bottom nav / drawer), touch-friendly tables, collapsible sections |
+| **Theme**              | Dark/Light mode refinement, CSS variable consistency, Tailwind integration           |
+| **Design system**      | Unified component tokens, consistent border-radius, elevation, spacing scale         |
 
 ## Design Direction
 
 ### Brand Colors
-| Token | Light Mode | Dark Mode | Usage |
-|-------|-----------|-----------|-------|
-| `primary` | Navy `#1A437D` | Gold `#E9C349` | Nav, CTAs, active states |
-| `accent` | Gold `#E9C349` | Gold `#E9C349` | Highlights, badges, icons |
-| `surface` | White `#FFFFFF` | Charcoal `#111622` | Cards, dialogs, drawers |
-| `background` | Warm sand `#F1F5F9` | Deep `#050A15` | Page background |
-| `error` | Rose `#E53935` | Rose `#EF5350` | Alerts, validation |
-| `success` | Emerald `#2E7D32` | Emerald `#66BB6A` | Confirmations, status |
+
+| Token        | Light Mode          | Dark Mode          | Usage                     |
+| ------------ | ------------------- | ------------------ | ------------------------- |
+| `primary`    | Navy `#1A437D`      | Gold `#E9C349`     | Nav, CTAs, active states  |
+| `accent`     | Gold `#E9C349`      | Gold `#E9C349`     | Highlights, badges, icons |
+| `surface`    | White `#FFFFFF`     | Charcoal `#111622` | Cards, dialogs, drawers   |
+| `background` | Warm sand `#F1F5F9` | Deep `#050A15`     | Page background           |
+| `error`      | Rose `#E53935`      | Rose `#EF5350`     | Alerts, validation        |
+| `success`    | Emerald `#2E7D32`   | Emerald `#66BB6A`  | Confirmations, status     |
 
 ### Typography
+
 - **Arabic**: Cairo (400/500/600/700/800 weights)
 - **English/Latin**: Inter (400/500/600/700 weights)
 - **Monospace**: JetBrains Mono (code snippets, case numbers)
 - Scale: 12/14/16/18/20/24/30/36/48 px
 
 ### Design Principles
+
 - **Enterprise elegance** — Clean, spacious, authoritative. Think Clio + Notion + Bloomberg Terminal.
 - **Data density** — Tables should show maximum info without clutter. Use sticky headers, row hover, inline actions.
 - **Progressive disclosure** — Show essentials first, reveal complexity on demand (expandable rows, slide-over panels).

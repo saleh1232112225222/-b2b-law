@@ -104,7 +104,12 @@
           variant="outlined"
           class="glass-input"
           :prepend-inner-icon="ICONS.UI.EMAIL"
-          :rules="[(v) => !v || /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح']"
+          :rules="[
+            (v) =>
+              !v ||
+              /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
+              'البريد الإلكتروني غير صحيح'
+          ]"
         ></v-text-field>
       </v-col>
 

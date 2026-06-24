@@ -1,14 +1,15 @@
-const { Client } = require('pg');
-const nodemailer = require('nodemailer');
+const { Client } = require('pg')
+const nodemailer = require('nodemailer')
 
-const connectionString = 'postgresql://b2b_law_db_user:qYBOp4HQMz9aePegF79xoJqmQiLiudBC@dpg-d8hhj6j7uimc73d10pb0-a.singapore-postgres.render.com/b2b_law_db?ssl=true';
+const connectionString =
+  'postgresql://b2b_law_db_user:qYBOp4HQMz9aePegF79xoJqmQiLiudBC@dpg-d8hhj6j7uimc73d10pb0-a.singapore-postgres.render.com/b2b_law_db?ssl=true'
 
 const dbClient = new Client({
   connectionString,
   ssl: {
     rejectUnauthorized: false
   }
-});
+})
 
 const transporter = nodemailer.createTransport({
   host: 'smtp.gmail.com',
@@ -18,21 +19,21 @@ const transporter = nodemailer.createTransport({
     user: 'slaehmap@gmail.com',
     pass: 'kkod vuiv zvgu izux'
   }
-});
+})
 
 async function main() {
   try {
-    await dbClient.connect();
-    
+    await dbClient.connect()
+
     const res = await dbClient.query(`
       SELECT email, phone, verification_code, name 
       FROM companies 
       WHERE is_verified = FALSE AND verification_code IS NOT NULL
       ORDER BY created_at DESC LIMIT 1
-    `);
-    
+    `)
+
     for (const row of res.rows) {
-      console.log(`Sending to ${row.email}...`);
+      console.log(`Sending to ${row.email}...`)
       const info = await transporter.sendMail({
         from: '"B2B Lawyer" <slaehmap@gmail.com>',
         to: row.email,
@@ -51,14 +52,14 @@ async function main() {
             </div>
           </div>
         `
-      });
-      console.log(`Success: ${info.response}`);
+      })
+      console.log(`Success: ${info.response}`)
     }
   } catch (err) {
-    console.error(err);
+    console.error(err)
   } finally {
-    await dbClient.end();
+    await dbClient.end()
   }
 }
 
-main();
+main()

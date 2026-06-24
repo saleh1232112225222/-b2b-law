@@ -10,7 +10,7 @@
   input,
   select,
   textarea,
-  [role="button"],
+  [role='button'],
   .v-btn {
     min-height: 44px;
   }
@@ -27,14 +27,17 @@
 }
 
 /* ---- Horizontal Scroll Prevention (GLOBAL) ---- */
-html, body, #app, .v-application {
+html,
+body,
+#app,
+.v-application {
   overflow-x: hidden !important;
   max-width: 100vw !important;
   width: 100% !important;
 }
 
 /* ---- RTL Text Alignment Helper ---- */
-[dir="rtl"] {
+[dir='rtl'] {
   text-align: right;
 }
 
@@ -95,9 +98,9 @@ html, body, #app, .v-application {
   }
 
   /* Dashboard card bottom strip columns */
-  .dashboard-row .v-col[class*="lg-"],
-  .dashboard-row .v-col[class*="md-"],
-  .dashboard-row .v-col[class*="sm-"] {
+  .dashboard-row .v-col[class*='lg-'],
+  .dashboard-row .v-col[class*='md-'],
+  .dashboard-row .v-col[class*='sm-'] {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
@@ -183,16 +186,16 @@ html, body, #app, .v-application {
   }
 
   /* Actions column: ensure buttons don't get data-label */
-  .table-to-cards td[data-label="إجراءات السجل"],
-  .table-to-cards td[data-label="إجراءات"] {
+  .table-to-cards td[data-label='إجراءات السجل'],
+  .table-to-cards td[data-label='إجراءات'] {
     border-bottom: none;
     justify-content: flex-start;
     gap: 8px;
     padding-top: 12px;
   }
 
-  .table-to-cards td[data-label="إجراءات السجل"]::before,
-  .table-to-cards td[data-label="إجراءات"]::before {
+  .table-to-cards td[data-label='إجراءات السجل']::before,
+  .table-to-cards td[data-label='إجراءات']::before {
     display: none;
   }
 }
@@ -205,9 +208,9 @@ html, body, #app, .v-application {
     gap: 16px;
   }
 
-  .v-row.ma-0.ga-0 .v-col[class*="sm-"],
-  .v-row.ma-0.ga-0 .v-col[class*="md-"],
-  .v-row.ma-0.ga-0 .v-col[class*="lg-"] {
+  .v-row.ma-0.ga-0 .v-col[class*='sm-'],
+  .v-row.ma-0.ga-0 .v-col[class*='md-'],
+  .v-row.ma-0.ga-0 .v-col[class*='lg-'] {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }
@@ -350,9 +353,9 @@ html, body, #app, .v-application {
 
 /* ---- Global column stacking for desktop layouts on mobile ---- */
 @media (max-width: 768px) {
-  .v-col[class*="v-col-md-"],
-  .v-col[class*="v-col-lg-"],
-  .v-col[class*="v-col-sm-"] {
+  .v-col[class*='v-col-md-'],
+  .v-col[class*='v-col-lg-'],
+  .v-col[class*='v-col-sm-'] {
     flex: 0 0 100% !important;
     max-width: 100% !important;
   }

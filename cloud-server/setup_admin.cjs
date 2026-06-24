@@ -30,4 +30,4 @@ async function setup() {
   console.log('Password: admin1390')
 }
 
-setup().catch(e => console.error('Error:', e.message))
+setup().catch((e) => console.error('Error:', e.message))

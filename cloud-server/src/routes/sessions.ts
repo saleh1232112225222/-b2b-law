@@ -25,10 +25,7 @@ function parseTimeTo24h(timeStr: string | null | undefined): string | null {
   const isPM = cleaned.includes('م') || cleaned.toLowerCase().includes('pm')
   const isAM = cleaned.includes('ص') || cleaned.toLowerCase().includes('am')
 
-  cleaned = cleaned
-    .replace(/[صم]/g, '')
-    .replace(/am|pm/gi, '')
-    .trim()
+  cleaned = cleaned.replace(/[صم]/g, '').replace(/am|pm/gi, '').trim()
 
   const match = cleaned.match(/^(\d{1,2}):(\d{2})/)
   if (!match) return null
@@ -51,55 +48,59 @@ function parseTimeTo24h(timeStr: string | null | undefined): string | null {
 }
 
 // 1. GET /api/sessions/count
-sessionsRouter.get('/count', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { q, case_id, status, from, to } = req.query
+sessionsRouter.get(
+  '/count',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { q, case_id, status, from, to } = req.query
 
-    let whereClause = 'WHERE s.company_id = $1'
-    const params: any[] = [companyId]
-    let paramIndex = 2
+      let whereClause = 'WHERE s.company_id = $1'
+      const params: any[] = [companyId]
+      let paramIndex = 2
 
-    if (case_id) {
-      whereClause += ` AND s.case_id = $${paramIndex++}`
-      params.push(case_id)
-    }
+      if (case_id) {
+        whereClause += ` AND s.case_id = $${paramIndex++}`
+        params.push(case_id)
+      }
 
-    if (status && status !== 'الكل') {
-      whereClause += ` AND s.status = $${paramIndex++}`
-      params.push(status)
-    }
+      if (status && status !== 'الكل') {
+        whereClause += ` AND s.status = $${paramIndex++}`
+        params.push(status)
+      }
 
-    if (from) {
-      whereClause += ` AND s.date >= $${paramIndex++}`
-      params.push(from)
-    }
+      if (from) {
+        whereClause += ` AND s.date >= $${paramIndex++}`
+        params.push(from)
+      }
 
-    if (to) {
-      whereClause += ` AND s.date <= $${paramIndex++}`
-      params.push(to)
-    }
+      if (to) {
+        whereClause += ` AND s.date <= $${paramIndex++}`
+        params.push(to)
+      }
 
-    if (q) {
-      whereClause += ` AND (c.case_number ILIKE $${paramIndex} OR cl.name ILIKE $${paramIndex} OR s.court_room ILIKE $${paramIndex})`
-      params.push(`%${q}%`)
-      paramIndex++
-    }
+      if (q) {
+        whereClause += ` AND (c.case_number ILIKE $${paramIndex} OR cl.name ILIKE $${paramIndex} OR s.court_room ILIKE $${paramIndex})`
+        params.push(`%${q}%`)
+        paramIndex++
+      }
 
-    const countResult = await query(
-      `SELECT COUNT(*) 
+      const countResult = await query(
+        `SELECT COUNT(*) 
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        ${whereClause}`,
-      params
-    )
-    res.json({ count: parseInt(countResult.rows[0].count, 10) })
-  } catch (err) {
-    console.error('[SESSIONS] Count error:', err)
-    res.status(500).json({ error: 'Failed to count sessions' })
+        params
+      )
+      res.json({ count: parseInt(countResult.rows[0].count, 10) })
+    } catch (err) {
+      console.error('[SESSIONS] Count error:', err)
+      res.status(500).json({ error: 'Failed to count sessions' })
+    }
   }
-})
+)
 
 // 2. GET /api/sessions
 sessionsRouter.get('/', requirePermission('view_sessions'), async (req: Request, res: Response) => {
@@ -140,7 +141,7 @@ sessionsRouter.get('/', requirePermission('view_sessions'), async (req: Request,
     }
 
     const direction = sortDir === 'desc' ? 'DESC' : 'ASC'
-    
+
     const dataResult = await query(
       `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
@@ -160,277 +161,345 @@ sessionsRouter.get('/', requirePermission('view_sessions'), async (req: Request,
 })
 
 // 3. GET /api/sessions/all
-sessionsRouter.get('/all', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/all',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.is_archived = FALSE
        ORDER BY s.date DESC, s.time DESC`,
-      [companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[SESSIONS] GetAll error:', err)
-    res.status(500).json({ error: 'Failed to get all sessions' })
+        [companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[SESSIONS] GetAll error:', err)
+      res.status(500).json({ error: 'Failed to get all sessions' })
+    }
   }
-})
+)
 
 // 4. GET /api/sessions/today
-sessionsRouter.get('/today', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/today',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.date = CURRENT_DATE AND s.is_archived = FALSE
        ORDER BY s.time ASC`,
-      [companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[SESSIONS] GetToday error:', err)
-    res.status(500).json({ error: 'Failed to get today\'s sessions' })
+        [companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[SESSIONS] GetToday error:', err)
+      res.status(500).json({ error: "Failed to get today's sessions" })
+    }
   }
-})
+)
 
 // 5. GET /api/sessions/tomorrow
-sessionsRouter.get('/tomorrow', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/tomorrow',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.date = CURRENT_DATE + INTERVAL '1 day' AND s.is_archived = FALSE
        ORDER BY s.time ASC`,
-      [companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[SESSIONS] GetTomorrow error:', err)
-    res.status(500).json({ error: 'Failed to get tomorrow\'s sessions' })
+        [companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[SESSIONS] GetTomorrow error:', err)
+      res.status(500).json({ error: "Failed to get tomorrow's sessions" })
+    }
   }
-})
+)
 
 // 6. GET /api/sessions/by-case/:caseId
-sessionsRouter.get('/by-case/:caseId', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { caseId } = req.params
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/by-case/:caseId',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { caseId } = req.params
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.case_id = $1 AND s.company_id = $2 AND s.is_archived = FALSE
        ORDER BY s.date DESC, s.time DESC`,
-      [caseId, companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[SESSIONS] GetByCase error:', err)
-    res.status(500).json({ error: 'Failed to get sessions by case' })
+        [caseId, companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[SESSIONS] GetByCase error:', err)
+      res.status(500).json({ error: 'Failed to get sessions by case' })
+    }
   }
-})
+)
 
 // 7. GET /api/sessions/check-block/:caseId
-sessionsRouter.get('/check-block/:caseId', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { caseId } = req.params
-    const result = await query(
-      `SELECT id FROM sessions
+sessionsRouter.get(
+  '/check-block/:caseId',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { caseId } = req.params
+      const result = await query(
+        `SELECT id FROM sessions
        WHERE case_id = $1 AND company_id = $2 AND date < CURRENT_DATE AND status = 'قادمة'
        LIMIT 1`,
-      [caseId, companyId]
-    )
-    if (result.rows.length > 0) {
-      res.json({
-        is_blocked: true,
-        blocked: true,
-        reason: 'يوجد جلسات سابقة معلقة لم يتم رصد نتائجها بعد'
-      })
-    } else {
-      res.json({
-        is_blocked: false,
-        blocked: false
-      })
+        [caseId, companyId]
+      )
+      if (result.rows.length > 0) {
+        res.json({
+          is_blocked: true,
+          blocked: true,
+          reason: 'يوجد جلسات سابقة معلقة لم يتم رصد نتائجها بعد'
+        })
+      } else {
+        res.json({
+          is_blocked: false,
+          blocked: false
+        })
+      }
+    } catch (err) {
+      console.error('[SESSIONS] CheckBlock error:', err)
+      res.status(500).json({ error: 'Failed to check block status' })
     }
-  } catch (err) {
-    console.error('[SESSIONS] CheckBlock error:', err)
-    res.status(500).json({ error: 'Failed to check block status' })
   }
-})
+)
 
 // 8. GET /api/sessions/pending-closure
-sessionsRouter.get('/pending-closure', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/pending-closure',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.company_id = $1 AND s.date < CURRENT_DATE AND s.status = 'قادمة' AND s.is_archived = FALSE
        ORDER BY s.date DESC`,
-      [companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[SESSIONS] GetPendingClosure error:', err)
-    res.status(500).json({ error: 'Failed to get pending closure sessions' })
+        [companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[SESSIONS] GetPendingClosure error:', err)
+      res.status(500).json({ error: 'Failed to get pending closure sessions' })
+    }
   }
-})
+)
 
 // 9. GET /api/sessions/:id
-sessionsRouter.get('/:id', requirePermission('view_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { id } = req.params
-    const result = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+sessionsRouter.get(
+  '/:id',
+  requirePermission('view_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { id } = req.params
+      const result = await query(
+        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE s.id = $1 AND s.company_id = $2`,
-      [id, companyId]
-    )
-    if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Session not found' })
-      return
+        [id, companyId]
+      )
+      if (result.rows.length === 0) {
+        res.status(404).json({ error: 'Session not found' })
+        return
+      }
+      res.json(result.rows[0])
+    } catch (err) {
+      console.error('[SESSIONS] GetById error:', err)
+      res.status(500).json({ error: 'Failed to get session' })
     }
-    res.json(result.rows[0])
-  } catch (err) {
-    console.error('[SESSIONS] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get session' })
   }
-})
+)
 
 // 10. POST /api/sessions
-sessionsRouter.post('/', requirePermission('edit_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const body = { ...req.body, company_id: companyId }
-    delete body.id
+sessionsRouter.post(
+  '/',
+  requirePermission('edit_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const body = { ...req.body, company_id: companyId }
+      delete body.id
 
-    if (!body.created_by) body.created_by = req.auth!.userId
-    body.created_at = new Date().toISOString()
-    body.updated_at = body.created_at
+      if (!body.created_by) body.created_by = req.auth!.userId
+      body.created_at = new Date().toISOString()
+      body.updated_at = body.created_at
 
-    const id = uuidv4()
-    body.id = id
+      const id = uuidv4()
+      body.id = id
 
-    // Convert empty strings to null for PostgreSQL compatibility
-    for (const key of Object.keys(body)) {
-      if (body[key] === '') {
-        body[key] = null
-      } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
-        body[key] = parseTimeTo24h(body[key])
+      // Convert empty strings to null for PostgreSQL compatibility
+      for (const key of Object.keys(body)) {
+        if (body[key] === '') {
+          body[key] = null
+        } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
+          body[key] = parseTimeTo24h(body[key])
+        }
       }
-    }
 
-    const allowedFields = [
-      'id', 'company_id', 'case_id', 'responsible_user_id', 'date', 'date_hijri',
-      'time', 'court_room', 'status', 'notes', 'result', 'meeting_link',
-      'is_archived', 'archived_at', 'archived_by', 'archive_reason',
-      'created_by', 'updated_by', 'created_at', 'updated_at'
-    ]
+      const allowedFields = [
+        'id',
+        'company_id',
+        'case_id',
+        'responsible_user_id',
+        'date',
+        'date_hijri',
+        'time',
+        'court_room',
+        'status',
+        'notes',
+        'result',
+        'meeting_link',
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason',
+        'created_by',
+        'updated_by',
+        'created_at',
+        'updated_at'
+      ]
 
-    for (const key of Object.keys(body)) {
-      if (!allowedFields.includes(key)) {
-        delete body[key]
+      for (const key of Object.keys(body)) {
+        if (!allowedFields.includes(key)) {
+          delete body[key]
+        }
       }
+
+      const keys = Object.keys(body)
+      const values = Object.values(body)
+      const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
+      const columns = keys.join(', ')
+
+      await query(`INSERT INTO sessions (${columns}) VALUES (${placeholders})`, values)
+      res.status(201).json(body)
+    } catch (err) {
+      console.error('[SESSIONS] Create error:', err)
+      res.status(500).json({ error: 'Failed to create session' })
     }
-
-    const keys = Object.keys(body)
-    const values = Object.values(body)
-    const placeholders = values.map((_, i) => `$${i + 1}`).join(', ')
-    const columns = keys.join(', ')
-
-    await query(`INSERT INTO sessions (${columns}) VALUES (${placeholders})`, values)
-    res.status(201).json(body)
-  } catch (err) {
-    console.error('[SESSIONS] Create error:', err)
-    res.status(500).json({ error: 'Failed to create session' })
   }
-})
+)
 
 // 11. PUT /api/sessions/:id
-sessionsRouter.put('/:id', requirePermission('edit_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { id } = req.params
-    const body = { ...req.body }
-    delete body.id
-    delete body.company_id
+sessionsRouter.put(
+  '/:id',
+  requirePermission('edit_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { id } = req.params
+      const body = { ...req.body }
+      delete body.id
+      delete body.company_id
 
-    body.updated_at = new Date().toISOString()
-    if (!body.updated_by) body.updated_by = req.auth!.userId
+      body.updated_at = new Date().toISOString()
+      if (!body.updated_by) body.updated_by = req.auth!.userId
 
-    // Convert empty strings to null for PostgreSQL compatibility
-    for (const key of Object.keys(body)) {
-      if (body[key] === '') {
-        body[key] = null
-      } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
-        body[key] = parseTimeTo24h(body[key])
+      // Convert empty strings to null for PostgreSQL compatibility
+      for (const key of Object.keys(body)) {
+        if (body[key] === '') {
+          body[key] = null
+        } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
+          body[key] = parseTimeTo24h(body[key])
+        }
       }
-    }
 
-    const allowedFields = [
-      'case_id', 'responsible_user_id', 'date', 'date_hijri',
-      'time', 'court_room', 'status', 'notes', 'result', 'meeting_link',
-      'is_archived', 'archived_at', 'archived_by', 'archive_reason',
-      'updated_by', 'updated_at'
-    ]
+      const allowedFields = [
+        'case_id',
+        'responsible_user_id',
+        'date',
+        'date_hijri',
+        'time',
+        'court_room',
+        'status',
+        'notes',
+        'result',
+        'meeting_link',
+        'is_archived',
+        'archived_at',
+        'archived_by',
+        'archive_reason',
+        'updated_by',
+        'updated_at'
+      ]
 
-    for (const key of Object.keys(body)) {
-      if (!allowedFields.includes(key)) {
-        delete body[key]
+      for (const key of Object.keys(body)) {
+        if (!allowedFields.includes(key)) {
+          delete body[key]
+        }
       }
-    }
 
-    const keys = Object.keys(body)
-    const values = Object.values(body)
-    const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ')
+      const keys = Object.keys(body)
+      const values = Object.values(body)
+      const setClause = keys.map((key, i) => `${key} = $${i + 1}`).join(', ')
 
-    const result = await query(
-      `UPDATE sessions SET ${setClause} WHERE id = $${keys.length + 1} AND company_id = $${keys.length + 2}`,
-      [...values, id, companyId]
-    )
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Session not found' })
-      return
+      const result = await query(
+        `UPDATE sessions SET ${setClause} WHERE id = $${keys.length + 1} AND company_id = $${keys.length + 2}`,
+        [...values, id, companyId]
+      )
+      if (result.rowCount === 0) {
+        res.status(404).json({ error: 'Session not found' })
+        return
+      }
+      res.json({ success: true })
+    } catch (err) {
+      console.error('[SESSIONS] Update error:', err)
+      res.status(500).json({ error: 'Failed to update session' })
     }
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[SESSIONS] Update error:', err)
-    res.status(500).json({ error: 'Failed to update session' })
   }
-})
+)
 
 // 12. DELETE /api/sessions/:id
-sessionsRouter.delete('/:id', requirePermission('edit_sessions'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const { id } = req.params
-    const result = await query(
-      `DELETE FROM sessions WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
-    if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Session not found' })
-      return
+sessionsRouter.delete(
+  '/:id',
+  requirePermission('edit_sessions'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { id } = req.params
+      const result = await query(`DELETE FROM sessions WHERE id = $1 AND company_id = $2`, [
+        id,
+        companyId
+      ])
+      if (result.rowCount === 0) {
+        res.status(404).json({ error: 'Session not found' })
+        return
+      }
+      res.json({ success: true })
+    } catch (err) {
+      console.error('[SESSIONS] Delete error:', err)
+      res.status(500).json({ error: 'Failed to delete session' })
     }
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[SESSIONS] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete session' })
   }
-})
+)

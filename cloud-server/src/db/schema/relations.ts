@@ -3,11 +3,44 @@ import { companies, clients, defendants, employees, users } from './core'
 import { agencies } from './clients'
 import { cases, caseParties, sessions, sessionOutcomes } from './cases'
 import { tasksV2, taskAuditLog, taskNotifications } from './tasks'
-import { accounts, finances, invoices, invoiceItems, vouchers, receivables, creditNotes } from './finance'
+import {
+  accounts,
+  finances,
+  invoices,
+  invoiceItems,
+  vouchers,
+  receivables,
+  creditNotes
+} from './finance'
 import { documentsV2, fileAssets } from './documents'
-import { enforcementRequests, enforcementFiles, enforcementParties, enforcementActions } from './enforcement'
-import { contracts, contractParties, contractParticipants, contractSignatures, contractSchedules, contractLinks, contractAmendments, contractTemplates } from './contracts'
-import { evidence, experts, judgments, judgmentAmendments, memoranda, communications, collectionsClaims, collectionsPayments, userCaseAccess, userClientAccess } from './extra'
+import {
+  enforcementRequests,
+  enforcementFiles,
+  enforcementParties,
+  enforcementActions
+} from './enforcement'
+import {
+  contracts,
+  contractParties,
+  contractParticipants,
+  contractSignatures,
+  contractSchedules,
+  contractLinks,
+  contractAmendments,
+  contractTemplates
+} from './contracts'
+import {
+  evidence,
+  experts,
+  judgments,
+  judgmentAmendments,
+  memoranda,
+  communications,
+  collectionsClaims,
+  collectionsPayments,
+  userCaseAccess,
+  userClientAccess
+} from './extra'
 import { permissions, rolePermissions, userPermissions } from './permissions'
 import { activityLogs, settings, firmData } from './activity'
 
@@ -59,8 +92,14 @@ export const contractRelations = relations(contracts, ({ one, many }) => ({
 }))
 
 export const contractParticipantsRelations = relations(contractParticipants, ({ one }) => ({
-  contract: one(contracts, { fields: [contractParticipants.contractId], references: [contracts.id] }),
-  party: one(contractParties, { fields: [contractParticipants.partyId], references: [contractParties.id] })
+  contract: one(contracts, {
+    fields: [contractParticipants.contractId],
+    references: [contracts.id]
+  }),
+  party: one(contractParties, {
+    fields: [contractParticipants.partyId],
+    references: [contractParties.id]
+  })
 }))
 
 export const collectionsClaimsRelations = relations(collectionsClaims, ({ many }) => ({

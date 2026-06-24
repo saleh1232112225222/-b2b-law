@@ -75,22 +75,26 @@ export const employees = pgTable('employees', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 })
 
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull(),
-  username: text('username').notNull(),
-  fullName: text('full_name'),
-  passwordHash: text('password_hash'),
-  roleKey: text('role_key'),
-  employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'set null' }),
-  isActive: boolean('is_active').default(true),
-  mustChangePassword: boolean('must_change_password').default(true),
-  recoveryEmail: text('recovery_email'),
-  securityQuestion: text('security_question'),
-  securityAnswerHash: text('security_answer_hash'),
-  createdBy: uuid('created_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
-}, (table) => ({
-  unqCompanyUsername: unique().on(table.companyId, table.username)
-}))
+export const users = pgTable(
+  'users',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull(),
+    username: text('username').notNull(),
+    fullName: text('full_name'),
+    passwordHash: text('password_hash'),
+    roleKey: text('role_key'),
+    employeeId: uuid('employee_id').references(() => employees.id, { onDelete: 'set null' }),
+    isActive: boolean('is_active').default(true),
+    mustChangePassword: boolean('must_change_password').default(true),
+    recoveryEmail: text('recovery_email'),
+    securityQuestion: text('security_question'),
+    securityAnswerHash: text('security_answer_hash'),
+    createdBy: uuid('created_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+  },
+  (table) => ({
+    unqCompanyUsername: unique().on(table.companyId, table.username)
+  })
+)

@@ -1,9 +1,30 @@
-import { pgTable, uuid, text, boolean, timestamp, numeric, integer, pgEnum } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  timestamp,
+  numeric,
+  integer,
+  pgEnum
+} from 'drizzle-orm/pg-core'
 import { companies, users } from './core'
 
-export const subscriptionStatusEnum = pgEnum('subscription_status', ['trial', 'active', 'past_due', 'canceled', 'expired', 'lifetime'])
+export const subscriptionStatusEnum = pgEnum('subscription_status', [
+  'trial',
+  'active',
+  'past_due',
+  'canceled',
+  'expired',
+  'lifetime'
+])
 export const planIntervalEnum = pgEnum('plan_interval', ['trial', 'month', 'year', 'lifetime'])
-export const paymentStatusEnum = pgEnum('payment_status', ['pending', 'completed', 'failed', 'refunded'])
+export const paymentStatusEnum = pgEnum('payment_status', [
+  'pending',
+  'completed',
+  'failed',
+  'refunded'
+])
 
 export const plans = pgTable('plans', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -24,7 +45,9 @@ export const plans = pgTable('plans', {
 
 export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
   planId: uuid('plan_id').references(() => plans.id),
   status: subscriptionStatusEnum('status').notNull().default('trial'),
   trialStart: timestamp('trial_start', { withTimezone: true }).defaultNow(),
@@ -38,7 +61,9 @@ export const subscriptions = pgTable('subscriptions', {
 
 export const payments = pgTable('payments', {
   id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull().references(() => companies.id, { onDelete: 'cascade' }),
+  companyId: uuid('company_id')
+    .notNull()
+    .references(() => companies.id, { onDelete: 'cascade' }),
   subscriptionId: uuid('subscription_id').references(() => subscriptions.id),
   planId: uuid('plan_id').references(() => plans.id),
   amount: numeric('amount', { precision: 10, scale: 2 }).notNull(),

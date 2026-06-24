@@ -41,9 +41,7 @@ const pool = new Pool({
   min: 2,
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 8000,
-  ssl: process.env.DATABASE_URL?.includes('render.com')
-    ? { rejectUnauthorized: false }
-    : false
+  ssl: process.env.DATABASE_URL?.includes('render.com') ? { rejectUnauthorized: false } : false
 })
 
 pool.on('error', (err) => {
@@ -56,7 +54,7 @@ export const db = drizzle(pool, { schema: drizzleSchema })
 
 export async function runMigrations(): Promise<void> {
   console.log('[DB] Running Drizzle migrations...')
-  
+
   // Pre-seed Drizzle migration tracking table for 0000_dear_domino
   try {
     await query('CREATE SCHEMA IF NOT EXISTS "drizzle"')

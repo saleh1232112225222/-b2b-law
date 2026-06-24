@@ -12,28 +12,28 @@ adminSubscriptionRouter.use(authMiddleware)
  */
 const requireAdminRole = async (req: Request, res: Response, next: Function) => {
   const auth = req.auth as AuthPayload
-  
+
   try {
     // Only allow admin of the main company (00000000-0000-0000-0000-000000000000)
     if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
       return res.status(403).json({ error: 'Admin access required' })
     }
 
-    const userResult = await query(
-      'SELECT role_key FROM users WHERE id = $1 AND company_id = $2',
-      [auth.userId, auth.companyId]
-    )
-    
+    const userResult = await query('SELECT role_key FROM users WHERE id = $1 AND company_id = $2', [
+      auth.userId,
+      auth.companyId
+    ])
+
     if (userResult.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' })
     }
-    
+
     const role = userResult.rows[0].role_key
-    
+
     if (role !== 'admin') {
       return res.status(403).json({ error: 'Admin access required' })
     }
-    
+
     next()
   } catch (err) {
     console.error('[ADMIN] Role check error:', err)
@@ -96,8 +96,8 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
         END,
         c.created_at DESC`
     )
-    
-    const mappedRows = result.rows.map(row => ({
+
+    const mappedRows = result.rows.map((row) => ({
       id: row.id,
       companyName: row.company_name,
       email: row.email,
@@ -119,7 +119,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
       daysRemaining: row.days_remaining,
       expiryDate: row.current_period_end || row.trial_end || row.trial_expires_at || null
     }))
-    
+
     res.json({
       success: true,
       data: mappedRows,
@@ -134,98 +134,102 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
 /**
  * GET /api/admin/subscriptions/:companyId
  */
-adminSubscriptionRouter.get('/:companyId', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { companyId } = req.params
-    
-    const companyResult = await query(
-      'SELECT id, name, email, phone, is_verified, trial_expires_at, created_at FROM companies WHERE id = $1',
-      [companyId]
-    )
-    
-    if (companyResult.rows.length === 0) {
-      return res.status(404).json({ error: 'الشركة غير موجودة' })
-    }
-    
-    const subscriptionResult = await query(
-      `SELECT s.*, p.name_ar as plan_name, p.name as plan_name_en, p.interval, p.price
+adminSubscriptionRouter.get(
+  '/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+
+      const companyResult = await query(
+        'SELECT id, name, email, phone, is_verified, trial_expires_at, created_at FROM companies WHERE id = $1',
+        [companyId]
+      )
+
+      if (companyResult.rows.length === 0) {
+        return res.status(404).json({ error: 'الشركة غير موجودة' })
+      }
+
+      const subscriptionResult = await query(
+        `SELECT s.*, p.name_ar as plan_name, p.name as plan_name_en, p.interval, p.price
        FROM subscriptions s
        LEFT JOIN plans p ON s.plan_id = p.id
        WHERE s.company_id = $1
        ORDER BY s.created_at DESC`,
-      [companyId]
-    )
-    
-    const paymentsResult = await query(
-      `SELECT p.*, pl.name_ar as plan_name
+        [companyId]
+      )
+
+      const paymentsResult = await query(
+        `SELECT p.*, pl.name_ar as plan_name
        FROM payments p
        LEFT JOIN plans pl ON p.plan_id = pl.id
        WHERE p.company_id = $1
        ORDER BY p.created_at DESC`,
-      [companyId]
-    )
-    
-    const company = companyResult.rows[0]
-    const subscriptions = subscriptionResult.rows
-    const payments = paymentsResult.rows
+        [companyId]
+      )
 
-    const mappedCompany = {
-      id: company.id,
-      name: company.name,
-      email: company.email,
-      phone: company.phone,
-      isVerified: company.is_verified,
-      trialExpiresAt: company.trial_expires_at,
-      createdAt: company.created_at
+      const company = companyResult.rows[0]
+      const subscriptions = subscriptionResult.rows
+      const payments = paymentsResult.rows
+
+      const mappedCompany = {
+        id: company.id,
+        name: company.name,
+        email: company.email,
+        phone: company.phone,
+        isVerified: company.is_verified,
+        trialExpiresAt: company.trial_expires_at,
+        createdAt: company.created_at
+      }
+
+      const mappedSubscriptions = subscriptions.map((s: any) => ({
+        id: s.id,
+        companyId: s.company_id,
+        planId: s.plan_id,
+        status: s.status,
+        trialStart: s.trial_start,
+        trialEnd: s.trial_end,
+        currentPeriodStart: s.current_period_start,
+        currentPeriodEnd: s.current_period_end,
+        canceledAt: s.canceled_at,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+        planName: s.plan_name,
+        planNameEn: s.plan_name_en,
+        interval: s.interval,
+        price: s.price
+      }))
+
+      const mappedPayments = payments.map((p: any) => ({
+        id: p.id,
+        companyId: p.company_id,
+        subscriptionId: p.subscription_id,
+        planId: p.plan_id,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        paymentMethod: p.payment_method,
+        paymentProvider: p.payment_provider,
+        providerPaymentId: p.provider_payment_id,
+        invoiceUrl: p.invoice_url,
+        paidAt: p.paid_at,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+        planName: p.plan_name
+      }))
+
+      res.json({
+        success: true,
+        company: mappedCompany,
+        subscriptions: mappedSubscriptions,
+        payments: mappedPayments
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to fetch company subscription:', err)
+      res.status(500).json({ error: 'فشل جلب تفاصيل الاشتراك' })
     }
-
-    const mappedSubscriptions = subscriptions.map((s: any) => ({
-      id: s.id,
-      companyId: s.company_id,
-      planId: s.plan_id,
-      status: s.status,
-      trialStart: s.trial_start,
-      trialEnd: s.trial_end,
-      currentPeriodStart: s.current_period_start,
-      currentPeriodEnd: s.current_period_end,
-      canceledAt: s.canceled_at,
-      createdAt: s.created_at,
-      updatedAt: s.updated_at,
-      planName: s.plan_name,
-      planNameEn: s.plan_name_en,
-      interval: s.interval,
-      price: s.price
-    }))
-
-    const mappedPayments = payments.map((p: any) => ({
-      id: p.id,
-      companyId: p.company_id,
-      subscriptionId: p.subscription_id,
-      planId: p.plan_id,
-      amount: p.amount,
-      currency: p.currency,
-      status: p.status,
-      paymentMethod: p.payment_method,
-      paymentProvider: p.payment_provider,
-      providerPaymentId: p.provider_payment_id,
-      invoiceUrl: p.invoice_url,
-      paidAt: p.paid_at,
-      createdAt: p.created_at,
-      updatedAt: p.updated_at,
-      planName: p.plan_name
-    }))
-
-    res.json({
-      success: true,
-      company: mappedCompany,
-      subscriptions: mappedSubscriptions,
-      payments: mappedPayments
-    })
-  } catch (err) {
-    console.error('[ADMIN] Failed to fetch company subscription:', err)
-    res.status(500).json({ error: 'فشل جلب تفاصيل الاشتراك' })
   }
-})
+)
 
 /**
  * POST /api/admin/subscriptions/activate
@@ -233,24 +237,26 @@ adminSubscriptionRouter.get('/:companyId', requireAdminRole, async (req: Request
 adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const { companyId, planId, durationMonths, durationYears, lifetime } = req.body
-    
+
     if (!companyId || !planId) {
       return res.status(400).json({ error: 'معرف الشركة ومعرف الخطة مطلوبان' })
     }
-    
+
     const companyResult = await query('SELECT id, name FROM companies WHERE id = $1', [companyId])
     if (companyResult.rows.length === 0) {
       return res.status(404).json({ error: 'الشركة غير موجودة' })
     }
-    
-    const planResult = await query('SELECT id, name_ar, interval FROM plans WHERE id = $1', [planId])
+
+    const planResult = await query('SELECT id, name_ar, interval FROM plans WHERE id = $1', [
+      planId
+    ])
     if (planResult.rows.length === 0) {
       return res.status(404).json({ error: 'الخطة غير موجودة' })
     }
-    
+
     const now = new Date()
     let periodEnd = new Date(now)
-    
+
     if (lifetime) {
       periodEnd.setFullYear(2099, 11, 31)
     } else if (durationYears && durationYears > 0) {
@@ -267,12 +273,11 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
         periodEnd.setFullYear(periodEnd.getFullYear() + 1)
       }
     }
-    
-    const existingSub = await query(
-      'SELECT id FROM subscriptions WHERE company_id = $1',
-      [companyId]
-    )
-    
+
+    const existingSub = await query('SELECT id FROM subscriptions WHERE company_id = $1', [
+      companyId
+    ])
+
     if (existingSub.rows.length > 0) {
       await query(
         `UPDATE subscriptions 
@@ -291,12 +296,12 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
         [uuidv4(), companyId, planId, now, periodEnd]
       )
     }
-    
-    await query(
-      'UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2',
-      [periodEnd, companyId]
-    )
-    
+
+    await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
+      periodEnd,
+      companyId
+    ])
+
     res.json({
       success: true,
       message: `تم تفعيل الاشتراك بنجاح حتى ${periodEnd.toLocaleDateString('ar-SA')}`,
@@ -314,17 +319,17 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
 adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const { companyId, extendMonths, extendYears, durationMonths } = req.body
-    
+
     if (!companyId) {
       return res.status(400).json({ error: 'معرف الشركة مطلوب' })
     }
-    
+
     const actualMonths = extendMonths || durationMonths
-    
+
     if (!actualMonths && !extendYears) {
       return res.status(400).json({ error: 'مدة التمديد مطلوبة' })
     }
-    
+
     const subResult = await query(
       `SELECT s.*, s.current_period_end FROM subscriptions s
        WHERE s.company_id = $1
@@ -332,20 +337,20 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
        LIMIT 1`,
       [companyId]
     )
-    
+
     if (subResult.rows.length === 0) {
       return res.status(404).json({ error: 'لا يوجد اشتراك لهذه الشركة' })
     }
-    
+
     const subscription = subResult.rows[0]
-    let newEndDate = subscription.current_period_end 
-      ? new Date(subscription.current_period_end) 
+    let newEndDate = subscription.current_period_end
+      ? new Date(subscription.current_period_end)
       : new Date()
-    
+
     if (newEndDate < new Date()) {
       newEndDate = new Date()
     }
-    
+
     if (extendYears && extendYears > 0) {
       const limitedYears = Math.min(Number(extendYears), 100)
       newEndDate.setFullYear(newEndDate.getFullYear() + limitedYears)
@@ -354,19 +359,19 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
       const limitedMonths = Math.min(Number(actualMonths), 1200)
       newEndDate.setMonth(newEndDate.getMonth() + limitedMonths)
     }
-    
+
     await query(
       `UPDATE subscriptions 
        SET current_period_end = $1, status = 'active', updated_at = NOW()
        WHERE id = $2`,
       [newEndDate, subscription.id]
     )
-    
-    await query(
-      'UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2',
-      [newEndDate, companyId]
-    )
-    
+
+    await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
+      newEndDate,
+      companyId
+    ])
+
     res.json({
       success: true,
       message: `تم تمديد الاشتراك حتى ${newEndDate.toLocaleDateString('ar-SA')}`,
@@ -384,27 +389,27 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
 adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const { companyId, reason } = req.body
-    
+
     if (!companyId) {
       return res.status(400).json({ error: 'معرف الشركة مطلوب' })
     }
-    
+
     const subResult = await query(
       'SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1',
       [companyId]
     )
-    
+
     if (subResult.rows.length === 0) {
       return res.status(404).json({ error: 'لا يوجد اشتراك لهذه الشركة' })
     }
-    
+
     await query(
       `UPDATE subscriptions 
        SET status = 'past_due', canceled_at = NOW(), updated_at = NOW()
        WHERE id = $1`,
       [subResult.rows[0].id]
     )
-    
+
     res.json({
       success: true,
       message: 'تم تجميد الاشتراك بنجاح'
@@ -421,16 +426,16 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
 adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const { companyId } = req.body
-    
+
     if (!companyId) {
       return res.status(400).json({ error: 'معرف الشركة مطلوب' })
     }
-    
+
     const subResult = await query(
       'SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1',
       [companyId]
     )
-    
+
     if (subResult.rows.length > 0) {
       await query(
         `UPDATE subscriptions 
@@ -439,7 +444,7 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
         [subResult.rows[0].id]
       )
     }
-    
+
     res.json({
       success: true,
       message: 'تم إلغاء الاشتراك'
@@ -453,102 +458,149 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
 /**
  * DELETE /api/admin/subscriptions/:companyId
  */
-adminSubscriptionRouter.delete('/:companyId', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { companyId } = req.params
+adminSubscriptionRouter.delete(
+  '/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
 
-    const companyCheck = await query('SELECT id FROM companies WHERE id = $1', [companyId])
-    if (companyCheck.rows.length === 0) {
-      return res.status(404).json({ error: 'المشترك غير موجود' })
+      const companyCheck = await query('SELECT id FROM companies WHERE id = $1', [companyId])
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'المشترك غير موجود' })
+      }
+
+      await query('BEGIN')
+
+      const tablesToClear = [
+        'invoice_items',
+        'invoices',
+        'vouchers',
+        'receivables',
+        'finances',
+        'collections_payments',
+        'collections_claims',
+        'enf_attachments',
+        'enf_decisions',
+        'enf_request_parties',
+        'enf_financial_details',
+        'enf_personal_details',
+        'enf_direct_details',
+        'enforcement_requests',
+        'enforcement_actions',
+        'enforcement_parties',
+        'enforcement_files',
+        'session_outcomes',
+        'sessions',
+        'judgments',
+        'tasks_v2',
+        'tasks',
+        'documents_v2',
+        'documents',
+        'file_assets',
+        'communications',
+        'evidence',
+        'experts',
+        'agencies',
+        'user_case_access',
+        'user_client_access',
+        'user_permissions',
+        'cases',
+        'case_parties',
+        'clients',
+        'defendants',
+        'case_actions',
+        'assignment_logs',
+        'professional_liability_logs',
+        'judgment_amendments',
+        'contract_signatures',
+        'contract_participants',
+        'contract_parties',
+        'contract_party_types',
+        'contract_party_audits',
+        'contract_links',
+        'contract_schedules',
+        'contract_amendments',
+        'contracts',
+        'contract_templates',
+        'activity_logs',
+        'accounts',
+        'firm_data'
+      ]
+
+      for (const table of tablesToClear) {
+        await query(`DELETE FROM ${table} WHERE company_id = $1`, [companyId]).catch(() => {})
+      }
+
+      await query('DELETE FROM subscriptions WHERE company_id = $1', [companyId])
+      await query('DELETE FROM users WHERE company_id = $1', [companyId])
+      await query('DELETE FROM companies WHERE id = $1', [companyId])
+
+      await query('COMMIT')
+
+      res.json({
+        success: true,
+        message: 'تم حذف المشترك وكافة بياناته بنجاح'
+      })
+    } catch (err) {
+      await query('ROLLBACK').catch(() => {})
+      console.error('[ADMIN] Failed to delete company/subscriber:', err)
+      res.status(500).json({ error: 'فشل حذف المشترك' })
     }
-
-    await query('BEGIN')
-
-    const tablesToClear = [
-      'invoice_items', 'invoices', 'vouchers', 'receivables', 'finances',
-      'collections_payments', 'collections_claims', 'enf_attachments', 'enf_decisions',
-      'enf_request_parties', 'enf_financial_details', 'enf_personal_details',
-      'enf_direct_details', 'enforcement_requests', 'enforcement_actions',
-      'enforcement_parties', 'enforcement_files', 'session_outcomes', 'sessions',
-      'judgments', 'tasks_v2', 'tasks', 'documents_v2', 'documents', 'file_assets',
-      'communications', 'evidence', 'experts', 'agencies', 'user_case_access',
-      'user_client_access', 'user_permissions', 'cases', 'case_parties', 'clients',
-      'defendants', 'case_actions', 'assignment_logs', 'professional_liability_logs',
-      'judgment_amendments', 'contract_signatures', 'contract_participants',
-      'contract_parties', 'contract_party_types', 'contract_party_audits',
-      'contract_links', 'contract_schedules', 'contract_amendments', 'contracts',
-      'contract_templates', 'activity_logs', 'accounts', 'firm_data'
-    ]
-
-    for (const table of tablesToClear) {
-      await query(`DELETE FROM ${table} WHERE company_id = $1`, [companyId]).catch(() => {})
-    }
-
-    await query('DELETE FROM subscriptions WHERE company_id = $1', [companyId])
-    await query('DELETE FROM users WHERE company_id = $1', [companyId])
-    await query('DELETE FROM companies WHERE id = $1', [companyId])
-
-    await query('COMMIT')
-    
-    res.json({
-      success: true,
-      message: 'تم حذف المشترك وكافة بياناته بنجاح'
-    })
-  } catch (err) {
-    await query('ROLLBACK').catch(() => {})
-    console.error('[ADMIN] Failed to delete company/subscriber:', err)
-    res.status(500).json({ error: 'فشل حذف المشترك' })
   }
-})
+)
 
 /**
  * POST /api/admin/subscriptions/activate-company/:companyId
  * تفعيل اشتراك شركة يدوياً (للدفع النقدي أو التفعيل اليدوي)
  * Body: { planId?: string, trialMonths?: number, extendMonths?: number }
  */
-adminSubscriptionRouter.post('/activate-company/:companyId', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { companyId } = req.params
-    const { trialMonths, extendMonths, planId } = req.body
+adminSubscriptionRouter.post(
+  '/activate-company/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+      const { trialMonths, extendMonths, planId } = req.body
 
-    const existingSub = await query(
-      `SELECT * FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [companyId]
-    )
+      const existingSub = await query(
+        `SELECT * FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [companyId]
+      )
 
-    const existing = existingSub.rows[0]
+      const existing = existingSub.rows[0]
 
-    // تحديد تاريخ الانتهاء الجديد
-    let newEndDate: Date | null = null
+      // تحديد تاريخ الانتهاء الجديد
+      let newEndDate: Date | null = null
 
-    if (existing && existing.status === 'lifetime') {
-      return res.status(400).json({ error: 'الاشتراك مدى الحياة بالفعل' })
-    }
-
-    if (extendMonths) {
-      // تمديد من التاريخ الحالي أو من الآن
-      const baseDate = existing?.current_period_end 
-        ? new Date(existing.current_period_end) 
-        : new Date()
-      
-      if (baseDate < new Date()) {
-        newEndDate = new Date()
-      } else {
-        newEndDate = baseDate
+      if (existing && existing.status === 'lifetime') {
+        return res.status(400).json({ error: 'الاشتراك مدى الحياة بالفعل' })
       }
-      
-      newEndDate.setMonth(newEndDate.getMonth() + Number(extendMonths))
-    } else if (trialMonths) {
-      // منح فترة تجريبية إضافية
-      newEndDate = new Date()
-      newEndDate.setDate(newEndDate.getDate() + (Number(trialMonths) * 30))
-    } else {
-      return res.status(400).json({ error: 'يجب تحديد trialMonths أو extendMonths' })
-    }
 
-    if (existing) {
-      await query(
-        `UPDATE subscriptions 
+      if (extendMonths) {
+        // تمديد من التاريخ الحالي أو من الآن
+        const baseDate = existing?.current_period_end
+          ? new Date(existing.current_period_end)
+          : new Date()
+
+        if (baseDate < new Date()) {
+          newEndDate = new Date()
+        } else {
+          newEndDate = baseDate
+        }
+
+        newEndDate.setMonth(newEndDate.getMonth() + Number(extendMonths))
+      } else if (trialMonths) {
+        // منح فترة تجريبية إضافية
+        newEndDate = new Date()
+        newEndDate.setDate(newEndDate.getDate() + Number(trialMonths) * 30)
+      } else {
+        return res.status(400).json({ error: 'يجب تحديد trialMonths أو extendMonths' })
+      }
+
+      if (existing) {
+        await query(
+          `UPDATE subscriptions 
          SET status = 'active', 
              trial_start = COALESCE(trial_start, NOW()),
              trial_end = $2,
@@ -557,97 +609,113 @@ adminSubscriptionRouter.post('/activate-company/:companyId', requireAdminRole, a
              plan_id = COALESCE($3, plan_id),
              updated_at = NOW()
          WHERE id = $1`,
-        [existing.id, newEndDate, planId || null]
-      )
-    } else {
-      const subId = require('crypto').randomUUID()
-      await query(
-        `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
+          [existing.id, newEndDate, planId || null]
+        )
+      } else {
+        const subId = require('crypto').randomUUID()
+        await query(
+          `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
          VALUES ($1, $2, $3, 'active', NOW(), $4, NOW(), $4)`,
-        [subId, companyId, planId || null, newEndDate]
-      )
-    }
+          [subId, companyId, planId || null, newEndDate]
+        )
+      }
 
-    res.json({ success: true, message: 'تم تفعيل الاشتراك', endDate: newEndDate.toISOString() })
-  } catch (err) {
-    console.error('[ADMIN] Failed to activate company subscription:', err)
-    res.status(500).json({ error: 'فشل تفعيل الاشتراك' })
+      res.json({ success: true, message: 'تم تفعيل الاشتراك', endDate: newEndDate.toISOString() })
+    } catch (err) {
+      console.error('[ADMIN] Failed to activate company subscription:', err)
+      res.status(500).json({ error: 'فشل تفعيل الاشتراك' })
+    }
   }
-})
+)
 
 /**
  * POST /api/admin/subscriptions/cancel-company/:companyId
  * إلغاء اشتراك شركة يدوياً (تحويل لـ canceled)
  * Body: { reason?: string }
  */
-adminSubscriptionRouter.post('/cancel-company/:companyId', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { companyId } = req.params
-    const { reason } = req.body
+adminSubscriptionRouter.post(
+  '/cancel-company/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+      const { reason } = req.body
 
-    const existingSub = await query(
-      `SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [companyId]
-    )
-
-    if (existingSub.rows.length > 0) {
-      await query(
-        `UPDATE subscriptions SET status = 'canceled', canceled_at = NOW(), updated_at = NOW() WHERE id = $1`,
-        [existingSub.rows[0].id]
+      const existingSub = await query(
+        `SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [companyId]
       )
-    }
 
-    res.json({ success: true, message: 'تم إلغاء الاشتراك' })
-  } catch (err) {
-    console.error('[ADMIN] Failed to cancel company subscription:', err)
-    res.status(500).json({ error: 'فشل إلغاء الاشتراك' })
+      if (existingSub.rows.length > 0) {
+        await query(
+          `UPDATE subscriptions SET status = 'canceled', canceled_at = NOW(), updated_at = NOW() WHERE id = $1`,
+          [existingSub.rows[0].id]
+        )
+      }
+
+      res.json({ success: true, message: 'تم إلغاء الاشتراك' })
+    } catch (err) {
+      console.error('[ADMIN] Failed to cancel company subscription:', err)
+      res.status(500).json({ error: 'فشل إلغاء الاشتراك' })
+    }
   }
-})
+)
 
 /**
  * POST /api/admin/subscriptions/lifetime/:companyId
  * منح اشتراك مدى الحياة لشركة
  */
-adminSubscriptionRouter.post('/lifetime/:companyId', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { companyId } = req.params
+adminSubscriptionRouter.post(
+  '/lifetime/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
 
-    const existingSub = await query(
-      `SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [companyId]
-    )
+      const existingSub = await query(
+        `SELECT id FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [companyId]
+      )
 
-    const lifetimeEnd = new Date('2099-12-31')
+      const lifetimeEnd = new Date('2099-12-31')
 
-    if (existingSub.rows.length > 0) {
-      await query(
-        `UPDATE subscriptions 
+      if (existingSub.rows.length > 0) {
+        await query(
+          `UPDATE subscriptions 
          SET status = 'lifetime', current_period_end = $2, trial_end = $2, updated_at = NOW()
          WHERE id = $1`,
-        [existingSub.rows[0].id, lifetimeEnd]
-      )
-    } else {
-      const subId = require('crypto').randomUUID()
-      await query(
-        `INSERT INTO subscriptions (id, company_id, status, current_period_start, current_period_end, trial_start, trial_end)
+          [existingSub.rows[0].id, lifetimeEnd]
+        )
+      } else {
+        const subId = require('crypto').randomUUID()
+        await query(
+          `INSERT INTO subscriptions (id, company_id, status, current_period_start, current_period_end, trial_start, trial_end)
          VALUES ($1, $2, 'lifetime', NOW(), $3, NOW(), $3)`,
-        [subId, companyId, lifetimeEnd]
-      )
-    }
+          [subId, companyId, lifetimeEnd]
+        )
+      }
 
-    res.json({ success: true, message: 'تم منح اشتراك مدى الحياة', endDate: lifetimeEnd.toISOString() })
-  } catch (err) {
-    console.error('[ADMIN] Failed to grant lifetime subscription:', err)
-    res.status(500).json({ error: 'فشل منح اشتراك مدى الحياة' })
+      res.json({
+        success: true,
+        message: 'تم منح اشتراك مدى الحياة',
+        endDate: lifetimeEnd.toISOString()
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to grant lifetime subscription:', err)
+      res.status(500).json({ error: 'فشل منح اشتراك مدى الحياة' })
+    }
   }
-})
+)
 
 /**
  * GET /api/admin/subscriptions/stats/overview
  */
-adminSubscriptionRouter.get('/stats/overview', requireAdminRole, async (_req: Request, res: Response) => {
-  try {
-    const statsResult = await query(`
+adminSubscriptionRouter.get(
+  '/stats/overview',
+  requireAdminRole,
+  async (_req: Request, res: Response) => {
+    try {
+      const statsResult = await query(`
       SELECT 
         COUNT(*) FILTER (WHERE effective_status = 'active') as active_count,
         COUNT(*) FILTER (WHERE effective_status = 'trial') as trial_count,
@@ -674,39 +742,40 @@ adminSubscriptionRouter.get('/stats/overview', requireAdminRole, async (_req: Re
         WHERE c.id != '00000000-0000-0000-0000-000000000000'
       ) sub
     `)
-    
-    const revenueResult = await query(`
+
+      const revenueResult = await query(`
       SELECT 
         COUNT(*) as total_payments,
         SUM(CASE WHEN status = 'completed' THEN amount::numeric ELSE 0 END) as total_revenue,
         SUM(CASE WHEN status = 'pending' THEN amount::numeric ELSE 0 END) as pending_revenue
       FROM payments
     `)
-    
-    const stats = statsResult.rows[0]
-    const revenue = revenueResult.rows[0]
-    
-    res.json({
-      success: true,
-      subscriptions: {
-        activeCount: parseInt(stats.active_count || '0', 10),
-        trialCount: parseInt(stats.trial_count || '0', 10),
-        expiredCount: parseInt(stats.expired_count || '0', 10),
-        canceledCount: parseInt(stats.canceled_count || '0', 10),
-        noSubscriptionCount: parseInt(stats.no_subscription_count || '0', 10),
-        totalCount: parseInt(stats.total_count || '0', 10)
-      },
-      revenue: {
-        totalPayments: parseInt(revenue.total_payments || '0', 10),
-        totalRevenue: parseFloat(revenue.total_revenue || '0'),
-        pendingRevenue: parseFloat(revenue.pending_revenue || '0')
-      }
-    })
-  } catch (err) {
-    console.error('[ADMIN] Failed to fetch subscription stats:', err)
-    res.status(500).json({ error: 'فشل جلب الإحصائيات' })
+
+      const stats = statsResult.rows[0]
+      const revenue = revenueResult.rows[0]
+
+      res.json({
+        success: true,
+        subscriptions: {
+          activeCount: parseInt(stats.active_count || '0', 10),
+          trialCount: parseInt(stats.trial_count || '0', 10),
+          expiredCount: parseInt(stats.expired_count || '0', 10),
+          canceledCount: parseInt(stats.canceled_count || '0', 10),
+          noSubscriptionCount: parseInt(stats.no_subscription_count || '0', 10),
+          totalCount: parseInt(stats.total_count || '0', 10)
+        },
+        revenue: {
+          totalPayments: parseInt(revenue.total_payments || '0', 10),
+          totalRevenue: parseFloat(revenue.total_revenue || '0'),
+          pendingRevenue: parseFloat(revenue.pending_revenue || '0')
+        }
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to fetch subscription stats:', err)
+      res.status(500).json({ error: 'فشل جلب الإحصائيات' })
+    }
   }
-})
+)
 
 /**
  * دالة مساعدة لتوليد تقرير HTML
@@ -731,8 +800,8 @@ async function generateUsersReportHTML(): Promise<string> {
   let tableRows = ''
   res.rows.forEach((row, i) => {
     const method = row.company_phone ? 'تسجيل يدوي (OTP)' : 'تسجيل عبر Google'
-    const status = row.is_verified 
-      ? '<span style="color: #2e7d32; font-weight: bold;">مفعل ✅</span>' 
+    const status = row.is_verified
+      ? '<span style="color: #2e7d32; font-weight: bold;">مفعل ✅</span>'
       : '<span style="color: #c62828;">غير مفعل ⏳</span>'
     const date = new Date(row.created_at).toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
 
@@ -807,43 +876,51 @@ export async function sendUsersReportEmail(targetEmail: string, htmlContent: str
  * GET /api/admin/subscriptions/report/html
  * للحصول على التقرير كـ HTML للطباعة
  */
-adminSubscriptionRouter.get('/report/html', requireAdminRole, async (_req: Request, res: Response) => {
-  try {
-    const html = await generateUsersReportHTML()
-    res.send(html)
-  } catch (err) {
-    console.error('[ADMIN] Failed to generate HTML report:', err)
-    res.status(500).send('فشل توليد التقرير')
+adminSubscriptionRouter.get(
+  '/report/html',
+  requireAdminRole,
+  async (_req: Request, res: Response) => {
+    try {
+      const html = await generateUsersReportHTML()
+      res.send(html)
+    } catch (err) {
+      console.error('[ADMIN] Failed to generate HTML report:', err)
+      res.status(500).send('فشل توليد التقرير')
+    }
   }
-})
+)
 
 /**
  * POST /api/admin/subscriptions/report/send
  * طلب إرسال التقرير (فوراً أو مجدولاً)
  */
-adminSubscriptionRouter.post('/report/send', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { email, scheduleDate } = req.body
-    const targetEmail = email || 'slaehmap@gmail.com'
-    
-    if (scheduleDate && new Date(scheduleDate) > new Date()) {
-      // حفظ في الجدولة
-      await query(
-        `INSERT INTO scheduled_reports (target_email, report_type, send_at, status) VALUES ($1, 'users_report', $2, 'pending')`,
-        [targetEmail, new Date(scheduleDate)]
-      )
-      return res.json({ success: true, message: 'تمت جدولة إرسال التقرير بنجاح' })
-    } else {
-      // إرسال فوري
-      const html = await generateUsersReportHTML()
-      await sendUsersReportEmail(targetEmail, html)
-      return res.json({ success: true, message: 'تم إرسال التقرير بنجاح' })
+adminSubscriptionRouter.post(
+  '/report/send',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { email, scheduleDate } = req.body
+      const targetEmail = email || 'slaehmap@gmail.com'
+
+      if (scheduleDate && new Date(scheduleDate) > new Date()) {
+        // حفظ في الجدولة
+        await query(
+          `INSERT INTO scheduled_reports (target_email, report_type, send_at, status) VALUES ($1, 'users_report', $2, 'pending')`,
+          [targetEmail, new Date(scheduleDate)]
+        )
+        return res.json({ success: true, message: 'تمت جدولة إرسال التقرير بنجاح' })
+      } else {
+        // إرسال فوري
+        const html = await generateUsersReportHTML()
+        await sendUsersReportEmail(targetEmail, html)
+        return res.json({ success: true, message: 'تم إرسال التقرير بنجاح' })
+      }
+    } catch (err) {
+      console.error('[ADMIN] Failed to send/schedule report:', err)
+      res.status(500).json({ error: 'فشل إرسال التقرير' })
     }
-  } catch (err) {
-    console.error('[ADMIN] Failed to send/schedule report:', err)
-    res.status(500).json({ error: 'فشل إرسال التقرير' })
   }
-})
+)
 
 // Background worker to process scheduled reports every minute
 setInterval(async () => {
@@ -853,12 +930,12 @@ setInterval(async () => {
       FROM scheduled_reports 
       WHERE status = 'pending' AND send_at <= NOW()
     `)
-    
+
     for (const report of pendingReports.rows) {
       try {
         const html = await generateUsersReportHTML()
         await sendUsersReportEmail(report.target_email, html)
-        
+
         await query(`UPDATE scheduled_reports SET status = 'sent' WHERE id = $1`, [report.id])
         console.log(`[SCHEDULED_REPORTS] Sent report to ${report.target_email}`)
       } catch (err) {

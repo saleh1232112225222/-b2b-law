@@ -1,4 +1,13 @@
-import { pgTable, uuid, text, boolean, timestamp, numeric, date, integer } from 'drizzle-orm/pg-core'
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  timestamp,
+  numeric,
+  date,
+  integer
+} from 'drizzle-orm/pg-core'
 import { cases } from './cases'
 import { users, clients } from './core'
 
@@ -41,7 +50,9 @@ export const experts = pgTable('experts', {
 export const judgments = pgTable('judgments', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  caseId: uuid('case_id').notNull().references(() => cases.id, { onDelete: 'cascade' }),
+  caseId: uuid('case_id')
+    .notNull()
+    .references(() => cases.id, { onDelete: 'cascade' }),
   type: text('type'),
   judgmentDate: date('judgment_date'),
   judgmentDateHijri: text('judgment_date_hijri'),
@@ -60,7 +71,9 @@ export const judgments = pgTable('judgments', {
 export const judgmentAmendments = pgTable('judgment_amendments', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  judgmentId: uuid('judgment_id').notNull().references(() => judgments.id, { onDelete: 'cascade' }),
+  judgmentId: uuid('judgment_id')
+    .notNull()
+    .references(() => judgments.id, { onDelete: 'cascade' }),
   reason: text('reason').notNull(),
   content: text('content').notNull(),
   createdBy: uuid('created_by'),
@@ -126,27 +139,35 @@ export const collectionsPayments = pgTable('collections_payments', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
-export const userCaseAccess = pgTable('user_case_access', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  caseId: uuid('case_id').references(() => cases.id, { onDelete: 'cascade' }),
-  accessLevel: text('access_level'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-}, (table) => ({
-  unqUserCaseAccess: { columns: [table.companyId, table.userId, table.caseId] }
-}))
+export const userCaseAccess = pgTable(
+  'user_case_access',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    caseId: uuid('case_id').references(() => cases.id, { onDelete: 'cascade' }),
+    accessLevel: text('access_level'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+  },
+  (table) => ({
+    unqUserCaseAccess: { columns: [table.companyId, table.userId, table.caseId] }
+  })
+)
 
-export const userClientAccess = pgTable('user_client_access', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
-  clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),
-  accessLevel: text('access_level'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-}, (table) => ({
-  unqUserClientAccess: { columns: [table.companyId, table.userId, table.clientId] }
-}))
+export const userClientAccess = pgTable(
+  'user_client_access',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull(),
+    userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'cascade' }),
+    accessLevel: text('access_level'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+  },
+  (table) => ({
+    unqUserClientAccess: { columns: [table.companyId, table.userId, table.clientId] }
+  })
+)
 
 export const scheduledReports = pgTable('scheduled_reports', {
   id: uuid('id').defaultRandom().primaryKey(),

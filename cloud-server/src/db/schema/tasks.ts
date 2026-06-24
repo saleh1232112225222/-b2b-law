@@ -10,7 +10,9 @@ export const tasksV2 = pgTable('tasks_v2', {
   linkType: text('link_type'),
   externalName: text('external_name'),
   ownerType: text('owner_type'),
-  responsibleUserId: uuid('responsible_user_id').references(() => users.id, { onDelete: 'set null' }),
+  responsibleUserId: uuid('responsible_user_id').references(() => users.id, {
+    onDelete: 'set null'
+  }),
   title: text('title').notNull(),
   description: text('description'),
   dueDate: date('due_date'),
@@ -42,7 +44,9 @@ export const tasksV2 = pgTable('tasks_v2', {
 export const taskAuditLog = pgTable('task_audit_log', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  taskId: uuid('task_id').notNull().references(() => tasksV2.id, { onDelete: 'cascade' }),
+  taskId: uuid('task_id')
+    .notNull()
+    .references(() => tasksV2.id, { onDelete: 'cascade' }),
   actionKey: text('action_key').notNull(),
   actorUserId: uuid('actor_user_id'),
   beforeJson: text('before_json'),
@@ -55,7 +59,9 @@ export const taskAuditLog = pgTable('task_audit_log', {
 export const taskNotifications = pgTable('task_notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  taskId: uuid('task_id').notNull().references(() => tasksV2.id, { onDelete: 'cascade' }),
+  taskId: uuid('task_id')
+    .notNull()
+    .references(() => tasksV2.id, { onDelete: 'cascade' }),
   notificationType: text('notification_type').notNull(),
   notifiedOn: text('notified_on').notNull(),
   notifiedAt: timestamp('notified_at', { withTimezone: true }).defaultNow()

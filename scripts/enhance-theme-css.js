@@ -1,17 +1,26 @@
 /**
  * تعزيز theme.css بأنماط إضافية مستخرجة من Figma mockups
  * لتوحيد المظهر الذهبي الزجاجي (Glassmorphism Gold) عبر المشروع
- * 
+ *
  * المصدر: G:\w2w\figma-designs\poa-mockups\
  * - figma_poa_form_light/dark.png     → نموذج إضافة/تعديل وكالة
  * - figma_poa_mobile_first_light/dark.png → قائمة الوكالات (الجوال)
  * - figma_poa_preview_light/dark.png  → معاينة تفاصيل الوكالة
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const cssPath = path.resolve(__dirname, '..', 'src', 'renderer', 'src', 'assets', 'css', 'theme.css');
+const cssPath = path.resolve(
+  __dirname,
+  '..',
+  'src',
+  'renderer',
+  'src',
+  'assets',
+  'css',
+  'theme.css'
+)
 
 const enhancements = `
 /* ============================================================
@@ -559,26 +568,25 @@ const enhancements = `
   flex-wrap: nowrap;
   align-items: center;
 }
-`;
+`
 
 try {
   // قراءة الملف الحالي
-  let css = fs.readFileSync(cssPath, 'utf-8');
-  
+  let css = fs.readFileSync(cssPath, 'utf-8')
+
   // التحقق من عدم وجود الإضافات مسبقاً
   if (css.includes('الأنماط المضافة من تحليل Figma Mockups')) {
-    console.log('✓ الأنماط المضافة موجودة مسبقاً في theme.css');
-    process.exit(0);
+    console.log('✓ الأنماط المضافة موجودة مسبقاً في theme.css')
+    process.exit(0)
   }
-  
+
   // إضافة الأنماط
-  css += enhancements;
-  fs.writeFileSync(cssPath, css, 'utf-8');
-  
-  console.log(`✓ تم إضافة الأنماط المحسّنة إلى ${cssPath}`);
-  console.log('  أضيفت 40 كلاس/style جديد مستخرج من Figma');
-  
+  css += enhancements
+  fs.writeFileSync(cssPath, css, 'utf-8')
+
+  console.log(`✓ تم إضافة الأنماط المحسّنة إلى ${cssPath}`)
+  console.log('  أضيفت 40 كلاس/style جديد مستخرج من Figma')
 } catch (err) {
-  console.error(`✗ خطأ: ${err.message}`);
-  process.exit(1);
+  console.error(`✗ خطأ: ${err.message}`)
+  process.exit(1)
 }

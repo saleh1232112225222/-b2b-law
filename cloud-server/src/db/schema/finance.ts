@@ -39,61 +39,73 @@ export const finances = pgTable('finances', {
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
-export const invoices = pgTable('invoices', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull(),
-  clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
-  caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
-  invoiceNumber: text('invoice_number').notNull(),
-  date: date('date'),
-  subtotal: numeric('subtotal', { precision: 12, scale: 2 }),
-  taxAmount: numeric('tax_amount', { precision: 12, scale: 2 }),
-  vatRate: numeric('vat_rate', { precision: 4, scale: 2 }),
-  total: numeric('total', { precision: 12, scale: 2 }),
-  status: text('status'),
-  notes: text('notes'),
-  createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-}, (table) => ({
-  unqCompanyInvoice: unique().on(table.companyId, table.invoiceNumber)
-}))
+export const invoices = pgTable(
+  'invoices',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull(),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+    caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
+    invoiceNumber: text('invoice_number').notNull(),
+    date: date('date'),
+    subtotal: numeric('subtotal', { precision: 12, scale: 2 }),
+    taxAmount: numeric('tax_amount', { precision: 12, scale: 2 }),
+    vatRate: numeric('vat_rate', { precision: 4, scale: 2 }),
+    total: numeric('total', { precision: 12, scale: 2 }),
+    status: text('status'),
+    notes: text('notes'),
+    createdBy: uuid('created_by'),
+    updatedBy: uuid('updated_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+  },
+  (table) => ({
+    unqCompanyInvoice: unique().on(table.companyId, table.invoiceNumber)
+  })
+)
 
 export const invoiceItems = pgTable('invoice_items', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  invoiceId: uuid('invoice_id').notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+  invoiceId: uuid('invoice_id')
+    .notNull()
+    .references(() => invoices.id, { onDelete: 'cascade' }),
   description: text('description'),
   amount: numeric('amount', { precision: 12, scale: 2 }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
 
-export const vouchers = pgTable('vouchers', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  companyId: uuid('company_id').notNull(),
-  clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
-  caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
-  accountId: uuid('account_id'),
-  voucherNumber: text('voucher_number').notNull(),
-  type: text('type'),
-  amount: numeric('amount', { precision: 12, scale: 2 }),
-  date: date('date'),
-  paymentMethod: text('payment_method'),
-  notes: text('notes'),
-  referenceType: text('reference_type'),
-  referenceId: text('reference_id'),
-  linkedTransactionId: text('linked_transaction_id'),
-  createdBy: uuid('created_by'),
-  updatedBy: uuid('updated_by'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
-}, (table) => ({
-  unqCompanyVoucher: unique().on(table.companyId, table.voucherNumber)
-}))
+export const vouchers = pgTable(
+  'vouchers',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    companyId: uuid('company_id').notNull(),
+    clientId: uuid('client_id').references(() => clients.id, { onDelete: 'set null' }),
+    caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
+    accountId: uuid('account_id'),
+    voucherNumber: text('voucher_number').notNull(),
+    type: text('type'),
+    amount: numeric('amount', { precision: 12, scale: 2 }),
+    date: date('date'),
+    paymentMethod: text('payment_method'),
+    notes: text('notes'),
+    referenceType: text('reference_type'),
+    referenceId: text('reference_id'),
+    linkedTransactionId: text('linked_transaction_id'),
+    createdBy: uuid('created_by'),
+    updatedBy: uuid('updated_by'),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+  },
+  (table) => ({
+    unqCompanyVoucher: unique().on(table.companyId, table.voucherNumber)
+  })
+)
 
 export const receivables = pgTable('receivables', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  clientId: uuid('client_id')
+    .notNull()
+    .references(() => clients.id, { onDelete: 'cascade' }),
   caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
   invoiceId: uuid('invoice_id'),
   amountDue: numeric('amount_due', { precision: 12, scale: 2 }),
@@ -112,7 +124,9 @@ export const receivables = pgTable('receivables', {
 export const creditNotes = pgTable('credit_notes', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  clientId: uuid('client_id').notNull().references(() => clients.id, { onDelete: 'cascade' }),
+  clientId: uuid('client_id')
+    .notNull()
+    .references(() => clients.id, { onDelete: 'cascade' }),
   invoiceId: uuid('invoice_id'),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   reason: text('reason').notNull(),

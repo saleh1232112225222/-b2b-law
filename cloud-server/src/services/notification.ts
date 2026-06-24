@@ -66,7 +66,12 @@ export async function sendOTP(email: string, phone: string, code: string): Promi
   console.log('================================================================================\n')
 }
 
-export async function sendEmail(options: { to: string; subject: string; text: string; html?: string }): Promise<void> {
+export async function sendEmail(options: {
+  to: string
+  subject: string
+  text: string
+  html?: string
+}): Promise<void> {
   const t = getTransporter()
   const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'slaehmap@gmail.com'
 
@@ -85,7 +90,9 @@ export async function sendEmail(options: { to: string; subject: string; text: st
       console.error(`[EMAIL] ✗ Failed to send to ${options.to}:`, err)
     }
   }
-  console.log(`[EMAIL] ⚠ Email not sent (SMTP not configured): "${options.subject}" -> ${options.to}`)
+  console.log(
+    `[EMAIL] ⚠ Email not sent (SMTP not configured): "${options.subject}" -> ${options.to}`
+  )
 }
 
 export async function notifyAdminOfNewRegistration(details: {
@@ -96,7 +103,9 @@ export async function notifyAdminOfNewRegistration(details: {
   trialExpiresAt: Date
 }): Promise<void> {
   const formattedDate = new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
-  const formattedExpiry = details.trialExpiresAt.toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })
+  const formattedExpiry = details.trialExpiresAt.toLocaleString('ar-EG', {
+    timeZone: 'Asia/Riyadh'
+  })
 
   const html = `
     <div dir="rtl" style="font-family: 'Segoe UI', Tahoma, sans-serif; max-width: 550px; margin: 0 auto; padding: 32px; background: #0c0e14; border-radius: 16px; border: 1px solid #e9c349;">

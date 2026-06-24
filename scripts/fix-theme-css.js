@@ -1,15 +1,24 @@
 /**
  * Fix: directly apply Figma CSS enhancements to theme.css
  */
-const fs = require('fs');
-const path = require('path');
+const fs = require('fs')
+const path = require('path')
 
-const cssPath = path.resolve(__dirname, '..', 'src', 'renderer', 'src', 'assets', 'css', 'theme.css');
+const cssPath = path.resolve(
+  __dirname,
+  '..',
+  'src',
+  'renderer',
+  'src',
+  'assets',
+  'css',
+  'theme.css'
+)
 
-let css = fs.readFileSync(cssPath, 'utf-8');
+let css = fs.readFileSync(cssPath, 'utf-8')
 
 // Remove any test artifacts
-css = css.replace(/\/\* TEST.*?\*\//g, '');
+css = css.replace(/\/\* TEST.*?\*\//g, '')
 
 const enhancements = `
 
@@ -277,12 +286,12 @@ const enhancements = `
   to { opacity: 1; transform: translateY(0); }
 }
 .page-enter { animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
-`;
+`
 
 if (css.includes('Figma Mockups')) {
-  console.log('Enhancements already present in theme.css');
+  console.log('Enhancements already present in theme.css')
 } else {
-  css += '\n' + enhancements;
-  fs.writeFileSync(cssPath, css, 'utf-8');
-  console.log('✓ Successfully added Figma CSS enhancements to theme.css');
+  css += '\n' + enhancements
+  fs.writeFileSync(cssPath, css, 'utf-8')
+  console.log('✓ Successfully added Figma CSS enhancements to theme.css')
 }

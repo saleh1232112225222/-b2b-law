@@ -176,7 +176,9 @@
                 :success-messages="emailStatus === 'available' ? 'البريد الإلكتروني متاح ✅' : ''"
                 :rules="[
                   (v) => !!v || 'البريد الإلكتروني مطلوب',
-                  (v) => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح'
+                  (v) =>
+                    /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
+                    'البريد الإلكتروني غير صحيح'
                 ]"
                 required
               >
@@ -201,7 +203,8 @@
                 :rules="[
                   (v) => !!v || 'رقم الجوال مطلوب',
                   (v) =>
-                    /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح من 10 أرقام (مثال: 0512345678)'
+                    /^05\d{8}$/.test(v) ||
+                    'يجب إدخال رقم جوال سعودي صحيح من 10 أرقام (مثال: 0512345678)'
                 ]"
                 required
               >
@@ -223,7 +226,11 @@
                 hide-details="auto"
                 :rules="[
                   (v) => !!v || 'كلمة المرور مطلوبة',
-                  (v) => /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(v) || 'كلمة المرور ضعيفة! يجب أن تحتوي على: حرف كبير، حرف صغير، رقم، ورمز خاص (@$!%*?&)، وبحد أدنى 8 أحرف.'
+                  (v) =>
+                    /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+                      v
+                    ) ||
+                    'كلمة المرور ضعيفة! يجب أن تحتوي على: حرف كبير، حرف صغير، رقم، ورمز خاص (@$!%*?&)، وبحد أدنى 8 أحرف.'
                 ]"
                 required
               >
@@ -255,7 +262,6 @@
               </v-text-field>
             </div>
 
-            <!-- Submit Button -->
             <v-btn
               type="submit"
               block
@@ -264,7 +270,7 @@
               :loading="loading"
               :disabled="!formValid"
             >
-              تسجيل الحساب وتفعيل 7 أيام تجريبية
+              تسجيل وتفعيل الحساب
             </v-btn>
 
             <!-- Bottom Links -->
@@ -334,7 +340,7 @@ let availabilityTimeout: ReturnType<typeof setTimeout> | null = null
 
 const debouncedCheckAvailability = (field: 'username' | 'email' | 'phone', value: string) => {
   if (availabilityTimeout) clearTimeout(availabilityTimeout)
-  
+
   if (field === 'username') usernameStatus.value = 'idle'
   if (field === 'email') emailStatus.value = 'idle'
   if (field === 'phone') phoneStatus.value = 'idle'
@@ -345,7 +351,7 @@ const debouncedCheckAvailability = (field: 'username' | 'email' | 'phone', value
     try {
       const api = (window as any).api
       if (!api?.auth?.checkAvailability) return
-      
+
       const res = await api.auth.checkAvailability(field, value)
       if (field === 'username') usernameStatus.value = res.available ? 'available' : 'taken'
       if (field === 'email') emailStatus.value = res.available ? 'available' : 'taken'

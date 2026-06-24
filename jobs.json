@@ -133,9 +133,7 @@
         }
       ],
       "check_run_url": "https://api.github.com/repos/saleh1232112225222/-b2b-law/check-runs/83208258333",
-      "labels": [
-        "ubuntu-latest"
-      ],
+      "labels": ["ubuntu-latest"],
       "runner_id": 1000000393,
       "runner_name": "GitHub Actions 1000000393",
       "runner_group_id": 0,

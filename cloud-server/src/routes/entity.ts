@@ -45,10 +45,7 @@ function parseTimeTo24h(timeStr: string | null | undefined): string | null {
   const isPM = cleaned.includes('م') || cleaned.toLowerCase().includes('pm')
   const isAM = cleaned.includes('ص') || cleaned.toLowerCase().includes('am')
 
-  cleaned = cleaned
-    .replace(/[صم]/g, '')
-    .replace(/am|pm/gi, '')
-    .trim()
+  cleaned = cleaned.replace(/[صم]/g, '').replace(/am|pm/gi, '').trim()
 
   const match = cleaned.match(/^(\d{1,2}):(\d{2})/)
   if (!match) return null
@@ -77,7 +74,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   const excluded = new Set(config.excludedRoutes || [])
 
   if (!excluded.has('list') || !excluded.has('getAll')) {
-    router.get('/',  async (req: Request, res: Response) => {
+    router.get('/', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const { page = '1', pageSize = '50', q, ...filters } = req.query
@@ -127,7 +124,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('getAll')) {
-    router.get('/all',  async (req: Request, res: Response) => {
+    router.get('/all', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(
@@ -143,7 +140,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('count')) {
-    router.get('/count',  async (req: Request, res: Response) => {
+    router.get('/count', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const { q, ...filters } = req.query
@@ -180,7 +177,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('search')) {
-    router.get('/search',  async (req: Request, res: Response) => {
+    router.get('/search', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const q = req.query.q as string
@@ -205,7 +202,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('getById')) {
-    router.get('/:id',  async (req: Request, res: Response) => {
+    router.get('/:id', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(
@@ -225,7 +222,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('create')) {
-    router.post('/',  async (req: Request, res: Response) => {
+    router.post('/', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body, company_id: companyId }
@@ -272,7 +269,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('update')) {
-    router.put('/:id',  async (req: Request, res: Response) => {
+    router.put('/:id', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body }
@@ -321,7 +318,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('delete')) {
-    router.delete('/:id',  async (req: Request, res: Response) => {
+    router.delete('/:id', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const result = await query(
