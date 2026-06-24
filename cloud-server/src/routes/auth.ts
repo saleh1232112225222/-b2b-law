@@ -42,8 +42,8 @@ async function logActivity(
         [metadata.userId, metadata.companyId, actionKey, details]
       )
     }
-  } catch (e) {
-    // Table may not exist yet — silently ignore
+  } catch (e: any) {
+    console.error('[TRACKING] activity_logs write failed:', e?.message || e)
   }
 }
 
@@ -64,8 +64,8 @@ async function logLoginAttempt(
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [uuidv4(), userId, companyId, ip, userAgent, deviceInfo, browserInfo, isSuccessful, failureReason || null]
     )
-  } catch (e) {
-    // Table may not exist yet — silently ignore
+  } catch (e: any) {
+    console.error('[TRACKING] login_log write failed:', e?.message || e)
   }
 }
 

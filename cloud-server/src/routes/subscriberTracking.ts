@@ -5,6 +5,36 @@ import { authMiddleware, AuthPayload } from '../middleware/auth'
 export const subscriberTrackingRouter = Router()
 subscriberTrackingRouter.use(authMiddleware)
 
+// Debug: check if tracking tables exist and have data
+subscriberTrackingRouter.get('/debug/check-tables', async (req: Request, res: Response) => {
+  const auth = req.auth as AuthPayload
+  if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
+    return res.status(403).json({ error: 'Admin access required' })
+  }
+  try {
+    const loginLogs = await query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_login_logs')`)
+    const activityLogs = await query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_activity_logs')`)
+    const loginCount = await query(`SELECT COUNT(*) as count FROM user_login_logs`)
+    const activityCount = await query(`SELECT COUNT(*) as count FROM user_activity_logs`)
+    const sampleLogs = await query(`SELECT * FROM user_login_logs ORDER BY created_at DESC LIMIT 5`)
+    const sampleActivity = await query(`SELECT * FROM user_activity_logs ORDER BY created_at DESC LIMIT 5`)
+    res.json({
+      tables: {
+        user_login_logs: loginLogs.rows[0]?.exists,
+        user_activity_logs: activityLogs.rows[0]?.exists,
+      },
+      counts: {
+        login_logs: parseInt(loginCount.rows[0]?.count || '0'),
+        activity_logs: parseInt(activityCount.rows[0]?.count || '0'),
+      },
+      sampleLogs: sampleLogs.rows,
+      sampleActivity: sampleActivity.rows,
+    })
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message || e })
+  }
+})
+
 /**
  * Middleware to require admin role of the main company
  */
