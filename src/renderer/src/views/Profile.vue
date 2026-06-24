@@ -2,6 +2,22 @@
   <v-container fluid class="pa-6 pb-12 rtl">
     <v-row justify="center">
       <v-col cols="12" md="8" lg="6">
+        <!-- Force Password Change Banner -->
+        <v-alert
+          v-if="user?.mustChangePassword"
+          type="warning"
+          variant="tonal"
+          color="warning"
+          prominent
+          class="mb-6 rounded-xl"
+          icon="mdi-shield-lock"
+        >
+          <div class="text-h6 font-weight-black mb-1">يجب تغيير كلمة المرور</div>
+          <div class="text-body-2 mb-3">
+            يرجى تغيير كلمة المرور المخصصة من المسؤول قبل استخدام النظام.
+          </div>
+        </v-alert>
+
         <!-- Header -->
         <div class="d-flex align-center justify-space-between mb-8">
           <div>
@@ -527,6 +543,19 @@ const handleUpdatePassword = async () => {
 
     if (success) {
       showSnackbar('تم تحديث كلمة المرور بنجاح تام', 'success')
+
+      // Clear mustChangePassword from session
+      try {
+        const raw = localStorage.getItem('web_currentUserSession')
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          if (parsed.mustChangePassword) {
+            parsed.mustChangePassword = false
+            localStorage.setItem('web_currentUserSession', JSON.stringify(parsed))
+          }
+        }
+      } catch {}
+
       passwordData.value = {
         oldPassword: '',
         newPassword: '',

@@ -165,7 +165,7 @@
     </div>
 
     <!-- Add Subscriber Vuetify Dialog -->
-    <v-dialog v-model="showAddSubscriberDialog" max-width="600px" persistent>
+    <v-dialog v-model="showAddSubscriberDialog" max-width="650px" persistent>
       <v-card class="rounded-xl border-gold border-1">
         <v-card-title class="bg-gold-gradient text-ebony pa-4 d-flex align-center">
           <v-icon icon="mdi-account-plus" class="me-2"></v-icon>
@@ -175,18 +175,36 @@
         </v-card-title>
 
         <v-card-text class="pa-6">
+          <!-- Account Type Toggle -->
+          <v-btn-toggle
+            v-model="newSubscriber.accountType"
+            mandatory
+            color="gold"
+            density="comfortable"
+            class="mb-5 rounded-lg"
+          >
+            <v-btn value="activation" class="flex-grow-1" prepend-icon="mdi-email-fast">
+              يحتاج تفعيل
+            </v-btn>
+            <v-btn value="direct" class="flex-grow-1" prepend-icon="mdi-lightning-bolt">
+              مباشر (بدون تفعيل)
+            </v-btn>
+          </v-btn-toggle>
+
+          <v-alert
+            v-if="newSubscriber.accountType === 'direct'"
+            type="info"
+            variant="tonal"
+            color="warning"
+            density="compact"
+            class="mb-4 rounded-lg"
+            icon="mdi-information"
+          >
+            سيتم إنشاء الحساب فوراً. سيُطلب من المستخدم تغيير كلمة المرور عند أول تسجيل دخول.
+          </v-alert>
+
           <v-form ref="addForm" @submit.prevent="createSubscriber">
             <v-row>
-              <v-col cols="12" sm="6">
-                <v-text-field
-                  v-model="newSubscriber.fullName"
-                  label="اسم المشترك / الشركة"
-                  variant="outlined"
-                  color="gold"
-                  prepend-inner-icon="mdi-domain"
-                  required
-                ></v-text-field>
-              </v-col>
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="newSubscriber.username"
@@ -225,6 +243,16 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <v-text-field
+                  v-model="newSubscriber.fullName"
+                  :label="newSubscriber.accountType === 'direct' ? 'اسم المشترك أو الشركة (اختياري)' : 'اسم المشترك / الشركة'"
+                  variant="outlined"
+                  color="gold"
+                  prepend-inner-icon="mdi-domain"
+                  :required="newSubscriber.accountType !== 'direct'"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-text-field
                   v-model="newSubscriber.email"
                   label="البريد الإلكتروني"
                   type="email"
@@ -232,13 +260,13 @@
                   color="gold"
                   prepend-inner-icon="mdi-email"
                   hide-details="auto"
-                  :rules="[
+                  :rules="newSubscriber.accountType === 'activation' ? [
                     (v) => !!v || 'البريد الإلكتروني مطلوب',
                     (v) =>
                       /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
                       'البريد الإلكتروني غير صحيح'
-                  ]"
-                  required
+                  ] : []"
+                  :required="newSubscriber.accountType !== 'direct'"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
@@ -250,11 +278,11 @@
                   color="gold"
                   prepend-inner-icon="mdi-phone"
                   hide-details="auto"
-                  :rules="[
+                  :rules="newSubscriber.accountType === 'activation' ? [
                     (v) => !!v || 'رقم الجوال مطلوب',
                     (v) => /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
-                  ]"
-                  required
+                  ] : []"
+                  :required="newSubscriber.accountType !== 'direct'"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
@@ -266,6 +294,8 @@
                     { title: 'اشتراك سنوي', value: 'yearly' },
                     { title: 'مدى الحياة', value: 'lifetime' }
                   ]"
+                  item-title="title"
+                  item-value="value"
                   label="نوع الاشتراك"
                   variant="outlined"
                   color="gold"
@@ -297,6 +327,17 @@
                 >إلغاء</v-btn
               >
               <v-btn
+                v-if="newSubscriber.accountType === 'direct'"
+                color="accent"
+                type="submit"
+                class="text-white font-weight-bold premium-btn-gold-gradient"
+                :loading="isCreatingSubscriber"
+                prepend-icon="mdi-lightning-bolt"
+              >
+                إنشاء مشترك مباشر
+              </v-btn>
+              <v-btn
+                v-else
                 color="gold"
                 type="submit"
                 class="text-ebony font-weight-bold"
@@ -521,12 +562,14 @@ const reportData = reactive({
 })
 
 const newSubscriber = reactive({
+  accountType: 'direct',
   fullName: '',
   username: '',
   password: '',
   email: '',
   phone: '',
-  subscriptionType: 'trial'
+  subscriptionType: 'trial',
+  planId: ''
 })
 
 const activateData = reactive({
@@ -635,48 +678,85 @@ function formatDate(date) {
 }
 
 async function createSubscriber() {
-  if (!newSubscriber.username || !newSubscriber.password || !newSubscriber.fullName) {
-    alert('اسم المستخدم وكلمة المرور واسم الشركة/المشترك مطلوبان')
+  if (!newSubscriber.username || !newSubscriber.password) {
+    alert('اسم المستخدم وكلمة المرور مطلوبان')
+    return
+  }
+
+  if (newSubscriber.accountType === 'activation' && !newSubscriber.fullName) {
+    alert('اسم المشترك / الشركة مطلوب')
     return
   }
 
   isCreatingSubscriber.value = true
   try {
-    // Create company and super admin user in one step using the auth/register endpoint
-    const companyResponse = await apiRequest('POST', '/api/auth/register', {
-      username: newSubscriber.username,
-      password: newSubscriber.password,
-      companyName: newSubscriber.fullName,
-      email: newSubscriber.email || `${newSubscriber.username}@example.com`,
-      phone: newSubscriber.phone || '0500000000'
-    })
-
-    const companyId = companyResponse.data?.companyId
-
-    if (!companyId) {
-      alert('فشل إنشاء الشركة. قد يكون اسم المستخدم أو البريد الإلكتروني مسجل مسبقاً.')
-      return
-    }
-
-    // Create subscription if not a basic trial
-    // NOTE: /api/auth/register automatically creates a trial subscription,
-    // but we can activate a different plan if selected.
-    if (newSubscriber.subscriptionType !== 'trial') {
-      const subscriptionBody = {
-        companyId: companyId,
-        planId: newSubscriber.planId,
-        durationMonths:
-          newSubscriber.subscriptionType === 'monthly'
-            ? 1
-            : newSubscriber.subscriptionType === 'yearly'
-              ? 12
-              : null,
-        lifetime: newSubscriber.subscriptionType === 'lifetime'
+    if (newSubscriber.accountType === 'direct') {
+      // Direct subscriber - no email verification needed
+      const body = {
+        username: newSubscriber.username,
+        password: newSubscriber.password,
+        fullName: newSubscriber.fullName || undefined,
+        email: newSubscriber.email || undefined,
+        phone: newSubscriber.phone || undefined,
+        planId: newSubscriber.planId || undefined,
+        subscriptionType: newSubscriber.subscriptionType
       }
-      await apiRequest('POST', '/api/admin/subscriptions/activate', subscriptionBody)
+
+      // Get planId from subscriptionType if not explicitly set
+      if (!body.planId && newSubscriber.subscriptionType !== 'trial' && availablePlans.value.length > 0) {
+        const typeMap = { monthly: 'month', yearly: 'year', lifetime: 'lifetime' }
+        const interval = typeMap[newSubscriber.subscriptionType]
+        const plan = availablePlans.value.find((p) => p.interval === interval)
+        if (plan) body.planId = plan.id
+      }
+
+      const response = await apiRequest('POST', '/api/admin/subscriptions/create-direct', body)
+
+      const msg = response.data?.message || 'تم إنشاء المشترك بنجاح'
+      const username = response.data?.username || newSubscriber.username
+      alert(`${msg}\n\nاسم المستخدم: ${username}\nكلمة المرور: ${newSubscriber.password}\n\n(سيُطلب من المستخدم تغيير كلمة المرور عند أول دخول)`)
+    } else {
+      // Activation-required subscriber
+      const companyResponse = await apiRequest('POST', '/api/auth/register', {
+        username: newSubscriber.username,
+        password: newSubscriber.password,
+        companyName: newSubscriber.fullName,
+        email: newSubscriber.email || `${newSubscriber.username}@example.com`,
+        phone: newSubscriber.phone || '0500000000'
+      })
+
+      const companyId = companyResponse.data?.companyId
+
+      if (!companyId) {
+        alert('فشل إنشاء الشركة. قد يكون اسم المستخدم أو البريد الإلكتروني مسجل مسبقاً.')
+        return
+      }
+
+      if (newSubscriber.subscriptionType !== 'trial') {
+        let planId = newSubscriber.planId
+        if (!planId && availablePlans.value.length > 0) {
+          const typeMap = { monthly: 'month', yearly: 'year', lifetime: 'lifetime' }
+          const interval = typeMap[newSubscriber.subscriptionType]
+          const plan = availablePlans.value.find((p) => p.interval === interval)
+          if (plan) planId = plan.id
+        }
+
+        if (planId) {
+          await apiRequest('POST', '/api/admin/subscriptions/activate', {
+            companyId,
+            planId,
+            durationMonths:
+              newSubscriber.subscriptionType === 'monthly' ? 1
+              : newSubscriber.subscriptionType === 'yearly' ? 12
+              : null,
+            lifetime: newSubscriber.subscriptionType === 'lifetime'
+          })
+        }
+      }
+
+      alert('تم إنشاء المشترك بنجاح')
     }
 
-    alert('تم إنشاء المشترك بنجاح')
     closeAddSubscriberDialog()
     await fetchData()
   } catch (error) {
@@ -764,12 +844,14 @@ async function extendSubscription() {
 }
 
 function resetNewSubscriber() {
+  newSubscriber.accountType = 'direct'
   newSubscriber.fullName = ''
   newSubscriber.username = ''
   newSubscriber.password = ''
   newSubscriber.email = ''
   newSubscriber.phone = ''
   newSubscriber.subscriptionType = 'trial'
+  newSubscriber.planId = ''
 }
 
 function openReportDialog() {
