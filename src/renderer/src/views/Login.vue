@@ -455,7 +455,7 @@ const handleLogin = async () => {
     window.dispatchEvent(new Event('auth-changed'))
 
     if (session.mustChangePassword) {
-      router.push('/settings')
+      router.push('/force-password-change')
       return
     }
 

@@ -4,6 +4,12 @@ import { isSuperAdmin } from '../../../admin/middleware/adminGuard'
 const routes = [
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
   { path: '/register', name: 'Register', component: () => import('../views/Register.vue') },
+  {
+    path: '/force-password-change',
+    name: 'ForcePasswordChange',
+    component: () => import('../views/ForcePasswordChange.vue'),
+    meta: { requiresAuth: true }
+  },
   { path: '/dev-console', name: 'DevConsole', component: () => import('../views/DevConsole.vue') },
   {
     path: '/lock',
@@ -313,6 +319,11 @@ router.beforeEach(async (to) => {
       const raw = localStorage.getItem('web_currentUserSession')
       if (raw) session = JSON.parse(raw)
     } catch {}
+  }
+
+  // Force password change guard — block all navigation except the force-password-change page
+  if (session?.mustChangePassword && to.path !== '/force-password-change') {
+    return '/force-password-change'
   }
 
   // Subscription status check (web mode)

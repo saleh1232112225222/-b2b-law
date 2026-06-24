@@ -8,6 +8,7 @@ interface SessionData {
   roleKey: RoleKey
   companyId?: string | null
   permissions: string[]
+  mustChangePassword?: boolean
 }
 
 // Use a module-level ref so all components share the same reactive state
