@@ -57,6 +57,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
         c.trial_expires_at,
         c.created_at as company_created_at,
         u.id as user_id,
+        u.username as user_username,
         s.id as subscription_id,
         s.status as subscription_status,
         s.trial_start,
@@ -103,6 +104,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
     const mappedRows = result.rows.map((row) => ({
       id: row.id,
       userId: row.user_id,
+      username: row.user_username,
       companyName: row.company_name,
       email: row.email,
       phone: row.phone,

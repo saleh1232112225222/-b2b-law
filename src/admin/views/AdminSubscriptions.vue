@@ -83,6 +83,7 @@
         <thead>
           <tr>
             <th>اسم الشركة</th>
+            <th>اسم المستخدم</th>
             <th>البريد الإلكتروني</th>
             <th>الهاتف</th>
             <th>الحالة</th>
@@ -103,6 +104,16 @@
                 @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
               >{{ company.companyName }}</a>
               <span v-else>{{ company.companyName }}</span>
+            </td>
+            <td>
+              <a
+                v-if="company.userId"
+                href="#"
+                class="text-primary font-weight-bold text-decoration-underline"
+                style="cursor: pointer"
+                @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
+              >{{ company.username || '-' }}</a>
+              <span v-else>{{ company.username || '-' }}</span>
             </td>
             <td>{{ company.email }}</td>
             <td>{{ company.phone }}</td>
