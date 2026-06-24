@@ -200,7 +200,7 @@
             class="mb-4 rounded-lg"
             icon="mdi-information"
           >
-            سيتم إنشاء الحساب فوراً. سيُطلب من المستخدم تغيير كلمة المرور عند أول تسجيل دخول.
+            كلمة المرور ستكون تلقائياً = اسم المستخدم. سيُطلب من المستخدم تغييرها عند أول دخول.
           </v-alert>
 
           <v-form ref="addForm" @submit.prevent="createSubscriber">
@@ -225,13 +225,16 @@
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="newSubscriber.password"
-                  label="كلمة المرور"
-                  type="password"
+                  :label="newSubscriber.accountType === 'direct' ? 'كلمة المرور (تلقائي = اسم المستخدم)' : 'كلمة المرور'"
+                  :type="newSubscriber.accountType === 'direct' ? 'text' : 'password'"
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-lock"
                   hide-details="auto"
-                  :rules="[
+                  :readonly="newSubscriber.accountType === 'direct'"
+                  :rules="newSubscriber.accountType === 'direct' ? [
+                    (v) => !!v || 'كلمة المرور مطلوبة'
+                  ] : [
                     (v) => !!v || 'كلمة المرور مطلوبة',
                     (v) =>
                       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
@@ -509,7 +512,7 @@
 
 <script setup lang="ts">
 // @ts-nocheck
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -853,6 +856,26 @@ function resetNewSubscriber() {
   newSubscriber.subscriptionType = 'trial'
   newSubscriber.planId = ''
 }
+
+// Auto-fill password with username in direct mode
+watch(
+  () => newSubscriber.username,
+  (val) => {
+    if (newSubscriber.accountType === 'direct' && val) {
+      newSubscriber.password = val
+    }
+  }
+)
+
+// Auto-fill password when switching to direct mode
+watch(
+  () => newSubscriber.accountType,
+  (type) => {
+    if (type === 'direct' && newSubscriber.username) {
+      newSubscriber.password = newSubscriber.username
+    }
+  }
+)
 
 function openReportDialog() {
   reportData.scheduleDate = ''

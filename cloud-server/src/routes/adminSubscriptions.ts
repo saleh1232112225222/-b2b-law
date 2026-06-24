@@ -939,8 +939,8 @@ adminSubscriptionRouter.post('/create-direct', requireAdminRole, async (req: Req
       return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
     }
 
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
+    if (!password) {
+      return res.status(400).json({ error: 'كلمة المرور مطلوبة' })
     }
 
     const companyId = uuidv4()
