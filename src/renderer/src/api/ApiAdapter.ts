@@ -1411,6 +1411,10 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('system:getDatabaseInventory')
         : cloudRequest({ method: 'GET', url: '/system/database-inventory' }),
+    getDiagnostic: () =>
+      mode === 'desktop'
+        ? Promise.resolve(null)
+        : cloudRequest({ method: 'GET', url: '/system/diagnostic' }),
     exportSupportBundle: () => {
       throw new Error('Not available in cloud mode')
     },

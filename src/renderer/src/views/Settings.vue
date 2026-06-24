@@ -798,6 +798,9 @@ const najizSavedPath = ref<string>('')
 const najizMessages = ref<string[]>([])
 const showPerfReportDialog = ref(false)
 const perfReportData = ref<any>(null)
+const showDiagnosticDialog = ref(false)
+const diagnosticData = ref<any>(null)
+const diagnosticLoading = ref(false)
 let offNajizStatus: (() => void) | null = null
 
 const najizPhaseLabel = computed(() => {
@@ -994,9 +997,17 @@ const injectManualSnapshot = async (): Promise<void> => {
       showSnackbar(res?.message || 'فشل حقن البيانات', 'error')
       return
     }
-    const totalReceived = Object.values(res.counts || {}).reduce((s: number, c: any) => s + (c.received || 0), 0)
-    const totalImported = Object.values(res.counts || {}).reduce((s: number, c: any) => s + (c.imported || 0), 0)
-    const zeroTables = Object.entries(res.counts || {}).filter(([, c]: any) => c.imported === 0 && c.received > 0).map(([t]) => t)
+    const totalReceived = Object.values(res.counts || {}).reduce(
+      (s: number, c: any) => s + (c.received || 0),
+      0
+    )
+    const totalImported = Object.values(res.counts || {}).reduce(
+      (s: number, c: any) => s + (c.imported || 0),
+      0
+    )
+    const zeroTables = Object.entries(res.counts || {})
+      .filter(([, c]: any) => c.imported === 0 && c.received > 0)
+      .map(([t]) => t)
 
     if (totalImported === 0 && totalReceived > 0) {
       showSnackbar(
@@ -1013,7 +1024,10 @@ const injectManualSnapshot = async (): Promise<void> => {
       await fetchInventory()
       setTimeout(() => window.location.reload(), 3000)
     } else {
-      showSnackbar(`تم حقن البيانات بنجاح (${totalImported} سجل) — جاري إعادة التحميل...`, 'success')
+      showSnackbar(
+        `تم حقن البيانات بنجاح (${totalImported} سجل) — جاري إعادة التحميل...`,
+        'success'
+      )
       await fetchInventory()
       setTimeout(() => window.location.reload(), 1200)
     }

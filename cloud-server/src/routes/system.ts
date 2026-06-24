@@ -14,6 +14,50 @@ const requireAdminRole = (req: Request, res: Response, next: Function) => {
   next()
 }
 
+systemRouter.get('/system/diagnostic', async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const username = req.auth?.username || 'unknown'
+    const roleKey = req.auth?.roleKey || 'unknown'
+
+    const tablesResult = await query(
+      "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
+      []
+    )
+    const inventory: { name: string; count: number }[] = []
+    for (const row of tablesResult.rows) {
+      const table = row.table_name as string
+      try {
+        const result = await query(
+          `SELECT COUNT(*) as count FROM ${table} WHERE company_id = $1`,
+          [companyId]
+        )
+        inventory.push({ name: table, count: parseInt(result.rows[0].count) })
+      } catch {
+        inventory.push({ name: table, count: -1 })
+      }
+    }
+
+    const totalRecords = inventory.reduce((s, t) => s + (t.count > 0 ? t.count : 0), 0)
+    const tablesWithData = inventory.filter((t) => t.count > 0).length
+
+    res.json({
+      companyId,
+      username,
+      roleKey,
+      totalTables: inventory.length,
+      tablesWithData,
+      totalRecords,
+      tables: inventory.filter((t) => t.count > 0),
+      emptyTables: inventory.filter((t) => t.count === 0).map((t) => t.name),
+      missingTables: inventory.filter((t) => t.count === -1).map((t) => t.name)
+    })
+  } catch (err) {
+    console.error('[Diagnostic] Error:', err)
+    res.status(500).json({ error: 'Diagnostic failed' })
+  }
+})
+
 systemRouter.get('/system/settings', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
@@ -452,7 +496,13 @@ systemRouter.post(
             await client.query('RELEASE SAVEPOINT row_insert')
             counts[table].imported++
           } catch (err) {
-            // On duplicate PK (record exists under a different company), try UPDATE instead
+            // Always rollback to savepoint FIRST to clear the aborted transaction state
+            try {
+              await client.query('ROLLBACK TO SAVEPOINT row_insert')
+            } catch {
+              // Savepoint might not exist if error happened before it was created
+            }
+
             const errMsg: string = (err as Error).message || ''
             if (
               errMsg.includes('duplicate key') &&
@@ -463,25 +513,27 @@ systemRouter.post(
               try {
                 const nonIdKeys = keys.filter((k) => k !== 'id')
                 if (nonIdKeys.length > 0) {
+                  await client.query('SAVEPOINT row_update')
                   const setClauses = nonIdKeys.map((k, i) => `${k} = $${i + 1}`).join(', ')
                   const setValues = nonIdKeys.map((k) => sanitized[keys.indexOf(k)])
                   await client.query(
                     `UPDATE ${table} SET ${setClauses} WHERE id = $${nonIdKeys.length + 1}`,
                     [...setValues, sanitized[idIndex]]
                   )
-                  await client.query('RELEASE SAVEPOINT row_insert')
+                  await client.query('RELEASE SAVEPOINT row_update')
                   counts[table].imported++
                   continue
                 }
               } catch (updateErr) {
-                await client.query('ROLLBACK TO SAVEPOINT row_insert')
+                try {
+                  await client.query('ROLLBACK TO SAVEPOINT row_update')
+                } catch {}
                 const fallbackMsg = `[ImportSnapshot] FAILED row in ${table} (UPDATE fallback also failed): ${(updateErr as Error).message}`
                 console.error(fallbackMsg)
                 importErrors.push(fallbackMsg)
               }
             } else {
-              await client.query('ROLLBACK TO SAVEPOINT row_insert')
-              console.error(errMsg)
+              console.error(`[ImportSnapshot] SKIP row in ${table}: ${errMsg}`)
               importErrors.push(errMsg)
             }
           }
