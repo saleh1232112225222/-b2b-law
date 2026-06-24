@@ -994,16 +994,26 @@ const injectManualSnapshot = async (): Promise<void> => {
       showSnackbar(res?.message || 'فشل حقن البيانات', 'error')
       return
     }
-    if (res?.errors && res.errors.length > 0) {
+    const totalReceived = Object.values(res.counts || {}).reduce((s: number, c: any) => s + (c.received || 0), 0)
+    const totalImported = Object.values(res.counts || {}).reduce((s: number, c: any) => s + (c.imported || 0), 0)
+    const zeroTables = Object.entries(res.counts || {}).filter(([, c]: any) => c.imported === 0 && c.received > 0).map(([t]) => t)
+
+    if (totalImported === 0 && totalReceived > 0) {
+      showSnackbar(
+        `فشل الحقن: لم يتم استيراد أي سجل من أصل ${totalReceived}. الأخطاء في الـ Console.`,
+        'error'
+      )
+      console.error('[ImportSnapshot] Zero import - all rows rejected. Errors:', res.errors || [])
+    } else if (res?.errors && res.errors.length > 0) {
       console.error('[Import Errors]:', res.errors)
       showSnackbar(
-        `تم الحقن مع تجاهل ${res.errors.length} سجل بسبب تعارضات. راجع الـ Console للتفاصيل.`,
+        `تم الحقن: ${totalImported}/${totalReceived} سجل، مع تجاهل ${res.errors.length} سجل. راجع الـ Console.`,
         'warning'
       )
       await fetchInventory()
       setTimeout(() => window.location.reload(), 3000)
     } else {
-      showSnackbar('تم حقن البيانات بنجاح — جاري إعادة تحميل الصفحة...', 'success')
+      showSnackbar(`تم حقن البيانات بنجاح (${totalImported} سجل) — جاري إعادة التحميل...`, 'success')
       await fetchInventory()
       setTimeout(() => window.location.reload(), 1200)
     }

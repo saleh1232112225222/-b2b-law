@@ -146,6 +146,19 @@ systemRouter.post(
       const importMode = mode === 'replace' ? 'replace' : 'merge'
       const counts: Record<string, { received: number; imported: number }> = {}
       const importErrors: string[] = []
+
+      // Build ID lookup from snapshot data for cross-referencing FKs within the file
+      const snapshotRefIds: Record<string, Set<string>> = {}
+      for (const [tableName, rows] of Object.entries(tables)) {
+        const idSet = new Set<string>()
+        if (Array.isArray(rows)) {
+          for (const row of rows) {
+            if (row.id) idSet.add(String(row.id))
+          }
+        }
+        snapshotRefIds[tableName] = idSet
+      }
+
       const fkResult = await client.query(`
         SELECT
             tc.table_name AS source_table,
@@ -361,7 +374,7 @@ systemRouter.post(
             return val
           })
 
-          // Validate foreign keys using local caches
+          // Validate foreign keys using local caches + snapshot cross-reference
           let skipRow = false
           for (const fk of fks) {
             const colIndex = keys.indexOf(fk.source_column)
@@ -369,8 +382,12 @@ systemRouter.post(
               const val = sanitized[colIndex]
               if (val !== null && val !== undefined && val !== '') {
                 const refSet = await getOrLoadIds(fk.referenced_table)
-                if (!refSet.has(String(val))) {
-                  // Referenced ID doesn't exist
+                const refExistsInDb = refSet.has(String(val))
+                // Also check if the referenced ID exists within the snapshot file itself
+                const refExistsInSnapshot =
+                  snapshotRefIds[fk.referenced_table]?.has(String(val)) ?? false
+                if (!refExistsInDb && !refExistsInSnapshot) {
+                  // Referenced ID doesn't exist anywhere
                   const isNullable = colMap[fk.source_column]?.nullable ?? true
                   if (isNullable) {
                     const msg = `[ImportSnapshot] Nullifying FK ${table}.${fk.source_column} = ${val} because referenced row in ${fk.referenced_table} is missing`
@@ -435,10 +452,38 @@ systemRouter.post(
             await client.query('RELEASE SAVEPOINT row_insert')
             counts[table].imported++
           } catch (err) {
-            await client.query('ROLLBACK TO SAVEPOINT row_insert')
-            const errMsg = `[ImportSnapshot] FAILED row in ${table}: ${(err as Error).message}`
-            console.error(errMsg)
-            importErrors.push(errMsg)
+            // On duplicate PK (record exists under a different company), try UPDATE instead
+            const errMsg: string = (err as Error).message || ''
+            if (
+              errMsg.includes('duplicate key') &&
+              importMode === 'merge' &&
+              idIndex >= 0 &&
+              sanitized[idIndex]
+            ) {
+              try {
+                const nonIdKeys = keys.filter((k) => k !== 'id')
+                if (nonIdKeys.length > 0) {
+                  const setClauses = nonIdKeys.map((k, i) => `${k} = $${i + 1}`).join(', ')
+                  const setValues = nonIdKeys.map((k) => sanitized[keys.indexOf(k)])
+                  await client.query(
+                    `UPDATE ${table} SET ${setClauses} WHERE id = $${nonIdKeys.length + 1}`,
+                    [...setValues, sanitized[idIndex]]
+                  )
+                  await client.query('RELEASE SAVEPOINT row_insert')
+                  counts[table].imported++
+                  continue
+                }
+              } catch (updateErr) {
+                await client.query('ROLLBACK TO SAVEPOINT row_insert')
+                const fallbackMsg = `[ImportSnapshot] FAILED row in ${table} (UPDATE fallback also failed): ${(updateErr as Error).message}`
+                console.error(fallbackMsg)
+                importErrors.push(fallbackMsg)
+              }
+            } else {
+              await client.query('ROLLBACK TO SAVEPOINT row_insert')
+              console.error(errMsg)
+              importErrors.push(errMsg)
+            }
           }
         }
       }
