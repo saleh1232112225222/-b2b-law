@@ -34,6 +34,48 @@ async function logActivity(
   }
 }
 
+async function logLoginAttempt(
+  userId: string,
+  companyId: string,
+  isSuccessful: boolean,
+  failureReason?: string,
+  req?: Request
+): Promise<void> {
+  try {
+    const ip = req?.ip || req?.headers['x-forwarded-for'] || req?.socket?.remoteAddress || 'unknown'
+    const userAgent = req?.headers['user-agent'] || ''
+    const deviceInfo = parseDevice(userAgent)
+    const browserInfo = parseBrowser(userAgent)
+    await query(
+      `INSERT INTO user_login_logs (id, user_id, company_id, ip_address, user_agent, device_info, browser_info, is_successful, failure_reason)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      [uuidv4(), userId, companyId, ip, userAgent, deviceInfo, browserInfo, isSuccessful, failureReason || null]
+    )
+  } catch (e) {
+    console.error('[LOGIN_LOG] Error:', e)
+  }
+}
+
+function parseDevice(ua: string): string {
+  if (!ua) return 'unknown'
+  if (/android/i.test(ua)) return 'Android'
+  if (/iphone|ipad|ipod/i.test(ua)) return /ipad/i.test(ua) ? 'iPad' : 'iPhone'
+  if (/windows/i.test(ua)) return 'Windows'
+  if (/macintosh|mac os/i.test(ua)) return 'macOS'
+  if (/linux/i.test(ua)) return 'Linux'
+  return 'Other'
+}
+
+function parseBrowser(ua: string): string {
+  if (!ua) return 'unknown'
+  if (/edg|edge/i.test(ua)) return 'Edge'
+  if (/chrome/i.test(ua) && !/opr|opera/i.test(ua)) return 'Chrome'
+  if (/firefox/i.test(ua)) return 'Firefox'
+  if (/safari/i.test(ua) && !/chrome/i.test(ua)) return 'Safari'
+  if (/opr|opera/i.test(ua)) return 'Opera'
+  return 'Other'
+}
+
 const authAttempts = new Map<string, { count: number; resetTime: number }>()
 
 const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
@@ -94,6 +136,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     const user = result.rows[0]
     if (!user.is_active) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معطل')
+      await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
       res.status(403).json({ error: 'Account is disabled' })
       return
     }
@@ -112,6 +155,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     const valid = await bcrypt.compare(password, user.password_hash)
     if (!valid) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - كلمة مرور خاطئة')
+      await logLoginAttempt(user.id, user.company_id, false, 'كلمة مرور خاطئة', req)
       res.status(401).json({ error: 'Invalid credentials' })
       return
     }
@@ -127,6 +171,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       const company = companyResult.rows[0]
       if (!company.is_verified) {
         await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب غير مفعل')
+        await logLoginAttempt(user.id, user.company_id, false, 'حساب غير مفعل', req)
         res.status(403).json({ error: 'AccountNotVerified' })
         return
       }
@@ -161,6 +206,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       companyId: user.company_id,
       roleKey: user.role_key
     })
+    await logLoginAttempt(user.id, user.company_id, true, undefined, req)
 
     // Notify the admin of successful login
     query('SELECT email FROM companies WHERE id = $1', [user.company_id])
@@ -200,7 +246,23 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
   }
 })
 
-authRouter.post('/logout', (_req: Request, res: Response) => {
+authRouter.post('/logout', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const auth = req.auth!
+    // Update last login log with logout time
+    await query(
+      `UPDATE user_login_logs SET logout_time = NOW()
+       WHERE user_id = $1 AND logout_time IS NULL
+       ORDER BY login_time DESC LIMIT 1`,
+      [auth.userId]
+    )
+    await logActivity(auth.username, 'LOGOUT', 'auth', 'تسجيل خروج', {
+      userId: auth.userId,
+      companyId: auth.companyId
+    })
+  } catch (e) {
+    console.error('[LOGOUT] Log error:', e)
+  }
   res.json({ success: true })
 })
 

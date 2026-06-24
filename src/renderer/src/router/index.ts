@@ -177,6 +177,12 @@ const routes = [
     meta: { requiresAuth: true, permissions: ['manage_settings'] }
   },
   {
+    path: '/admin/subscriber/:userId',
+    name: 'SubscriberDetail',
+    component: () => import('../../../admin/views/SubscriberDetail.vue'),
+    meta: { requiresAuth: true, permissions: ['manage_settings'] }
+  },
+  {
     path: '/admin/dashboard',
     name: 'AdminDashboard',
     component: () => import('../../../admin/views/AdminDashboard.vue'),

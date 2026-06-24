@@ -94,7 +94,16 @@
         </thead>
         <tbody>
           <tr v-for="company in companies" :key="company.id">
-            <td>{{ company.companyName }}</td>
+            <td>
+              <a
+                v-if="company.userId"
+                href="#"
+                class="text-primary font-weight-bold text-decoration-underline"
+                style="cursor: pointer"
+                @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
+              >{{ company.companyName }}</a>
+              <span v-else>{{ company.companyName }}</span>
+            </td>
             <td>{{ company.email }}</td>
             <td>{{ company.phone }}</td>
             <td>

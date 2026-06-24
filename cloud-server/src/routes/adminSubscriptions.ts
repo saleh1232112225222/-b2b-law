@@ -56,6 +56,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
         c.is_verified,
         c.trial_expires_at,
         c.created_at as company_created_at,
+        u.id as user_id,
         s.id as subscription_id,
         s.status as subscription_status,
         s.trial_start,
@@ -86,6 +87,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
         LIMIT 1
       ) s ON true
       LEFT JOIN plans p ON s.plan_id = p.id
+      LEFT JOIN users u ON u.company_id = c.id AND u.role_key = 'admin'
       WHERE c.id != '00000000-0000-0000-0000-000000000000'
       ORDER BY 
         CASE 
@@ -100,6 +102,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
 
     const mappedRows = result.rows.map((row) => ({
       id: row.id,
+      userId: row.user_id,
       companyName: row.company_name,
       email: row.email,
       phone: row.phone,
