@@ -54,6 +54,9 @@
           variant="outlined"
           class="glass-input"
           :prepend-inner-icon="ICONS.UI.PHONE"
+          :rules="[
+            (v) => !v || /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
+          ]"
         ></v-text-field>
       </v-col>
 
@@ -101,7 +104,7 @@
           variant="outlined"
           class="glass-input"
           :prepend-inner-icon="ICONS.UI.EMAIL"
-          :rules="[(v) => !v || /.+@.+\..+/.test(v) || 'البريد غير صالح']"
+          :rules="[(v) => !v || /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) || 'البريد الإلكتروني غير صحيح']"
         ></v-text-field>
       </v-col>
 
