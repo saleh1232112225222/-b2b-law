@@ -323,7 +323,7 @@ subscriptionRouter.post('/start-trial', async (req: Request, res: Response) => {
     const auth = req.auth as AuthPayload
     const now = new Date()
     const trialEnd = new Date(now)
-    trialEnd.setDate(trialEnd.getDate() + 7)
+    trialEnd.setDate(trialEnd.getDate() + 30)
 
     // Check if subscription already exists
     const existing = await query('SELECT id FROM subscriptions WHERE company_id = $1', [
