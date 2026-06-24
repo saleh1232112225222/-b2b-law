@@ -414,10 +414,10 @@ systemRouter.post(
           // Use Postgres Savepoints to prevent single-row insertion failures from aborting the entire transaction
           await client.query('SAVEPOINT row_insert')
 
-          try {
-            const idField = 'id'
-            const idIndex = keys.indexOf(idField)
+          const idField = 'id'
+          const idIndex = keys.indexOf(idField)
 
+          try {
             if (importMode === 'merge' && idIndex >= 0 && sanitized[idIndex]) {
               const tableCache = await getOrLoadIds(table)
               const exists = tableCache.has(String(sanitized[idIndex]))
