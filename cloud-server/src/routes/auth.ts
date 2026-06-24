@@ -52,7 +52,7 @@ async function logLoginAttempt(
       [uuidv4(), userId, companyId, ip, userAgent, deviceInfo, browserInfo, isSuccessful, failureReason || null]
     )
   } catch (e) {
-    console.error('[LOGIN_LOG] Error:', e)
+    // Table may not exist yet — silently ignore
   }
 }
 

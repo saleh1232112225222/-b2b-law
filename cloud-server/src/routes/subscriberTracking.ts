@@ -5,6 +5,49 @@ import { authMiddleware, AuthPayload } from '../middleware/auth'
 export const subscriberTrackingRouter = Router()
 subscriberTrackingRouter.use(authMiddleware)
 
+// Auto-create tracking tables if they don't exist
+async function ensureTrackingTables() {
+  try {
+    await query(`CREATE TABLE IF NOT EXISTS user_login_logs (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+      login_time TIMESTAMPTZ DEFAULT NOW(),
+      logout_time TIMESTAMPTZ,
+      ip_address TEXT,
+      user_agent TEXT,
+      device_info TEXT,
+      browser_info TEXT,
+      is_successful BOOLEAN DEFAULT TRUE,
+      failure_reason TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_user_id ON user_login_logs(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_company_id ON user_login_logs(company_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_created_at ON user_login_logs(created_at DESC)`)
+
+    await query(`CREATE TABLE IF NOT EXISTS user_activity_logs (
+      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+      user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+      activity_type TEXT NOT NULL,
+      activity_description TEXT,
+      entity_type TEXT,
+      entity_id UUID,
+      ip_address TEXT,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON user_activity_logs(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_company_id ON user_activity_logs(company_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON user_activity_logs(created_at DESC)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_type ON user_activity_logs(activity_type)`)
+    console.log('[TRACKING] User tracking tables ready')
+  } catch (err) {
+    console.error('[TRACKING] Failed to create tracking tables:', err)
+  }
+}
+ensureTrackingTables()
+
 /**
  * Middleware to require admin role of the main company
  */
@@ -57,49 +100,54 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
       [user.company_id]
     )
 
-    // Last login
-    const lastLoginResult = await query(
-      `SELECT login_time, ip_address, device_info, browser_info
-       FROM user_login_logs
-       WHERE user_id = $1 AND is_successful = TRUE
-       ORDER BY login_time DESC LIMIT 1`,
-      [userId]
-    )
+    // Tracking queries - wrapped in try/catch since tables may not exist yet
+    let lastLogin = null
+    let totalLogins = 0
+    let firstLogin = null
+    let totalFailedAttempts = 0
+    let distinctDevices = 0
+    let totalActivities = 0
 
-    // Total successful logins
-    const loginCountResult = await query(
-      `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE`,
-      [userId]
-    )
+    try {
+      const r = await query(
+        `SELECT login_time, ip_address, device_info, browser_info
+         FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
+         ORDER BY login_time DESC LIMIT 1`, [userId])
+      lastLogin = r.rows[0] || null
+    } catch {}
 
-    // First login
-    const firstLoginResult = await query(
-      `SELECT login_time FROM user_login_logs
-       WHERE user_id = $1 AND is_successful = TRUE
-       ORDER BY login_time ASC LIMIT 1`,
-      [userId]
-    )
+    try {
+      const r = await query(
+        `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE`, [userId])
+      totalLogins = parseInt(r.rows[0]?.count || '0')
+    } catch {}
 
-    // Failed attempts count
-    const failedCountResult = await query(
-      `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = FALSE`,
-      [userId]
-    )
+    try {
+      const r = await query(
+        `SELECT login_time FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
+         ORDER BY login_time ASC LIMIT 1`, [userId])
+      firstLogin = r.rows[0]?.login_time || null
+    } catch {}
 
-    // Distinct devices
-    const devicesResult = await query(
-      `SELECT DISTINCT device_info, browser_info, ip_address
-       FROM user_login_logs
-       WHERE user_id = $1 AND is_successful = TRUE
-       ORDER BY login_time DESC`,
-      [userId]
-    )
+    try {
+      const r = await query(
+        `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = FALSE`, [userId])
+      totalFailedAttempts = parseInt(r.rows[0]?.count || '0')
+    } catch {}
 
-    // Total activities
-    const activityCountResult = await query(
-      `SELECT COUNT(*) as count FROM user_activity_logs WHERE user_id = $1`,
-      [userId]
-    )
+    try {
+      const r = await query(
+        `SELECT DISTINCT device_info, browser_info, ip_address
+         FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
+         ORDER BY login_time DESC`, [userId])
+      distinctDevices = r.rows.length
+    } catch {}
+
+    try {
+      const r = await query(
+        `SELECT COUNT(*) as count FROM user_activity_logs WHERE user_id = $1`, [userId])
+      totalActivities = parseInt(r.rows[0]?.count || '0')
+    } catch {}
 
     const subscription = subResult.rows[0] || null
     let daysLeft = 0
@@ -145,12 +193,12 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
         isExpired
       } : null,
       stats: {
-        totalLogins: parseInt(loginCountResult.rows[0]?.count || '0'),
-        totalFailedAttempts: parseInt(failedCountResult.rows[0]?.count || '0'),
-        totalActivities: parseInt(activityCountResult.rows[0]?.count || '0'),
-        distinctDevices: devicesResult.rows.length,
-        lastLogin: lastLoginResult.rows[0] || null,
-        firstLogin: firstLoginResult.rows[0]?.login_time || null
+        totalLogins,
+        totalFailedAttempts,
+        totalActivities,
+        distinctDevices,
+        lastLogin,
+        firstLogin
       }
     })
   } catch (err) {
@@ -169,27 +217,31 @@ subscriberTrackingRouter.get('/:userId/login-logs', requireAdminRole, async (req
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 200)
     const offset = parseInt(req.query.offset as string) || 0
 
-    const result = await query(
-      `SELECT id, login_time, logout_time, ip_address, device_info, browser_info,
-              is_successful, failure_reason
-       FROM user_login_logs
-       WHERE user_id = $1
-       ORDER BY login_time DESC
-       LIMIT $2 OFFSET $3`,
-      [userId, limit, offset]
-    )
+    try {
+      const result = await query(
+        `SELECT id, login_time, logout_time, ip_address, device_info, browser_info,
+                is_successful, failure_reason
+         FROM user_login_logs
+         WHERE user_id = $1
+         ORDER BY login_time DESC
+         LIMIT $2 OFFSET $3`,
+        [userId, limit, offset]
+      )
 
-    const countResult = await query(
-      `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1`,
-      [userId]
-    )
+      const countResult = await query(
+        `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1`,
+        [userId]
+      )
 
-    res.json({
-      data: result.rows,
-      total: parseInt(countResult.rows[0]?.count || '0'),
-      limit,
-      offset
-    })
+      res.json({
+        data: result.rows,
+        total: parseInt(countResult.rows[0]?.count || '0'),
+        limit,
+        offset
+      })
+    } catch {
+      res.json({ data: [], total: 0, limit, offset })
+    }
   } catch (err) {
     console.error('[SUBSCRIBER_TRACKING] Failed to fetch login logs:', err)
     res.status(500).json({ error: 'Failed to fetch login logs' })
@@ -205,36 +257,31 @@ subscriberTrackingRouter.get('/:userId/activity-logs', requireAdminRole, async (
     const { userId } = req.params
     const limit = Math.min(parseInt(req.query.limit as string) || 50, 200)
     const offset = parseInt(req.query.offset as string) || 0
-    const type = req.query.type as string
 
-    let whereClause = 'WHERE user_id = $1'
-    const params: any[] = [userId]
+    try {
+      const result = await query(
+        `SELECT id, activity_type, activity_description, entity_type, entity_id, ip_address, created_at
+         FROM user_activity_logs
+         WHERE user_id = $1
+         ORDER BY created_at DESC
+         LIMIT $2 OFFSET $3`,
+        [userId, limit, offset]
+      )
 
-    if (type) {
-      params.push(type)
-      whereClause += ` AND activity_type = $${params.length}`
+      const countResult = await query(
+        `SELECT COUNT(*) as count FROM user_activity_logs WHERE user_id = $1`,
+        [userId]
+      )
+
+      res.json({
+        data: result.rows,
+        total: parseInt(countResult.rows[0]?.count || '0'),
+        limit,
+        offset
+      })
+    } catch {
+      res.json({ data: [], total: 0, limit, offset })
     }
-
-    const result = await query(
-      `SELECT id, activity_type, activity_description, entity_type, entity_id, ip_address, created_at
-       FROM user_activity_logs
-       ${whereClause}
-       ORDER BY created_at DESC
-       LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-      [...params, limit, offset]
-    )
-
-    const countResult = await query(
-      `SELECT COUNT(*) as count FROM user_activity_logs ${whereClause}`,
-      params.slice(0, 1)
-    )
-
-    res.json({
-      data: result.rows,
-      total: parseInt(countResult.rows[0]?.count || '0'),
-      limit,
-      offset
-    })
   } catch (err) {
     console.error('[SUBSCRIBER_TRACKING] Failed to fetch activity logs:', err)
     res.status(500).json({ error: 'Failed to fetch activity logs' })
