@@ -30,7 +30,20 @@ async function logActivity(
       [cid, actionKey, moduleKey, details, actor, metadata ? JSON.stringify(metadata) : null]
     )
   } catch (e) {
-    console.error('[AUDIT] Log error:', e)
+    // Old activity_logs table may not exist — silently ignore
+  }
+
+  // Also write to new user_activity_logs for the subscriber detail page
+  try {
+    if (metadata?.userId && metadata?.companyId) {
+      await query(
+        `INSERT INTO user_activity_logs (id, user_id, company_id, activity_type, activity_description, created_at)
+         VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
+        [metadata.userId, metadata.companyId, actionKey, details]
+      )
+    }
+  } catch (e) {
+    // Table may not exist yet — silently ignore
   }
 }
 
