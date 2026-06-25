@@ -479,6 +479,9 @@ const handleLogin = async () => {
       setTimeout(() => {
         router.push({ path: '/register', query: { verify: '1', username: username.value } })
       }, 2000)
+    } else if (errData === 'AccountSuspended' || e?.response?.data?.error === 'AccountSuspended') {
+      error.value =
+        e?.response?.data?.message || 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
     } else {
       error.value =
         e?.response?.data?.error || e?.message || 'خطأ! اسم المستخدم أو كلمة المرور غير صحيحة'

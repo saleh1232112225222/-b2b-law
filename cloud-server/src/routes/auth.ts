@@ -150,7 +150,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     if (!user.is_active) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معطل')
       await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
-      res.status(403).json({ error: 'Account is disabled' })
+      res.status(403).json({
+        error: 'AccountSuspended',
+        message: 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
+      })
       return
     }
 
@@ -177,11 +180,23 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     let trialExpired = false
     let trialExpiresAt = null
     const companyResult = await query(
-      'SELECT is_verified, trial_expires_at FROM companies WHERE id = $1',
+      'SELECT is_verified, trial_expires_at, is_deleted FROM companies WHERE id = $1',
       [user.company_id]
     )
     if (companyResult.rows.length > 0) {
       const company = companyResult.rows[0]
+
+      // Check if company is soft-deleted
+      if (company.is_deleted) {
+        await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب محذوف')
+        await logLoginAttempt(user.id, user.company_id, false, 'حساب محذوف', req)
+        res.status(403).json({
+          error: 'AccountSuspended',
+          message: 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
+        })
+        return
+      }
+
       if (!company.is_verified) {
         await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب غير مفعل')
         await logLoginAttempt(user.id, user.company_id, false, 'حساب غير مفعل', req)
@@ -200,6 +215,17 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     )
     if (subCheck.rows.length > 0) {
       subscriptionStatus = subCheck.rows[0].status
+    }
+
+    // Block login if subscription is suspended (past_due)
+    if (subscriptionStatus === 'past_due') {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الاشتراك معلق')
+      await logLoginAttempt(user.id, user.company_id, false, 'اشتراك معلق', req)
+      res.status(403).json({
+        error: 'AccountSuspended',
+        message: 'تم تعليق اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+      })
+      return
     }
 
     // Allow login even if trial expired - will be in read-only mode

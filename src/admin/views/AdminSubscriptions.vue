@@ -112,7 +112,8 @@
                 class="text-primary font-weight-bold text-decoration-underline"
                 style="cursor: pointer"
                 @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
-              >{{ company.companyName }}</a>
+                >{{ company.companyName }}</a
+              >
               <span v-else>{{ company.companyName }}</span>
             </td>
             <td>
@@ -122,7 +123,8 @@
                 class="text-primary font-weight-bold text-decoration-underline"
                 style="cursor: pointer"
                 @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
-              >{{ company.username || '-' }}</a>
+                >{{ company.username || '-' }}</a
+              >
               <span v-else>{{ company.username || '-' }}</span>
             </td>
             <td>{{ company.email }}</td>
@@ -255,29 +257,39 @@
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="newSubscriber.password"
-                  :label="newSubscriber.accountType === 'direct' ? 'كلمة المرور (تلقائي = اسم المستخدم)' : 'كلمة المرور'"
+                  :label="
+                    newSubscriber.accountType === 'direct'
+                      ? 'كلمة المرور (تلقائي = اسم المستخدم)'
+                      : 'كلمة المرور'
+                  "
                   :type="newSubscriber.accountType === 'direct' ? 'text' : 'password'"
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-lock"
                   hide-details="auto"
                   :readonly="newSubscriber.accountType === 'direct'"
-                  :rules="newSubscriber.accountType === 'direct' ? [
-                    (v) => !!v || 'كلمة المرور مطلوبة'
-                  ] : [
-                    (v) => !!v || 'كلمة المرور مطلوبة',
-                    (v) =>
-                      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-                        v
-                      ) || 'كلمة المرور يجب أن تكون قوية'
-                  ]"
+                  :rules="
+                    newSubscriber.accountType === 'direct'
+                      ? [(v) => !!v || 'كلمة المرور مطلوبة']
+                      : [
+                          (v) => !!v || 'كلمة المرور مطلوبة',
+                          (v) =>
+                            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+                              v
+                            ) || 'كلمة المرور يجب أن تكون قوية'
+                        ]
+                  "
                   required
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
                 <v-text-field
                   v-model="newSubscriber.fullName"
-                  :label="newSubscriber.accountType === 'direct' ? 'اسم المشترك أو الشركة (اختياري)' : 'اسم المشترك / الشركة'"
+                  :label="
+                    newSubscriber.accountType === 'direct'
+                      ? 'اسم المشترك أو الشركة (اختياري)'
+                      : 'اسم المشترك / الشركة'
+                  "
                   variant="outlined"
                   color="gold"
                   prepend-inner-icon="mdi-domain"
@@ -293,12 +305,16 @@
                   color="gold"
                   prepend-inner-icon="mdi-email"
                   hide-details="auto"
-                  :rules="newSubscriber.accountType === 'activation' ? [
-                    (v) => !!v || 'البريد الإلكتروني مطلوب',
-                    (v) =>
-                      /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
-                      'البريد الإلكتروني غير صحيح'
-                  ] : []"
+                  :rules="
+                    newSubscriber.accountType === 'activation'
+                      ? [
+                          (v) => !!v || 'البريد الإلكتروني مطلوب',
+                          (v) =>
+                            /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(v) ||
+                            'البريد الإلكتروني غير صحيح'
+                        ]
+                      : []
+                  "
                   :required="newSubscriber.accountType !== 'direct'"
                 ></v-text-field>
               </v-col>
@@ -311,10 +327,16 @@
                   color="gold"
                   prepend-inner-icon="mdi-phone"
                   hide-details="auto"
-                  :rules="newSubscriber.accountType === 'activation' ? [
-                    (v) => !!v || 'رقم الجوال مطلوب',
-                    (v) => /^05\d{8}$/.test(v) || 'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
-                  ] : []"
+                  :rules="
+                    newSubscriber.accountType === 'activation'
+                      ? [
+                          (v) => !!v || 'رقم الجوال مطلوب',
+                          (v) =>
+                            /^05\d{8}$/.test(v) ||
+                            'يجب إدخال رقم جوال سعودي صحيح (مثال: 0512345678)'
+                        ]
+                      : []
+                  "
                   :required="newSubscriber.accountType !== 'direct'"
                 ></v-text-field>
               </v-col>
@@ -688,6 +710,7 @@ function getStatusClass(status) {
     active: 'status-active',
     trial: 'status-trial',
     expired: 'status-expired',
+    suspended: 'status-suspended',
     canceled: 'status-canceled',
     none: 'status-none'
   }
@@ -699,6 +722,7 @@ function getStatusText(status) {
     active: 'نشط',
     trial: 'تجربة',
     expired: 'منتهي',
+    suspended: 'معلق',
     canceled: 'ملغى',
     none: 'بدون اشتراك'
   }
@@ -736,7 +760,11 @@ async function createSubscriber() {
       }
 
       // Get planId from subscriptionType if not explicitly set
-      if (!body.planId && newSubscriber.subscriptionType !== 'trial' && availablePlans.value.length > 0) {
+      if (
+        !body.planId &&
+        newSubscriber.subscriptionType !== 'trial' &&
+        availablePlans.value.length > 0
+      ) {
         const typeMap = { monthly: 'month', yearly: 'year', lifetime: 'lifetime' }
         const interval = typeMap[newSubscriber.subscriptionType]
         const plan = availablePlans.value.find((p) => p.interval === interval)
@@ -747,7 +775,9 @@ async function createSubscriber() {
 
       const msg = response.data?.message || 'تم إنشاء المشترك بنجاح'
       const username = response.data?.username || newSubscriber.username
-      alert(`${msg}\n\nاسم المستخدم: ${username}\nكلمة المرور: ${newSubscriber.password}\n\n(سيُطلب من المستخدم تغيير كلمة المرور عند أول دخول)`)
+      alert(
+        `${msg}\n\nاسم المستخدم: ${username}\nكلمة المرور: ${newSubscriber.password}\n\n(سيُطلب من المستخدم تغيير كلمة المرور عند أول دخول)`
+      )
     } else {
       // Activation-required subscriber
       const companyResponse = await apiRequest('POST', '/api/auth/register', {
@@ -779,9 +809,11 @@ async function createSubscriber() {
             companyId,
             planId,
             durationMonths:
-              newSubscriber.subscriptionType === 'monthly' ? 1
-              : newSubscriber.subscriptionType === 'yearly' ? 12
-              : null,
+              newSubscriber.subscriptionType === 'monthly'
+                ? 1
+                : newSubscriber.subscriptionType === 'yearly'
+                  ? 12
+                  : null,
             lifetime: newSubscriber.subscriptionType === 'lifetime'
           })
         }
@@ -1129,6 +1161,12 @@ async function printReport() {
 .status-expired {
   background-color: #fee2e2;
   color: #991b1b;
+}
+
+.status-suspended {
+  background-color: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fbbf24;
 }
 
 .status-canceled {

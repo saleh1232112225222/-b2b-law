@@ -106,6 +106,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
           WHEN s.status = 'active' AND s.current_period_end > NOW() THEN 'active'
           WHEN s.status = 'trial' AND s.trial_end > NOW() THEN 'trial'
           WHEN s.status = 'trial' AND s.trial_end < NOW() THEN 'expired'
+          WHEN s.status = 'past_due' THEN 'suspended'
           WHEN s.status = 'canceled' THEN 'canceled'
           ELSE 'none'
         END as effective_status,
@@ -243,6 +244,12 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
       companyId
     ])
 
+    // Reactivate all users in this company when subscription is activated
+    await query(
+      `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+      [companyId]
+    )
+
     res.json({
       success: true,
       message: `تم تفعيل الاشتراك بنجاح حتى ${periodEnd.toLocaleDateString('ar-SA')}`,
@@ -313,6 +320,12 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
       companyId
     ])
 
+    // Reactivate all users when subscription is extended
+    await query(
+      `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+      [companyId]
+    )
+
     res.json({
       success: true,
       message: `تم تمديد الاشتراك حتى ${newEndDate.toLocaleDateString('ar-SA')}`,
@@ -349,6 +362,12 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
        SET status = 'past_due', canceled_at = NOW(), updated_at = NOW()
        WHERE id = $1`,
       [subResult.rows[0].id]
+    )
+
+    // Deactivate all users in this company so they cannot log in
+    await query(
+      `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE company_id = $1`,
+      [companyId]
     )
 
     res.json({
@@ -513,6 +532,12 @@ adminSubscriptionRouter.post(
         [companyId]
       )
 
+      // Reactivate all users in this company
+      await query(
+        `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+        [companyId]
+      )
+
       res.json({
         success: true,
         message: `تم استعادة المشترك "${companyCheck.rows[0].name}" بنجاح`
@@ -652,6 +677,12 @@ adminSubscriptionRouter.delete(
          SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $1, updated_at = NOW()
          WHERE id = $2`,
         [auth.userId, companyId]
+      )
+
+      // Deactivate all users in this company so they cannot log in
+      await query(
+        `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE company_id = $1`,
+        [companyId]
       )
 
       const subResult = await query(
@@ -856,6 +887,7 @@ adminSubscriptionRouter.get(
         COUNT(*) FILTER (WHERE effective_status = 'trial') as trial_count,
         COUNT(*) FILTER (WHERE effective_status = 'expired') as expired_count,
         COUNT(*) FILTER (WHERE effective_status = 'canceled') as canceled_count,
+        COUNT(*) FILTER (WHERE effective_status = 'suspended') as suspended_count,
         COUNT(*) FILTER (WHERE effective_status = 'none') as no_subscription_count,
         COUNT(*) as total_count
       FROM (
@@ -864,6 +896,7 @@ adminSubscriptionRouter.get(
             WHEN s.status = 'active' AND s.current_period_end > NOW() THEN 'active'
             WHEN s.status = 'trial' AND s.trial_end > NOW() THEN 'trial'
             WHEN s.status = 'trial' AND s.trial_end < NOW() THEN 'expired'
+            WHEN s.status = 'past_due' THEN 'suspended'
             WHEN s.status = 'canceled' THEN 'canceled'
             ELSE 'none'
           END as effective_status
@@ -917,6 +950,11 @@ adminSubscriptionRouter.get(
  * دالة مساعدة لتوليد تقرير HTML
  */
 async function generateUsersReportHTML(): Promise<string> {
+  const hasSoftDelete = await ensureSoftDeleteColumns()
+  const deletedFilter = hasSoftDelete
+    ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)`
+    : ''
+
   const res = await query(`
     SELECT 
       c.name AS company_name,
@@ -930,6 +968,7 @@ async function generateUsersReportHTML(): Promise<string> {
     FROM companies c
     LEFT JOIN users u ON c.id = u.company_id
     WHERE c.id != '00000000-0000-0000-0000-000000000000'
+    ${deletedFilter}
     ORDER BY c.created_at DESC
   `)
 
