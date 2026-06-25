@@ -90,6 +90,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
       LEFT JOIN plans p ON s.plan_id = p.id
       LEFT JOIN users u ON u.company_id = c.id AND u.role_key = 'admin'
       WHERE c.id != '00000000-0000-0000-0000-000000000000'
+        AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)
       ORDER BY 
         CASE 
           WHEN s.status = 'active' AND s.current_period_end > NOW() THEN 1
@@ -463,6 +464,7 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
 
 /**
  * DELETE /api/admin/subscriptions/:companyId
+ * Soft delete - hides subscriber without removing data
  */
 adminSubscriptionRouter.delete(
   '/:companyId',
@@ -470,8 +472,193 @@ adminSubscriptionRouter.delete(
   async (req: Request, res: Response) => {
     try {
       const { companyId } = req.params
+      const auth = req.auth as AuthPayload
 
-      const companyCheck = await query('SELECT id FROM companies WHERE id = $1', [companyId])
+      const companyCheck = await query(
+        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
+        [companyId]
+      )
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'المشترك غير موجود' })
+      }
+
+      if (companyCheck.rows[0].is_deleted) {
+        return res.status(400).json({ error: 'المشترك محذوف مسبقاً' })
+      }
+
+      // Soft delete - mark as deleted but keep data
+      await query(
+        `UPDATE companies 
+         SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $1, updated_at = NOW()
+         WHERE id = $2`,
+        [auth.userId, companyId]
+      )
+
+      // Get subscription status before deletion for audit
+      const subResult = await query(
+        `SELECT s.status FROM subscriptions s 
+         WHERE s.company_id = $1 
+         ORDER BY s.created_at DESC LIMIT 1`,
+        [companyId]
+      )
+      const subscriptionStatus = subResult.rows[0]?.status || 'none'
+
+      res.json({
+        success: true,
+        message: 'تم نشر المشترك إلى سلة المحذوفات بنجاح',
+        deletedCompany: {
+          id: companyId,
+          name: companyCheck.rows[0].name,
+          subscriptionStatus,
+          deletedAt: new Date().toISOString(),
+          deletedBy: auth.userId
+        }
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to soft delete company/subscriber:', err)
+      res.status(500).json({ error: 'فشل حذف المشترك' })
+    }
+  }
+)
+
+/**
+ * GET /api/admin/subscriptions/deleted
+ * جلب جميع المشتركين المحذوفين (سلة المحذوفات)
+ */
+adminSubscriptionRouter.get('/deleted', requireAdminRole, async (_req: Request, res: Response) => {
+  try {
+    const result = await query(
+      `SELECT 
+        c.id,
+        c.name as company_name,
+        c.email,
+        c.phone,
+        c.is_verified,
+        c.trial_expires_at,
+        c.created_at as company_created_at,
+        c.deleted_at,
+        c.deleted_by,
+        u.id as user_id,
+        u.username as user_username,
+        u.full_name as user_full_name,
+        s.id as subscription_id,
+        s.status as subscription_status,
+        s.trial_start,
+        s.trial_end,
+        s.current_period_start,
+        s.current_period_end,
+        s.canceled_at,
+        p.name_ar as plan_name,
+        p.interval as plan_interval,
+        p.price as plan_price,
+        del_user.full_name as deleted_by_name
+      FROM companies c
+      LEFT JOIN LATERAL (
+        SELECT * FROM subscriptions 
+        WHERE company_id = c.id 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      ) s ON true
+      LEFT JOIN plans p ON s.plan_id = p.id
+      LEFT JOIN users u ON u.company_id = c.id AND u.role_key = 'admin'
+      LEFT JOIN users del_user ON c.deleted_by = del_user.id
+      WHERE c.is_deleted = TRUE
+      ORDER BY c.deleted_at DESC`
+    )
+
+    const mappedRows = result.rows.map((row) => ({
+      id: row.id,
+      userId: row.user_id,
+      username: row.user_username,
+      userFullName: row.user_full_name,
+      companyName: row.company_name,
+      email: row.email,
+      phone: row.phone,
+      isVerified: row.is_verified,
+      trialExpiresAt: row.trial_expires_at,
+      companyCreatedAt: row.company_created_at,
+      deletedAt: row.deleted_at,
+      deletedBy: row.deleted_by_name || 'غير معروف',
+      subscriptionId: row.subscription_id,
+      subscriptionStatus: row.subscription_status,
+      trialStart: row.trial_start,
+      trialEnd: row.trial_end,
+      currentPeriodStart: row.current_period_start,
+      currentPeriodEnd: row.current_period_end,
+      canceledAt: row.canceled_at,
+      planName: row.plan_name,
+      planInterval: row.plan_interval,
+      planPrice: row.plan_price
+    }))
+
+    res.json({
+      success: true,
+      data: mappedRows,
+      count: mappedRows.length
+    })
+  } catch (err) {
+    console.error('[ADMIN] Failed to fetch deleted subscriptions:', err)
+    res.status(500).json({ error: 'فشل جلب المشتركين المحذوفين' })
+  }
+})
+
+/**
+ * POST /api/admin/subscriptions/restore/:companyId
+ * استعادة مشترك من سلة المحذوفات
+ */
+adminSubscriptionRouter.post(
+  '/restore/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+
+      const companyCheck = await query(
+        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
+        [companyId]
+      )
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'المشترك غير موجود' })
+      }
+
+      if (!companyCheck.rows[0].is_deleted) {
+        return res.status(400).json({ error: 'المشترك غير محذوف' })
+      }
+
+      // Restore - clear soft delete flags
+      await query(
+        `UPDATE companies 
+         SET is_deleted = FALSE, deleted_at = NULL, deleted_by = NULL, updated_at = NOW()
+         WHERE id = $1`,
+        [companyId]
+      )
+
+      res.json({
+        success: true,
+        message: `تم استعادة المشترك "${companyCheck.rows[0].name}" بنجاح`
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to restore company/subscriber:', err)
+      res.status(500).json({ error: 'فشل استعادة المشترك' })
+    }
+  }
+)
+
+/**
+ * DELETE /api/admin/subscriptions/permanent/:companyId
+ * حذف دائم لا رجعة فيه - يحذف جميع البيانات فعلياً
+ */
+adminSubscriptionRouter.delete(
+  '/permanent/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+
+      const companyCheck = await query(
+        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
+        [companyId]
+      )
       if (companyCheck.rows.length === 0) {
         return res.status(404).json({ error: 'المشترك غير موجود' })
       }
@@ -546,12 +733,12 @@ adminSubscriptionRouter.delete(
 
       res.json({
         success: true,
-        message: 'تم حذف المشترك وكافة بياناته بنجاح'
+        message: `تم حذف المشترك "${companyCheck.rows[0].name}" نهائياً ولا يمكن استعادته`
       })
     } catch (err) {
       await query('ROLLBACK').catch(() => {})
-      console.error('[ADMIN] Failed to delete company/subscriber:', err)
-      res.status(500).json({ error: 'فشل حذف المشترك' })
+      console.error('[ADMIN] Failed to permanently delete company/subscriber:', err)
+      res.status(500).json({ error: 'فشل الحذف الدائم' })
     }
   }
 )
@@ -746,6 +933,7 @@ adminSubscriptionRouter.get(
           LIMIT 1
         ) s ON true
         WHERE c.id != '00000000-0000-0000-0000-000000000000'
+          AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)
       ) sub
     `)
 

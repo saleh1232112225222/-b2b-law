@@ -17,6 +17,16 @@
 
         <div class="d-flex gap-4">
           <v-btn
+            color="error"
+            size="x-large"
+            class="font-weight-bold rounded-lg mr-4"
+            elevation="2"
+            prepend-icon="mdi-delete-restore"
+            @click="$router.push('/admin/recycle-bin')"
+          >
+            سلة المحذوفات
+          </v-btn>
+          <v-btn
             color="secondary"
             size="x-large"
             class="font-weight-bold rounded-lg mr-4"
@@ -832,13 +842,13 @@ async function suspendSubscription(company) {
 }
 
 async function cancelSubscription(company) {
-  if (!confirm('هل ترغب بحذف المشترك لايمكن استعادة بعد الحذف')) {
+  if (!confirm('هل ترغب بنقل هذا المشترك إلى سلة المحذوفات؟\n(يمكن استعادته لاحقاً)')) {
     return
   }
 
   try {
     await apiRequest('DELETE', `/api/admin/subscriptions/${company.id}`)
-    alert('تم الحذف بنجاح')
+    alert('تم نشر المشترك إلى سلة المحذوفات بنجاح')
     await fetchData()
   } catch (error) {
     console.error('Failed to cancel subscription:', error)

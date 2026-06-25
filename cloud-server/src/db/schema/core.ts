@@ -8,6 +8,9 @@ export const companies = pgTable('companies', {
   isVerified: boolean('is_verified').default(false),
   verificationCode: text('verification_code'),
   trialExpiresAt: timestamp('trial_expires_at', { withTimezone: true }).notNull(),
+  isDeleted: boolean('is_deleted').default(false),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  deletedBy: uuid('deleted_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 })
