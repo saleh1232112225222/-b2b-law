@@ -414,22 +414,30 @@ function getActivityText(type) {
 async function fetchAll() {
   loading.value = true
   try {
-    const [overviewRes, activityRes, loginsRes, failedRes] = await Promise.all([
-      apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/overview`),
-      apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/activity-logs?limit=50`),
-      apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/login-logs?limit=50`),
-      apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/login-logs?limit=50`)
-    ])
-
+    const overviewRes = await apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/overview`)
     subscriber.value = overviewRes
-    activityLogs.value = activityRes.data || []
-    loginLogs.value = loginsRes.data || []
-    failedLogs.value = (loginsRes.data || []).filter((l) => !l.is_successful)
   } catch (err) {
-    console.error('Failed to fetch subscriber details:', err)
+    console.error('Failed to fetch subscriber overview:', err)
   } finally {
     loading.value = false
   }
+
+  loadingActivity.value = true
+  loadingLogins.value = true
+  loadingFailed.value = true
+
+  const [activityRes, loginsRes] = await Promise.allSettled([
+    apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/activity-logs?limit=50`),
+    apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/login-logs?limit=50`)
+  ])
+
+  activityLogs.value = activityRes.status === 'fulfilled' ? (activityRes.value.data || []) : []
+  loginLogs.value = loginsRes.status === 'fulfilled' ? (loginsRes.value.data || []) : []
+  failedLogs.value = loginLogs.value.filter((l) => !l.is_successful)
+
+  loadingActivity.value = false
+  loadingLogins.value = false
+  loadingFailed.value = false
 }
 
 onMounted(fetchAll)

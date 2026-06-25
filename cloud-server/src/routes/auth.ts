@@ -38,8 +38,8 @@ async function logActivity(
     if (metadata?.userId && metadata?.companyId) {
       await query(
         `INSERT INTO user_activity_logs (id, user_id, company_id, activity_type, activity_description, created_at)
-         VALUES (gen_random_uuid(), $1, $2, $3, $4, NOW())`,
-        [metadata.userId, metadata.companyId, actionKey, details]
+         VALUES ($1, $2, $3, $4, $5, NOW())`,
+        [uuidv4(), metadata.userId, metadata.companyId, actionKey, details]
       )
     }
   } catch (e: any) {
@@ -556,6 +556,14 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       trialExpired,
       subscriptionStatus
     })
+
+    await logActivity(user.username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول عبر Google', {
+      userId: user.id,
+      companyId,
+      roleKey: user.role_key
+    })
+    await logLoginAttempt(user.id, companyId, true, undefined, req)
+
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
   } catch (err) {

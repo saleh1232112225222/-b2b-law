@@ -101,26 +101,34 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
          FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
          ORDER BY login_time DESC LIMIT 1`, [userId])
       lastLogin = r.rows[0] || null
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] lastLogin query failed:', e?.message || e)
+    }
 
     try {
       const r = await query(
         `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE`, [userId])
       totalLogins = parseInt(r.rows[0]?.count || '0')
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] totalLogins query failed:', e?.message || e)
+    }
 
     try {
       const r = await query(
         `SELECT login_time FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
          ORDER BY login_time ASC LIMIT 1`, [userId])
       firstLogin = r.rows[0]?.login_time || null
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] firstLogin query failed:', e?.message || e)
+    }
 
     try {
       const r = await query(
         `SELECT COUNT(*) as count FROM user_login_logs WHERE user_id = $1 AND is_successful = FALSE`, [userId])
       totalFailedAttempts = parseInt(r.rows[0]?.count || '0')
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] totalFailedAttempts query failed:', e?.message || e)
+    }
 
     try {
       const r = await query(
@@ -128,13 +136,17 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
          FROM user_login_logs WHERE user_id = $1 AND is_successful = TRUE
          ORDER BY login_time DESC`, [userId])
       distinctDevices = r.rows.length
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] distinctDevices query failed:', e?.message || e)
+    }
 
     try {
       const r = await query(
         `SELECT COUNT(*) as count FROM user_activity_logs WHERE user_id = $1`, [userId])
       totalActivities = parseInt(r.rows[0]?.count || '0')
-    } catch {}
+    } catch (e: any) {
+      console.error('[TRACKING] totalActivities query failed:', e?.message || e)
+    }
 
     const subscription = subResult.rows[0] || null
     let daysLeft = 0
@@ -226,7 +238,8 @@ subscriberTrackingRouter.get('/:userId/login-logs', requireAdminRole, async (req
         limit,
         offset
       })
-    } catch {
+    } catch (e: any) {
+      console.error('[TRACKING] login-logs query failed:', e?.message || e)
       res.json({ data: [], total: 0, limit, offset })
     }
   } catch (err) {
@@ -266,7 +279,8 @@ subscriberTrackingRouter.get('/:userId/activity-logs', requireAdminRole, async (
         limit,
         offset
       })
-    } catch {
+    } catch (e: any) {
+      console.error('[TRACKING] activity-logs query failed:', e?.message || e)
       res.json({ data: [], total: 0, limit, offset })
     }
   } catch (err) {
