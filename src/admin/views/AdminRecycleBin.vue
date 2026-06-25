@@ -155,7 +155,7 @@
 
           <v-text-field
             v-model="permanentDeleteConfirm"
-            :label="`اكتب \"حذف\" للتأكيد`"
+            label="اكتب حذف للتأكيد"
             variant="outlined"
             color="error"
             hide-details="auto"
