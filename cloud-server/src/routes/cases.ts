@@ -20,7 +20,7 @@ casesRouter.get(
       res.json(data)
     } catch (err) {
       console.error('[CASES] Dashboard analytics error:', err)
-      res.status(500).json({ error: 'Failed to load analytics' })
+      res.status(500).json({ error: 'فشل تحميل الإحصائيات' })
     }
   }
 )
@@ -50,7 +50,7 @@ casesRouter.get(
       res.json(parseInt(result.rows[0].count) === 0)
     } catch (err) {
       console.error('[Cases] Check uniqueness error:', err)
-      res.status(500).json({ error: 'Failed to check uniqueness' })
+      res.status(500).json({ error: 'فشل التحقق من التفرد' })
     }
   }
 )
@@ -74,7 +74,7 @@ casesRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[Cases] Get by client error:', err)
-      res.status(500).json({ error: 'Failed to get cases' })
+      res.status(500).json({ error: 'فشل جلب القضايا' })
     }
   }
 )
@@ -97,7 +97,7 @@ casesRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[Cases] Get assignments error:', err)
-      res.status(500).json({ error: 'Failed to get case assignments' })
+      res.status(500).json({ error: 'فشل جلب تعيينات القضية' })
     }
   }
 )
@@ -121,7 +121,7 @@ casesRouter.post(
       res.json(id)
     } catch (err) {
       console.error('[Cases] Assign employee error:', err)
-      res.status(500).json({ error: 'Failed to assign employee' })
+      res.status(500).json({ error: 'فشل تعيين الموظف' })
     }
   }
 )
@@ -140,7 +140,7 @@ casesRouter.delete(
       res.json({ success: true })
     } catch (err) {
       console.error('[Cases] Remove assignment error:', err)
-      res.status(500).json({ error: 'Failed to remove assignment' })
+      res.status(500).json({ error: 'فشل إزالة التعيين' })
     }
   }
 )
@@ -177,7 +177,7 @@ casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, 
     res.json({ count: parseInt(result.rows[0].count) })
   } catch (err) {
     console.error('[Cases] Count error:', err)
-    res.status(500).json({ error: 'Failed to count cases' })
+    res.status(500).json({ error: 'فشل عد القضايا' })
   }
 })
 
@@ -187,7 +187,7 @@ casesRouter.get('/search', requirePermission('view_cases'), async (req: Request,
     const companyId = getCompanyId(req)
     const q = req.query.q as string
     if (!q) {
-      res.status(400).json({ error: 'Query required' })
+      res.status(400).json({ error: 'الاستعلام مطلوب' })
       return
     }
 
@@ -202,7 +202,7 @@ casesRouter.get('/search', requirePermission('view_cases'), async (req: Request,
     res.json(result.rows)
   } catch (err) {
     console.error('[Cases] Search error:', err)
-    res.status(500).json({ error: 'Search failed' })
+    res.status(500).json({ error: 'فشل البحث' })
   }
 })
 
@@ -219,7 +219,7 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
       [req.params.id, companyId]
     )
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Case not found' })
+      res.status(404).json({ error: 'القضية غير موجودة' })
       return
     }
 
@@ -239,7 +239,7 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
     res.json(caseData)
   } catch (err) {
     console.error('[Cases] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get case' })
+    res.status(500).json({ error: 'فشل جلب القضية' })
   }
 })
 
@@ -259,7 +259,7 @@ casesRouter.get('/all', requirePermission('view_cases'), async (req: Request, re
     res.json(result.rows)
   } catch (err) {
     console.error('[Cases] GetAll error:', err)
-    res.status(500).json({ error: 'Failed to get all cases' })
+    res.status(500).json({ error: 'فشل جلب جميع القضايا' })
   }
 })
 
@@ -327,7 +327,7 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
     })
   } catch (err) {
     console.error('[Cases] List error:', err)
-    res.status(500).json({ error: 'Failed to list cases' })
+    res.status(500).json({ error: 'فشل عرض القضايا' })
   }
 })
 
@@ -423,7 +423,7 @@ casesRouter.post('/', requirePermission('create_cases'), async (req: Request, re
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[Cases] Create error:', err)
-    res.status(500).json({ error: 'Failed to create case' })
+    res.status(500).json({ error: 'فشل إنشاء القضية' })
   } finally {
     client.release()
   }
@@ -531,7 +531,7 @@ casesRouter.put('/:id', requirePermission('edit_cases'), async (req: Request, re
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[Cases] Update error:', err)
-    res.status(500).json({ error: 'Failed to update case' })
+    res.status(500).json({ error: 'فشل تحديث القضية' })
   } finally {
     client.release()
   }
@@ -587,7 +587,7 @@ casesRouter.delete('/:id', requirePermission('edit_cases'), async (req: Request,
 
     if (result.rowCount === 0) {
       await client.query('ROLLBACK')
-      res.status(404).json({ error: 'Case not found' })
+      res.status(404).json({ error: 'القضية غير موجودة' })
       return
     }
 
@@ -596,7 +596,7 @@ casesRouter.delete('/:id', requirePermission('edit_cases'), async (req: Request,
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[Cases] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete case' })
+    res.status(500).json({ error: 'فشل حذف القضية' })
   } finally {
     client.release()
   }

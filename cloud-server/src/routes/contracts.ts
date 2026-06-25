@@ -199,7 +199,7 @@ contractsRouter.get('/party-types', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Contracts] Party types list error:', err)
-    res.status(500).json({ error: 'Failed to get contract party types' })
+    res.status(500).json({ error: 'فشل جلب أنواع أطراف العقد' })
   }
 })
 
@@ -219,7 +219,7 @@ contractsRouter.get('/templates', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Contracts] Templates list error:', err)
-    res.status(500).json({ error: 'Failed to list templates' })
+    res.status(500).json({ error: 'فشل عرض القوالب' })
   }
 })
 
@@ -237,7 +237,7 @@ contractsRouter.post('/templates', async (req: Request, res: Response) => {
     res.status(201).json({ id })
   } catch (err) {
     console.error('[Contracts] Create template error:', err)
-    res.status(500).json({ error: 'Failed to create template' })
+    res.status(500).json({ error: 'فشل إنشاء القالب' })
   }
 })
 
@@ -272,7 +272,7 @@ contractsRouter.put('/templates/:id', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Update template error:', err)
-    res.status(500).json({ error: 'Failed to update template' })
+    res.status(500).json({ error: 'فشل تحديث القالب' })
   }
 })
 
@@ -287,7 +287,7 @@ contractsRouter.delete('/templates/:id', async (req: Request, res: Response) => 
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Delete template error:', err)
-    res.status(500).json({ error: 'Failed to delete template' })
+    res.status(500).json({ error: 'فشل حذف القالب' })
   }
 })
 
@@ -302,7 +302,7 @@ contractsRouter.get('/all', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Contracts] GetAll error:', err)
-    res.status(500).json({ error: 'Failed to get all contracts' })
+    res.status(500).json({ error: 'فشل جلب جميع العقود' })
   }
 })
 
@@ -335,7 +335,7 @@ contractsRouter.get('/', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Contracts] List error:', err)
-    res.status(500).json({ error: 'Failed to list contracts' })
+    res.status(500).json({ error: 'فشل عرض العقود' })
   }
 })
 
@@ -350,7 +350,7 @@ contractsRouter.get('/:id', async (req: Request, res: Response) => {
       companyId
     ])
     if (contractRes.rows.length === 0) {
-      res.status(404).json({ error: 'Contract not found' })
+      res.status(404).json({ error: 'العقد غير موجود' })
       return
     }
     const contract = contractRes.rows[0]
@@ -411,7 +411,7 @@ contractsRouter.get('/:id', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[Contracts] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get contract details' })
+    res.status(500).json({ error: 'فشل جلب تفاصيل العقد' })
   }
 })
 
@@ -730,7 +730,7 @@ contractsRouter.post('/', async (req: Request, res: Response) => {
   } catch (err: any) {
     await client.query('ROLLBACK')
     console.error('[Contracts] Create error:', err)
-    res.status(500).json({ error: err.message || 'Failed to create contract' })
+    res.status(500).json({ error: err.message || 'فشل إنشاء العقد' })
   } finally {
     client.release()
   }
@@ -830,7 +830,7 @@ contractsRouter.put('/:id', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err: any) {
     console.error('[Contracts] Update error:', err)
-    res.status(500).json({ error: err.message || 'Failed to update contract' })
+    res.status(500).json({ error: err.message || 'فشل تحديث العقد' })
   }
 })
 
@@ -859,7 +859,7 @@ contractsRouter.post('/:id/approve', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Approve error:', err)
-    res.status(500).json({ error: 'Failed to approve contract' })
+    res.status(500).json({ error: 'فشل الموافقة على العقد' })
   }
 })
 
@@ -889,7 +889,7 @@ contractsRouter.put('/:id/archive', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Archive error:', err)
-    res.status(500).json({ error: 'Failed to archive contract' })
+    res.status(500).json({ error: 'فشل أرشفة العقد' })
   }
 })
 
@@ -906,7 +906,7 @@ contractsRouter.get('/:id/party-audits', async (req: Request, res: Response) => 
     res.json(result.rows)
   } catch (err) {
     console.error('[Contracts] Party audits list error:', err)
-    res.status(500).json({ error: 'Failed to list party audits' })
+    res.status(500).json({ error: 'فشل عرض تدقيقات الأطراف' })
   }
 })
 
@@ -943,7 +943,7 @@ contractsRouter.post('/:contractId/participants', async (req: Request, res: Resp
   } catch (err: any) {
     await client.query('ROLLBACK')
     console.error('[Contracts] Add participant error:', err)
-    res.status(500).json({ error: err.message || 'Failed to add participant' })
+    res.status(500).json({ error: err.message || 'فشل إضافة المشارك' })
   } finally {
     client.release()
   }
@@ -986,7 +986,7 @@ contractsRouter.put(
       res.json({ success: true })
     } catch (err) {
       console.error('[Contracts] Update participant error:', err)
-      res.status(500).json({ error: 'Failed to update participant' })
+      res.status(500).json({ error: 'فشل تحديث المشارك' })
     }
   }
 )
@@ -1019,7 +1019,7 @@ contractsRouter.delete(
     } catch (err: any) {
       await client.query('ROLLBACK')
       console.error('[Contracts] Remove participant error:', err)
-      res.status(500).json({ error: err.message || 'Failed to remove participant' })
+      res.status(500).json({ error: err.message || 'فشل إزالة المشارك' })
     } finally {
       client.release()
     }
@@ -1057,7 +1057,7 @@ contractsRouter.put('/:contractId/signatures/:signatureId', async (req: Request,
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Update signature error:', err)
-    res.status(500).json({ error: 'Failed to update signature' })
+    res.status(500).json({ error: 'فشل تحديث التوقيع' })
   }
 })
 
@@ -1073,7 +1073,7 @@ contractsRouter.put('/schedules/:id', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Contracts] Update schedule error:', err)
-    res.status(500).json({ error: 'Failed to update schedule' })
+    res.status(500).json({ error: 'فشل تحديث الجدول' })
   }
 })
 
@@ -1091,6 +1091,6 @@ contractsRouter.post('/:contractId/amendments', async (req: Request, res: Respon
     res.status(201).json({ id })
   } catch (err) {
     console.error('[Contracts] Create amendment error:', err)
-    res.status(500).json({ error: 'Failed to create amendment' })
+    res.status(500).json({ error: 'فشل إنشاء التعديل' })
   }
 })

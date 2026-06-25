@@ -185,7 +185,7 @@ export async function getUserPermissions(
 export function requirePermission(permissionKey: string) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.auth) {
-      res.status(401).json({ error: 'Unauthorized: No session' })
+      res.status(401).json({ error: 'غير مصرح: لا توجد جلسة' })
       return
     }
 
@@ -203,12 +203,12 @@ export function requirePermission(permissionKey: string) {
       }
 
       res.status(403).json({
-        error: 'Forbidden',
+        error: 'غير مصرح',
         message: `ليس لديك الصلاحية الكافية لإتمام هذه العملية (${permissionKey}).`
       })
     } catch (err: any) {
       console.error(`[PERMISSIONS] Middleware check failed:`, err.message)
-      res.status(500).json({ error: 'Internal permissions verification failed' })
+      res.status(500).json({ error: 'فشل التحقق من الصلاحيات' })
     }
   }
 }

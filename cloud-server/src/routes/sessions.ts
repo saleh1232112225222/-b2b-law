@@ -97,7 +97,7 @@ sessionsRouter.get(
       res.json({ count: parseInt(countResult.rows[0].count, 10) })
     } catch (err) {
       console.error('[SESSIONS] Count error:', err)
-      res.status(500).json({ error: 'Failed to count sessions' })
+      res.status(500).json({ error: 'فشل عد الجلسات' })
     }
   }
 )
@@ -156,7 +156,7 @@ sessionsRouter.get('/', requirePermission('view_sessions'), async (req: Request,
     res.json({ data: dataResult.rows })
   } catch (err) {
     console.error('[SESSIONS] List error:', err)
-    res.status(500).json({ error: 'Failed to list sessions' })
+    res.status(500).json({ error: 'فشل عرض الجلسات' })
   }
 })
 
@@ -179,7 +179,7 @@ sessionsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[SESSIONS] GetAll error:', err)
-      res.status(500).json({ error: 'Failed to get all sessions' })
+      res.status(500).json({ error: 'فشل جلب جميع الجلسات' })
     }
   }
 )
@@ -203,7 +203,7 @@ sessionsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[SESSIONS] GetToday error:', err)
-      res.status(500).json({ error: "Failed to get today's sessions" })
+      res.status(500).json({ error: 'فشل جلب جلسات اليوم' })
     }
   }
 )
@@ -227,7 +227,7 @@ sessionsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[SESSIONS] GetTomorrow error:', err)
-      res.status(500).json({ error: "Failed to get tomorrow's sessions" })
+      res.status(500).json({ error: 'فشل جلب جلسات الغد' })
     }
   }
 )
@@ -252,7 +252,7 @@ sessionsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[SESSIONS] GetByCase error:', err)
-      res.status(500).json({ error: 'Failed to get sessions by case' })
+      res.status(500).json({ error: 'فشل جلب جلسات القضية' })
     }
   }
 )
@@ -285,7 +285,7 @@ sessionsRouter.get(
       }
     } catch (err) {
       console.error('[SESSIONS] CheckBlock error:', err)
-      res.status(500).json({ error: 'Failed to check block status' })
+      res.status(500).json({ error: 'فشل التحقق من حالة الحظر' })
     }
   }
 )
@@ -309,7 +309,7 @@ sessionsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[SESSIONS] GetPendingClosure error:', err)
-      res.status(500).json({ error: 'Failed to get pending closure sessions' })
+      res.status(500).json({ error: 'فشل جلب الجلسات المعلقة الإغلاق' })
     }
   }
 )
@@ -331,13 +331,13 @@ sessionsRouter.get(
         [id, companyId]
       )
       if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Session not found' })
+        res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
       res.json(result.rows[0])
     } catch (err) {
       console.error('[SESSIONS] GetById error:', err)
-      res.status(500).json({ error: 'Failed to get session' })
+      res.status(500).json({ error: 'فشل جلب الجلسة' })
     }
   }
 )
@@ -406,7 +406,7 @@ sessionsRouter.post(
       res.status(201).json(body)
     } catch (err) {
       console.error('[SESSIONS] Create error:', err)
-      res.status(500).json({ error: 'Failed to create session' })
+      res.status(500).json({ error: 'فشل إنشاء الجلسة' })
     }
   }
 )
@@ -469,13 +469,13 @@ sessionsRouter.put(
         [...values, id, companyId]
       )
       if (result.rowCount === 0) {
-        res.status(404).json({ error: 'Session not found' })
+        res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
       res.json({ success: true })
     } catch (err) {
       console.error('[SESSIONS] Update error:', err)
-      res.status(500).json({ error: 'Failed to update session' })
+      res.status(500).json({ error: 'فشل تحديث الجلسة' })
     }
   }
 )
@@ -493,13 +493,13 @@ sessionsRouter.delete(
         companyId
       ])
       if (result.rowCount === 0) {
-        res.status(404).json({ error: 'Session not found' })
+        res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
       res.json({ success: true })
     } catch (err) {
       console.error('[SESSIONS] Delete error:', err)
-      res.status(500).json({ error: 'Failed to delete session' })
+      res.status(500).json({ error: 'فشل حذف الجلسة' })
     }
   }
 )

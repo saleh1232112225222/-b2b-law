@@ -45,7 +45,7 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
   try {
     // Only allow admin of the main company (00000000-0000-0000-0000-000000000000)
     if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
-      return res.status(403).json({ error: 'Admin access required' })
+      return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
     }
 
     const userResult = await query('SELECT role_key FROM users WHERE id = $1 AND company_id = $2', [
@@ -54,19 +54,19 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
     ])
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' })
+      return res.status(404).json({ error: 'المستخدم غير موجود' })
     }
 
     const role = userResult.rows[0].role_key
 
     if (role !== 'admin') {
-      return res.status(403).json({ error: 'Admin access required' })
+      return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
     }
 
     next()
   } catch (err) {
     console.error('[ADMIN] Role check error:', err)
-    return res.status(500).json({ error: 'Failed to verify permissions' })
+    return res.status(500).json({ error: 'فشل في التحقق من الصلاحيات' })
   }
 }
 

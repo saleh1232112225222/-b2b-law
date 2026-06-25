@@ -14,7 +14,7 @@ subscriptionRouter.get('/plans', async (_req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[SUBSCRIPTIONS] Failed to fetch plans:', err)
-    res.status(500).json({ error: 'Failed to fetch plans' })
+    res.status(500).json({ error: 'فشل في جلب الباقات' })
   }
 })
 
@@ -39,7 +39,7 @@ subscriptionRouter.get('/status', async (req: Request, res: Response) => {
         [auth.companyId]
       )
       if (companyResult.rows.length === 0) {
-        res.status(404).json({ error: 'Company not found' })
+        res.status(404).json({ error: 'الشركة غير موجودة' })
         return
       }
       const company = companyResult.rows[0]
@@ -96,7 +96,7 @@ subscriptionRouter.get('/status', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[SUBSCRIPTIONS] Failed to get status:', err)
-    res.status(500).json({ error: 'Failed to get subscription status' })
+    res.status(500).json({ error: 'فشل في جلب حالة الاشتراك' })
   }
 })
 
@@ -107,7 +107,7 @@ subscriptionRouter.post('/create-payment-intent', async (req: Request, res: Resp
     const { planId } = req.body
 
     if (!planId) {
-      res.status(400).json({ error: 'Plan ID is required' })
+      res.status(400).json({ error: 'معرف الباقة مطلوب' })
       return
     }
 
@@ -116,7 +116,7 @@ subscriptionRouter.post('/create-payment-intent', async (req: Request, res: Resp
       planId
     ])
     if (planResult.rows.length === 0) {
-      res.status(404).json({ error: 'Plan not found' })
+      res.status(404).json({ error: 'الباقة غير موجودة' })
       return
     }
 
@@ -191,20 +191,20 @@ subscriptionRouter.post('/confirm-payment/:paymentId', async (req: Request, res:
       auth.companyId
     ])
     if (paymentResult.rows.length === 0) {
-      res.status(404).json({ error: 'Payment not found' })
+      res.status(404).json({ error: 'الدفعة غير موجودة' })
       return
     }
 
     const payment = paymentResult.rows[0]
     if (payment.status !== 'pending') {
-      res.status(400).json({ error: 'Payment already processed' })
+      res.status(400).json({ error: 'تم معالجة الدفعة بالفعل' })
       return
     }
 
     // Get plan details
     const planResult = await query('SELECT * FROM plans WHERE id = $1', [payment.plan_id])
     if (planResult.rows.length === 0) {
-      res.status(404).json({ error: 'Plan not found' })
+      res.status(404).json({ error: 'الباقة غير موجودة' })
       return
     }
 
@@ -303,7 +303,7 @@ subscriptionRouter.post('/cancel', async (req: Request, res: Response) => {
     )
 
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'No active subscription found' })
+      res.status(404).json({ error: 'لا يوجد اشتراك نشط' })
       return
     }
 

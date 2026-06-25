@@ -124,7 +124,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
   try {
     const { username, password, companyId } = req.body
     if (!username || !password) {
-      res.status(400).json({ error: 'Username and password required' })
+      res.status(400).json({ error: 'يرجى إدخال اسم المستخدم وكلمة المرور' })
       return
     }
 
@@ -142,7 +142,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     const result = await query(userQuery, params)
     if (result.rows.length === 0) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - مستخدم غير موجود')
-      res.status(401).json({ error: 'Invalid credentials' })
+      res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' })
       return
     }
 
@@ -164,7 +164,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
         'auth',
         'محاولة دخول فاشلة - كلمة المرور غير معرفة'
       )
-      res.status(401).json({ error: 'Invalid credentials' })
+      res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' })
       return
     }
 
@@ -172,7 +172,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     if (!valid) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - كلمة مرور خاطئة')
       await logLoginAttempt(user.id, user.company_id, false, 'كلمة مرور خاطئة', req)
-      res.status(401).json({ error: 'Invalid credentials' })
+      res.status(401).json({ error: 'اسم المستخدم أو كلمة المرور غير صحيحة' })
       return
     }
 
@@ -281,7 +281,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     })
   } catch (err) {
     console.error('[AUTH] Login error:', err)
-    res.status(500).json({ error: 'Login failed' })
+    res.status(500).json({ error: 'فشل تسجيل الدخول' })
   }
 })
 
@@ -344,7 +344,7 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
     })
   } catch (err) {
     console.error('[AUTH] Session error:', err)
-    res.status(500).json({ error: 'Failed to fetch session' })
+    res.status(500).json({ error: 'فشل جلب بيانات الجلسة' })
   }
 })
 
@@ -352,17 +352,17 @@ authRouter.put('/password', authMiddleware, async (req: Request, res: Response) 
   try {
     const { oldPassword, newPassword } = req.body
     if (!oldPassword || !newPassword) {
-      res.status(400).json({ error: 'Old and new password required' })
+      res.status(400).json({ error: 'كلمة المرور القديمة والجديدة مطلوبتان' })
       return
     }
     const result = await query('SELECT password_hash FROM users WHERE id = $1', [req.auth!.userId])
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'User not found' })
+      res.status(404).json({ error: 'المستخدم غير موجود' })
       return
     }
     const valid = await bcrypt.compare(oldPassword, result.rows[0].password_hash)
     if (!valid) {
-      res.status(401).json({ error: 'Current password is incorrect' })
+      res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' })
       return
     }
     const hash = await bcrypt.hash(newPassword, 12)
@@ -373,7 +373,7 @@ authRouter.put('/password', authMiddleware, async (req: Request, res: Response) 
     res.json({ success: true })
   } catch (err) {
     console.error('[AUTH] Password change error:', err)
-    res.status(500).json({ error: 'Password change failed' })
+    res.status(500).json({ error: 'فشل تغيير كلمة المرور' })
   }
 })
 
@@ -406,7 +406,7 @@ function getGoogleClient(): OAuth2Client | null {
 authRouter.get('/google', (_req: Request, res: Response) => {
   const client = getGoogleClient()
   if (!client) {
-    res.status(500).json({ error: 'Google OAuth not configured' })
+    res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
   const url = client.generateAuthUrl({
@@ -420,12 +420,12 @@ authRouter.get('/google', (_req: Request, res: Response) => {
 authRouter.get('/google/callback', async (req: Request, res: Response) => {
   const client = getGoogleClient()
   if (!client) {
-    res.status(500).json({ error: 'Google OAuth not configured' })
+    res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
   const { code } = req.query
   if (!code || typeof code !== 'string') {
-    res.status(400).json({ error: 'Missing authorization code' })
+    res.status(400).json({ error: 'رمز التفويض مفقود' })
     return
   }
   try {
@@ -436,7 +436,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     })
     const payload = ticket.getPayload()
     if (!payload || !payload.email) {
-      res.status(400).json({ error: 'Failed to get user info from Google' })
+      res.status(400).json({ error: 'فشل جلب بيانات المستخدم من Google' })
       return
     }
     const googleEmail = payload.email
@@ -594,7 +594,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
   } catch (err) {
     console.error('[AUTH] Google OAuth callback error:', err)
-    res.status(500).json({ error: 'Google authentication failed' })
+    res.status(500).json({ error: 'فشل التحقق عبر Google' })
   }
 })
 
@@ -602,7 +602,7 @@ authRouter.post('/check-availability', authRateLimiter, async (req: Request, res
   try {
     const { field, value } = req.body
     if (!field || !value) {
-      res.status(400).json({ error: 'Missing parameters' })
+      res.status(400).json({ error: 'بعض المعالم مفقودة' })
       return
     }
 
@@ -618,11 +618,11 @@ authRouter.post('/check-availability', authRateLimiter, async (req: Request, res
       const exists = await query('SELECT id FROM users WHERE username = $1', [value.trim()])
       res.json({ available: exists.rows.length === 0 })
     } else {
-      res.status(400).json({ error: 'Invalid field' })
+      res.status(400).json({ error: 'الحقل غير صالح' })
     }
   } catch (err) {
     console.error('[AUTH] Check availability error:', err)
-    res.status(500).json({ error: 'Check failed' })
+    res.status(500).json({ error: 'فشل التحقق' })
   }
 })
 
@@ -644,7 +644,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     }
 
     if (!companyName || !username || !email || !phone || !password) {
-      res.status(400).json({ error: 'All fields are required', message: 'جميع الحقول مطلوبة' })
+      res.status(400).json({ error: 'جميع الحقول مطلوبة', message: 'جميع الحقول مطلوبة' })
       return
     }
 
@@ -841,7 +841,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       .json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)
-    res.status(500).json({ error: 'Registration failed' })
+    res.status(500).json({ error: 'فشل التسجيل' })
   }
 })
 
@@ -849,7 +849,7 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
   try {
     const { username, code } = req.body
     if (!username || !code) {
-      res.status(400).json({ error: 'Username and code are required' })
+      res.status(400).json({ error: 'اسم المستخدم والرمز مطلوبان' })
       return
     }
 
@@ -874,7 +874,7 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
 
     const company = companyResult.rows[0]
     if (company.is_verified) {
-      res.json({ success: true, message: 'Account is already verified' })
+      res.json({ success: true, message: 'الحساب مُفعل بالفعل' })
       return
     }
 
@@ -916,9 +916,9 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
         console.error('Failed to notify admin of manual signup verification:', e)
       })
 
-    res.json({ success: true, message: 'Account verified successfully' })
+    res.json({ success: true, message: 'تم تفعيل الحساب بنجاح' })
   } catch (err) {
     console.error('[AUTH] Verification error:', err)
-    res.status(500).json({ error: 'Verification failed' })
+    res.status(500).json({ error: 'فشل التحقق' })
   }
 })

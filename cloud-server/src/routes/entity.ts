@@ -118,7 +118,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         })
       } catch (err) {
         console.error(`[${table}] List error:`, err)
-        res.status(500).json({ error: 'Failed to list records' })
+        res.status(500).json({ error: 'فشل في جلب السجلات' })
       }
     })
   }
@@ -134,7 +134,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         res.json(result.rows)
       } catch (err) {
         console.error(`[${table}] GetAll error:`, err)
-        res.status(500).json({ error: 'Failed to get records' })
+        res.status(500).json({ error: 'فشل في جلب السجلات' })
       }
     })
   }
@@ -171,7 +171,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         res.json({ count: parseInt(result.rows[0].count) })
       } catch (err) {
         console.error(`[${table}] Count error:`, err)
-        res.status(500).json({ error: 'Failed to count' })
+        res.status(500).json({ error: 'فشل في العد' })
       }
     })
   }
@@ -182,7 +182,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         const companyId = getCompanyId(req)
         const q = req.query.q as string
         if (!q || !searchFields || searchFields.length === 0) {
-          res.status(400).json({ error: 'Search query required' })
+          res.status(400).json({ error: 'استعلام البحث مطلوب' })
           return
         }
 
@@ -196,7 +196,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         res.json(result.rows)
       } catch (err) {
         console.error(`[${table}] Search error:`, err)
-        res.status(500).json({ error: 'Search failed' })
+        res.status(500).json({ error: 'فشل البحث' })
       }
     })
   }
@@ -210,13 +210,13 @@ export function createEntityRouter(config: EntityConfig): Router {
           [req.params.id, companyId]
         )
         if (result.rows.length === 0) {
-          res.status(404).json({ error: 'Record not found' })
+          res.status(404).json({ error: 'السجل غير موجود' })
           return
         }
         res.json(result.rows[0])
       } catch (err) {
         console.error(`[${table}] GetById error:`, err)
-        res.status(500).json({ error: 'Failed to get record' })
+        res.status(500).json({ error: 'فشل في جلب السجل' })
       }
     })
   }
@@ -263,7 +263,7 @@ export function createEntityRouter(config: EntityConfig): Router {
         res.status(201).json(body)
       } catch (err) {
         console.error(`[${table}] Create error:`, err)
-        res.status(500).json({ error: 'Failed to create record' })
+        res.status(500).json({ error: 'فشل في إنشاء السجل' })
       }
     })
   }
@@ -306,13 +306,13 @@ export function createEntityRouter(config: EntityConfig): Router {
           [...values, req.params.id, companyId]
         )
         if (result.rowCount === 0) {
-          res.status(404).json({ error: 'Record not found' })
+          res.status(404).json({ error: 'السجل غير موجود' })
           return
         }
         res.json({ success: true })
       } catch (err) {
         console.error(`[${table}] Update error:`, err)
-        res.status(500).json({ error: 'Failed to update record' })
+        res.status(500).json({ error: 'فشل في تحديث السجل' })
       }
     })
   }
@@ -326,13 +326,13 @@ export function createEntityRouter(config: EntityConfig): Router {
           [req.params.id, companyId]
         )
         if (result.rowCount === 0) {
-          res.status(404).json({ error: 'Record not found' })
+          res.status(404).json({ error: 'السجل غير موجود' })
           return
         }
         res.json({ success: true })
       } catch (err) {
         console.error(`[${table}] Delete error:`, err)
-        res.status(500).json({ error: 'Failed to delete record' })
+        res.status(500).json({ error: 'فشل في حذف السجل' })
       }
     })
   }

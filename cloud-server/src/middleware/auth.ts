@@ -56,7 +56,7 @@ export async function authMiddleware(
 ): Promise<void> {
   const header = req.headers.authorization
   if (!header || !header.startsWith('Bearer ')) {
-    res.status(401).json({ error: 'Unauthorized: No token provided' })
+    res.status(401).json({ error: 'غير مصرح: لم يتم تقديم رمز الدخول' })
     return
   }
   try {
@@ -119,7 +119,7 @@ export async function authMiddleware(
     }
     next()
   } catch (err) {
-    res.status(401).json({ error: 'Unauthorized: Invalid or expired token' })
+    res.status(401).json({ error: 'غير مصرح: رمز الدخول غير صالح أو منتهي الصلاحية' })
   }
 }
 

@@ -16,6 +16,6 @@ debugRouter.post('/extend-trial', async (req: Request, res: Response) => {
     res.json({ success: true, message: 'Trial dates extended by 1 year for all companies.' })
   } catch (err) {
     console.error('[DEBUG] Extend trial error:', err)
-    res.status(500).json({ error: 'Failed to extend trial dates' })
+    res.status(500).json({ error: 'فشل في تمديد تواريخ الفترة التجريبية' })
   }
 })

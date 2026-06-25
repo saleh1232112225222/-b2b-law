@@ -51,7 +51,7 @@ tasksRouter.get('/count', requirePermission('view_tasks'), async (req: Request, 
     res.json({ count: parseInt(countResult.rows[0].count, 10) })
   } catch (err) {
     console.error('[TASKS] Count error:', err)
-    res.status(500).json({ error: 'Failed to count tasks' })
+    res.status(500).json({ error: 'فشل عد المهام' })
   }
 })
 
@@ -108,7 +108,7 @@ tasksRouter.get('/', requirePermission('view_tasks'), async (req: Request, res: 
     res.json({ data: dataResult.rows })
   } catch (err) {
     console.error('[TASKS] List error:', err)
-    res.status(500).json({ error: 'Failed to list tasks' })
+    res.status(500).json({ error: 'فشل عرض المهام' })
   }
 })
 
@@ -188,7 +188,7 @@ tasksRouter.post('/', requirePermission('create_tasks'), async (req: Request, re
     res.status(201).json(body)
   } catch (err) {
     console.error('[TASKS] Create error:', err)
-    res.status(500).json({ error: 'Failed to create task' })
+    res.status(500).json({ error: 'فشل إنشاء المهمة' })
   }
 })
 
@@ -203,13 +203,13 @@ tasksRouter.get('/:id', requirePermission('view_tasks'), async (req: Request, re
       companyId
     ])
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Task not found' })
+      res.status(404).json({ error: 'المهمة غير موجودة' })
       return
     }
     res.json(result.rows[0])
   } catch (err) {
     console.error('[TASKS] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get task' })
+    res.status(500).json({ error: 'فشل جلب المهمة' })
   }
 })
 
@@ -232,7 +232,7 @@ tasksRouter.put('/:id', requirePermission('edit_tasks'), async (req: Request, re
       companyId
     ])
     if (beforeRes.rows.length === 0) {
-      res.status(404).json({ error: 'Task not found' })
+      res.status(404).json({ error: 'المهمة غير موجودة' })
       return
     }
     const before = beforeRes.rows[0]
@@ -296,7 +296,7 @@ tasksRouter.put('/:id', requirePermission('edit_tasks'), async (req: Request, re
     res.json({ success: true })
   } catch (err) {
     console.error('[TASKS] Update error:', err)
-    res.status(500).json({ error: 'Failed to update task' })
+    res.status(500).json({ error: 'فشل تحديث المهمة' })
   }
 })
 
@@ -311,14 +311,14 @@ tasksRouter.delete('/:id', requirePermission('edit_tasks'), async (req: Request,
       companyId
     ])
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Task not found' })
+      res.status(404).json({ error: 'المهمة غير موجودة' })
       return
     }
 
     res.json({ success: true })
   } catch (err) {
     console.error('[TASKS] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete task' })
+    res.status(500).json({ error: 'فشل حذف المهمة' })
   }
 })
 
@@ -337,7 +337,7 @@ tasksRouter.get(
       res.json({ data: result.rows })
     } catch (err) {
       console.error('[TASKS] byCase error:', err)
-      res.status(500).json({ error: 'Failed to fetch tasks' })
+      res.status(500).json({ error: 'فشل جلب المهام' })
     }
   }
 )
@@ -356,7 +356,7 @@ tasksRouter.get(
       res.json({ data: result.rows })
     } catch (err) {
       console.error('[TASKS] pending error:', err)
-      res.status(500).json({ error: 'Failed to fetch pending tasks' })
+      res.status(500).json({ error: 'فشل جلب المهام المعلقة' })
     }
   }
 )
@@ -373,7 +373,7 @@ tasksRouter.post(
       const { status, note } = req.body
 
       if (!status) {
-        res.status(400).json({ error: 'status is required' })
+        res.status(400).json({ error: 'الحالة مطلوبة' })
         return
       }
 
@@ -381,7 +381,7 @@ tasksRouter.post(
       if (!validStatuses.includes(status)) {
         res
           .status(400)
-          .json({ error: `Invalid status. Must be one of: ${validStatuses.join(', ')}` })
+          .json({ error: `حالة غير صالحة. يجب أن تكون أحد: ${validStatuses.join(', ')}` })
         return
       }
 
@@ -390,7 +390,7 @@ tasksRouter.post(
         companyId
       ])
       if (taskRes.rows.length === 0) {
-        res.status(404).json({ error: 'Task not found' })
+        res.status(404).json({ error: 'المهمة غير موجودة' })
         return
       }
 
@@ -442,7 +442,7 @@ tasksRouter.post(
       res.json({ success: true })
     } catch (err) {
       console.error('[TASKS] transition error:', err)
-      res.status(500).json({ error: 'Failed to transition task' })
+      res.status(500).json({ error: 'فشل تغيير حالة المهمة' })
     }
   }
 )
@@ -463,7 +463,7 @@ tasksRouter.post(
         companyId
       ])
       if (taskRes.rows.length === 0) {
-        res.status(404).json({ error: 'Task not found' })
+        res.status(404).json({ error: 'المهمة غير موجودة' })
         return
       }
 
@@ -491,7 +491,7 @@ tasksRouter.post(
       res.json({ success: true })
     } catch (err) {
       console.error('[TASKS] close error:', err)
-      res.status(500).json({ error: 'Failed to close task' })
+      res.status(500).json({ error: 'فشل إغلاق المهمة' })
     }
   }
 )
@@ -512,7 +512,7 @@ tasksRouter.post(
         companyId
       ])
       if (taskRes.rows.length === 0) {
-        res.status(404).json({ error: 'Task not found' })
+        res.status(404).json({ error: 'المهمة غير موجودة' })
         return
       }
 
@@ -540,7 +540,7 @@ tasksRouter.post(
       res.json({ success: true })
     } catch (err) {
       console.error('[TASKS] cancel error:', err)
-      res.status(500).json({ error: 'Failed to cancel task' })
+      res.status(500).json({ error: 'فشل إلغاء المهمة' })
     }
   }
 )
@@ -560,7 +560,7 @@ tasksRouter.get(
       res.json({ count: parseInt(result.rows[0].count, 10) })
     } catch (err) {
       console.error('[TASKS] auditCount error:', err)
-      res.status(500).json({ error: 'Failed to count audit logs' })
+      res.status(500).json({ error: 'فشل عد سجلات التدقيق' })
     }
   }
 )
@@ -584,7 +584,7 @@ tasksRouter.get(
       res.json({ data: result.rows })
     } catch (err) {
       console.error('[TASKS] audit error:', err)
-      res.status(500).json({ error: 'Failed to fetch audit logs' })
+      res.status(500).json({ error: 'فشل جلب سجلات التدقيق' })
     }
   }
 )

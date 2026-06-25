@@ -9,7 +9,7 @@ systemRouter.use(authMiddleware)
 
 const requireAdminRole = (req: Request, res: Response, next: Function) => {
   if (req.auth?.roleKey !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' })
+    return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }
   next()
 }
@@ -54,7 +54,7 @@ systemRouter.get('/system/diagnostic', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[Diagnostic] Error:', err)
-    res.status(500).json({ error: 'Diagnostic failed' })
+    res.status(500).json({ error: 'فشل التشخيص' })
   }
 })
 
@@ -85,7 +85,7 @@ systemRouter.get('/system/settings', async (req: Request, res: Response) => {
     res.json(settings)
   } catch (err) {
     console.error('[Settings] Get error:', err)
-    res.status(500).json({ error: 'Failed to get settings' })
+    res.status(500).json({ error: 'فشل في جلب الإعدادات' })
   }
 })
 
@@ -106,7 +106,7 @@ systemRouter.put('/system/settings', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Settings] Update error:', err)
-    res.status(500).json({ error: 'Failed to update settings' })
+    res.status(500).json({ error: 'فشل في تحديث الإعدادات' })
   }
 })
 
@@ -136,7 +136,7 @@ systemRouter.get(
       res.json(inventory)
     } catch (err) {
       console.error('[Inventory] Error:', err)
-      res.status(500).json({ error: 'Failed to get inventory' })
+      res.status(500).json({ error: 'فشل في جلب المخزون' })
     }
   }
 )
@@ -168,7 +168,7 @@ systemRouter.post(
       })
     } catch (err) {
       console.error('[ExportSnapshot] Error:', err)
-      res.status(500).json({ error: 'Failed to export snapshot' })
+      res.status(500).json({ error: 'فشل في تصدير النسخة الاحتياطية' })
     }
   }
 )
@@ -183,7 +183,7 @@ systemRouter.post(
       const companyId = getCompanyId(req)
       const { tables, mode } = req.body
       if (!tables || typeof tables !== 'object') {
-        res.status(400).json({ error: 'Invalid snapshot data' })
+        res.status(400).json({ error: 'بيانات النسخة الاحتياطية غير صالحة' })
         return
       }
 
@@ -549,7 +549,7 @@ systemRouter.post(
         console.error('Error during rollback/reset origin:', e)
       }
       console.error('[ImportSnapshot] Error:', err)
-      res.status(500).json({ error: 'Failed to import snapshot' })
+      res.status(500).json({ error: 'فشل في استيراد النسخة الاحتياطية' })
     } finally {
       client.release()
     }
@@ -650,7 +650,7 @@ systemRouter.post(
         console.error('Error during rollback/reset origin:', e)
       }
       console.error('[ClearAllData] Error:', err)
-      res.status(500).json({ error: 'Failed to clear all data' })
+      res.status(500).json({ error: 'فشل مسح جميع البيانات' })
     } finally {
       client.release()
     }

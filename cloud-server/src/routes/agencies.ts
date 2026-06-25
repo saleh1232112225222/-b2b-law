@@ -25,7 +25,7 @@ agenciesRouter.get('/by-client/:clientId', async (req: Request, res: Response) =
     res.json(result.rows)
   } catch (err) {
     console.error('[Agencies] getByClientId error:', err)
-    res.status(500).json({ error: 'Failed to get client agencies' })
+    res.status(500).json({ error: 'فشل في جلب وكالات العميل' })
   }
 })
 
@@ -52,7 +52,7 @@ agenciesRouter.get('/expiry-alerts', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Agencies] getExpiryAlerts error:', err)
-    res.status(500).json({ error: 'Failed to get expiry alerts' })
+    res.status(500).json({ error: 'فشل في جلب تنبيهات انتهاء الصلاحية' })
   }
 })
 
@@ -95,7 +95,7 @@ agenciesRouter.get('/', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[Agencies] List error:', err)
-    res.status(500).json({ error: 'Failed to list agencies' })
+    res.status(500).json({ error: 'فشل في جلب قائمة الوكالات' })
   }
 })
 
@@ -113,7 +113,7 @@ agenciesRouter.get('/all', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Agencies] GetAll error:', err)
-    res.status(500).json({ error: 'Failed to get agencies' })
+    res.status(500).json({ error: 'فشل في جلب الوكالات' })
   }
 })
 
@@ -128,12 +128,12 @@ agenciesRouter.get('/:id', async (req: Request, res: Response) => {
       [req.params.id, companyId]
     )
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'Agency not found' })
+      res.status(404).json({ error: 'الوكالة غير موجودة' })
       return
     }
     res.json(result.rows[0])
   } catch (err) {
     console.error('[Agencies] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get agency' })
+    res.status(500).json({ error: 'فشل في جلب الوكالة' })
   }
 })

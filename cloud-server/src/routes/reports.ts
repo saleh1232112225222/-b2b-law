@@ -16,7 +16,7 @@ reportsRouter.get(
       const companyId = getCompanyId(req)
       const { caseId } = req.query
       if (!caseId) {
-        res.status(400).json({ error: 'caseId required' })
+        res.status(400).json({ error: 'معرف القضية مطلوب' })
         return
       }
       const caseData = await query('SELECT * FROM cases WHERE id = $1 AND company_id = $2', [
@@ -24,7 +24,7 @@ reportsRouter.get(
         companyId
       ])
       if (caseData.rows.length === 0) {
-        res.status(404).json({ error: 'Case not found' })
+        res.status(404).json({ error: 'القضية غير موجودة' })
         return
       }
       const caseRow = caseData.rows[0]
@@ -165,7 +165,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] Case report error:', err)
-      res.status(500).json({ error: 'Failed to generate case report' })
+      res.status(500).json({ error: 'فشل إنشاء تقرير القضية' })
     }
   }
 )
@@ -198,7 +198,7 @@ reportsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[REPORTS] Sessions report error:', err)
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -228,7 +228,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] Financial summary error:', err)
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -256,7 +256,7 @@ reportsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[REPORTS] Activity error:', err)
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -267,7 +267,7 @@ reportsRouter.post(
   (req: Request, res: Response) => {
     const { filename, rows } = req.body
     if (!rows || !Array.isArray(rows) || rows.length === 0) {
-      res.status(400).json({ error: 'No data to export' })
+      res.status(400).json({ error: 'لا توجد بيانات للتصدير' })
       return
     }
     const headers = Object.keys(rows[0])
@@ -288,7 +288,7 @@ reportsRouter.post(
   '/export/pdf',
   requirePermission('export_reports'),
   (_req: Request, res: Response) => {
-    res.status(501).json({ error: 'PDF export not yet implemented on server' })
+    res.status(501).json({ error: 'تصدير PDF غير مُndoّن بعد على الخادم' })
   }
 )
 
@@ -296,7 +296,7 @@ reportsRouter.post(
   '/export/html',
   requirePermission('export_reports'),
   (_req: Request, res: Response) => {
-    res.status(501).json({ error: 'HTML export not yet implemented on server' })
+    res.status(501).json({ error: 'تصدير HTML غير مُndoّن بعد على الخادم' })
   }
 )
 
@@ -312,7 +312,7 @@ reportsRouter.get(
       )
       res.json(result.rows)
     } catch (err) {
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -329,7 +329,7 @@ reportsRouter.get(
       )
       res.json(result.rows)
     } catch (err) {
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -353,7 +353,7 @@ reportsRouter.get(
         totalClients: parseInt(clients.rows[0].count)
       })
     } catch (err) {
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -370,7 +370,7 @@ reportsRouter.get(
       )
       res.json(users.rows)
     } catch (err) {
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -411,7 +411,7 @@ reportsRouter.get(
         todaySessions: todaySessions.rows
       })
     } catch (err) {
-      res.status(500).json({ error: 'Failed' })
+      res.status(500).json({ error: 'فشلت العملية' })
     }
   }
 )
@@ -433,7 +433,7 @@ reportsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[REPORTS] listCases error:', err)
-      res.status(500).json({ error: 'Failed to list cases' })
+      res.status(500).json({ error: 'فشل عرض القضايا' })
     }
   }
 )
@@ -486,7 +486,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] user-activity error:', err)
-      res.status(500).json({ error: 'Failed to get user activity' })
+      res.status(500).json({ error: 'فشل جلب نشاط المستخدم' })
     }
   }
 )
@@ -539,7 +539,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] evidence report error:', err)
-      res.status(500).json({ error: 'Failed to get evidence report' })
+      res.status(500).json({ error: 'فشل جلب تقرير الأدلة' })
     }
   }
 )
@@ -599,7 +599,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] memoranda report error:', err)
-      res.status(500).json({ error: 'Failed to get memoranda report' })
+      res.status(500).json({ error: 'فشل جلب تقريرالمذكرات' })
     }
   }
 )
@@ -619,13 +619,13 @@ reportsRouter.get(
         [req.params.id, companyId]
       )
       if (result.rows.length === 0) {
-        res.status(404).json({ error: 'Memorandum not found' })
+        res.status(404).json({ error: 'المذكرة غير موجودة' })
         return
       }
       res.json(result.rows[0])
     } catch (err) {
       console.error('[REPORTS] memorandum detail error:', err)
-      res.status(500).json({ error: 'Failed to get memorandum details' })
+      res.status(500).json({ error: 'فشل جلب تفاصيل المذكرة' })
     }
   }
 )
@@ -696,7 +696,7 @@ reportsRouter.get(
       })
     } catch (err) {
       console.error('[REPORTS] documents report error:', err)
-      res.status(500).json({ error: 'Failed to get documents report' })
+      res.status(500).json({ error: 'فشل جلب تقرير المستندات' })
     }
   }
 )
@@ -719,7 +719,7 @@ reportsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[REPORTS] sessions-list error:', err)
-      res.status(500).json({ error: 'Failed to get sessions list' })
+      res.status(500).json({ error: 'فشل جلب قائمة الجلسات' })
     }
   }
 )
@@ -742,7 +742,7 @@ reportsRouter.get(
       res.json(result.rows)
     } catch (err) {
       console.error('[REPORTS] tasks-list error:', err)
-      res.status(500).json({ error: 'Failed to get tasks list' })
+      res.status(500).json({ error: 'فشل جلب قائمة المهام' })
     }
   }
 )
@@ -770,7 +770,7 @@ reportsRouter.post(
     `)
     } catch (err) {
       console.error('[REPORTS] preview error:', err)
-      res.status(500).json({ error: 'Failed to get report preview' })
+      res.status(500).json({ error: 'فشل جلب معاينة التقرير' })
     }
   }
 )

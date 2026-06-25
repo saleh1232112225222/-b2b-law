@@ -24,7 +24,7 @@ usersRouter.get('/assignable', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Users] Get assignable error:', err)
-    res.status(500).json({ error: 'Failed to get assignable users' })
+    res.status(500).json({ error: 'فشل جلب المستخدمين المتاحين للتعيين' })
   }
 })
 
@@ -39,13 +39,13 @@ usersRouter.get('/recovery-info', async (req: Request, res: Response) => {
       [userId, companyId]
     )
     if (result.rows.length === 0) {
-      res.status(404).json({ error: 'User not found' })
+      res.status(404).json({ error: 'المستخدم غير موجود' })
       return
     }
     res.json(result.rows[0])
   } catch (err) {
     console.error('[Users] Get self recovery info error:', err)
-    res.status(500).json({ error: 'Failed to get recovery info' })
+    res.status(500).json({ error: 'فشل جلب بيانات الاسترداد' })
   }
 })
 
@@ -70,7 +70,7 @@ usersRouter.put('/recovery-info', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Update self recovery info error:', err)
-    res.status(500).json({ error: 'Failed to update recovery info' })
+    res.status(500).json({ error: 'فشل تحديث بيانات الاسترداد' })
   }
 })
 
@@ -93,7 +93,7 @@ usersRouter.get('/active-staff', async (req: Request, res: Response) => {
     res.json(result.rows)
   } catch (err) {
     console.error('[Users] Get active staff error:', err)
-    res.status(500).json({ error: 'Failed to get active staff' })
+    res.status(500).json({ error: 'فشل جلب الموظفين النشطين' })
   }
 })
 
@@ -111,7 +111,7 @@ usersRouter.put('/:id/toggle-active', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Toggle active error:', err)
-    res.status(500).json({ error: 'Failed to toggle user status' })
+    res.status(500).json({ error: 'فشل تغيير حالة المستخدم' })
   }
 })
 
@@ -129,7 +129,7 @@ usersRouter.put('/:id/role', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Set role error:', err)
-    res.status(500).json({ error: 'Failed to set user role' })
+    res.status(500).json({ error: 'فشل تعيين دور المستخدم' })
   }
 })
 
@@ -154,7 +154,7 @@ usersRouter.get('/:id/scope', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[Users] Get scope error:', err)
-    res.status(500).json({ error: 'Failed to get user scope' })
+    res.status(500).json({ error: 'فشل جلب نطاق صلاحيات المستخدم' })
   }
 })
 
@@ -190,7 +190,7 @@ usersRouter.put('/:id/scope', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Set scope error:', err)
-    res.status(500).json({ error: 'Failed to set user scope' })
+    res.status(500).json({ error: 'فشل تعيين نطاق صلاحيات المستخدم' })
   }
 })
 
@@ -207,7 +207,7 @@ usersRouter.get('/:id/permission-overrides', async (req: Request, res: Response)
     res.json(result.rows)
   } catch (err) {
     console.error('[Users] Get overrides error:', err)
-    res.status(500).json({ error: 'Failed to get permission overrides' })
+    res.status(500).json({ error: 'فشل جلب تجاوزات الصلاحيات' })
   }
 })
 
@@ -229,7 +229,7 @@ usersRouter.put('/:id/permissions/:permissionKey', async (req: Request, res: Res
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Set override error:', err)
-    res.status(500).json({ error: 'Failed to set permission override' })
+    res.status(500).json({ error: 'فشل تعيين تجاوز الصلاحيات' })
   }
 })
 
@@ -252,7 +252,7 @@ usersRouter.put('/:id/permissions/bulk', async (req: Request, res: Response) => 
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Set bulk overrides error:', err)
-    res.status(500).json({ error: 'Failed to set bulk overrides' })
+    res.status(500).json({ error: 'فشل تعيين التجاوزات الجماعية' })
   }
 })
 
@@ -277,7 +277,7 @@ usersRouter.put('/:id/username', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Update username error:', err)
-    res.status(500).json({ error: 'Failed to update username' })
+    res.status(500).json({ error: 'فشل تحديث اسم المستخدم' })
   }
 })
 
@@ -302,7 +302,7 @@ usersRouter.put('/:id/recovery-info', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Admin update recovery info error:', err)
-    res.status(500).json({ error: 'Failed to update user recovery info' })
+    res.status(500).json({ error: 'فشل تحديث بيانات استرداد المستخدم' })
   }
 })
 
@@ -313,7 +313,7 @@ usersRouter.post('/', async (req: Request, res: Response) => {
     const { username, full_name, role_key, password, employee_id } = req.body
 
     if (!username || !password) {
-      res.status(400).json({ error: 'Username and password are required' })
+      res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' })
       return
     }
 
@@ -343,7 +343,7 @@ usersRouter.post('/', async (req: Request, res: Response) => {
     res.status(201).json({ success: true, userId })
   } catch (err) {
     console.error('[Users] Create error:', err)
-    res.status(500).json({ error: 'Failed to create user' })
+    res.status(500).json({ error: 'فشل إنشاء المستخدم' })
   }
 })
 
@@ -358,11 +358,11 @@ usersRouter.delete('/:id', async (req: Request, res: Response) => {
       companyId
     ])
     if (userCheck.rows.length === 0) {
-      res.status(404).json({ error: 'User not found' })
+      res.status(404).json({ error: 'المستخدم غير موجود' })
       return
     }
     if (userCheck.rows[0].username === 'admin') {
-      res.status(403).json({ error: 'Cannot delete the main admin user' })
+      res.status(403).json({ error: 'لا يمكن حذف المستخدم المسؤول الرئيسي' })
       return
     }
 
@@ -383,6 +383,6 @@ usersRouter.delete('/:id', async (req: Request, res: Response) => {
     res.json({ success: true })
   } catch (err) {
     console.error('[Users] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete user' })
+    res.status(500).json({ error: 'فشل حذف المستخدم' })
   }
 })

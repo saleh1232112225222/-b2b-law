@@ -9,7 +9,7 @@ subscriberTrackingRouter.use(authMiddleware)
 subscriberTrackingRouter.get('/debug/check-tables', async (req: Request, res: Response) => {
   const auth = req.auth as AuthPayload
   if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
-    return res.status(403).json({ error: 'Admin access required' })
+    return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }
   try {
     const loginLogs = await query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_login_logs')`)
@@ -41,13 +41,13 @@ subscriberTrackingRouter.get('/debug/check-tables', async (req: Request, res: Re
 const requireAdminRole = async (req: Request, res: Response, next: Function) => {
   const auth = req.auth as AuthPayload
   if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
-    return res.status(403).json({ error: 'Admin access required' })
+    return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }
   const userResult = await query('SELECT role_key FROM users WHERE id = $1 AND company_id = $2', [
     auth.userId, auth.companyId
   ])
   if (userResult.rows.length === 0 || userResult.rows[0].role_key !== 'admin') {
-    return res.status(403).json({ error: 'Admin access required' })
+    return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }
   next()
 }
@@ -72,7 +72,7 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
     )
 
     if (userResult.rows.length === 0) {
-      return res.status(404).json({ error: 'Subscriber not found' })
+      return res.status(404).json({ error: 'المشترك غير موجود' })
     }
 
     const user = userResult.rows[0]
@@ -202,7 +202,7 @@ subscriberTrackingRouter.get('/:userId/overview', requireAdminRole, async (req: 
     })
   } catch (err) {
     console.error('[SUBSCRIBER_TRACKING] Failed to fetch overview:', err)
-    res.status(500).json({ error: 'Failed to fetch subscriber overview' })
+    res.status(500).json({ error: 'فشل في جلب نظرة عامة على المشترك' })
   }
 })
 
@@ -244,7 +244,7 @@ subscriberTrackingRouter.get('/:userId/login-logs', requireAdminRole, async (req
     }
   } catch (err) {
     console.error('[SUBSCRIBER_TRACKING] Failed to fetch login logs:', err)
-    res.status(500).json({ error: 'Failed to fetch login logs' })
+    res.status(500).json({ error: 'فشل في جلب سجلات تسجيل الدخول' })
   }
 })
 
@@ -285,6 +285,6 @@ subscriberTrackingRouter.get('/:userId/activity-logs', requireAdminRole, async (
     }
   } catch (err) {
     console.error('[SUBSCRIBER_TRACKING] Failed to fetch activity logs:', err)
-    res.status(500).json({ error: 'Failed to fetch activity logs' })
+    res.status(500).json({ error: 'فشل في جلب سجلات النشاط' })
   }
 })

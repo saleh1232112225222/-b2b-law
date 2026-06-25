@@ -9,6 +9,6 @@ marketingRouter.post('/marketing/report', async (_req, res) => {
     res.json({ success: true, message: 'Marketing report sent to admin email.' })
   } catch (err) {
     console.error('[MARKETING] Report trigger error:', err)
-    res.status(500).json({ error: 'Failed to send marketing report' })
+    res.status(500).json({ error: 'فشل في إرسال تقرير التسويق' })
   }
 })

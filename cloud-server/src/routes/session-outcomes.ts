@@ -32,7 +32,7 @@ sessionOutcomesRouter.get(
       res.json({ data: result.rows })
     } catch (err) {
       console.error('[SESSION_OUTCOMES] getBySession error:', err)
-      res.status(500).json({ error: 'Failed to fetch session outcomes' })
+      res.status(500).json({ error: 'فشل في جلب نتائج الجلسة' })
     }
   }
 )
@@ -50,7 +50,7 @@ sessionOutcomesRouter.post(
         req.body
 
       if (!sessionId || !result) {
-        res.status(400).json({ error: 'sessionId and result are required' })
+        res.status(400).json({ error: 'معرف الجلسة والنتيجة مطلوبان' })
         return
       }
 
@@ -63,12 +63,12 @@ sessionOutcomesRouter.post(
       )
       if (sessionRes.rows.length === 0) {
         await client.query('ROLLBACK')
-        res.status(404).json({ error: 'Session not found' })
+        res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
       if (sessionRes.rows[0].company_id !== companyId) {
         await client.query('ROLLBACK')
-        res.status(403).json({ error: 'Forbidden' })
+        res.status(403).json({ error: 'ممنوع' })
         return
       }
       const caseId = sessionRes.rows[0].case_id
@@ -159,7 +159,7 @@ sessionOutcomesRouter.post(
     } catch (err) {
       await client.query('ROLLBACK')
       console.error('[SESSION_OUTCOMES] apply error:', err)
-      res.status(500).json({ error: 'Failed to apply session outcome' })
+      res.status(500).json({ error: 'فشل في تطبيق نتيجة الجلسة' })
     } finally {
       client.release()
     }
@@ -174,7 +174,7 @@ sessionOutcomesRouter.post(
     try {
       const { result, judgmentData, caseType, notes } = req.body
       if (!result) {
-        res.status(400).json({ error: 'result is required' })
+        res.status(400).json({ error: 'النتيجة مطلوبة' })
         return
       }
 
@@ -195,7 +195,7 @@ sessionOutcomesRouter.post(
       res.json({ analysis })
     } catch (err) {
       console.error('[SESSION_OUTCOMES] preview error:', err)
-      res.status(500).json({ error: 'Failed to preview session outcome' })
+      res.status(500).json({ error: 'فشل في معاينة نتيجة الجلسة' })
     }
   }
 )

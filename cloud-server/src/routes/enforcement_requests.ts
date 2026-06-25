@@ -55,7 +55,7 @@ enforcementRequestsRouter.get('/', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[EnforcementRequests] List error:', err)
-    res.status(500).json({ error: 'Failed to list enforcement requests' })
+    res.status(500).json({ error: 'فشل في جلب طلبات التنفيذ' })
   }
 })
 
@@ -70,7 +70,7 @@ enforcementRequestsRouter.get('/:id', async (req: Request, res: Response) => {
       [requestId, companyId]
     )
     if (baseRes.rows.length === 0) {
-      res.status(404).json({ error: 'Enforcement request not found' })
+      res.status(404).json({ error: 'طلب التنفيذ غير موجود' })
       return
     }
 
@@ -110,7 +110,7 @@ enforcementRequestsRouter.get('/:id', async (req: Request, res: Response) => {
     })
   } catch (err) {
     console.error('[EnforcementRequests] GetById error:', err)
-    res.status(500).json({ error: 'Failed to get enforcement request' })
+    res.status(500).json({ error: 'فشل في جلب طلب التنفيذ' })
   }
 })
 
@@ -121,7 +121,7 @@ enforcementRequestsRouter.post('/', async (req: Request, res: Response) => {
     const companyId = getCompanyId(req)
     const { base, details, parties = [], decisions = [] } = req.body
     if (!base || !base.request_type || !base.instrument_no) {
-      res.status(400).json({ error: 'Invalid payload: base fields missing' })
+      res.status(400).json({ error: 'بيانات غير صالحة: الحقول الأساسية مفقودة' })
       return
     }
 
@@ -231,7 +231,7 @@ enforcementRequestsRouter.post('/', async (req: Request, res: Response) => {
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[EnforcementRequests] Create error:', err)
-    res.status(500).json({ error: 'Failed to create enforcement request' })
+    res.status(500).json({ error: 'فشل في إنشاء طلب التنفيذ' })
   } finally {
     client.release()
   }
@@ -378,7 +378,7 @@ enforcementRequestsRouter.put('/:id', async (req: Request, res: Response) => {
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[EnforcementRequests] Update error:', err)
-    res.status(500).json({ error: 'Failed to update enforcement request' })
+    res.status(500).json({ error: 'فشل في تحديث طلب التنفيذ' })
   } finally {
     client.release()
   }
@@ -395,13 +395,13 @@ enforcementRequestsRouter.delete('/:id', async (req: Request, res: Response) => 
       [id, companyId]
     )
     if (result.rowCount === 0) {
-      res.status(404).json({ error: 'Enforcement request not found' })
+      res.status(404).json({ error: 'طلب التنفيذ غير موجود' })
       return
     }
     res.json({ success: true })
   } catch (err) {
     console.error('[EnforcementRequests] Delete error:', err)
-    res.status(500).json({ error: 'Failed to delete enforcement request' })
+    res.status(500).json({ error: 'فشل في حذف طلب التنفيذ' })
   }
 })
 
@@ -422,7 +422,7 @@ enforcementRequestsRouter.get('/:id/attachments', async (req: Request, res: Resp
     res.json(result.rows)
   } catch (err) {
     console.error('[EnforcementRequests] GetAttachments error:', err)
-    res.status(500).json({ error: 'Failed to get attachments' })
+    res.status(500).json({ error: 'فشل في جلب المرفقات' })
   }
 })
 
@@ -453,7 +453,7 @@ enforcementRequestsRouter.post('/:id/attachments', async (req: Request, res: Res
   } catch (err) {
     await client.query('ROLLBACK')
     console.error('[EnforcementRequests] AddAttachments error:', err)
-    res.status(500).json({ error: 'Failed to add attachments' })
+    res.status(500).json({ error: 'فشل في إضافة المرفقات' })
   } finally {
     client.release()
   }

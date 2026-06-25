@@ -15,9 +15,7 @@
           <h1 class="text-h5 font-weight-black text-ebony">
             {{ subscriber.company?.name || subscriber.user?.username }}
           </h1>
-          <p class="text-body-2 text-grey-darken-1">
-            تفاصيل المشترك وسجل النشاط
-          </p>
+          <p class="text-body-2 text-grey-darken-1">تفاصيل المشترك وسجل النشاط</p>
         </div>
       </div>
 
@@ -59,26 +57,46 @@
                 <v-list-item>
                   <template #prepend><v-icon icon="mdi-email" class="me-2 text-gold" /></template>
                   <v-list-item-title class="font-weight-bold">البريد الإلكتروني</v-list-item-title>
-                  <v-list-item-subtitle>{{ subscriber.company?.email || 'غير محدد' }}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{
+                    subscriber.company?.email || 'غير محدد'
+                  }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
                   <template #prepend><v-icon icon="mdi-phone" class="me-2 text-gold" /></template>
                   <v-list-item-title class="font-weight-bold">رقم الجوال</v-list-item-title>
-                  <v-list-item-subtitle>{{ subscriber.company?.phone || 'غير محدد' }}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{
+                    subscriber.company?.phone || 'غير محدد'
+                  }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <template #prepend><v-icon icon="mdi-calendar-plus" class="me-2 text-gold" /></template>
+                  <template #prepend
+                    ><v-icon icon="mdi-calendar-plus" class="me-2 text-gold"
+                  /></template>
                   <v-list-item-title class="font-weight-bold">تاريخ الإنشاء</v-list-item-title>
-                  <v-list-item-subtitle>{{ formatDate(subscriber.user?.createdAt) }}</v-list-item-subtitle>
+                  <v-list-item-subtitle>{{
+                    formatDate(subscriber.user?.createdAt)
+                  }}</v-list-item-subtitle>
                 </v-list-item>
                 <v-list-item>
-                  <template #prepend><v-icon icon="mdi-shield-check" class="me-2 text-gold" /></template>
+                  <template #prepend
+                    ><v-icon icon="mdi-shield-check" class="me-2 text-gold"
+                  /></template>
                   <v-list-item-title class="font-weight-bold">حالة الحساب</v-list-item-title>
                   <v-list-item-subtitle>
-                    <v-chip :color="subscriber.user?.isActive ? 'success' : 'error'" size="small" variant="flat">
+                    <v-chip
+                      :color="subscriber.user?.isActive ? 'success' : 'error'"
+                      size="small"
+                      variant="flat"
+                    >
                       {{ subscriber.user?.isActive ? 'نشط' : 'معطل' }}
                     </v-chip>
-                    <v-chip v-if="subscriber.user?.mustChangePassword" color="warning" size="small" variant="flat" class="ms-1">
+                    <v-chip
+                      v-if="subscriber.user?.mustChangePassword"
+                      color="warning"
+                      size="small"
+                      variant="flat"
+                      class="ms-1"
+                    >
                       كلمة المرور مؤقتة
                     </v-chip>
                   </v-list-item-subtitle>
@@ -102,40 +120,76 @@
                   <v-list-item>
                     <template #prepend><v-icon icon="mdi-tag" class="me-2 text-gold" /></template>
                     <v-list-item-title class="font-weight-bold">الخطة</v-list-item-title>
-                    <v-list-item-subtitle>{{ subscriber.subscription.planName || 'تجربة' }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{
+                      subscriber.subscription.planName || 'تجربة'
+                    }}</v-list-item-subtitle>
                   </v-list-item>
                   <v-list-item>
                     <template #prepend><v-icon icon="mdi-cash" class="me-2 text-gold" /></template>
                     <v-list-item-title class="font-weight-bold">السعر</v-list-item-title>
-                    <v-list-item-subtitle>{{ subscriber.subscription.price ? subscriber.subscription.price + ' ريال' : '-' }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{
+                      subscriber.subscription.price ? subscriber.subscription.price + ' ريال' : '-'
+                    }}</v-list-item-subtitle>
                   </v-list-item>
                   <v-list-item>
-                    <template #prepend><v-icon icon="mdi-clock-start" class="me-2 text-gold" /></template>
+                    <template #prepend
+                      ><v-icon icon="mdi-clock-start" class="me-2 text-gold"
+                    /></template>
                     <v-list-item-title class="font-weight-bold">تاريخ البداية</v-list-item-title>
-                    <v-list-item-subtitle>{{ formatDate(subscriber.subscription.currentPeriodStart || subscriber.subscription.trialStart) }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{
+                      formatDate(
+                        subscriber.subscription.currentPeriodStart ||
+                          subscriber.subscription.trialStart
+                      )
+                    }}</v-list-item-subtitle>
                   </v-list-item>
                   <v-list-item>
-                    <template #prepend><v-icon icon="mdi-clock-end" class="me-2 text-gold" /></template>
+                    <template #prepend
+                      ><v-icon icon="mdi-clock-end" class="me-2 text-gold"
+                    /></template>
                     <v-list-item-title class="font-weight-bold">تاريخ الانتهاء</v-list-item-title>
-                    <v-list-item-subtitle>{{ formatDate(subscriber.subscription.currentPeriodEnd || subscriber.subscription.trialEnd) }}</v-list-item-subtitle>
+                    <v-list-item-subtitle>{{
+                      formatDate(
+                        subscriber.subscription.currentPeriodEnd || subscriber.subscription.trialEnd
+                      )
+                    }}</v-list-item-subtitle>
                   </v-list-item>
                   <v-list-item>
-                    <template #prepend><v-icon icon="mdi-calendar-clock" class="me-2 text-gold" /></template>
+                    <template #prepend
+                      ><v-icon icon="mdi-calendar-clock" class="me-2 text-gold"
+                    /></template>
                     <v-list-item-title class="font-weight-bold">الأيام المتبقية</v-list-item-title>
                     <v-list-item-subtitle>
                       <v-chip
-                        :color="subscriber.subscription.isExpired ? 'error' : subscriber.subscription.daysLeft <= 7 ? 'warning' : 'success'"
-                        size="small" variant="flat"
+                        :color="
+                          subscriber.subscription.isExpired
+                            ? 'error'
+                            : subscriber.subscription.daysLeft <= 7
+                              ? 'warning'
+                              : 'success'
+                        "
+                        size="small"
+                        variant="flat"
                       >
-                        {{ subscriber.subscription.isExpired ? 'منتهي' : subscriber.subscription.daysLeft + ' يوم' }}
+                        {{
+                          subscriber.subscription.isExpired
+                            ? 'منتهي'
+                            : subscriber.subscription.daysLeft + ' يوم'
+                        }}
                       </v-chip>
                     </v-list-item-subtitle>
                   </v-list-item>
                   <v-list-item>
-                    <template #prepend><v-icon icon="mdi-information" class="me-2 text-gold" /></template>
+                    <template #prepend
+                      ><v-icon icon="mdi-information" class="me-2 text-gold"
+                    /></template>
                     <v-list-item-title class="font-weight-bold">الحالة</v-list-item-title>
                     <v-list-item-subtitle>
-                      <v-chip :color="getStatusColor(subscriber.subscription.status)" size="small" variant="flat">
+                      <v-chip
+                        :color="getStatusColor(subscriber.subscription.status)"
+                        size="small"
+                        variant="flat"
+                      >
                         {{ getStatusText(subscriber.subscription.status) }}
                       </v-chip>
                     </v-list-item-subtitle>
@@ -165,10 +219,15 @@
                 <v-icon icon="mdi-clock-outline" :size="24" class="text-success mb-1" />
                 <div class="text-body-2 text-grey-darken-1">آخر دخول</div>
                 <div class="text-body-1 font-weight-black">
-                  {{ subscriber.stats?.lastLogin ? formatDateTime(subscriber.stats.lastLogin.login_time) : 'لم يسجل دخول بعد' }}
+                  {{
+                    subscriber.stats?.lastLogin
+                      ? formatDateTime(subscriber.stats.lastLogin.login_time)
+                      : 'لم يسجل دخول بعد'
+                  }}
                 </div>
                 <div v-if="subscriber.stats?.lastLogin?.device_info" class="text-caption text-grey">
-                  {{ subscriber.stats.lastLogin.device_info }} — {{ subscriber.stats.lastLogin.browser_info }}
+                  {{ subscriber.stats.lastLogin.device_info }} —
+                  {{ subscriber.stats.lastLogin.browser_info }}
                 </div>
               </div>
             </v-col>
@@ -245,7 +304,11 @@
                   {{ item.logout_time ? formatDateTime(item.logout_time) : 'لم يسجل خروج' }}
                 </template>
                 <template #item.is_successful="{ item }">
-                  <v-chip :color="item.is_successful ? 'success' : 'error'" size="small" variant="flat">
+                  <v-chip
+                    :color="item.is_successful ? 'success' : 'error'"
+                    size="small"
+                    variant="flat"
+                  >
                     {{ item.is_successful ? 'نجاح' : 'فشل' }}
                   </v-chip>
                 </template>
@@ -288,7 +351,7 @@
 
     <!-- Not Found -->
     <v-alert v-else type="error" variant="tonal" class="mx-auto" style="max-width: 500px">
-      Subscriber not found
+      المشترك غير موجود
     </v-alert>
   </v-container>
 </template>
@@ -336,10 +399,25 @@ const statsCards = computed(() => {
   const s = subscriber.value?.stats || {}
   return [
     { label: 'مرات الدخول', value: s.totalLogins || 0, icon: 'mdi-login', color: 'success' },
-    { label: 'آخر دخول', value: s.lastLogin ? formatTime(s.lastLogin.login_time) : '-', icon: 'mdi-clock-outline', color: 'primary' },
-    { label: 'محاولات فاشلة', value: s.totalFailedAttempts || 0, icon: 'mdi-shield-alert', color: 'error' },
+    {
+      label: 'آخر دخول',
+      value: s.lastLogin ? formatTime(s.lastLogin.login_time) : '-',
+      icon: 'mdi-clock-outline',
+      color: 'primary'
+    },
+    {
+      label: 'محاولات فاشلة',
+      value: s.totalFailedAttempts || 0,
+      icon: 'mdi-shield-alert',
+      color: 'error'
+    },
     { label: 'الأجهزة', value: s.distinctDevices || 0, icon: 'mdi-devices', color: 'info' },
-    { label: 'إجمالي النشاطات', value: s.totalActivities || 0, icon: 'mdi-format-list-bulleted', color: 'warning' }
+    {
+      label: 'إجمالي النشاطات',
+      value: s.totalActivities || 0,
+      icon: 'mdi-format-list-bulleted',
+      color: 'warning'
+    }
   ]
 })
 
@@ -367,14 +445,21 @@ const failedHeaders = [
 
 function formatDate(d) {
   if (!d) return '-'
-  return new Date(d).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric' })
+  return new Date(d).toLocaleDateString('ar-SA', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  })
 }
 
 function formatDateTime(d) {
   if (!d) return '-'
   return new Date(d).toLocaleString('ar-SA', {
-    year: 'numeric', month: 'short', day: 'numeric',
-    hour: '2-digit', minute: '2-digit'
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   })
 }
 
@@ -384,12 +469,24 @@ function formatTime(d) {
 }
 
 function getStatusColor(status) {
-  const map = { active: 'success', trial: 'info', expired: 'error', canceled: 'warning', lifetime: 'success' }
+  const map = {
+    active: 'success',
+    trial: 'info',
+    expired: 'error',
+    canceled: 'warning',
+    lifetime: 'success'
+  }
   return map[status] || 'grey'
 }
 
 function getStatusText(status) {
-  const map = { active: 'نشط', trial: 'تجربة', expired: 'منتهي', canceled: 'ملغى', lifetime: 'مدى الحياة' }
+  const map = {
+    active: 'نشط',
+    trial: 'تجربة',
+    expired: 'منتهي',
+    canceled: 'ملغى',
+    lifetime: 'مدى الحياة'
+  }
   return map[status] || status
 }
 
@@ -431,8 +528,8 @@ async function fetchAll() {
     apiRequest('GET', `/api/admin/subscriber-tracking/${userId}/login-logs?limit=50`)
   ])
 
-  activityLogs.value = activityRes.status === 'fulfilled' ? (activityRes.value.data || []) : []
-  loginLogs.value = loginsRes.status === 'fulfilled' ? (loginsRes.value.data || []) : []
+  activityLogs.value = activityRes.status === 'fulfilled' ? activityRes.value.data || [] : []
+  loginLogs.value = loginsRes.status === 'fulfilled' ? loginsRes.value.data || [] : []
   failedLogs.value = loginLogs.value.filter((l) => !l.is_successful)
 
   loadingActivity.value = false
@@ -444,7 +541,9 @@ onMounted(fetchAll)
 </script>
 
 <style scoped>
-.rtl { direction: rtl; }
+.rtl {
+  direction: rtl;
+}
 .glass-card {
   background: rgba(255, 255, 255, 0.95) !important;
   border: 1px solid rgba(212, 175, 55, 0.12);
