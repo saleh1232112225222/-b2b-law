@@ -2,7 +2,159 @@
   <v-app dir="rtl" class="force-pw-change-app">
     <v-container fluid class="fill-height pa-0">
       <v-row no-gutters class="fill-height">
-        <!-- Left side: branding (matches HTML hero) -->
+        <!-- Left side: form (matches HTML left section) -->
+        <v-col cols="12" md="7" class="d-flex align-center justify-center pa-6 overflow-y-auto">
+          <div class="w-100" style="max-width: 460px">
+            <div class="glass-card rounded-2xl shadow-2xl pa-8 md-pa-10">
+              <!-- Icon -->
+              <div class="d-flex justify-center mb-6">
+                <div class="form-icon-circle">
+                  <v-icon icon="mdi-shield-lock" size="32" color="white" />
+                </div>
+              </div>
+
+              <!-- Title -->
+              <div class="text-center mb-6">
+                <h1 class="text-h5 font-weight-bold mb-2">
+                  أهلاً بك في <span class="text-gold">B2B-LAW</span>
+                </h1>
+                <p class="text-body-2 font-medium text-grey-darken-1">
+                  خطوة أولى نحو بيئة عمل آمنة
+                </p>
+              </div>
+
+              <!-- Description Box -->
+              <div class="desc-box rounded-xl pa-4 mb-8 text-center">
+                <p class="text-body-2 text-grey-darken-2" style="line-height: 1.8">
+                  نظام إدارة المكاتب القانونية يعتمد على
+                  <strong class="text-gold">سرية البيانات</strong>. لتأمين حسابك، يرجى تعيين كلمة
+                  مرور شخصية خاصة بك قبل استكمال الدخول إلى النظام.
+                </p>
+              </div>
+
+              <v-alert
+                v-if="errorMsg"
+                type="error"
+                variant="tonal"
+                density="compact"
+                class="mb-5 rounded-lg"
+                closable
+                @click:close="errorMsg = ''"
+              >
+                {{ errorMsg }}
+              </v-alert>
+
+              <v-alert
+                v-if="successMsg"
+                type="success"
+                variant="tonal"
+                density="compact"
+                class="mb-5 rounded-lg"
+              >
+                {{ successMsg }}
+              </v-alert>
+
+              <!-- Form -->
+              <v-form ref="formRef" @submit.prevent="handleChangePassword">
+                <div class="mb-5">
+                  <label class="mb-1 font-weight-medium text-body-2 text-grey-darken-2">
+                    كلمة المرور الحالية
+                  </label>
+                  <v-text-field
+                    v-model="passwords.oldPassword"
+                    type="password"
+                    variant="outlined"
+                    density="comfortable"
+                    class="custom-input"
+                    placeholder="أدخل كلمة المرور الافتراضية"
+                    :rules="[(v) => !!v || 'كلمة المرور الحالية مطلوبة']"
+                    hide-details="auto"
+                  />
+                </div>
+
+                <div class="mb-5">
+                  <label class="mb-1 font-weight-medium text-body-2 text-grey-darken-2">
+                    كلمة المرور الجديدة
+                  </label>
+                  <v-text-field
+                    v-model="passwords.newPassword"
+                    type="password"
+                    variant="outlined"
+                    density="comfortable"
+                    class="custom-input"
+                    placeholder="أدخل كلمة المرور الجديدة"
+                    :rules="passwordRules"
+                    hide-details="auto"
+                  />
+                  <!-- Strength Indicator -->
+                  <div v-if="passwords.newPassword" class="mt-2">
+                    <div class="d-flex gap-1 mb-1">
+                      <div
+                        v-for="i in 4"
+                        :key="i"
+                        class="strength-bar"
+                        :class="i <= strengthLevel ? strengthColorClass : 'bg-grey-lighten-2'"
+                      />
+                    </div>
+                    <p class="text-caption" :class="strengthTextClass">
+                      {{ strengthText }}
+                    </p>
+                  </div>
+                  <p v-else class="text-caption text-grey mt-1">
+                    استخدم 8 أحرف على الأقل مع أرقام ورموز
+                  </p>
+                </div>
+
+                <div class="mb-6">
+                  <label class="mb-1 font-weight-medium text-body-2 text-grey-darken-2">
+                    تأكيد كلمة المرور الجديدة
+                  </label>
+                  <v-text-field
+                    v-model="passwords.confirmPassword"
+                    type="password"
+                    variant="outlined"
+                    density="comfortable"
+                    class="custom-input"
+                    placeholder="أعد إدخال كلمة المرور الجديدة"
+                    :rules="[
+                      (v: string) => !!v || 'تأكيد كلمة المرور مطلوب',
+                      (v: string) => v === passwords.newPassword || 'كلمتا المرور غير متطابقتين'
+                    ]"
+                    hide-details="auto"
+                  />
+                </div>
+
+                <!-- Submit Button -->
+                <v-btn
+                  block
+                  size="x-large"
+                  type="submit"
+                  class="submit-btn text-white font-weight-bold rounded-lg mb-5 text-body-2"
+                  :loading="submitting"
+                  :disabled="!isFormReady"
+                >
+                  <span>تأكيد وتفعيل الحساب</span>
+                  <v-icon icon="mdi-check-circle" size="18" class="me-2" />
+                </v-btn>
+              </v-form>
+
+              <!-- Footer Link -->
+              <div class="text-center">
+                <v-btn
+                  variant="text"
+                  size="small"
+                  class="text-grey font-weight-medium"
+                  @click="handleLogout"
+                >
+                  تسجيل الخروج
+                  <v-icon icon="mdi-arrow-left" size="14" class="ms-1" />
+                </v-btn>
+              </div>
+            </div>
+          </div>
+        </v-col>
+
+        <!-- Right side: branding (matches HTML hero section) -->
         <v-col cols="12" md="5" class="d-none d-md-flex align-center justify-center hero-panel">
           <div class="hero-pattern" />
           <div class="hero-blob hero-blob-gold" />
@@ -10,6 +162,7 @@
           <div class="hero-grid" />
 
           <div class="relative-z text-center" style="max-width: 380px">
+            <!-- Large Logo -->
             <div class="logo-ring mx-auto mb-8">
               <div class="logo-ring-inner">
                 <div class="text-center">
@@ -27,6 +180,7 @@
               تصمّم خصيصاً لبيئة العمل القانوني العربي.
             </p>
 
+            <!-- Features Mini -->
             <v-row dense>
               <v-col v-for="f in heroFeatures" :key="f.label" cols="4">
                 <div class="hero-feature-card">
@@ -35,151 +189,6 @@
                 </div>
               </v-col>
             </v-row>
-          </div>
-        </v-col>
-
-        <!-- Right side: password form -->
-        <v-col cols="12" md="7" class="d-flex align-center justify-center pa-6">
-          <div style="max-width: 440px; width: 100%">
-            <v-card elevation="0" class="rounded-2xl glass-card pa-2">
-              <v-card-text class="pa-8">
-                <div class="text-center mb-6">
-                  <v-avatar color="warning" size="72" class="mb-4">
-                    <v-icon icon="mdi-shield-lock" :size="36" color="white" />
-                  </v-avatar>
-                  <h2 class="text-h5 font-weight-black text-ebony mb-2">
-                    تغيير كلمة المرور اضطرارياً
-                  </h2>
-                  <p class="text-body-2 text-grey-darken-1">
-                    كلمة المرور الحالية هي التي حددها المسؤول عند إنشاء حسابك.<br />
-                    يرجى تغييرها بكلمة مرور جديدة для حماية حسابك.
-                  </p>
-                </div>
-
-                <v-alert
-                  v-if="errorMsg"
-                  type="error"
-                  variant="tonal"
-                  density="compact"
-                  class="mb-4 rounded-lg"
-                  closable
-                  @click:close="errorMsg = ''"
-                >
-                  {{ errorMsg }}
-                </v-alert>
-
-                <v-alert
-                  v-if="successMsg"
-                  type="success"
-                  variant="tonal"
-                  density="compact"
-                  class="mb-4 rounded-lg"
-                >
-                  {{ successMsg }}
-                </v-alert>
-
-                <v-form ref="formRef" @submit.prevent="handleChangePassword">
-                  <div class="mb-4">
-                    <label class="mb-1 font-weight-bold text-grey-darken-3 text-body-2">
-                      كلمة المرور المؤقتة (الحالية)
-                    </label>
-                    <v-text-field
-                      v-model="passwords.oldPassword"
-                      type="password"
-                      variant="outlined"
-                      color="gold"
-                      density="comfortable"
-                      prepend-inner-icon="mdi-key-outline"
-                      placeholder="الكلمة التي أعطاها لك المسؤول"
-                      :rules="[(v) => !!v || 'كلمة المرور الحالية مطلوبة']"
-                      hide-details="auto"
-                    />
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="mb-1 font-weight-bold text-grey-darken-3 text-body-2">
-                      كلمة المرور الجديدة
-                    </label>
-                    <v-text-field
-                      v-model="passwords.newPassword"
-                      type="password"
-                      variant="outlined"
-                      color="gold"
-                      density="comfortable"
-                      prepend-inner-icon="mdi-lock-plus"
-                      :rules="passwordRules"
-                      hide-details="auto"
-                    />
-                    <div class="text-caption text-grey mt-1">
-                      8 أحرف على الأقل، حرف كبير وصغير، رقم، ورمز خاص (@$!%*?&)
-                    </div>
-                  </div>
-
-                  <div class="mb-4">
-                    <label class="mb-1 font-weight-bold text-grey-darken-3 text-body-2">
-                      تأكيد كلمة المرور الجديدة
-                    </label>
-                    <v-text-field
-                      v-model="passwords.confirmPassword"
-                      type="password"
-                      variant="outlined"
-                      color="gold"
-                      density="comfortable"
-                      prepend-inner-icon="mdi-lock-check"
-                      :rules="[
-                        (v) => !!v || 'تأكيد كلمة المرور مطلوب',
-                        (v) => v === passwords.newPassword || 'كلمتا المرور غير متطابقتين'
-                      ]"
-                      hide-details="auto"
-                    />
-                  </div>
-
-                  <!-- Password strength indicator -->
-                  <div v-if="passwords.newPassword" class="mb-5">
-                    <div class="d-flex align-center justify-space-between mb-1">
-                      <span class="text-caption font-weight-bold text-grey-darken-1"
-                        >قوة كلمة المرور</span
-                      >
-                      <span class="text-caption font-weight-black" :class="strengthInfo.textClass">
-                        {{ strengthInfo.label }}
-                      </span>
-                    </div>
-                    <v-progress-linear
-                      :model-value="strengthInfo.score"
-                      :color="strengthInfo.color"
-                      height="6"
-                      rounded
-                    />
-                  </div>
-
-                  <v-btn
-                    block
-                    color="accent"
-                    size="x-large"
-                    type="submit"
-                    class="font-weight-black rounded-xl mb-4 premium-btn-gold-gradient text-white"
-                    :loading="submitting"
-                    :disabled="!isFormReady"
-                  >
-                    <v-icon icon="mdi-check-circle" :size="20" class="me-2" />
-                    تغيير كلمة المرور والدخول
-                  </v-btn>
-
-                  <div class="text-center">
-                    <v-btn
-                      variant="text"
-                      color="grey"
-                      size="small"
-                      class="font-weight-bold"
-                      @click="handleLogout"
-                    >
-                      <v-icon icon="mdi-logout" :size="16" class="me-1" />
-                      رجوع لصفحة تسجيل الدخول
-                    </v-btn>
-                  </div>
-                </v-form>
-              </v-card-text>
-            </v-card>
           </div>
         </v-col>
       </v-row>
@@ -219,20 +228,36 @@ const passwordRules = [
   (v: string) => /[@$!%*?&]/.test(v) || 'يجب أن تحتوي على رمز خاص (@$!%*?&)'
 ]
 
-const strengthInfo = computed(() => {
+const strengthLevel = computed(() => {
   const p = passwords.value.newPassword
-  let score = 0
-  if (p.length >= 4) score += 20
-  if (p.length >= 8) score += 25
-  if (/[a-zA-Z]/.test(p)) score += 15
-  if (/\d/.test(p)) score += 20
-  if (/[^a-zA-Z0-9]/.test(p)) score += 20
-  score = Math.max(0, Math.min(100, score))
+  if (!p) return 0
+  let s = 0
+  if (p.length >= 8) s++
+  if (/[A-Z]/.test(p) || /[a-z]/.test(p)) s++
+  if (/[0-9]/.test(p)) s++
+  if (/[^A-Za-z0-9]/.test(p)) s++
+  return s
+})
 
-  if (!p) return { score: 0, label: '', color: 'grey', textClass: 'text-grey' }
-  if (score < 45) return { score, label: 'ضعيفة', color: 'error', textClass: 'text-error' }
-  if (score < 75) return { score, label: 'مقبولة', color: 'warning', textClass: 'text-warning' }
-  return { score, label: 'قوية', color: 'success', textClass: 'text-success' }
+const strengthColorClass = computed(() => {
+  const lvl = strengthLevel.value
+  if (lvl <= 1) return 'bg-red'
+  if (lvl === 2) return 'bg-orange'
+  if (lvl === 3) return 'bg-yellow-darken-1'
+  return 'bg-green'
+})
+
+const strengthText = computed(() => {
+  const msgs = ['ضعيفة جداً', 'ضعيفة', 'متوسطة', 'جيدة', 'قوية']
+  return msgs[strengthLevel.value] || ''
+})
+
+const strengthTextClass = computed(() => {
+  const lvl = strengthLevel.value
+  if (lvl <= 1) return 'text-red font-medium'
+  if (lvl === 2) return 'text-orange font-medium'
+  if (lvl === 3) return 'text-yellow-darken-1 font-medium'
+  return 'text-green font-medium'
 })
 
 const isFormReady = computed(() => {
@@ -269,7 +294,6 @@ const handleChangePassword = async () => {
     if (success) {
       successMsg.value = 'تم تغيير كلمة المرور بنجاح! جاري التحويل...'
 
-      // Clear mustChangePassword from session
       try {
         const raw = localStorage.getItem('web_currentUserSession')
         if (raw) {
@@ -302,10 +326,65 @@ const handleLogout = () => {
 
 <style scoped>
 .force-pw-change-app {
-  background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+  background: #f8fafc;
 }
 
-/* Hero panel — matches HTML right section */
+/* Form Icon */
+.form-icon-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #f59e0b, #ea580c);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px rgba(245, 158, 11, 0.3);
+}
+
+.text-gold {
+  color: #d4af37;
+}
+
+.desc-box {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+}
+
+/* Submit Button - Olive gradient */
+.submit-btn {
+  background: linear-gradient(135deg, #5c5c1f, #4a4a18) !important;
+  box-shadow: 0 4px 16px rgba(92, 92, 31, 0.3);
+  transition: all 0.2s ease;
+}
+
+.submit-btn:hover {
+  background: linear-gradient(135deg, #4a4a18, #3d3d14) !important;
+  box-shadow: 0 6px 20px rgba(92, 92, 31, 0.4);
+  transform: translateY(-1px);
+}
+
+/* Custom input focus */
+:deep(.custom-input .v-field--focused) {
+  border-color: #d4af37 !important;
+  box-shadow: 0 0 0 2px rgba(212, 175, 55, 0.15);
+}
+
+/* Strength bars */
+.strength-bar {
+  height: 4px;
+  flex: 1;
+  border-radius: 2px;
+  transition: background-color 0.3s;
+}
+
+/* Glass card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* Hero panel */
 .hero-panel {
   background: linear-gradient(135deg, #0f172a 0%, #1a1a2e 50%, #16213e 100%);
   position: relative;
@@ -413,12 +492,5 @@ const handleLogout = () => {
   padding: 12px 4px;
   text-align: center;
   backdrop-filter: blur(4px);
-}
-
-/* Glass card (right side form) */
-.glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08);
 }
 </style>
