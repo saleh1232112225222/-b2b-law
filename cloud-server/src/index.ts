@@ -450,20 +450,25 @@ async function autoMigrate() {
   } catch {
     console.warn('[DB] Migration skipped (tables likely already exist)')
   }
+  try {
+    await runExtraMigrations()
+  } catch {
+    console.warn('[DB] Extra migrations skipped')
+  }
 }
 
-app.listen(PORT, '0.0.0.0', () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`B2B-LAW Cloud Server running on port ${PORT}`)
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
 
-  // Run migrations and seeding async — don't block server startup
-  Promise.all([autoMigrate(), seedSuperAdmin()])
-    .then(() => {
-      console.log('[DB] Startup tasks completed')
-    })
-    .catch((err) => {
-      console.error('[DB] Startup tasks failed:', err)
-    })
+  // Run migrations BEFORE accepting traffic
+  try {
+    await autoMigrate()
+    await seedSuperAdmin()
+    console.log('[DB] Startup tasks completed')
+  } catch (err) {
+    console.error('[DB] Startup tasks failed:', err)
+  }
 
   // Marketing report once daily at 7 AM Saudi time
   let lastReportDate = ''

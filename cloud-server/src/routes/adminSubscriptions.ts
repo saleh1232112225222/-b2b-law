@@ -8,6 +8,34 @@ export const adminSubscriptionRouter = Router()
 
 adminSubscriptionRouter.use(authMiddleware)
 
+// Check if soft-delete columns exist on companies table
+let softDeleteReady = false
+async function ensureSoftDeleteColumns() {
+  if (softDeleteReady) return true
+  try {
+    const check = await query(
+      `SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'companies' AND column_name = 'is_deleted'
+      ) as exists`
+    )
+    if (check.rows[0]?.exists) {
+      softDeleteReady = true
+    } else {
+      // Create columns now
+      await query('ALTER TABLE companies ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE')
+      await query('ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_at TIMESTAMPTZ')
+      await query('ALTER TABLE companies ADD COLUMN IF NOT EXISTS deleted_by UUID')
+      softDeleteReady = true
+      console.log('[ADMIN] Soft delete columns created on companies table')
+    }
+  } catch (err: any) {
+    console.warn('[ADMIN] Could not ensure soft delete columns:', err.message)
+    softDeleteReady = false
+  }
+  return softDeleteReady
+}
+
 /**
  * Middleware للتحقق من صلاحيات الأدمن
  */
@@ -47,6 +75,12 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
  */
 adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Response) => {
   try {
+    const hasSoftDelete = await ensureSoftDeleteColumns()
+
+    const deletedFilter = hasSoftDelete
+      ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)`
+      : ''
+
     const result = await query(
       `SELECT 
         c.id,
@@ -90,7 +124,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
       LEFT JOIN plans p ON s.plan_id = p.id
       LEFT JOIN users u ON u.company_id = c.id AND u.role_key = 'admin'
       WHERE c.id != '00000000-0000-0000-0000-000000000000'
-        AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)
+        ${deletedFilter}
       ORDER BY 
         CASE 
           WHEN s.status = 'active' AND s.current_period_end > NOW() THEN 1
@@ -137,106 +171,6 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
     res.status(500).json({ error: 'فشل جلب قائمة الاشتراكات' })
   }
 })
-
-/**
- * GET /api/admin/subscriptions/:companyId
- */
-adminSubscriptionRouter.get(
-  '/:companyId',
-  requireAdminRole,
-  async (req: Request, res: Response) => {
-    try {
-      const { companyId } = req.params
-
-      const companyResult = await query(
-        'SELECT id, name, email, phone, is_verified, trial_expires_at, created_at FROM companies WHERE id = $1',
-        [companyId]
-      )
-
-      if (companyResult.rows.length === 0) {
-        return res.status(404).json({ error: 'الشركة غير موجودة' })
-      }
-
-      const subscriptionResult = await query(
-        `SELECT s.*, p.name_ar as plan_name, p.name as plan_name_en, p.interval, p.price
-       FROM subscriptions s
-       LEFT JOIN plans p ON s.plan_id = p.id
-       WHERE s.company_id = $1
-       ORDER BY s.created_at DESC`,
-        [companyId]
-      )
-
-      const paymentsResult = await query(
-        `SELECT p.*, pl.name_ar as plan_name
-       FROM payments p
-       LEFT JOIN plans pl ON p.plan_id = pl.id
-       WHERE p.company_id = $1
-       ORDER BY p.created_at DESC`,
-        [companyId]
-      )
-
-      const company = companyResult.rows[0]
-      const subscriptions = subscriptionResult.rows
-      const payments = paymentsResult.rows
-
-      const mappedCompany = {
-        id: company.id,
-        name: company.name,
-        email: company.email,
-        phone: company.phone,
-        isVerified: company.is_verified,
-        trialExpiresAt: company.trial_expires_at,
-        createdAt: company.created_at
-      }
-
-      const mappedSubscriptions = subscriptions.map((s: any) => ({
-        id: s.id,
-        companyId: s.company_id,
-        planId: s.plan_id,
-        status: s.status,
-        trialStart: s.trial_start,
-        trialEnd: s.trial_end,
-        currentPeriodStart: s.current_period_start,
-        currentPeriodEnd: s.current_period_end,
-        canceledAt: s.canceled_at,
-        createdAt: s.created_at,
-        updatedAt: s.updated_at,
-        planName: s.plan_name,
-        planNameEn: s.plan_name_en,
-        interval: s.interval,
-        price: s.price
-      }))
-
-      const mappedPayments = payments.map((p: any) => ({
-        id: p.id,
-        companyId: p.company_id,
-        subscriptionId: p.subscription_id,
-        planId: p.plan_id,
-        amount: p.amount,
-        currency: p.currency,
-        status: p.status,
-        paymentMethod: p.payment_method,
-        paymentProvider: p.payment_provider,
-        providerPaymentId: p.provider_payment_id,
-        invoiceUrl: p.invoice_url,
-        paidAt: p.paid_at,
-        createdAt: p.created_at,
-        updatedAt: p.updated_at,
-        planName: p.plan_name
-      }))
-
-      res.json({
-        success: true,
-        company: mappedCompany,
-        subscriptions: mappedSubscriptions,
-        payments: mappedPayments
-      })
-    } catch (err) {
-      console.error('[ADMIN] Failed to fetch company subscription:', err)
-      res.status(500).json({ error: 'فشل جلب تفاصيل الاشتراك' })
-    }
-  }
-)
 
 /**
  * POST /api/admin/subscriptions/activate
@@ -463,70 +397,16 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
 })
 
 /**
- * DELETE /api/admin/subscriptions/:companyId
- * Soft delete - hides subscriber without removing data
- */
-adminSubscriptionRouter.delete(
-  '/:companyId',
-  requireAdminRole,
-  async (req: Request, res: Response) => {
-    try {
-      const { companyId } = req.params
-      const auth = req.auth as AuthPayload
-
-      const companyCheck = await query(
-        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
-        [companyId]
-      )
-      if (companyCheck.rows.length === 0) {
-        return res.status(404).json({ error: 'المشترك غير موجود' })
-      }
-
-      if (companyCheck.rows[0].is_deleted) {
-        return res.status(400).json({ error: 'المشترك محذوف مسبقاً' })
-      }
-
-      // Soft delete - mark as deleted but keep data
-      await query(
-        `UPDATE companies 
-         SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $1, updated_at = NOW()
-         WHERE id = $2`,
-        [auth.userId, companyId]
-      )
-
-      // Get subscription status before deletion for audit
-      const subResult = await query(
-        `SELECT s.status FROM subscriptions s 
-         WHERE s.company_id = $1 
-         ORDER BY s.created_at DESC LIMIT 1`,
-        [companyId]
-      )
-      const subscriptionStatus = subResult.rows[0]?.status || 'none'
-
-      res.json({
-        success: true,
-        message: 'تم نشر المشترك إلى سلة المحذوفات بنجاح',
-        deletedCompany: {
-          id: companyId,
-          name: companyCheck.rows[0].name,
-          subscriptionStatus,
-          deletedAt: new Date().toISOString(),
-          deletedBy: auth.userId
-        }
-      })
-    } catch (err) {
-      console.error('[ADMIN] Failed to soft delete company/subscriber:', err)
-      res.status(500).json({ error: 'فشل حذف المشترك' })
-    }
-  }
-)
-
-/**
  * GET /api/admin/subscriptions/deleted
  * جلب جميع المشتركين المحذوفين (سلة المحذوفات)
  */
 adminSubscriptionRouter.get('/deleted', requireAdminRole, async (_req: Request, res: Response) => {
   try {
+    const hasSoftDelete = await ensureSoftDeleteColumns()
+    if (!hasSoftDelete) {
+      return res.json({ success: true, data: [], count: 0 })
+    }
+
     const result = await query(
       `SELECT 
         c.id,
@@ -744,6 +624,63 @@ adminSubscriptionRouter.delete(
 )
 
 /**
+ * DELETE /api/admin/subscriptions/:companyId
+ * Soft delete - hides subscriber without removing data
+ * MUST be after /permanent/:companyId to avoid route conflict
+ */
+adminSubscriptionRouter.delete(
+  '/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+      const auth = req.auth as AuthPayload
+
+      const hasSoftDelete = await ensureSoftDeleteColumns()
+
+      const companyCheck = await query('SELECT id, name FROM companies WHERE id = $1', [companyId])
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'المشترك غير موجود' })
+      }
+
+      if (!hasSoftDelete) {
+        return res.status(500).json({ error: 'لم تُجهز أعمدة الحذف الناعم بعد. يرجى إعادة تشغيل الخادم.' })
+      }
+
+      await query(
+        `UPDATE companies 
+         SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $1, updated_at = NOW()
+         WHERE id = $2`,
+        [auth.userId, companyId]
+      )
+
+      const subResult = await query(
+        `SELECT s.status FROM subscriptions s 
+         WHERE s.company_id = $1 
+         ORDER BY s.created_at DESC LIMIT 1`,
+        [companyId]
+      )
+      const subscriptionStatus = subResult.rows[0]?.status || 'none'
+
+      res.json({
+        success: true,
+        message: 'تم نشر المشترك إلى سلة المحذوفات بنجاح',
+        deletedCompany: {
+          id: companyId,
+          name: companyCheck.rows[0].name,
+          subscriptionStatus,
+          deletedAt: new Date().toISOString(),
+          deletedBy: auth.userId
+        }
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to soft delete company/subscriber:', err)
+      res.status(500).json({ error: 'فشل حذف المشترك' })
+    }
+  }
+)
+
+/**
  * POST /api/admin/subscriptions/activate-company/:companyId
  * تفعيل اشتراك شركة يدوياً (للدفع النقدي أو التفعيل اليدوي)
  * Body: { planId?: string, trialMonths?: number, extendMonths?: number }
@@ -908,6 +845,11 @@ adminSubscriptionRouter.get(
   requireAdminRole,
   async (_req: Request, res: Response) => {
     try {
+      const hasSoftDelete = await ensureSoftDeleteColumns()
+      const deletedFilter = hasSoftDelete
+        ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)`
+        : ''
+
       const statsResult = await query(`
       SELECT 
         COUNT(*) FILTER (WHERE effective_status = 'active') as active_count,
@@ -933,7 +875,7 @@ adminSubscriptionRouter.get(
           LIMIT 1
         ) s ON true
         WHERE c.id != '00000000-0000-0000-0000-000000000000'
-          AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)
+          ${deletedFilter}
       ) sub
     `)
 
@@ -1080,6 +1022,107 @@ adminSubscriptionRouter.get(
     } catch (err) {
       console.error('[ADMIN] Failed to generate HTML report:', err)
       res.status(500).send('فشل توليد التقرير')
+    }
+  }
+)
+
+/**
+ * GET /api/admin/subscriptions/:companyId
+ * MUST be after all named GET routes to avoid route conflicts
+ */
+adminSubscriptionRouter.get(
+  '/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+
+      const companyResult = await query(
+        'SELECT id, name, email, phone, is_verified, trial_expires_at, created_at FROM companies WHERE id = $1',
+        [companyId]
+      )
+
+      if (companyResult.rows.length === 0) {
+        return res.status(404).json({ error: 'الشركة غير موجودة' })
+      }
+
+      const subscriptionResult = await query(
+        `SELECT s.*, p.name_ar as plan_name, p.name as plan_name_en, p.interval, p.price
+       FROM subscriptions s
+       LEFT JOIN plans p ON s.plan_id = p.id
+       WHERE s.company_id = $1
+       ORDER BY s.created_at DESC`,
+        [companyId]
+      )
+
+      const paymentsResult = await query(
+        `SELECT p.*, pl.name_ar as plan_name
+       FROM payments p
+       LEFT JOIN plans pl ON p.plan_id = pl.id
+       WHERE p.company_id = $1
+       ORDER BY p.created_at DESC`,
+        [companyId]
+      )
+
+      const company = companyResult.rows[0]
+      const subscriptions = subscriptionResult.rows
+      const payments = paymentsResult.rows
+
+      const mappedCompany = {
+        id: company.id,
+        name: company.name,
+        email: company.email,
+        phone: company.phone,
+        isVerified: company.is_verified,
+        trialExpiresAt: company.trial_expires_at,
+        createdAt: company.created_at
+      }
+
+      const mappedSubscriptions = subscriptions.map((s: any) => ({
+        id: s.id,
+        companyId: s.company_id,
+        planId: s.plan_id,
+        status: s.status,
+        trialStart: s.trial_start,
+        trialEnd: s.trial_end,
+        currentPeriodStart: s.current_period_start,
+        currentPeriodEnd: s.current_period_end,
+        canceledAt: s.canceled_at,
+        createdAt: s.created_at,
+        updatedAt: s.updated_at,
+        planName: s.plan_name,
+        planNameEn: s.plan_name_en,
+        interval: s.interval,
+        price: s.price
+      }))
+
+      const mappedPayments = payments.map((p: any) => ({
+        id: p.id,
+        companyId: p.company_id,
+        subscriptionId: p.subscription_id,
+        planId: p.plan_id,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        paymentMethod: p.payment_method,
+        paymentProvider: p.payment_provider,
+        providerPaymentId: p.provider_payment_id,
+        invoiceUrl: p.invoice_url,
+        paidAt: p.paid_at,
+        createdAt: p.created_at,
+        updatedAt: p.updated_at,
+        planName: p.plan_name
+      }))
+
+      res.json({
+        success: true,
+        company: mappedCompany,
+        subscriptions: mappedSubscriptions,
+        payments: mappedPayments
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to fetch company subscription:', err)
+      res.status(500).json({ error: 'فشل جلب تفاصيل الاشتراك' })
     }
   }
 )
