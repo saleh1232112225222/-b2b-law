@@ -42,8 +42,27 @@
       </v-col>
     </v-row>
 
+    <!-- Mobile Card View -->
+    <MobileCardList
+      v-if="isMobile"
+      :items="safeArray(store.experts)"
+      :loading="store.loading"
+      title-field="name"
+      subtitle-field="specialty"
+      :info-fields="[
+        { key: 'phone', label: 'الجوال' },
+        { key: 'case_number', label: 'القضية' }
+      ]"
+      default-icon="mdi-account-tie"
+      empty-text="لا يوجد خبراء مسجلين"
+      can-add
+      add-label="إضافة خبير جديد"
+      @item-click="openEditDialog"
+      @add="openAddDialog"
+    />
+
     <!-- Experts Table Card -->
-    <v-card elevation="0" class="glass-card overflow-hidden glass-card">
+    <v-card v-else elevation="0" class="glass-card overflow-hidden glass-card">
       <v-data-table
         :headers="headers"
         :items="safeArray(store.experts)"
@@ -329,9 +348,12 @@ import { safeArray } from '../utils/safe'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileCardList from '../components/mobile/MobileCardList.vue'
 
 const store = useExpertsStore()
 const casesStore = useCasesStore()
+const { isMobile } = useMobileLayout()
 
 const showDialog = ref(false)
 const isEditing = ref(false)

@@ -42,8 +42,28 @@
       </v-col>
     </v-row>
 
+    <!-- Mobile Card View -->
+    <MobileCardList
+      v-if="isMobile"
+      :items="communicationCards"
+      :loading="store.loading"
+      title-field="subject"
+      subtitle-field="type"
+      :info-fields="[
+        { key: 'client_name', label: 'الموكل' },
+        { key: 'case_number', label: 'القضية' },
+        { key: 'dateLabel', label: 'التاريخ' }
+      ]"
+      default-icon="mdi-message-text"
+      empty-text="لا توجد سجلات تواصل"
+      can-add
+      add-label="إضافة سجل تواصل"
+      @item-click="openEditDialog"
+      @add="openAddDialog"
+    />
+
     <!-- Communications Table -->
-    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
+    <v-card v-else elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
       <v-data-table
         :headers="headers"
         :items="safeArray(store.communications)"
@@ -325,10 +345,20 @@ import { convertToHijri } from '../utils/hijri'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileCardList from '../components/mobile/MobileCardList.vue'
 
 const store = useCommunicationsStore()
 const clientsStore = useClientsStore()
 const casesStore = useCasesStore()
+const { isMobile } = useMobileLayout()
+
+const communicationCards = computed(() =>
+  safeArray(store.communications).map((c: any) => ({
+    ...c,
+    dateLabel: formatDate(String(c.date))
+  }))
+)
 
 const caseOptions = computed((): any[] => {
   return safeArray(casesStore.cases).map((c) => ({

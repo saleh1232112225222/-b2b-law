@@ -116,7 +116,23 @@
               </v-alert>
             </v-fade-transition>
 
+            <MobileCardList
+              v-if="isMobile"
+              :items="enforcementCards"
+              :loading="loadingEnforcement"
+              title-field="title"
+              subtitle-field="court_name"
+              :info-fields="[
+                { key: 'statusLabel', label: 'الحالة' },
+                { key: 'lastAction', label: 'آخر إجراء' }
+              ]"
+              default-icon="mdi-gavel"
+              empty-text="لا توجد ملفات تنفيذ مسجلة حالياً"
+              @item-click="handleEditRequest($event.id)"
+            />
+
             <v-card
+              v-else
               elevation="0"
               class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha glass-card"
             >
@@ -344,7 +360,23 @@
               </v-col>
             </v-row>
 
+            <MobileCardList
+              v-if="isMobile"
+              :items="claimCards"
+              :loading="loadingCollections"
+              title-field="title"
+              :info-fields="[
+                { key: 'amountLabel', label: 'الأصلي' },
+                { key: 'paidLabel', label: 'المحصل' },
+                { key: 'statusLabel', label: 'الحالة' },
+                { key: 'due_date', label: 'الاستحقاق' }
+              ]"
+              default-icon="mdi-cash-multiple"
+              empty-text="لا توجد مطالبات تحصيل مسجلة"
+            />
+
             <v-card
+              v-else
               elevation="0"
               class="glass-panel-light rounded-xl overflow-hidden border-gold-alpha glass-card"
             >
@@ -432,12 +464,16 @@
 <script setup lang="ts">
 import { onMounted, ref, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
 import { safeArray, safeLength } from '../utils/safe'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import EnforcementRequestStepper from '../components/enforcement/EnforcementRequestStepper.vue'
+import MobileCardList from '../components/mobile/MobileCardList.vue'
+import { useMobileLayout } from '../composables/useMobileLayout'
 
 const route = useRoute()
 const router = useRouter()
+const { isMobile } = useMobileLayout()
 
 const tab = ref<'enforcement' | 'collections'>('enforcement')
 const showRequestStepper = ref(false)
@@ -514,6 +550,24 @@ const getStatusColor = (s: string): string => {
   if (s === 'stopped' || s === 'canceled') return 'error'
   return 'gold'
 }
+
+const enforcementCards = computed(() =>
+  safeArray(enforcementRows.value).map((r: any) => ({
+    ...r,
+    title: r.instrument_no || '-',
+    statusLabel: translateStatus(String(r.status)),
+    lastAction: r.last_action_at || r.opened_at || '-'
+  }))
+)
+
+const claimCards = computed(() =>
+  safeArray(claimRows.value).map((r: any) => ({
+    ...r,
+    statusLabel: translateStatus(String(r.status)),
+    amountLabel: `${(r.amount || 0).toLocaleString('ar-SA')} ر.س`,
+    paidLabel: `${(r.paid_amount || 0).toLocaleString('ar-SA')} ر.س`
+  }))
+)
 
 const loadEnforcement = async (): Promise<void> => {
   enfError.value = ''

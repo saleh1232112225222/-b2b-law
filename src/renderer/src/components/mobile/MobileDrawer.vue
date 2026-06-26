@@ -13,7 +13,7 @@
             :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=0F2A55&color=E9C349&bold=true`"
           />
         </v-avatar>
-        <div class="text-subtitle-1 font-weight-black text-gold">{{ username || 'المستخدم' }}</div>
+        <div class="text-subtitle-1 font-weight-black text-visible-high">{{ username || 'المستخدم' }}</div>
         <div class="text-caption text-accent opacity-70">{{ role || '—' }}</div>
       </div>
 
@@ -32,7 +32,7 @@
           <template #prepend>
             <v-icon :icon="item.icon" :size="20" class="text-accent me-3" />
           </template>
-          <v-list-item-title class="font-weight-bold text-body-2 text-gold">{{
+          <v-list-item-title class="font-weight-bold text-body-2 text-visible-high">{{
             item.title
           }}</v-list-item-title>
         </v-list-item>

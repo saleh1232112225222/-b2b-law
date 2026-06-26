@@ -126,7 +126,27 @@
         </v-alert>
       </v-fade-transition>
 
-      <v-table class="bg-transparent premium-table" hover>
+      <MobileCardList
+        v-if="isMobile"
+        :items="employeeCards"
+        :loading="loading"
+        title-field="name"
+        subtitle-field="job_title"
+        :info-fields="[
+          { key: 'role_type', label: 'التصنيف' },
+          { key: 'phone', label: 'الجوال' },
+          { key: 'salaryLabel', label: 'الراتب' },
+          { key: 'statusLabel', label: 'الحالة' }
+        ]"
+        default-icon="mdi-account-tie"
+        empty-text="لا يوجد موظفين مسجلين حالياً"
+        can-add
+        add-label="إضافة موظف"
+        @item-click="openDialog"
+        @add="openDialog()"
+      />
+
+      <v-table v-else class="bg-transparent premium-table" hover>
         <thead>
           <tr>
             <th class="employees-table-head text-right pa-4">الموظف</th>
@@ -554,8 +574,11 @@
 import { ref, computed, onMounted } from 'vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { useAppStore } from '../stores/app'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileCardList from '../components/mobile/MobileCardList.vue'
 
 const appStore = useAppStore()
+const { isMobile } = useMobileLayout()
 
 interface Employee {
   id: string
@@ -623,6 +646,14 @@ const filteredEmployees = computed(() => {
       (e.job_title && e.job_title.toLowerCase().includes(q))
   )
 })
+
+const employeeCards = computed(() =>
+  filteredEmployees.value.map((e) => ({
+    ...e,
+    statusLabel: getStatusText(e.status),
+    salaryLabel: `${formatCurrency(e.salary)} ر.س`
+  }))
+)
 
 const fetchEmployees = async () => {
   loading.value = true

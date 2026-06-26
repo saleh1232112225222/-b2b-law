@@ -258,7 +258,7 @@
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.7) !important;
+  background: var(--glass-bg) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
   border: 1px solid var(--glass-border) !important;
@@ -274,16 +274,16 @@
 }
 
 .text-gold {
-  color: #e9c349 !important;
+  color: var(--gold) !important;
   font-weight: 900;
 }
 
 .text-accent {
-  color: #e9c349 !important;
+  color: var(--primary) !important;
 }
 
 [data-theme='dark'] .text-gold {
-  color: #e9c349 !important;
+  color: var(--gold) !important;
 }
 
 .text-white-50 {
@@ -411,7 +411,7 @@ th[data-column='actions'] {
 }
 
 [data-theme='light'] .text-gold {
-  color: #e9c349 !important;
+  color: var(--gold) !important;
 }
 
 .text-ebony {
@@ -433,7 +433,7 @@ th[data-column='actions'] {
 }
 
 [data-theme='dark'] .text-gold {
-  color: #e9c349 !important;
+  color: var(--gold) !important;
 }
 
 .text-visible-high {

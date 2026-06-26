@@ -126,8 +126,28 @@
       </v-row>
     </v-card>
 
+    <!-- Mobile Card View -->
+    <MobileCardList
+      v-if="isMobile"
+      :items="safeArray(filteredDefendants)"
+      :loading="store.loading"
+      title-field="name"
+      subtitle-field="phone"
+      :info-fields="[
+        { key: 'type', label: 'النوع' },
+        { key: 'id_number', label: 'الهوية' },
+        { key: 'city', label: 'المدينة' }
+      ]"
+      default-icon="mdi-account-alert"
+      empty-text="لا يوجد خصوم مسجلين"
+      can-add
+      add-label="تسجيل أول خصم"
+      @item-click="openPreviewDialog"
+      @add="openAddDialog"
+    />
+
     <!-- Data Table -->
-    <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
+    <v-card v-else elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
       <v-data-table-server
         :headers="headers"
         :items="safeArray(filteredDefendants)"
@@ -463,10 +483,13 @@ import LucideIcon from '../components/common/LucideIcon.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import DefendantForm from '../components/DefendantForm.vue'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileCardList from '../components/mobile/MobileCardList.vue'
 
 const store = useDefendantsStore()
 const route = useRoute()
 const router = useRouter()
+const { isMobile } = useMobileLayout()
 
 const showDialog = ref(false)
 const isEditing = ref(false)

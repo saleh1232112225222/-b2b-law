@@ -256,8 +256,8 @@
               <div>
                 <v-btn
                   variant="text"
-                  color="white"
-                  class="px-0 py-0 font-weight-black text-body-1 hover-gold h-auto min-width-0 premium-btn-gold-gradient"
+                  color="primary"
+                  class="px-0 py-0 font-weight-black text-body-1 hover-gold h-auto min-width-0 text-visible-high"
                   :to="'/clients/' + item.id"
                 >
                   {{ item.name }}
@@ -277,17 +277,17 @@
           </div>
 
           <!-- Card Body -->
-          <v-card-text class="pa-4 text-white">
+          <v-card-text class="pa-4 text-visible-high">
             <v-row dense class="mb-2">
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">رقم الجوال</span>
-                <span class="text-caption font-weight-black text-white ltr-text">
+                <span class="text-caption text-visible-low d-block mb-1">رقم الجوال</span>
+                <span class="text-caption font-weight-black text-visible-high ltr-text">
                   {{ item.phone || '-' }}
                 </span>
               </v-col>
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">المدينة</span>
-                <span class="text-caption font-weight-black text-white">
+                <span class="text-caption text-visible-low d-block mb-1">المدينة</span>
+                <span class="text-caption font-weight-black text-visible-high">
                   {{ item.city || '-' }}
                 </span>
               </v-col>
@@ -295,57 +295,60 @@
 
             <v-row dense>
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1"
+                <span class="text-caption text-visible-low d-block mb-1"
                   >البريد الإلكتروني</span
                 >
                 <span
-                  class="text-caption font-weight-black text-white text-truncate d-block"
+                  class="text-caption font-weight-black text-visible-high text-truncate d-block"
                   style="max-width: 150px"
                 >
                   {{ item.email || '-' }}
                 </span>
               </v-col>
               <v-col cols="6">
-                <span class="text-caption text-gold opacity-50 d-block mb-1">الجنسية</span>
-                <span class="text-caption font-weight-black text-white">
+                <span class="text-caption text-visible-low d-block mb-1">الجنسية</span>
+                <span class="text-caption font-weight-black text-visible-high">
                   {{ item.nationality || '-' }}
                 </span>
               </v-col>
             </v-row>
-          </v-card-text>
 
-          <!-- Card Actions -->
-          <div
-            class="d-flex border-t border-gold border-opacity-10 bg-black bg-opacity-20 pa-2 justify-space-around"
-          >
-            <v-btn
-              variant="text"
-              color="accent"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              :to="'/clients/' + item.id"
-            >
-              <LucideIcon name="eye" :size="16" class="me-1" /> ملف الموكل
-            </v-btn>
-            <v-btn
-              variant="text"
-              color="gold"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              @click="openEditDialog(item)"
-            >
-              <LucideIcon name="edit-3" :size="16" class="me-1" /> تعديل
-            </v-btn>
-            <v-btn
-              variant="text"
-              color="error"
-              size="small"
-              class="font-weight-black rounded-lg premium-btn-gold-gradient"
-              @click="confirmDelete(item)"
-            >
-              <LucideIcon name="trash-2" :size="16" class="me-1" /> حذف
-            </v-btn>
-          </div>
+            <!-- Card Actions -->
+            <div class="d-flex align-center pt-3 border-t border-gold border-opacity-10 mt-3">
+              <v-btn
+                variant="text"
+                color="primary"
+                size="small"
+                class="font-weight-black rounded-lg px-2"
+                :to="'/clients/' + item.id"
+              >
+                <LucideIcon name="eye" :size="16" class="me-1" /> ملف الموكل
+              </v-btn>
+              <v-spacer />
+              <div class="d-flex ga-2">
+                <v-btn
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="primary"
+                  class="rounded-lg"
+                  @click.stop="openEditDialog(item)"
+                >
+                  <LucideIcon name="edit-3" :size="16" />
+                </v-btn>
+                <v-btn
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="error"
+                  class="rounded-lg"
+                  @click.stop="confirmDelete(item)"
+                >
+                  <LucideIcon name="trash-2" :size="16" />
+                </v-btn>
+              </div>
+            </div>
+          </v-card-text>
         </v-card>
       </div>
     </div>

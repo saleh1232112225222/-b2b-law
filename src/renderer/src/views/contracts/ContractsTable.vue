@@ -55,7 +55,25 @@
             </v-btn>
           </v-col>
         </v-row>
-        <v-table hover class="bg-transparent premium-table">
+        <!-- Mobile Card View -->
+        <MobileCardList
+          v-if="isMobile"
+          :items="mobileItems"
+          :loading="loading"
+          title-field="title"
+          subtitle-field="contract_no"
+          :info-fields="[
+            { key: 'statusLabel', label: 'الحالة' },
+            { key: 'amountLabel', label: 'القيمة' },
+            { key: 'contract_date', label: 'التاريخ' }
+          ]"
+          default-icon="mdi-file-document-outline"
+          :empty-text="`لا توجد عقود ${tab === 'employment' ? 'توظيف' : 'أتعاب'} مطابقة`"
+          @item-click="$emit('view', $event.id)"
+        />
+
+        <!-- Desktop Table -->
+        <v-table v-else hover class="bg-transparent premium-table">
           <thead>
             <tr>
               <th class="text-right text-gold opacity-70 font-weight-black">العقد والمرجع</th>
@@ -164,9 +182,12 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
+import MobileCardList from '../../components/mobile/MobileCardList.vue'
+import { useMobileLayout } from '../../composables/useMobileLayout'
 
-defineProps<{
+const props = defineProps<{
   tab: string
   search: string
   loading: boolean
@@ -174,6 +195,22 @@ defineProps<{
   can: (perm: string) => boolean
   formatCurrency: (val: any) => string
 }>()
+
+const { isMobile } = useMobileLayout()
+
+const statusLabelMap: Record<string, string> = {
+  approved: 'معتمد',
+  archived: 'مؤرشف',
+  pending: 'قيد الانتظار'
+}
+
+const mobileItems = computed(() =>
+  (props.filtered || []).map((c: any) => ({
+    ...c,
+    statusLabel: statusLabelMap[c.status] || 'قيد الانتظار',
+    amountLabel: props.formatCurrency(c.total_amount)
+  }))
+)
 
 defineEmits<{
   'update:tab': [value: string]

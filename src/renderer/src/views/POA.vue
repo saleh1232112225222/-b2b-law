@@ -240,10 +240,10 @@
                   <LucideIcon name="file-text" :size="22" class="text-gold" />
                 </div>
                 <div>
-                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-0">
+                  <div class="text-tiny text-visible-low font-weight-bold mb-0">
                     رقم الوكالة
                   </div>
-                  <div class="text-h6 font-weight-black text-white ltr-text ls-1">
+                  <div class="text-h6 font-weight-black text-visible-high ltr-text ls-1">
                     {{ item.agency_number }}
                   </div>
                 </div>
@@ -265,10 +265,10 @@
 
             <!-- Client Info: Highlighted Section -->
             <div class="client-info-section pa-3 rounded-lg mb-5">
-              <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+              <div class="text-tiny text-visible-low font-weight-bold mb-1">
                 الموكل صاحب الصلاحية
               </div>
-              <div class="text-body-1 font-weight-black text-white d-flex align-center">
+              <div class="text-body-1 font-weight-black text-visible-high d-flex align-center">
                 <LucideIcon name="user" :size="16" class="me-2 text-gold opacity-60" />
                 {{ item.client_name || 'غير محدد' }}
               </div>
@@ -278,10 +278,10 @@
             <v-row dense class="mb-5">
               <v-col cols="6">
                 <div class="poa-date-item pa-2 rounded-lg">
-                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+                  <div class="text-tiny text-visible-low font-weight-bold mb-1">
                     تاريخ الاعتماد
                   </div>
-                  <div class="text-caption font-weight-black text-white mb-1">
+                  <div class="text-caption font-weight-black text-visible-high mb-1">
                     {{ formatDate(String(item.date)) }} مـ
                   </div>
                   <div class="text-tiny font-weight-bold text-accent">
@@ -291,10 +291,10 @@
               </v-col>
               <v-col cols="6">
                 <div class="poa-date-item pa-2 rounded-lg">
-                  <div class="text-tiny text-gold opacity-40 font-weight-bold mb-1">
+                  <div class="text-tiny text-visible-low font-weight-bold mb-1">
                     تاريخ الانتهاء
                   </div>
-                  <div class="text-caption font-weight-black text-white mb-1">
+                  <div class="text-caption font-weight-black text-visible-high mb-1">
                     {{ item.expiry_date ? formatDate(String(item.expiry_date)) : '—' }} مـ
                   </div>
                   <div
@@ -316,7 +316,7 @@
               <div class="d-flex align-center opacity-60">
                 <LucideIcon name="landmark" :size="14" class="text-gold me-2" />
                 <span
-                  class="text-tiny font-weight-black text-white truncate-text"
+                  class="text-tiny font-weight-black text-visible-high truncate-text"
                   style="max-width: 140px"
                 >
                   {{ item.court || 'كتابة عدل عامة' }}
