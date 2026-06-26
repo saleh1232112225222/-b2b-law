@@ -246,7 +246,7 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
 
     // Reactivate all users in this company when subscription is activated
     await query(
-      `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+      `UPDATE users SET is_active = TRUE, is_suspended = FALSE, updated_at = NOW() WHERE company_id = $1`,
       [companyId]
     )
 
@@ -322,7 +322,7 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
 
     // Reactivate all users when subscription is extended
     await query(
-      `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+      `UPDATE users SET is_active = TRUE, is_suspended = FALSE, updated_at = NOW() WHERE company_id = $1`,
       [companyId]
     )
 
@@ -366,7 +366,7 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
 
     // Deactivate all users in this company so they cannot log in
     await query(
-      `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE company_id = $1`,
+      `UPDATE users SET is_active = FALSE, is_suspended = TRUE, updated_at = NOW() WHERE company_id = $1`,
       [companyId]
     )
 
@@ -534,7 +534,7 @@ adminSubscriptionRouter.post(
 
       // Reactivate all users in this company
       await query(
-        `UPDATE users SET is_active = TRUE, updated_at = NOW() WHERE company_id = $1`,
+        `UPDATE users SET is_active = TRUE, is_suspended = FALSE, updated_at = NOW() WHERE company_id = $1`,
         [companyId]
       )
 
@@ -681,7 +681,7 @@ adminSubscriptionRouter.delete(
 
       // Deactivate all users in this company so they cannot log in
       await query(
-        `UPDATE users SET is_active = FALSE, updated_at = NOW() WHERE company_id = $1`,
+        `UPDATE users SET is_active = FALSE, is_suspended = TRUE, updated_at = NOW() WHERE company_id = $1`,
         [companyId]
       )
 
@@ -781,6 +781,12 @@ adminSubscriptionRouter.post(
         )
       }
 
+      // Reactivate all users when subscription is activated
+      await query(
+        `UPDATE users SET is_active = TRUE, is_suspended = FALSE, updated_at = NOW() WHERE company_id = $1`,
+        [companyId]
+      )
+
       res.json({ success: true, message: 'تم تفعيل الاشتراك', endDate: newEndDate.toISOString() })
     } catch (err) {
       console.error('[ADMIN] Failed to activate company subscription:', err)
@@ -813,6 +819,12 @@ adminSubscriptionRouter.post(
           [existingSub.rows[0].id]
         )
       }
+
+      // Deactivate all users in this company
+      await query(
+        `UPDATE users SET is_active = FALSE, is_suspended = TRUE, updated_at = NOW() WHERE company_id = $1`,
+        [companyId]
+      )
 
       res.json({ success: true, message: 'تم إلغاء الاشتراك' })
     } catch (err) {

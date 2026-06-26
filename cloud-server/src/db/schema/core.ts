@@ -91,6 +91,7 @@ export const users = pgTable(
     isActive: boolean('is_active').default(true),
     mustChangePassword: boolean('must_change_password').default(true),
     recoveryEmail: text('recovery_email'),
+    googleUserId: text('google_user_id'),
     securityQuestion: text('security_question'),
     securityAnswerHash: text('security_answer_hash'),
     createdBy: uuid('created_by'),

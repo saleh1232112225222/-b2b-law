@@ -128,7 +128,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       return
     }
 
-    let userQuery = `SELECT u.*, u.company_id, u.role_key FROM users u WHERE u.username = $1`
+    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE u.username = $1`
     const params: any[] = [username]
 
     if (companyId) {
@@ -153,6 +153,16 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       res.status(403).json({
         error: 'AccountSuspended',
         message: 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
+      })
+      return
+    }
+
+    if (user.is_suspended) {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معلق')
+      await logLoginAttempt(user.id, user.company_id, false, 'حساب معلق', req)
+      res.status(403).json({
+        error: 'AccountSuspended',
+        message: 'تم تعليق حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
       })
       return
     }
@@ -224,6 +234,28 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       res.status(403).json({
         error: 'AccountSuspended',
         message: 'تم تعليق اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+      })
+      return
+    }
+
+    // Block login if subscription is canceled
+    if (subscriptionStatus === 'canceled') {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الاشتراك ملغي')
+      await logLoginAttempt(user.id, user.company_id, false, 'اشتراك ملغي', req)
+      res.status(403).json({
+        error: 'AccountSuspended',
+        message: 'تم إلغاء اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+      })
+      return
+    }
+
+    // Block login if subscription is expired
+    if (subscriptionStatus === 'expired') {
+      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الاشتراك منتهي')
+      await logLoginAttempt(user.id, user.company_id, false, 'اشتراك منتهي', req)
+      res.status(403).json({
+        error: 'AccountSuspended',
+        message: 'انتهت صلاحية اشتراكك. يرجى التجديد للمتابعة.'
       })
       return
     }
@@ -428,6 +460,14 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     res.status(400).json({ error: 'رمز التفويض مفقود' })
     return
   }
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
+
+  // Helper: redirect with properly encoded error message
+  const redirectToLogin = (error: string, message: string) => {
+    const encodedMessage = encodeURIComponent(message)
+    res.redirect(`${frontendUrl}/#/login?error=${error}&message=${encodedMessage}`)
+  }
+
   try {
     const { tokens } = await client.getToken(code)
     const ticket = await client.verifyIdToken({
@@ -436,118 +476,117 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     })
     const payload = ticket.getPayload()
     if (!payload || !payload.email) {
-      res.status(400).json({ error: 'فشل جلب بيانات المستخدم من Google' })
+      res.redirect(`${frontendUrl}/#/login?error=google_failed`)
       return
     }
+
     const googleEmail = payload.email
     const googleName = payload.name || googleEmail.split('@')[0]
-    // Check if a company with this email already exists
-    const existing = await query('SELECT id, name FROM companies WHERE email = $1', [googleEmail])
-    let companyId: string
-    let username: string
-    let trialExpiresAt = new Date()
-    if (existing.rows.length > 0) {
-      companyId = existing.rows[0].id
-      const compRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
-        companyId
-      ])
-      if (compRes.rows.length > 0) {
-        trialExpiresAt = new Date(compRes.rows[0].trial_expires_at)
-      }
-    } else {
-      // Create a new company for this Google user
-      companyId = uuidv4()
-      trialExpiresAt.setDate(trialExpiresAt.getDate() + 30)
-      await query(
-        'INSERT INTO companies (id, name, email, is_verified, trial_expires_at) VALUES ($1, $2, $3, TRUE, $4)',
-        [companyId, googleName, googleEmail, trialExpiresAt]
-      )
-      // Seed firm_data defaults
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(),
-        companyId,
-        'officeName',
-        JSON.stringify(googleName)
-      ])
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(),
-        companyId,
-        'theme',
-        JSON.stringify('light')
-      ])
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(),
-        companyId,
-        'activityLogRetentionDays',
-        JSON.stringify(365)
-      ])
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(),
-        companyId,
-        'taskNotificationsEnabled',
-        JSON.stringify(true)
-      ])
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(),
-        companyId,
-        'taskNotificationLeadDays',
-        JSON.stringify(1)
-      ])
+    const googleSub = payload.sub // Google's unique user ID
 
-      // Create trial subscription record for new Google OAuth accounts
-      try {
-        const planResult = await query('SELECT id FROM plans LIMIT 1')
-        const planId = planResult.rows.length > 0 ? planResult.rows[0].id : null
-        await query(
-          `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
-           VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
-          [uuidv4(), companyId, planId, trialExpiresAt]
-        )
-      } catch (subErr) {
-        console.error('[GOOGLE_AUTH] Failed to create trial subscription:', subErr)
-      }
-    }
-    // Create or find user
+    // STEP 1: Find existing user by google_user_id OR recovery_email
     let userResult = await query(
-      'SELECT id, username, role_key FROM users WHERE company_id = $1 AND recovery_email = $2',
-      [companyId, googleEmail]
+      `SELECT u.id, u.username, u.role_key, u.company_id, u.is_active, u.is_suspended, u.google_user_id,
+              c.is_deleted, c.is_verified, c.trial_expires_at
+       FROM users u
+       JOIN companies c ON c.id = u.company_id
+       WHERE u.google_user_id = $1 OR u.recovery_email = $2
+       ORDER BY u.created_at DESC LIMIT 1`,
+      [googleSub, googleEmail]
     )
-    if (userResult.rows.length === 0) {
-      const baseUsername = googleEmail
-        .split('@')[0]
-        .replace(/[^a-zA-Z0-9_]/g, '_')
-        .substring(0, 20)
-      username = baseUsername
-      // Ensure unique username
-      let counter = 1
-      while (true) {
-        const dup = await query('SELECT id FROM users WHERE username = $1', [username])
-        if (dup.rows.length === 0) break
-        username = baseUsername.substring(0, 17) + counter
-        counter++
-      }
-      const userId = uuidv4()
-      const randomPass = uuidv4().replace(/-/g, '').substring(0, 16)
-      const passwordHash = await bcrypt.hash(randomPass, 12)
-      await query(
-        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE, $7, NOW())`,
-        [userId, companyId, username, googleName, passwordHash, 'admin', googleEmail]
-      )
 
-      // Notify the admin of Google signup completion
-      notifyAdminOfNewRegistration({
-        name: googleName,
-        email: googleEmail,
-        method: 'Google',
-        trialExpiresAt
-      }).catch((e) => {
-        console.error('Failed to notify admin of Google signup:', e)
+    if (userResult.rows.length > 0) {
+      const user = userResult.rows[0]
+
+      // 1) Check if company is soft-deleted
+      if (user.is_deleted) {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الحساب محذوف')
+        await logLoginAttempt(user.id, user.company_id, false, 'حساب محذوف', req)
+        redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
+        return
+      }
+
+      // 2) Check if user is deactivated
+      if (!user.is_active) {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الحساب معطل')
+        await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
+        redirectToLogin('AccountSuspended', 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        return
+      }
+
+      // 3) Check if user is explicitly suspended
+      if (user.is_suspended) {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - المستخدم معلق')
+        await logLoginAttempt(user.id, user.company_id, false, 'مستخدم معلق', req)
+        redirectToLogin('AccountSuspended', 'تم تعليق حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        return
+      }
+
+      // 4) Check subscription status
+      let subscriptionStatus = 'trial'
+      const subCheck = await query(
+        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [user.company_id]
+      )
+      if (subCheck.rows.length > 0) {
+        subscriptionStatus = subCheck.rows[0].status
+      }
+
+      if (subscriptionStatus === 'past_due') {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك معلق')
+        await logLoginAttempt(user.id, user.company_id, false, 'اشتراك معلق', req)
+        redirectToLogin('AccountSuspended', 'تم تعليق اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        return
+      }
+
+      if (subscriptionStatus === 'canceled') {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك ملغي')
+        await logLoginAttempt(user.id, user.company_id, false, 'اشتراك ملغي', req)
+        redirectToLogin('AccountSuspended', 'تم إلغاء اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        return
+      }
+
+      if (subscriptionStatus === 'expired') {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك منتهي')
+        await logLoginAttempt(user.id, user.company_id, false, 'اشتراك منتهي', req)
+        redirectToLogin('AccountSuspended', 'انتهت صلاحية اشتراكك. يرجى التجديد للمتابعة.')
+        return
+      }
+
+      // 5) Check if trial period expired
+      const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
+        user.company_id
+      ])
+      let trialExpired = false
+      if (companyRes.rows.length > 0) {
+        trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
+      }
+
+      // Update google_user_id if not yet stored
+      if (!user.google_user_id && googleSub) {
+        await query('UPDATE users SET google_user_id = $1, updated_at = NOW() WHERE id = $2', [
+          googleSub,
+          user.id
+        ])
+      }
+
+      // All checks passed — generate token
+      const token = generateToken({
+        userId: user.id,
+        companyId: user.company_id,
+        username: user.username,
+        roleKey: user.role_key,
+        trialExpired,
+        subscriptionStatus
       })
 
-      userResult = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
-    } else {
-      // Existing user logging in via Google
+      await logActivity(user.username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول عبر Google', {
+        userId: user.id,
+        companyId: user.company_id,
+        roleKey: user.role_key
+      })
+      await logLoginAttempt(user.id, user.company_id, true, undefined, req)
+
       sendEmail({
         to: 'slaehmap@gmail.com',
         subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
@@ -555,15 +594,139 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       }).catch((e) => {
         console.error('Failed to notify admin of Google login:', e)
       })
+
+      res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
+      return
     }
-    const user = userResult.rows[0]
-    const companyRes = await query('SELECT trial_expires_at FROM companies WHERE id = $1', [
-      companyId
+
+    // STEP 2: No user found by google_user_id or recovery_email
+    // Check if the email exists in companies table — prevent duplicate accounts
+    const existingCompany = await query(
+      `SELECT c.id, c.is_deleted, c.is_verified, c.trial_expires_at
+       FROM companies c
+       WHERE c.email = $1`,
+      [googleEmail]
+    )
+
+    if (existingCompany.rows.length > 0) {
+      const company = existingCompany.rows[0]
+
+      // Block if company is soft-deleted
+      if (company.is_deleted) {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - الشركة محذوفة')
+        redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
+        return
+      }
+
+      // Check subscription status of the existing company
+      let subscriptionStatus = 'trial'
+      const subCheck = await query(
+        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [company.id]
+      )
+      if (subCheck.rows.length > 0) {
+        subscriptionStatus = subCheck.rows[0].status
+      }
+
+      if (subscriptionStatus === 'past_due' || subscriptionStatus === 'canceled' || subscriptionStatus === 'expired') {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', `محاولة تسجيل Google فاشلة - الاشتراك ${subscriptionStatus}`)
+        redirectToLogin('AccountSuspended', 'لا يمكن إنشاء حساب جديد. الحساب موجود مسبقاً وحالته: ' +
+          (subscriptionStatus === 'past_due' ? 'معلق' : subscriptionStatus === 'canceled' ? 'ملغي' : 'منتهي') +
+          '. يرجى التواصل مع إدارة النظام.')
+        return
+      }
+
+      // Check if any user in this company is deactivated (all users suspended = blocked)
+      const activeUsers = await query(
+        `SELECT id FROM users WHERE company_id = $1 AND is_active = TRUE LIMIT 1`,
+        [company.id]
+      )
+      if (activeUsers.rows.length === 0) {
+        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - جميع المستخدمين معطلين')
+        redirectToLogin('AccountSuspended', 'تم تعطيل هذا الحساب. يرجى التواصل مع إدارة النظام.')
+        return
+      }
+
+      // Company exists, is active, has active users — but no user linked to this Google account
+      // BLOCK: do NOT create a duplicate user. Tell them to log in with existing credentials.
+      await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - البريد مسجل مسبقاً بحساب آخر')
+      redirectToLogin('AccountSuspended', 'هذا البريد الإلكتروني مسجل مسبقاً بحساب موجود. يرجى تسجيل الدخول bằng بيانات الحساب الأصلي.')
+      return
+    }
+
+    // STEP 3: Brand new user — no matching user or company found
+    // Create company + user + trial subscription
+    const companyId = uuidv4()
+    const trialExpiresAt = new Date()
+    trialExpiresAt.setDate(trialExpiresAt.getDate() + 30)
+    await query(
+      'INSERT INTO companies (id, name, email, is_verified, trial_expires_at) VALUES ($1, $2, $3, TRUE, $4)',
+      [companyId, googleName, googleEmail, trialExpiresAt]
+    )
+    // Seed firm_data defaults
+    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+      uuidv4(), companyId, 'officeName', JSON.stringify(googleName)
     ])
-    let trialExpired = false
-    if (companyRes.rows.length > 0) {
-      trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
+    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+      uuidv4(), companyId, 'theme', JSON.stringify('light')
+    ])
+    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+      uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)
+    ])
+    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+      uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)
+    ])
+    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+      uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)
+    ])
+
+    // Create trial subscription
+    try {
+      const planResult = await query('SELECT id FROM plans LIMIT 1')
+      const planId = planResult.rows.length > 0 ? planResult.rows[0].id : null
+      await query(
+        `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
+         VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
+        [uuidv4(), companyId, planId, trialExpiresAt]
+      )
+    } catch (subErr) {
+      console.error('[GOOGLE_AUTH] Failed to create trial subscription:', subErr)
     }
+
+    // Create user
+    let username: string
+    const baseUsername = googleEmail
+      .split('@')[0]
+      .replace(/[^a-zA-Z0-9_]/g, '_')
+      .substring(0, 20)
+    username = baseUsername
+    let counter = 1
+    while (true) {
+      const dup = await query('SELECT id FROM users WHERE username = $1', [username])
+      if (dup.rows.length === 0) break
+      username = baseUsername.substring(0, 17) + counter
+      counter++
+    }
+    const userId = uuidv4()
+    const randomPass = uuidv4().replace(/-/g, '').substring(0, 16)
+    const passwordHash = await bcrypt.hash(randomPass, 12)
+    await query(
+      `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, google_user_id, created_at)
+       VALUES ($1, $2, $3, $4, $5, $6, TRUE, TRUE, $7, $8, NOW())`,
+      [userId, companyId, username, googleName, passwordHash, 'admin', googleEmail, googleSub]
+    )
+
+    notifyAdminOfNewRegistration({
+      name: googleName,
+      email: googleEmail,
+      method: 'Google',
+      trialExpiresAt
+    }).catch((e) => {
+      console.error('Failed to notify admin of Google signup:', e)
+    })
+
+    const newUser = await query('SELECT id, username, role_key FROM users WHERE id = $1', [userId])
+    const user = newUser.rows[0]
 
     let subscriptionStatus = 'trial'
     const subCheck = await query(
@@ -579,22 +742,21 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       companyId,
       username: user.username,
       roleKey: user.role_key,
-      trialExpired,
+      trialExpired: trialExpiresAt < new Date(),
       subscriptionStatus
     })
 
-    await logActivity(user.username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول عبر Google', {
+    await logActivity(user.username, 'LOGIN_SUCCESS', 'auth', 'تسجيل دخول جديد عبر Google', {
       userId: user.id,
       companyId,
       roleKey: user.role_key
     })
     await logLoginAttempt(user.id, companyId, true, undefined, req)
 
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
     res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
   } catch (err) {
     console.error('[AUTH] Google OAuth callback error:', err)
-    res.status(500).json({ error: 'فشل التحقق عبر Google' })
+    res.redirect(`${frontendUrl}/#/login?error=google_failed`)
   }
 })
 

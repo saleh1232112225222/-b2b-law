@@ -429,6 +429,23 @@ const handleGoogleLogin = () => {
 }
 
 onMounted(async () => {
+  // Handle error redirects from Google OAuth (e.g. AccountSuspended, google_failed)
+  const queryError = route.query.error as string
+  const queryMessage = route.query.message as string
+  if (queryError) {
+    if (queryError === 'AccountSuspended') {
+      accountSuspended.value = true
+      error.value = queryMessage || 'تم إيقاف هذا الحساب مؤقتاً. يرجى التواصل مع الدعم الفني.'
+    } else if (queryError === 'google_failed') {
+      error.value = 'فشل تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى.'
+    } else {
+      error.value = queryMessage || 'حدث خطأ. يرجى المحاولة مرة أخرى.'
+    }
+    // Clean up query params without reloading
+    router.replace({ query: {} })
+    return
+  }
+
   const googleToken = route.query.google_token as string
   if (googleToken) {
     localStorage.setItem('b2b_cloud_token', googleToken)

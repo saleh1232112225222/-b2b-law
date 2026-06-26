@@ -44,7 +44,12 @@
     <!-- Loading -->
     <v-card v-if="isLoading" class="rounded-xl border-gold border-1" elevation="0">
       <v-card-text class="text-center pa-12">
-        <v-progress-circular indeterminate color="gold" size="48" class="mb-4"></v-progress-circular>
+        <v-progress-circular
+          indeterminate
+          color="gold"
+          size="48"
+          class="mb-4"
+        ></v-progress-circular>
         <div class="text-subtitle-1 text-medium-emphasis">جارٍ تحميل البيانات...</div>
       </v-card-text>
     </v-card>
@@ -60,9 +65,7 @@
           <v-icon icon="mdi-check-circle" class="text-success" size="48"></v-icon>
         </v-avatar>
         <h3 class="text-h5 font-weight-bold text-primary mb-2">سلة المحذوفات فارغة</h3>
-        <div class="text-subtitle-1 text-medium-emphasis">
-          لا يوجد مشتركون محذوفون حالياً
-        </div>
+        <div class="text-subtitle-1 text-medium-emphasis">لا يوجد مشتركون محذوفون حالياً</div>
       </v-card-text>
     </v-card>
 
@@ -104,8 +107,8 @@
                     size="small"
                     class="font-weight-bold me-2"
                     prepend-icon="mdi-restore"
-                    @click="restoreCompany(company)"
                     :loading="restoringId === company.id"
+                    @click="restoreCompany(company)"
                   >
                     استعادة
                   </v-btn>
@@ -165,11 +168,7 @@
 
         <v-card-actions class="pa-4 pt-0">
           <v-spacer></v-spacer>
-          <v-btn
-            color="grey-darken-1"
-            variant="text"
-            @click="showPermanentDeleteDialog = false"
-          >
+          <v-btn color="grey-darken-1" variant="text" @click="showPermanentDeleteDialog = false">
             إلغاء
           </v-btn>
           <v-btn
