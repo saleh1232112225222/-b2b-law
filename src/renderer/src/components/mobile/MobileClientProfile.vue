@@ -191,7 +191,7 @@ import type { Client, Case, Agency } from '../../types'
 
 const route = useRoute()
 const router = useRouter()
-const emit = defineEmits<{ edit: [] }>()
+const emit = defineEmits<{ edit: []; add: [] }>()
 
 const clientId = computed(() => route.params.id as string)
 const clientsStore = useClientsStore()
@@ -223,6 +223,15 @@ const loadData = async () => {
 const openEditDialog = () => emit('edit')
 const openCase = (c: Case) => router.push(`/cases?id=${c.id}`)
 const goToCases = () => router.push('/cases')
+const goToContracts = () => router.push('/contracts')
+const goToAgencies = () => router.push('/agencies')
+const goToFinance = () => router.push('/finance')
+const goToVault = () => router.push('/vault')
+const goToMemoranda = () => router.push('/memoranda')
+const goToReports = () => router.push('/reports')
+const goToTasks = () => router.push('/tasks')
+const goToSettings = () => router.push('/settings')
+const logout = () => router.push('/login')
 
 const getClientTypeColor = (type?: string) => {
   const map: Record<string, string> = {
