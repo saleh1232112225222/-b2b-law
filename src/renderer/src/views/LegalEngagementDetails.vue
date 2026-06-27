@@ -94,15 +94,15 @@ const clientsStore = useClientsStore()
 
 const loading = ref(true)
 const engagementId = props.id || route.params.id as string
-const engagement = computed(() => legalStore.engagements.find(e => e.id === engagementId))
+const engagement = computed(() => legalStore.services.find((e: any) => e.id === engagementId))
 
 onMounted(async () => {
   loading.value = true
-  if (!legalStore.engagements.length) {
-    await legalStore.fetchEngagements()
-  }
   if (!legalStore.services.length) {
-    await legalStore.fetchServices()
+    await legalStore.fetchServices({ page: 1, pageSize: 50 })
+  }
+  if (!legalStore.metadataLoaded) {
+    await legalStore.fetchMetadata()
   }
   if (!clientsStore.clients.length) {
     await clientsStore.fetchClients()
@@ -118,8 +118,8 @@ const clientName = computed(() => {
 
 const serviceName = computed(() => {
   if (!engagement.value) return ''
-  const srv = legalStore.services.find(s => s.id === engagement.value?.legal_service_id)
-  return srv ? srv.name : 'غير معروف'
+  const srv = legalStore.types.find((s: any) => s.id === engagement.value?.engagement_type_id)
+  return srv ? srv.name_ar : 'غير معروف'
 })
 
 const getStatusColor = (status: string) => {
