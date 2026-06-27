@@ -56,8 +56,131 @@ export async function runExtraMigrations() {
   }
 
   // Legal Services Tables
-    // Ensure Legal engagement relations
+    // Ensure Legal Service Reference Tables
     await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_categories (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+        key TEXT UNIQUE NOT NULL,
+        name_ar TEXT NOT NULL,
+        name_en TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_types (
+        id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+        category_id TEXT NOT NULL REFERENCES legal_service_categories(id) ON DELETE CASCADE,
+        key TEXT UNIQUE NOT NULL,
+        name_ar TEXT NOT NULL,
+        name_en TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_statuses (
+        id TEXT PRIMARY KEY,
+        status_key TEXT UNIQUE NOT NULL,
+        status_name_ar TEXT NOT NULL,
+        status_name_en TEXT,
+        color TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_priorities (
+        id TEXT PRIMARY KEY,
+        priority_key TEXT UNIQUE NOT NULL,
+        priority_name_ar TEXT NOT NULL,
+        priority_name_en TEXT,
+        color TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_engagements (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        company_id UUID NOT NULL,
+        engagement_number TEXT UNIQUE NOT NULL,
+        engagement_type_id TEXT NOT NULL REFERENCES legal_service_types(id),
+        category_id TEXT NOT NULL REFERENCES legal_service_categories(id),
+        client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+        beneficiary TEXT,
+        linked_parties TEXT,
+        responsible_lawyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        assistant_team TEXT,
+        description TEXT,
+        purpose TEXT,
+        start_date DATE,
+        expected_end_date DATE,
+        completion_date DATE,
+        status_id TEXT NOT NULL REFERENCES legal_service_statuses(id),
+        priority_id TEXT NOT NULL REFERENCES legal_service_priorities(id),
+        financial_compensation NUMERIC(12,2) DEFAULT 0,
+        tax NUMERIC(12,2) DEFAULT 0,
+        paid_amount NUMERIC(12,2) DEFAULT 0,
+        remaining_amount NUMERIC(12,2) DEFAULT 0,
+        payment_method TEXT,
+        contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,
+        case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
+        invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        created_by UUID,
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_by UUID,
+        deleted_at TIMESTAMPTZ,
+        deleted_by UUID
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS consultation_service_details (
+        engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        consultation_medium TEXT,
+        legal_opinion_summary TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS litigation_service_details (
+        engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        court_name TEXT,
+        case_number TEXT,
+        judgment_summary TEXT
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS contract_service_details (
+        engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        contract_parties TEXT,
+        contract_value NUMERIC(12,2)
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_attachments (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        file_name TEXT NOT NULL,
+        file_path TEXT NOT NULL,
+        uploaded_by UUID,
+        uploaded_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_notes (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        note_text TEXT NOT NULL,
+        created_by UUID,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS legal_service_timeline (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        event_title TEXT NOT NULL,
+        event_description TEXT,
+        event_date TIMESTAMPTZ DEFAULT NOW(),
+        created_by UUID
+      )
+    `)
+    console.log('[MIGRATE_EXTRA] Legal services tables created if not exists')
+
+    // Ensure Legal engagement relations
       ALTER TABLE tasks_v2 ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
     `)
     await query(`
