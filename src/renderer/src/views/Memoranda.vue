@@ -249,6 +249,7 @@
           </template>
         </v-data-table>
       </v-card>
+    </template>
 
       <!-- Preview Dialog -->
       <v-dialog v-model="showPreviewDialog" width="95%" max-width="1100" scrollable>
@@ -526,7 +527,6 @@
         :loading="confirmDialog.loading"
         @confirm="confirmDialog.action"
       />
-    </template>
   </v-container>
 </template>
 
