@@ -1,0 +1,126 @@
+- generic [ref=e4]:
+  - generic [ref=e78]:
+    - banner [ref=e79]:
+      - generic [ref=e81]:
+        - button [ref=e82] [cursor=pointer]:
+          - generic [ref=e84]: 󰍜
+        - generic [ref=e86]: العقود
+        - button [ref=e87] [cursor=pointer]:
+          - generic [ref=e89]: 󰖔
+    - navigation [ref=e90]:
+      - generic [ref=e92]:
+        - generic [ref=e93]:
+          - img [ref=e362]
+          - generic [ref=e96]: OpenCode
+          - generic [ref=e97]: admin
+        - list [ref=e99]:
+          - link "المهام" [ref=e100] [cursor=pointer]:
+            - /url: "#/tasks"
+            - generic [ref=e102]: 󱃔
+            - generic [ref=e104]: المهام
+          - link "المالية" [ref=e105] [cursor=pointer]:
+            - /url: "#/finance"
+            - generic [ref=e107]: 󰁰
+            - generic [ref=e109]: المالية
+          - link "المستندات" [ref=e110] [cursor=pointer]:
+            - /url: "#/documents"
+            - generic [ref=e112]: 󰈙
+            - generic [ref=e114]: المستندات
+          - link "المذكرات" [ref=e115] [cursor=pointer]:
+            - /url: "#/memoranda"
+            - generic [ref=e117]: 󰷈
+            - generic [ref=e119]: المذكرات
+          - link "العقود" [ref=e120] [cursor=pointer]:
+            - /url: "#/contracts"
+            - generic [ref=e122]: 󱧃
+            - generic [ref=e124]: العقود
+          - link "التنفيذ" [ref=e125] [cursor=pointer]:
+            - /url: "#/enforcement"
+            - generic [ref=e127]: 󰊛
+            - generic [ref=e129]: التنفيذ
+          - link "الملفات" [ref=e130] [cursor=pointer]:
+            - /url: "#/vault"
+            - generic [ref=e132]: 󰉐
+            - generic [ref=e134]: الملفات
+          - link "التقارير" [ref=e135] [cursor=pointer]:
+            - /url: "#/reports"
+            - generic [ref=e137]: 󱕍
+            - generic [ref=e139]: التقارير
+          - link "الملف الشخصي" [ref=e140] [cursor=pointer]:
+            - /url: "#/profile"
+            - generic [ref=e142]: 󰀄
+            - generic [ref=e144]: الملف الشخصي
+          - link "الإعدادات" [ref=e145] [cursor=pointer]:
+            - /url: "#/settings"
+            - generic [ref=e147]: 󰒓
+            - generic [ref=e149]: الإعدادات
+        - button "تسجيل الخروج" [ref=e151] [cursor=pointer]:
+          - generic [ref=e152]:
+            - img [ref=e153]
+            - text: تسجيل الخروج
+    - main [ref=e156]:
+      - generic [ref=e363]:
+        - generic [ref=e364]:
+          - generic [ref=e366]:
+            - img [ref=e368]
+            - generic [ref=e371]:
+              - heading "مركز إدارة العقود" [level=1] [ref=e372]
+              - paragraph [ref=e373]: إدارة عقود التوظيف واتفاقيات الأتعاب القانونية الموثقة
+          - button "إدراج عقد جديد" [ref=e375] [cursor=pointer]:
+            - generic [ref=e376]:
+              - img [ref=e377]
+              - text: إدراج عقد جديد
+        - generic [ref=e378]:
+          - tablist [ref=e380]:
+            - generic [ref=e382]:
+              - tab "عقود الموظفين" [selected] [ref=e383] [cursor=pointer]:
+                - generic [ref=e384]: عقود الموظفين
+              - tab "عقود الأتعاب (قضايا)" [ref=e385] [cursor=pointer]:
+                - generic [ref=e386]: عقود الأتعاب (قضايا)
+          - separator [ref=e387]
+          - generic [ref=e389]:
+            - generic [ref=e390]:
+              - generic [ref=e394]:
+                - img [ref=e396]
+                - textbox "بحث برقم العقد، العنوان، أو اسم الطرف..." [ref=e400]
+                - text: 󰅙
+              - button "تحديث البيانات" [ref=e402] [cursor=pointer]:
+                - generic [ref=e403]:
+                  - img [ref=e404]
+                  - generic [ref=e409]: تحديث البيانات
+            - generic [ref=e411]:
+              - generic [ref=e412]: 󱉴
+              - generic [ref=e413]: لا توجد عقود توظيف مطابقة
+    - banner [ref=e195]:
+      - generic [ref=e196]:
+        - link "لوحة التحكم" [ref=e197] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=e198]:
+            - generic [ref=e200]: 󰕮
+            - generic [ref=e201]: لوحة التحكم
+        - link "العملاء" [ref=e202] [cursor=pointer]:
+          - /url: "#/clients"
+          - generic [ref=e203]:
+            - generic [ref=e205]: 󰡉
+            - generic [ref=e206]: العملاء
+        - link "القضايا" [ref=e207] [cursor=pointer]:
+          - /url: "#/cases"
+          - generic [ref=e208]:
+            - generic [ref=e210]: 󰗑
+            - generic [ref=e211]: القضايا
+        - link "الجلسات" [ref=e212] [cursor=pointer]:
+          - /url: "#/sessions"
+          - generic [ref=e213]:
+            - generic [ref=e215]: 󰃰
+            - generic [ref=e216]: الجلسات
+        - button "المزيد" [ref=e217] [cursor=pointer]:
+          - generic [ref=e218]:
+            - generic [ref=e220]: 󰇘
+            - generic [ref=e221]: المزيد
+  - navigation [ref=e60]:
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - img [ref=e65]
+        - generic [ref=e68]: معاينة سريعة
+      - button [ref=e70] [cursor=pointer]:
+        - img [ref=e72]

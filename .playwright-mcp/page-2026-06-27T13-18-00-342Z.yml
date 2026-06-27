@@ -1,0 +1,39 @@
+- generic [ref=e4]:
+  - generic [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e14]:
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - img [ref=e17]
+            - img [ref=e19]
+          - heading "B2B Lawyer Pro" [level=1] [ref=e23]
+        - heading "مرحباً بعودتك" [level=2] [ref=e24]
+      - generic [ref=e25]:
+        - generic [ref=e26]:
+          - generic [ref=e27]: اسم المستخدم
+          - textbox "عنوان البريد الإلكتروني" [ref=e32]: admin
+        - generic [ref=e33]:
+          - generic [ref=e34]: كلمة المرور
+          - generic [ref=e37]:
+            - img [ref=e39]
+            - textbox "أدخل كلمة المرور" [ref=e44]
+        - button "تسجيل الدخول" [disabled]:
+          - generic: تسجيل الدخول
+        - generic [ref=e46]: أو
+        - button "تسجيل الدخول عبر Google" [ref=e47] [cursor=pointer]:
+          - img [ref=e49]
+          - generic [ref=e54]: تسجيل الدخول عبر Google
+        - generic [ref=e55]:
+          - link "نسيت كلمة المرور؟" [ref=e56] [cursor=pointer]:
+            - /url: "#"
+          - generic [ref=e57]: "|"
+          - link "إنشاء حساب جديد" [ref=e58] [cursor=pointer]:
+            - /url: "#"
+    - generic [ref=e59]: B2B LAWYER PRO v5.0
+  - navigation [ref=e60]:
+    - generic [ref=e62]:
+      - generic [ref=e63]:
+        - img [ref=e65]
+        - generic [ref=e68]: معاينة سريعة
+      - button [ref=e70] [cursor=pointer]:
+        - img [ref=e72]

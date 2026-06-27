@@ -1,0 +1,78 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - button [ref=e10] [cursor=pointer]:
+          - generic [ref=e12]: 󰍜
+        - generic [ref=e14]: الرئيسية
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e17]: 󰖔
+    - navigation [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e24]: المستخدم
+          - generic [ref=e25]: —
+        - list [ref=e27]:
+          - link "المهام" [ref=e28] [cursor=pointer]:
+            - /url: "#/tasks"
+            - generic [ref=e30]: 󱃔
+            - generic [ref=e32]: المهام
+          - link "المالية" [ref=e33] [cursor=pointer]:
+            - /url: "#/finance"
+            - generic [ref=e35]: 󰁰
+            - generic [ref=e37]: المالية
+          - link "المستندات" [ref=e38] [cursor=pointer]:
+            - /url: "#/documents"
+            - generic [ref=e40]: 󰈙
+            - generic [ref=e42]: المستندات
+          - link "المذكرات" [ref=e43] [cursor=pointer]:
+            - /url: "#/memoranda"
+            - generic [ref=e45]: 󰷈
+            - generic [ref=e47]: المذكرات
+          - link "العقود" [ref=e48] [cursor=pointer]:
+            - /url: "#/contracts"
+            - generic [ref=e50]: 󱧃
+            - generic [ref=e52]: العقود
+          - link "التنفيذ" [ref=e53] [cursor=pointer]:
+            - /url: "#/enforcement"
+            - generic [ref=e55]: 󰊛
+            - generic [ref=e57]: التنفيذ
+          - link "الملفات" [ref=e58] [cursor=pointer]:
+            - /url: "#/vault"
+            - generic [ref=e60]: 󰉐
+            - generic [ref=e62]: الملفات
+          - link "التقارير" [ref=e63] [cursor=pointer]:
+            - /url: "#/reports"
+            - generic [ref=e65]: 󱕍
+            - generic [ref=e67]: التقارير
+          - link "الملف الشخصي" [ref=e68] [cursor=pointer]:
+            - /url: "#/profile"
+            - generic [ref=e70]: 󰀄
+            - generic [ref=e72]: الملف الشخصي
+          - link "الإعدادات" [ref=e73] [cursor=pointer]:
+            - /url: "#/settings"
+            - generic [ref=e75]: 󰒓
+            - generic [ref=e77]: الإعدادات
+        - button "تسجيل الخروج" [ref=e79] [cursor=pointer]:
+          - generic [ref=e80]:
+            - img [ref=e81]
+            - text: تسجيل الخروج
+    - main [ref=e84]
+    - banner [ref=e86]:
+      - generic [ref=e87]:
+        - link "لوحة التحكم" [ref=e88] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=e89]:
+            - generic [ref=e91]: 󰕮
+            - generic [ref=e92]: لوحة التحكم
+        - button "المزيد" [ref=e93] [cursor=pointer]:
+          - generic [ref=e94]:
+            - generic [ref=e96]: 󰇘
+            - generic [ref=e97]: المزيد
+  - navigation [ref=e98]:
+    - generic [ref=e100]:
+      - generic [ref=e101]:
+        - img [ref=e103]
+        - generic [ref=e106]: معاينة سريعة
+      - button [ref=e108] [cursor=pointer]:
+        - img [ref=e110]

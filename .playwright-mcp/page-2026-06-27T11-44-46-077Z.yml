@@ -1,0 +1,21 @@
+- generic [ref=e4]:
+  - generic [ref=e166]:
+    - generic [ref=e167]: 󰗖
+    - generic [ref=e168]: حدث خطأ غير متوقع
+    - generic [ref=e169]: Cannot read properties of undefined (reading 'filter')
+    - generic [ref=e170]:
+      - button "إعادة المحاولة" [ref=e171] [cursor=pointer]:
+        - generic [ref=e172]:
+          - generic [ref=e173]: 󰑐
+          - text: إعادة المحاولة
+      - button "العودة للرئيسية" [ref=e174] [cursor=pointer]:
+        - generic [ref=e175]:
+          - generic [ref=e176]: 󰋜
+          - text: العودة للرئيسية
+  - navigation [ref=e113]:
+    - generic [ref=e115]:
+      - generic [ref=e116]:
+        - img [ref=e118]
+        - generic [ref=e121]: معاينة سريعة
+      - button [ref=e123] [cursor=pointer]:
+        - img [ref=e125]

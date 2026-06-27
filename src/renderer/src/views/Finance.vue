@@ -267,6 +267,7 @@
           </v-window>
         </v-card-text>
       </v-card>
+    </template>
 
       <!-- Add Transaction Dialog -->
       <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
@@ -553,7 +554,6 @@
 
       <!-- Credit Note Dialog -->
       <CreateCreditNoteModal v-model="showCreditNoteDialog" @created="onCreditNoteCreated" />
-    </template>
   </v-container>
 </template>
 

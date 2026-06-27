@@ -1,0 +1,122 @@
+- generic [ref=e4]:
+  - generic [ref=e177]:
+    - banner [ref=e178]:
+      - generic [ref=e180]:
+        - button [ref=e181] [cursor=pointer]:
+          - generic [ref=e183]: 󰍜
+        - generic [ref=e185]: العقود
+        - button [ref=e186] [cursor=pointer]:
+          - generic [ref=e188]: 󰖔
+    - navigation [ref=e189]:
+      - generic [ref=e191]:
+        - generic [ref=e192]:
+          - generic [ref=e195]: OpenCode
+          - generic [ref=e196]: admin
+        - list [ref=e198]:
+          - link "المهام" [ref=e199] [cursor=pointer]:
+            - /url: "#/tasks"
+            - generic [ref=e201]: 󱃔
+            - generic [ref=e203]: المهام
+          - link "المالية" [ref=e204] [cursor=pointer]:
+            - /url: "#/finance"
+            - generic [ref=e206]: 󰁰
+            - generic [ref=e208]: المالية
+          - link "المستندات" [ref=e209] [cursor=pointer]:
+            - /url: "#/documents"
+            - generic [ref=e211]: 󰈙
+            - generic [ref=e213]: المستندات
+          - link "المذكرات" [ref=e214] [cursor=pointer]:
+            - /url: "#/memoranda"
+            - generic [ref=e216]: 󰷈
+            - generic [ref=e218]: المذكرات
+          - link "العقود" [ref=e219] [cursor=pointer]:
+            - /url: "#/contracts"
+            - generic [ref=e221]: 󱧃
+            - generic [ref=e223]: العقود
+          - link "التنفيذ" [ref=e224] [cursor=pointer]:
+            - /url: "#/enforcement"
+            - generic [ref=e226]: 󰊛
+            - generic [ref=e228]: التنفيذ
+          - link "الملفات" [ref=e229] [cursor=pointer]:
+            - /url: "#/vault"
+            - generic [ref=e231]: 󰉐
+            - generic [ref=e233]: الملفات
+          - link "التقارير" [ref=e234] [cursor=pointer]:
+            - /url: "#/reports"
+            - generic [ref=e236]: 󱕍
+            - generic [ref=e238]: التقارير
+          - link "الملف الشخصي" [ref=e239] [cursor=pointer]:
+            - /url: "#/profile"
+            - generic [ref=e241]: 󰀄
+            - generic [ref=e243]: الملف الشخصي
+          - link "الإعدادات" [ref=e244] [cursor=pointer]:
+            - /url: "#/settings"
+            - generic [ref=e246]: 󰒓
+            - generic [ref=e248]: الإعدادات
+        - button "تسجيل الخروج" [ref=e250] [cursor=pointer]:
+          - generic [ref=e251]:
+            - img [ref=e252]
+            - text: تسجيل الخروج
+    - main [ref=e255]:
+      - generic [ref=e257]:
+        - generic [ref=e259]:
+          - generic [ref=e261]:
+            - generic [ref=e262]: القضايا
+            - generic [ref=e263]: "2"
+          - generic [ref=e265]:
+            - generic [ref=e266]: العملاء
+            - generic [ref=e267]: "3"
+          - generic [ref=e269]:
+            - generic [ref=e270]: الجلسات
+            - generic [ref=e271]: "1"
+          - generic [ref=e273]:
+            - generic [ref=e274]: الإيرادات
+            - generic [ref=e275]: "0"
+        - generic [ref=e276]:
+          - generic [ref=e277]: الجلسات القادمة
+          - generic [ref=e278]:
+            - generic [ref=e281] [cursor=pointer]:
+              - generic [ref=e282]: 1447/00123
+              - generic [ref=e283]: سعد بن خالد العنزي - محامي
+            - generic [ref=e285]: — لا توجد نتائج أخرى —
+          - generic [ref=e286]: آخر المعاملات
+          - generic [ref=e288]:
+            - generic [ref=e289]: 󱉴
+            - generic [ref=e290]: لا توجد معاملات
+            - button "إضافة معاملة" [ref=e291] [cursor=pointer]:
+              - generic [ref=e292]:
+                - generic [ref=e293]: 󰐕
+                - text: إضافة معاملة
+    - banner [ref=e294]:
+      - generic [ref=e295]:
+        - link "لوحة التحكم" [ref=e296] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=e297]:
+            - generic [ref=e299]: 󰕮
+            - generic [ref=e300]: لوحة التحكم
+        - link "العملاء" [ref=e301] [cursor=pointer]:
+          - /url: "#/clients"
+          - generic [ref=e302]:
+            - generic [ref=e304]: 󰡉
+            - generic [ref=e305]: العملاء
+        - link "القضايا" [ref=e306] [cursor=pointer]:
+          - /url: "#/cases"
+          - generic [ref=e307]:
+            - generic [ref=e309]: 󰗑
+            - generic [ref=e310]: القضايا
+        - link "الجلسات" [ref=e311] [cursor=pointer]:
+          - /url: "#/sessions"
+          - generic [ref=e312]:
+            - generic [ref=e314]: 󰃰
+            - generic [ref=e315]: الجلسات
+        - button "المزيد" [ref=e316] [cursor=pointer]:
+          - generic [ref=e317]:
+            - generic [ref=e319]: 󰇘
+            - generic [ref=e320]: المزيد
+  - navigation [ref=e113]:
+    - generic [ref=e115]:
+      - generic [ref=e116]:
+        - img [ref=e118]
+        - generic [ref=e121]: معاينة سريعة
+      - button [ref=e123] [cursor=pointer]:
+        - img [ref=e125]
