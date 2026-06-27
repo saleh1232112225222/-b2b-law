@@ -8,9 +8,9 @@
             <LucideIcon name="arrow-right" :size="24" />
           </v-btn>
           <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">تفاصيل التعاقد: {{ engagement?.title || 'جاري التحميل...' }}</h1>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">تفاصيل التعاقد: {{ engagement?.engagement_number || 'جاري التحميل...' }}</h1>
             <p class="text-subtitle-1 text-white opacity-60 font-weight-black mb-0">
-              العميل: {{ clientName }} | الحالة: <v-chip size="small" :color="getStatusColor(engagement?.status || '')">{{ engagement?.status || '' }}</v-chip>
+              العميل: {{ clientName }} | الحالة: <v-chip size="small" :color="getStatusColor(engagement?.status_name || '')">{{ engagement?.status_name || '' }}</v-chip>
             </p>
           </div>
         </div>
@@ -36,7 +36,7 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">مبلغ التعاقد</div>
-                <div class="text-body-1 font-weight-bold text-success">{{ engagement.contract_amount || 0 }} ر.س</div>
+                <div class="text-body-1 font-weight-bold text-success">{{ engagement.financial_compensation || 0 }} ر.س</div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">تاريخ البدء</div>
@@ -44,7 +44,7 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">تاريخ الانتهاء المتوقع</div>
-                <div class="text-body-1 font-weight-bold text-white">{{ engagement.end_date || 'غير محدد' }}</div>
+                <div class="text-body-1 font-weight-bold text-white">{{ engagement.expected_end_date || 'غير محدد' }}</div>
               </v-col>
               <v-col cols="12">
                 <div class="text-caption text-gold mb-1">ملاحظات</div>
@@ -64,7 +64,7 @@
             </div>
             <div class="d-flex justify-space-between align-center mb-4">
               <span class="text-white">المتبقي:</span>
-              <span class="font-weight-bold text-error">{{ (engagement.contract_amount || 0) - (engagement.paid_amount || 0) }} ر.س</span>
+              <span class="font-weight-bold text-error">{{ (engagement.financial_compensation || 0) - (engagement.paid_amount || 0) }} ر.س</span>
             </div>
             <v-btn block color="accent" class="font-weight-black mb-3">
               إصدار مطالبة مالية

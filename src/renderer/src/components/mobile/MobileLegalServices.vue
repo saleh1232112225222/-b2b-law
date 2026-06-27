@@ -1,7 +1,7 @@
 <template>
   <div class="mobile-legal-services w-100 h-100 d-flex flex-column rtl">
     <!-- Header -->
-    <MobileHeader title="الخدمات القانونية" @toggle-drawer="emit('toggle-drawer')" />
+    <MobileHeader title="الخدمات القانونية" @toggle-drawer="emit('toggle-drawer')" :isDark="true" />
 
     <div class="flex-grow-1 overflow-y-auto pa-4 pb-16">
       <div class="d-flex justify-space-between align-center mb-4">
