@@ -182,7 +182,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useClientsStore } from '../../stores/clients'
 import LucideIcon from '../common/LucideIcon.vue'
@@ -201,6 +201,14 @@ const tab = ref('overview')
 const client = ref<Client | null>(null)
 const linkedCases = ref<Case[]>([])
 const linkedAgencies = ref<Agency[]>([])
+
+onMounted(async () => {
+  await loadData()
+})
+
+watch(clientId, async () => {
+  await loadData()
+})
 
 const loadData = async () => {
   loading.value = true

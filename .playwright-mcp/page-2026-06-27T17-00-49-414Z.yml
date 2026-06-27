@@ -1,0 +1,231 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - button [ref=e10] [cursor=pointer]:
+          - generic [ref=e12]: 󰍜
+        - generic [ref=e14]: إدارة الموكلين
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e17]: 󰖔
+    - navigation [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - img [ref=e24]
+          - generic [ref=e25]: OpenCode
+          - generic [ref=e26]: admin
+        - list [ref=e28]:
+          - link "المهام" [ref=e29] [cursor=pointer]:
+            - /url: "#/tasks"
+            - generic [ref=e31]: 󱃔
+            - generic [ref=e33]: المهام
+          - link "المالية" [ref=e34] [cursor=pointer]:
+            - /url: "#/finance"
+            - generic [ref=e36]: 󰁰
+            - generic [ref=e38]: المالية
+          - link "المستندات" [ref=e39] [cursor=pointer]:
+            - /url: "#/documents"
+            - generic [ref=e41]: 󰈙
+            - generic [ref=e43]: المستندات
+          - link "المذكرات" [ref=e44] [cursor=pointer]:
+            - /url: "#/memoranda"
+            - generic [ref=e46]: 󰷈
+            - generic [ref=e48]: المذكرات
+          - link "العقود" [ref=e49] [cursor=pointer]:
+            - /url: "#/contracts"
+            - generic [ref=e51]: 󱧃
+            - generic [ref=e53]: العقود
+          - link "التنفيذ" [ref=e54] [cursor=pointer]:
+            - /url: "#/enforcement"
+            - generic [ref=e56]: 󰊛
+            - generic [ref=e58]: التنفيذ
+          - link "الملفات" [ref=e59] [cursor=pointer]:
+            - /url: "#/vault"
+            - generic [ref=e61]: 󰉐
+            - generic [ref=e63]: الملفات
+          - link "التقارير" [ref=e64] [cursor=pointer]:
+            - /url: "#/reports"
+            - generic [ref=e66]: 󱕍
+            - generic [ref=e68]: التقارير
+          - link "الملف الشخصي" [ref=e69] [cursor=pointer]:
+            - /url: "#/profile"
+            - generic [ref=e71]: 󰀄
+            - generic [ref=e73]: الملف الشخصي
+          - link "الإعدادات" [ref=e74] [cursor=pointer]:
+            - /url: "#/settings"
+            - generic [ref=e76]: 󰒓
+            - generic [ref=e78]: الإعدادات
+        - button "تسجيل الخروج" [ref=e80] [cursor=pointer]:
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - text: تسجيل الخروج
+    - main [ref=e85]:
+      - generic [ref=e176]:
+        - generic [ref=e177]:
+          - generic [ref=e179]:
+            - img [ref=e181]
+            - generic [ref=e186]:
+              - heading "إدارة ملفات الموكلين" [level=1] [ref=e187]
+              - paragraph [ref=e188]: القاعدة المركزية لبيانات الموكلين، الشركات، والجهات الحكومية
+          - button "إضافة موكل جديد" [ref=e190] [cursor=pointer]:
+            - generic [ref=e191]:
+              - img [ref=e192]
+              - text: إضافة موكل جديد
+        - generic [ref=e197]:
+          - generic [ref=e198]:
+            - img [ref=e200]
+            - generic [ref=e205]:
+              - generic [ref=e206]: إجمالي الموكلين المسجلين
+              - generic [ref=e207]: "3"
+          - img [ref=e208]
+        - generic [ref=e213]:
+          - generic [ref=e217]:
+            - img [ref=e219]
+            - textbox "بحث بالاسم، رقم الهاتف، أو البريد الإلكتروني..." [ref=e223]
+            - text: 󰅙
+          - combobox [ref=e227] [cursor=pointer]:
+            - img [ref=e229]
+            - generic [ref=e232]:
+              - generic [ref=e234]: الكل
+              - combobox "تصفية حسب نوع الموكل": الكل
+            - generic [ref=e236]: 󰍝
+            - generic:
+              - generic:
+                - generic: تصفية حسب نوع الموكل
+        - generic [ref=e238]:
+          - generic [ref=e239]:
+            - generic [ref=e240]:
+              - generic [ref=e241]:
+                - generic [ref=e242]: س
+                - link "سعد بن خالد العنزي - محامي" [ref=e244] [cursor=pointer]:
+                  - /url: "#/clients/bf6bbdb9-3fee-4d51-a511-09f75d01635c"
+                  - generic [ref=e245]: سعد بن خالد العنزي - محامي
+              - generic [ref=e247]: فرد
+            - generic [ref=e248]:
+              - generic [ref=e249]:
+                - generic [ref=e250]:
+                  - generic [ref=e251]: رقم الجوال
+                  - generic [ref=e252]: "0509876543"
+                - generic [ref=e253]:
+                  - generic [ref=e254]: المدينة
+                  - text: الرياض
+              - generic [ref=e255]:
+                - generic [ref=e256]:
+                  - generic [ref=e257]: البريد الإلكتروني
+                  - generic [ref=e258]: saad@example.com
+                - generic [ref=e259]:
+                  - generic [ref=e260]: الجنسية
+                  - text: سعودي
+              - generic [ref=e261]:
+                - link "ملف الموكل" [ref=e262] [cursor=pointer]:
+                  - /url: "#/clients/bf6bbdb9-3fee-4d51-a511-09f75d01635c"
+                  - generic [ref=e263]:
+                    - img [ref=e264]
+                    - text: ملف الموكل
+                - generic [ref=e267]:
+                  - button [ref=e268] [cursor=pointer]:
+                    - img [ref=e270]
+                  - button [ref=e272] [cursor=pointer]:
+                    - img [ref=e274]
+          - generic [ref=e277]:
+            - generic [ref=e278]:
+              - generic [ref=e279]:
+                - generic [ref=e280]: أ
+                - link "أحمد محمد العتيبي" [ref=e282] [cursor=pointer]:
+                  - /url: "#/clients/35052b10-13f3-4621-ba9c-6f3d454cd3ad"
+                  - generic [ref=e283]: أحمد محمد العتيبي
+              - generic [ref=e285]: فرد
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - generic [ref=e288]:
+                  - generic [ref=e289]: رقم الجوال
+                  - generic [ref=e290]: "0501234567"
+                - generic [ref=e291]:
+                  - generic [ref=e292]: المدينة
+                  - text: الرياض
+              - generic [ref=e293]:
+                - generic [ref=e294]:
+                  - generic [ref=e295]: البريد الإلكتروني
+                  - generic [ref=e296]: "-"
+                - generic [ref=e297]:
+                  - generic [ref=e298]: الجنسية
+                  - text: سعودي
+              - generic [ref=e299]:
+                - link "ملف الموكل" [ref=e300] [cursor=pointer]:
+                  - /url: "#/clients/35052b10-13f3-4621-ba9c-6f3d454cd3ad"
+                  - generic [ref=e301]:
+                    - img [ref=e302]
+                    - text: ملف الموكل
+                - generic [ref=e305]:
+                  - button [ref=e306] [cursor=pointer]:
+                    - img [ref=e308]
+                  - button [ref=e310] [cursor=pointer]:
+                    - img [ref=e312]
+          - generic [ref=e315]:
+            - generic [ref=e316]:
+              - generic [ref=e317]:
+                - generic [ref=e318]: ف
+                - link "فهد بن سعيد العتيبي" [ref=e320] [cursor=pointer]:
+                  - /url: "#/clients/5955be96-4d31-4dd3-91cf-e488571d34f6"
+                  - generic [ref=e321]: فهد بن سعيد العتيبي
+              - generic [ref=e323]: فرد
+            - generic [ref=e324]:
+              - generic [ref=e325]:
+                - generic [ref=e326]:
+                  - generic [ref=e327]: رقم الجوال
+                  - generic [ref=e328]: "0512345678"
+                - generic [ref=e329]:
+                  - generic [ref=e330]: المدينة
+                  - text: الرياض
+              - generic [ref=e331]:
+                - generic [ref=e332]:
+                  - generic [ref=e333]: البريد الإلكتروني
+                  - generic [ref=e334]: "-"
+                - generic [ref=e335]:
+                  - generic [ref=e336]: الجنسية
+                  - text: سعودي
+              - generic [ref=e337]:
+                - link "ملف الموكل" [ref=e338] [cursor=pointer]:
+                  - /url: "#/clients/5955be96-4d31-4dd3-91cf-e488571d34f6"
+                  - generic [ref=e339]:
+                    - img [ref=e340]
+                    - text: ملف الموكل
+                - generic [ref=e343]:
+                  - button [ref=e344] [cursor=pointer]:
+                    - img [ref=e346]
+                  - button [ref=e348] [cursor=pointer]:
+                    - img [ref=e350]
+    - banner [ref=e96]:
+      - generic [ref=e97]:
+        - link "لوحة التحكم" [ref=e98] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=e99]:
+            - generic [ref=e101]: 󰕮
+            - generic [ref=e102]: لوحة التحكم
+        - link "العملاء" [active] [ref=e103] [cursor=pointer]:
+          - /url: "#/clients"
+          - generic [ref=e104]:
+            - generic [ref=e106]: 󰡉
+            - generic [ref=e107]: العملاء
+        - link "القضايا" [ref=e108] [cursor=pointer]:
+          - /url: "#/cases"
+          - generic [ref=e109]:
+            - generic [ref=e111]: 󰗑
+            - generic [ref=e112]: القضايا
+        - link "الجلسات" [ref=e113] [cursor=pointer]:
+          - /url: "#/sessions"
+          - generic [ref=e114]:
+            - generic [ref=e116]: 󰃰
+            - generic [ref=e117]: الجلسات
+        - button "المزيد" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]:
+            - generic [ref=e121]: 󰇘
+            - generic [ref=e122]: المزيد
+    - button [ref=e354] [cursor=pointer]:
+      - generic [ref=e356]: 󰀔
+  - navigation [ref=e123]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - img [ref=e128]
+        - generic [ref=e131]: معاينة سريعة
+      - button [ref=e133] [cursor=pointer]:
+        - img [ref=e135]

@@ -1,0 +1,222 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - banner [ref=e7]:
+        - generic [ref=e9]:
+          - button [ref=e10] [cursor=pointer]:
+            - generic [ref=e12]: 󰍜
+          - generic [ref=e14]: العقود
+          - button [ref=e15] [cursor=pointer]:
+            - generic [ref=e17]: 󰖔
+      - navigation [ref=e18]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - img [ref=e24]
+            - generic [ref=e25]: OpenCode
+            - generic [ref=e26]: admin
+          - list [ref=e28]:
+            - link "المهام" [ref=e29] [cursor=pointer]:
+              - /url: "#/tasks"
+              - generic [ref=e31]: 󱃔
+              - generic [ref=e33]: المهام
+            - link "المالية" [ref=e34] [cursor=pointer]:
+              - /url: "#/finance"
+              - generic [ref=e36]: 󰁰
+              - generic [ref=e38]: المالية
+            - link "المستندات" [ref=e39] [cursor=pointer]:
+              - /url: "#/documents"
+              - generic [ref=e41]: 󰈙
+              - generic [ref=e43]: المستندات
+            - link "المذكرات" [ref=e44] [cursor=pointer]:
+              - /url: "#/memoranda"
+              - generic [ref=e46]: 󰷈
+              - generic [ref=e48]: المذكرات
+            - link "العقود" [ref=e49] [cursor=pointer]:
+              - /url: "#/contracts"
+              - generic [ref=e51]: 󱧃
+              - generic [ref=e53]: العقود
+            - link "التنفيذ" [ref=e54] [cursor=pointer]:
+              - /url: "#/enforcement"
+              - generic [ref=e56]: 󰊛
+              - generic [ref=e58]: التنفيذ
+            - link "الملفات" [ref=e59] [cursor=pointer]:
+              - /url: "#/vault"
+              - generic [ref=e61]: 󰉐
+              - generic [ref=e63]: الملفات
+            - link "التقارير" [ref=e64] [cursor=pointer]:
+              - /url: "#/reports"
+              - generic [ref=e66]: 󱕍
+              - generic [ref=e68]: التقارير
+            - link "الملف الشخصي" [ref=e69] [cursor=pointer]:
+              - /url: "#/profile"
+              - generic [ref=e71]: 󰀄
+              - generic [ref=e73]: الملف الشخصي
+            - link "الإعدادات" [ref=e74] [cursor=pointer]:
+              - /url: "#/settings"
+              - generic [ref=e76]: 󰒓
+              - generic [ref=e78]: الإعدادات
+          - button "تسجيل الخروج" [ref=e80] [cursor=pointer]:
+            - generic [ref=e81]:
+              - img [ref=e82]
+              - text: تسجيل الخروج
+      - main [ref=e85]:
+        - generic [ref=e590]:
+          - generic [ref=e591]:
+            - generic [ref=e593]:
+              - img [ref=e595]
+              - generic [ref=e598]:
+                - heading "مركز إدارة العقود" [level=1] [ref=e599]
+                - paragraph [ref=e600]: إدارة عقود التوظيف واتفاقيات الأتعاب القانونية الموثقة
+            - button "إدراج عقد جديد" [ref=e602] [cursor=pointer]:
+              - generic [ref=e603]:
+                - img [ref=e604]
+                - text: إدراج عقد جديد
+          - generic [ref=e605]:
+            - tablist [ref=e607]:
+              - generic [ref=e609]:
+                - tab "عقود الموظفين" [selected] [ref=e610] [cursor=pointer]:
+                  - generic [ref=e611]: عقود الموظفين
+                - tab "عقود الأتعاب (قضايا)" [ref=e612] [cursor=pointer]:
+                  - generic [ref=e613]: عقود الأتعاب (قضايا)
+            - separator [ref=e614]
+            - generic [ref=e616]:
+              - generic [ref=e617]:
+                - generic [ref=e621]:
+                  - img [ref=e623]
+                  - textbox "بحث برقم العقد، العنوان، أو اسم الطرف..." [ref=e627]
+                  - text: 󰅙
+                - button "تحديث البيانات" [ref=e629] [cursor=pointer]:
+                  - generic [ref=e630]:
+                    - img [ref=e631]
+                    - generic [ref=e636]: تحديث البيانات
+              - generic [ref=e638]:
+                - generic [ref=e639]: 󱉴
+                - generic [ref=e640]: لا توجد عقود توظيف مطابقة
+      - banner [ref=e96]:
+        - generic [ref=e97]:
+          - link "لوحة التحكم" [ref=e98] [cursor=pointer]:
+            - /url: "#/dashboard"
+            - generic [ref=e99]:
+              - generic [ref=e101]: 󰕮
+              - generic [ref=e102]: لوحة التحكم
+          - link "العملاء" [ref=e103] [cursor=pointer]:
+            - /url: "#/clients"
+            - generic [ref=e104]:
+              - generic [ref=e106]: 󰡉
+              - generic [ref=e107]: العملاء
+          - link "القضايا" [ref=e108] [cursor=pointer]:
+            - /url: "#/cases"
+            - generic [ref=e109]:
+              - generic [ref=e111]: 󰗑
+              - generic [ref=e112]: القضايا
+          - link "الجلسات" [ref=e113] [cursor=pointer]:
+            - /url: "#/sessions"
+            - generic [ref=e114]:
+              - generic [ref=e116]: 󰃰
+              - generic [ref=e117]: الجلسات
+          - button "المزيد" [ref=e118] [cursor=pointer]:
+            - generic [ref=e119]:
+              - generic [ref=e121]: 󰇘
+              - generic [ref=e122]: المزيد
+    - navigation [ref=e123]:
+      - generic [ref=e125]:
+        - generic [ref=e126]:
+          - img [ref=e128]
+          - generic [ref=e131]: معاينة سريعة
+        - button [ref=e133] [cursor=pointer]:
+          - img [ref=e135]
+  - generic:
+    - dialog:
+      - generic [ref=e643]:
+        - generic [ref=e644]:
+          - img [ref=e646]
+          - generic [ref=e649]: تحرير عقد قانوني جديد
+          - button [ref=e650] [cursor=pointer]:
+            - img [ref=e652]
+        - tablist [ref=e656]:
+          - generic [ref=e658]:
+            - tab "عقد توظيف" [selected] [ref=e659] [cursor=pointer]:
+              - generic [ref=e660]: عقد توظيف
+            - tab "اتفاقية أتعاب" [ref=e661] [cursor=pointer]:
+              - generic [ref=e662]: اتفاقية أتعاب
+        - generic [ref=e665]:
+          - generic [ref=e666]:
+            - text: عنوان العقد*
+            - 'textbox "مثال: عقد توظيف محامي أول" [active] [ref=e671]': محامي صالح
+          - generic [ref=e672]:
+            - text: القالب
+            - combobox [ref=e675] [cursor=pointer]:
+              - generic [ref=e677]:
+                - combobox
+              - text: 󰅙
+              - generic [ref=e679]: 󰍝
+          - generic [ref=e680]:
+            - text: نوع العقد
+            - radiogroup [ref=e683]:
+              - generic [ref=e684]:
+                - generic [ref=e686]:
+                  - generic [ref=e687]: 󰐾
+                  - radio "محدد المدة" [checked] [ref=e688] [cursor=pointer]
+                - generic [ref=e689] [cursor=pointer]: محدد المدة
+              - generic [ref=e690]:
+                - generic [ref=e692]:
+                  - generic [ref=e693]: 󰐽
+                  - radio "غير محدد المدة" [ref=e694] [cursor=pointer]
+                - generic [ref=e695] [cursor=pointer]: غير محدد المدة
+          - generic [ref=e696]:
+            - text: الموظف*
+            - combobox [ref=e699] [cursor=pointer]:
+              - generic [ref=e701]:
+                - combobox
+              - generic [ref=e703]: 󰍝
+          - generic [ref=e704]:
+            - text: تاريخ البداية
+            - textbox [ref=e709]: 2026-06-27
+          - generic [ref=e710]:
+            - text: المدة (سنوات)
+            - spinbutton [ref=e715]: "1"
+          - button [ref=e717] [cursor=pointer]:
+            - img [ref=e719]
+          - generic [ref=e722]:
+            - text: تاريخ النهاية
+            - textbox [ref=e727]
+          - generic [ref=e728]:
+            - text: الراتب الشهري*
+            - generic [ref=e732]:
+              - generic [ref=e734]: SAR
+              - spinbutton [ref=e735]: "0"
+          - generic [ref=e736]:
+            - text: اليوم المستحق
+            - spinbutton [ref=e741]: "25"
+          - generic [ref=e742]:
+            - text: تاريخ العقد*
+            - textbox [ref=e747]: 2026-06-27
+          - generic [ref=e748]:
+            - separator [ref=e749]
+            - generic [ref=e750]: الأطراف الإضافية / الشهود
+            - generic [ref=e751]:
+              - combobox [ref=e755] [cursor=pointer]:
+                - generic [ref=e757]:
+                  - generic [ref=e759]: موظف
+                  - combobox: موظف
+                - generic [ref=e761]: 󰍝
+              - combobox [ref=e765] [cursor=pointer]:
+                - generic [ref=e767]:
+                  - combobox
+                - generic [ref=e769]: 󰍝
+              - combobox [ref=e773] [cursor=pointer]:
+                - generic [ref=e775]:
+                  - generic [ref=e777]: شاهد
+                  - combobox: شاهد
+                - generic [ref=e779]: 󰍝
+              - button "إضافة" [ref=e781] [cursor=pointer]:
+                - generic [ref=e782]: إضافة
+          - generic [ref=e783]:
+            - text: نص العقد*
+            - textbox [ref=e788]
+        - separator [ref=e789]
+        - generic [ref=e790]:
+          - button "إلغاء" [ref=e791] [cursor=pointer]:
+            - generic [ref=e792]: إلغاء
+          - button "إنشاء العقد وحفظه" [disabled]:
+            - generic: إنشاء العقد وحفظه

@@ -1,0 +1,172 @@
+- generic [ref=e4]:
+  - generic [ref=e6]:
+    - banner [ref=e7]:
+      - generic [ref=e9]:
+        - button [ref=e10] [cursor=pointer]:
+          - generic [ref=e12]: 󰍜
+        - generic [ref=e14]: ClientProfile
+        - button [ref=e15] [cursor=pointer]:
+          - generic [ref=e17]: 󰖔
+    - navigation [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - img [ref=e24]
+          - generic [ref=e25]: OpenCode
+          - generic [ref=e26]: admin
+        - list [ref=e28]:
+          - link "المهام" [ref=e29] [cursor=pointer]:
+            - /url: "#/tasks"
+            - generic [ref=e31]: 󱃔
+            - generic [ref=e33]: المهام
+          - link "المالية" [ref=e34] [cursor=pointer]:
+            - /url: "#/finance"
+            - generic [ref=e36]: 󰁰
+            - generic [ref=e38]: المالية
+          - link "المستندات" [ref=e39] [cursor=pointer]:
+            - /url: "#/documents"
+            - generic [ref=e41]: 󰈙
+            - generic [ref=e43]: المستندات
+          - link "المذكرات" [ref=e44] [cursor=pointer]:
+            - /url: "#/memoranda"
+            - generic [ref=e46]: 󰷈
+            - generic [ref=e48]: المذكرات
+          - link "العقود" [ref=e49] [cursor=pointer]:
+            - /url: "#/contracts"
+            - generic [ref=e51]: 󱧃
+            - generic [ref=e53]: العقود
+          - link "التنفيذ" [ref=e54] [cursor=pointer]:
+            - /url: "#/enforcement"
+            - generic [ref=e56]: 󰊛
+            - generic [ref=e58]: التنفيذ
+          - link "الملفات" [ref=e59] [cursor=pointer]:
+            - /url: "#/vault"
+            - generic [ref=e61]: 󰉐
+            - generic [ref=e63]: الملفات
+          - link "التقارير" [ref=e64] [cursor=pointer]:
+            - /url: "#/reports"
+            - generic [ref=e66]: 󱕍
+            - generic [ref=e68]: التقارير
+          - link "الملف الشخصي" [ref=e69] [cursor=pointer]:
+            - /url: "#/profile"
+            - generic [ref=e71]: 󰀄
+            - generic [ref=e73]: الملف الشخصي
+          - link "الإعدادات" [ref=e74] [cursor=pointer]:
+            - /url: "#/settings"
+            - generic [ref=e76]: 󰒓
+            - generic [ref=e78]: الإعدادات
+        - button "تسجيل الخروج" [ref=e80] [cursor=pointer]:
+          - generic [ref=e81]:
+            - img [ref=e82]
+            - text: تسجيل الخروج
+    - main [ref=e85]:
+      - generic [ref=e874]:
+        - generic [ref=e875]:
+          - generic [ref=e876]:
+            - heading "الملف الشخصي" [level=1] [ref=e877]
+            - paragraph [ref=e878]: إدارة الهوية الرقمية وصلاحيات الوصول
+          - img [ref=e880]
+        - generic [ref=e894]:
+          - generic [ref=e895]:
+            - generic [ref=e896]:
+              - generic [ref=e897]:
+                - generic [ref=e898]: OpenCode
+                - button [ref=e899] [cursor=pointer]:
+                  - img [ref=e901]
+              - generic [ref=e905]: مدير النظام
+            - img [ref=e908]
+          - generic [ref=e909]:
+            - generic [ref=e911]:
+              - generic [ref=e912]: اسم المستخدم المعرف
+              - generic [ref=e913]: OpenCode
+            - generic [ref=e915]:
+              - generic [ref=e916]: نطاق الصلاحيات
+              - generic [ref=e917]: مدير النظام
+        - generic [ref=e918]:
+          - generic [ref=e919]:
+            - img [ref=e921]
+            - generic [ref=e924]: تأمين الحساب وتغيير كلمة المرور
+          - generic [ref=e926]:
+            - generic [ref=e927]:
+              - text: كلمة المرور الحالية
+              - generic [ref=e930]:
+                - img [ref=e932]
+                - textbox "أدخل كلمة المرور الحالية للتحقق" [ref=e936]
+            - generic [ref=e937]:
+              - text: كلمة المرور الجديدة
+              - generic [ref=e940]:
+                - img [ref=e942]
+                - textbox "أدخل كلمة المرور الجديدة المعقدة" [ref=e947]
+            - generic [ref=e948]:
+              - progressbar [ref=e949]
+              - generic [ref=e951]:
+                - generic [ref=e952]: مستوى تعقيد كلمة المرور
+                - generic [ref=e953]: قيد الإدخال
+            - generic [ref=e954]:
+              - text: تأكيد كلمة المرور الجديدة
+              - generic [ref=e957]:
+                - img [ref=e959]
+                - textbox "أعد إدخال كلمة المرور الجديدة للتأكيد" [ref=e963]
+            - generic [ref=e964]:
+              - button "تحديث كلمة المرور" [disabled]:
+                - generic:
+                  - img
+                  - text: تحديث كلمة المرور
+        - generic [ref=e965]:
+          - generic [ref=e966]:
+            - img [ref=e968]
+            - generic [ref=e970]: إعدادات استعادة الحساب (Self-Recovery)
+          - generic [ref=e971]:
+            - generic [ref=e972]: قم بتعيين سؤال سري وبريد إلكتروني احتياطي لتتمكن من استعادة حسابك ذاتياً في حال فقدان كلمة المرور.
+            - generic [ref=e973]:
+              - text: البريد الإلكتروني للاستعادة
+              - generic [ref=e976]:
+                - img [ref=e978]
+                - textbox "example@email.com" [ref=e982]
+            - generic [ref=e983]:
+              - generic [ref=e985]:
+                - text: سؤال الأمان المخصص
+                - generic [ref=e988]:
+                  - img [ref=e990]
+                  - textbox "ما هو اسم مدرستك الأولى؟" [ref=e994]
+              - generic [ref=e996]:
+                - text: إجابة السؤال (تشفير آمن)
+                - generic [ref=e999]:
+                  - img [ref=e1001]
+                  - textbox "أدخل الإجابة هنا..." [ref=e1005]: OpenCode@111
+            - button "حفظ بيانات الاستعادة" [ref=e1007] [cursor=pointer]:
+              - generic [ref=e1008]:
+                - img [ref=e1009]
+                - text: حفظ بيانات الاستعادة
+    - banner [ref=e96]:
+      - generic [ref=e97]:
+        - link "لوحة التحكم" [ref=e98] [cursor=pointer]:
+          - /url: "#/dashboard"
+          - generic [ref=e99]:
+            - generic [ref=e101]: 󰕮
+            - generic [ref=e102]: لوحة التحكم
+        - link "العملاء" [ref=e103] [cursor=pointer]:
+          - /url: "#/clients"
+          - generic [ref=e104]:
+            - generic [ref=e106]: 󰡉
+            - generic [ref=e107]: العملاء
+        - link "القضايا" [ref=e108] [cursor=pointer]:
+          - /url: "#/cases"
+          - generic [ref=e109]:
+            - generic [ref=e111]: 󰗑
+            - generic [ref=e112]: القضايا
+        - link "الجلسات" [ref=e113] [cursor=pointer]:
+          - /url: "#/sessions"
+          - generic [ref=e114]:
+            - generic [ref=e116]: 󰃰
+            - generic [ref=e117]: الجلسات
+        - button "المزيد" [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]:
+            - generic [ref=e121]: 󰇘
+            - generic [ref=e122]: المزيد
+  - navigation [ref=e123]:
+    - generic [ref=e125]:
+      - generic [ref=e126]:
+        - img [ref=e128]
+        - generic [ref=e131]: معاينة سريعة
+      - button [ref=e133] [cursor=pointer]:
+        - img [ref=e135]
