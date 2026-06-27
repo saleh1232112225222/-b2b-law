@@ -1,0 +1,439 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e78]:
+      - banner [ref=e79]:
+        - generic [ref=e81]:
+          - button [ref=e82] [cursor=pointer]:
+            - generic [ref=e84]: 󰍜
+          - generic [ref=e86]: القضايا والملفات
+          - button [ref=e87] [cursor=pointer]:
+            - generic [ref=e89]: 󰖔
+      - navigation [ref=e90]:
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - generic [ref=e96]: OpenCode
+            - generic [ref=e97]: admin
+          - list [ref=e99]:
+            - link "المهام" [ref=e100] [cursor=pointer]:
+              - /url: "#/tasks"
+              - generic [ref=e102]: 󱃔
+              - generic [ref=e104]: المهام
+            - link "المالية" [ref=e105] [cursor=pointer]:
+              - /url: "#/finance"
+              - generic [ref=e107]: 󰁰
+              - generic [ref=e109]: المالية
+            - link "المستندات" [ref=e110] [cursor=pointer]:
+              - /url: "#/documents"
+              - generic [ref=e112]: 󰈙
+              - generic [ref=e114]: المستندات
+            - link "المذكرات" [ref=e115] [cursor=pointer]:
+              - /url: "#/memoranda"
+              - generic [ref=e117]: 󰷈
+              - generic [ref=e119]: المذكرات
+            - link "العقود" [ref=e120] [cursor=pointer]:
+              - /url: "#/contracts"
+              - generic [ref=e122]: 󱧃
+              - generic [ref=e124]: العقود
+            - link "التنفيذ" [ref=e125] [cursor=pointer]:
+              - /url: "#/enforcement"
+              - generic [ref=e127]: 󰊛
+              - generic [ref=e129]: التنفيذ
+            - link "الملفات" [ref=e130] [cursor=pointer]:
+              - /url: "#/vault"
+              - generic [ref=e132]: 󰉐
+              - generic [ref=e134]: الملفات
+            - link "التقارير" [ref=e135] [cursor=pointer]:
+              - /url: "#/reports"
+              - generic [ref=e137]: 󱕍
+              - generic [ref=e139]: التقارير
+            - link "الملف الشخصي" [ref=e140] [cursor=pointer]:
+              - /url: "#/profile"
+              - generic [ref=e142]: 󰀄
+              - generic [ref=e144]: الملف الشخصي
+            - link "الإعدادات" [ref=e145] [cursor=pointer]:
+              - /url: "#/settings"
+              - generic [ref=e147]: 󰒓
+              - generic [ref=e149]: الإعدادات
+          - button "تسجيل الخروج" [ref=e151] [cursor=pointer]:
+            - generic [ref=e152]:
+              - img [ref=e153]
+              - text: تسجيل الخروج
+      - main [ref=e156]:
+        - generic [ref=e1253]:
+          - generic [ref=e1254]:
+            - generic [ref=e1256]:
+              - img [ref=e1258]
+              - generic [ref=e1264]:
+                - heading "مركز القضايا" [level=1] [ref=e1265]
+                - paragraph [ref=e1266]: إدارة ملفات الدعاوى القضائية في مختلف المحاكم
+            - button "قضية جديدة" [ref=e1268] [cursor=pointer]:
+              - generic [ref=e1269]:
+                - img [ref=e1270]
+                - text: قضية جديدة
+          - generic [ref=e1272]:
+            - generic [ref=e1275]:
+              - generic [ref=e1276]: إجمالي القضايا النشطة
+              - generic [ref=e1277]:
+                - generic [ref=e1278]: "2"
+                - img [ref=e1280]
+            - generic [ref=e1285]:
+              - generic [ref=e1286]: معدل انتهاء القضايا
+              - generic [ref=e1287]:
+                - generic [ref=e1288]: 0%%
+                - img [ref=e1290]
+          - generic [ref=e1294]:
+            - generic [ref=e1298]:
+              - img [ref=e1300]
+              - generic [ref=e1303]:
+                - generic: بحث برقم القضية، الموضوع، أو الموكل...
+                - textbox "بحث برقم القضية، الموضوع، أو الموكل..." [ref=e1304]
+              - text: 󰅙
+            - combobox [ref=e1308] [cursor=pointer]:
+              - img [ref=e1310]
+              - generic [ref=e1313]:
+                - generic [ref=e1315]: الكل
+                - combobox "الحالة": الكل
+              - generic [ref=e1317]: 󰍝
+              - generic:
+                - generic:
+                  - generic: الحالة
+            - combobox [ref=e1321] [cursor=pointer]:
+              - img [ref=e1323]
+              - generic [ref=e1326]:
+                - generic [ref=e1328]: الكل
+                - combobox "الأولوية": الكل
+              - generic [ref=e1330]: 󰍝
+              - generic:
+                - generic:
+                  - generic: الأولوية
+            - combobox [ref=e1334] [cursor=pointer]:
+              - img [ref=e1336]
+              - generic [ref=e1340]:
+                - combobox "المسؤول"
+              - button "Clear المسؤول" [ref=e1342]: 󰅙
+              - generic [ref=e1344]: 󰍝
+              - generic:
+                - generic:
+                  - generic: المسؤول
+            - button "مزامنة" [ref=e1346] [cursor=pointer]:
+              - generic [ref=e1347]:
+                - img [ref=e1348]
+                - generic [ref=e1353]: مزامنة
+          - generic [ref=e1356]:
+            - generic [ref=e1358] [cursor=pointer]:
+              - generic [ref=e1359]: 󰗑
+              - generic [ref=e1360]:
+                - generic [ref=e1361]: 1447/00123
+                - generic [ref=e1362]: سعد بن خالد العنزي - محامي
+                - generic [ref=e1363]:
+                  - generic [ref=e1364]: "النوع: بطلان حكم التحكيم"
+                  - generic [ref=e1365]: "المحكمة:"
+                  - generic [ref=e1366]: "الحالة:"
+            - generic [ref=e1368] [cursor=pointer]:
+              - generic [ref=e1369]: 󰗑
+              - generic [ref=e1370]:
+                - generic [ref=e1371]: 2026-0072
+                - generic [ref=e1372]: فهد بن سعيد العتيبي
+                - generic [ref=e1373]:
+                  - generic [ref=e1374]: "النوع:"
+                  - generic [ref=e1375]: "المحكمة:"
+                  - generic [ref=e1376]: "الحالة:"
+            - generic [ref=e1378]: — لا توجد نتائج أخرى —
+      - banner [ref=e195]:
+        - generic [ref=e196]:
+          - link "لوحة التحكم" [ref=e197] [cursor=pointer]:
+            - /url: "#/dashboard"
+            - generic [ref=e198]:
+              - generic [ref=e200]: 󰕮
+              - generic [ref=e201]: لوحة التحكم
+          - link "العملاء" [ref=e202] [cursor=pointer]:
+            - /url: "#/clients"
+            - generic [ref=e203]:
+              - generic [ref=e205]: 󰡉
+              - generic [ref=e206]: العملاء
+          - link "القضايا" [ref=e207] [cursor=pointer]:
+            - /url: "#/cases"
+            - generic [ref=e208]:
+              - generic [ref=e210]: 󰗑
+              - generic [ref=e211]: القضايا
+          - link "الجلسات" [ref=e212] [cursor=pointer]:
+            - /url: "#/sessions"
+            - generic [ref=e213]:
+              - generic [ref=e215]: 󰃰
+              - generic [ref=e216]: الجلسات
+          - button "المزيد" [ref=e217] [cursor=pointer]:
+            - generic [ref=e218]:
+              - generic [ref=e220]: 󰇘
+              - generic [ref=e221]: المزيد
+      - button [ref=e1380] [cursor=pointer]:
+        - generic [ref=e1382]: 󰝒
+    - navigation [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - generic [ref=e68]: معاينة سريعة
+        - button [ref=e70] [cursor=pointer]:
+          - img [ref=e72]
+  - generic:
+    - dialog:
+      - generic [ref=e1385]:
+        - banner [ref=e1386]:
+          - generic [ref=e1387]:
+            - button [ref=e1388] [cursor=pointer]:
+              - img [ref=e1390]
+            - generic [ref=e1394]: تسجيل ملف قضية جديد
+            - button "حفظ البيانات" [ref=e1395] [cursor=pointer]:
+              - generic [ref=e1396]:
+                - img [ref=e1397]
+                - text: حفظ البيانات
+        - generic [ref=e1403]:
+          - generic [ref=e1404]:
+            - text: رقم القضية*
+            - generic [ref=e1405]:
+              - generic [ref=e1407]:
+                - img [ref=e1409]
+                - 'textbox "مثال: 1445/78291" [ref=e1413]'
+              - alert [ref=e1414]
+          - generic [ref=e1416]:
+            - text: مسؤول القضية
+            - generic [ref=e1417]:
+              - combobox [ref=e1419] [cursor=pointer]:
+                - img [ref=e1421]
+                - generic [ref=e1426]:
+                  - combobox
+                - text: 󰅙
+                - generic [ref=e1428]: 󰍝
+              - alert [ref=e1429]
+          - separator [ref=e1432]
+          - generic [ref=e1434]:
+            - generic [ref=e1435]:
+              - generic [ref=e1436]:
+                - img [ref=e1437]
+                - text: أطراف القضية (موكلين وخصوم)*
+              - generic [ref=e1442]:
+                - button "إضافة موكل" [ref=e1443] [cursor=pointer]:
+                  - generic [ref=e1444]:
+                    - img [ref=e1445]
+                    - text: إضافة موكل
+                - button "إضافة خصم" [ref=e1446] [cursor=pointer]:
+                  - generic [ref=e1447]:
+                    - img [ref=e1448]
+                    - text: إضافة خصم
+            - generic [ref=e1449]:
+              - generic:
+                - img
+              - button [ref=e1450] [cursor=pointer]:
+                - img [ref=e1452]
+              - generic [ref=e1455]:
+                - combobox [ref=e1459] [cursor=pointer]:
+                  - img [ref=e1461]
+                  - generic [ref=e1466]:
+                    - generic [ref=e1468]: موكل
+                    - combobox "نوع الطرف": موكل
+                  - generic [ref=e1470]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: نوع الطرف
+                - combobox [ref=e1474]:
+                  - img [ref=e1476]
+                  - combobox "اختر الموكل من القائمة*" [ref=e1481]
+                  - button [ref=e1483] [cursor=pointer]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: اختر الموكل من القائمة*
+                - combobox [ref=e1487] [cursor=pointer]:
+                  - img [ref=e1489]
+                  - generic [ref=e1492]:
+                    - generic: الصفة
+                    - generic [ref=e1493]:
+                      - combobox "الصفة"
+                  - generic [ref=e1495]: 󰍝
+                - generic [ref=e1499]:
+                  - img [ref=e1501]
+                  - generic [ref=e1503]:
+                    - generic: رقم الجوال
+                    - textbox "رقم الجوال" [ref=e1504]
+          - separator [ref=e1506]
+          - generic [ref=e1507]:
+            - text: التصنيف الرئيسي*
+            - generic [ref=e1508]:
+              - combobox [ref=e1510] [cursor=pointer]:
+                - img [ref=e1512]
+                - generic [ref=e1518]:
+                  - combobox
+                - generic [ref=e1520]: 󰍝
+              - alert [ref=e1521]
+          - generic [ref=e1523]:
+            - text: التصنيف الفرعي*
+            - generic:
+              - generic:
+                - combobox:
+                  - generic:
+                    - img
+                  - generic:
+                    - generic:
+                      - combobox [disabled]
+                  - generic:
+                    - generic: 󰍝
+              - alert
+          - generic [ref=e1524]:
+            - text: نوع الدعوى*
+            - generic:
+              - generic:
+                - combobox:
+                  - generic:
+                    - img
+                  - generic:
+                    - generic:
+                      - combobox [disabled]
+                  - generic:
+                    - generic: 󰍝
+              - alert
+          - generic [ref=e1525]:
+            - text: موضوع الدعوى*
+            - generic [ref=e1526]:
+              - generic [ref=e1528]:
+                - img [ref=e1530]
+                - textbox [ref=e1534]
+              - alert [ref=e1535]
+          - generic [ref=e1537]:
+            - text: طلب المدعي
+            - generic [ref=e1538]:
+              - generic [ref=e1540]:
+                - img [ref=e1542]
+                - textbox "اكتب طلبات المدعي هنا..." [ref=e1545]
+              - alert [ref=e1546]
+          - generic [ref=e1548]:
+            - text: المحكمة المختصة*
+            - generic [ref=e1549]:
+              - combobox [ref=e1551]:
+                - img [ref=e1553]
+                - combobox [ref=e1557]
+                - button [ref=e1559] [cursor=pointer]: 󰍝
+              - alert [ref=e1560]
+          - generic [ref=e1562]:
+            - text: الدائرة القضائية
+            - generic [ref=e1563]:
+              - generic [ref=e1565]:
+                - img [ref=e1567]
+                - 'textbox "مثال: الدائرة الأولى" [ref=e1572]'
+              - alert [ref=e1573]
+          - separator [ref=e1576]
+          - generic [ref=e1578]:
+            - generic [ref=e1579]:
+              - img [ref=e1580]
+              - text: مرحلة التقاضي والجلسات
+            - button "إضافة جلسة" [ref=e1582] [cursor=pointer]:
+              - generic [ref=e1583]:
+                - img [ref=e1584]
+                - text: إضافة جلسة
+          - generic [ref=e1586]:
+            - text: المرحلة التقاضية
+            - generic [ref=e1587]:
+              - combobox [ref=e1589] [cursor=pointer]:
+                - img [ref=e1591]
+                - generic [ref=e1595]:
+                  - generic [ref=e1597]: ابتدائية
+                  - combobox: ابتدائية
+                - generic [ref=e1599]: 󰍝
+              - alert [ref=e1600]
+          - generic [ref=e1603]:
+            - generic [ref=e1604]:
+              - img [ref=e1605]
+              - text: سجل الجلسات المرتبطة
+            - table [ref=e1610]:
+              - rowgroup [ref=e1611]:
+                - row "التاريخ الوقت القاعة الحالة" [ref=e1612]:
+                  - columnheader "التاريخ" [ref=e1613]
+                  - columnheader "الوقت" [ref=e1614]
+                  - columnheader "القاعة" [ref=e1615]
+                  - columnheader "الحالة" [ref=e1616]
+              - rowgroup [ref=e1617]:
+                - row "لا توجد جلسات مضافة بعد" [ref=e1618]:
+                  - cell "لا توجد جلسات مضافة بعد" [ref=e1619]
+          - generic [ref=e1620]:
+            - text: الحالة التشغيلية*
+            - generic [ref=e1621]:
+              - combobox [ref=e1623] [cursor=pointer]:
+                - img [ref=e1625]
+                - generic [ref=e1628]:
+                  - generic [ref=e1630]: قيد النظر
+                  - combobox: قيد النظر
+                - generic [ref=e1632]: 󰍝
+              - alert [ref=e1633]
+          - generic [ref=e1635]:
+            - text: درجة الأولوية*
+            - generic [ref=e1636]:
+              - combobox [ref=e1638] [cursor=pointer]:
+                - img [ref=e1640]
+                - generic [ref=e1643]:
+                  - generic [ref=e1645]: متوسطة
+                  - combobox: متوسطة
+                - generic [ref=e1647]: 󰍝
+              - alert [ref=e1648]
+          - generic [ref=e1650]:
+            - text: تاريخ القيد*
+            - generic [ref=e1651]:
+              - generic [ref=e1652]:
+                - img [ref=e1653]
+                - generic [ref=e1655]: التاريخ
+              - generic [ref=e1656]:
+                - generic [ref=e1660]:
+                  - textbox "ميلادي" [ref=e1662]: 2026-06-27
+                  - generic:
+                    - generic:
+                      - generic: ميلادي
+                - generic [ref=e1666]:
+                  - textbox "هجري" [ref=e1670]: السبت، 12 محرم 1448
+                  - generic:
+                    - generic:
+                      - generic: هجري
+          - separator [ref=e1672]
+          - generic [ref=e1674]:
+            - img [ref=e1675]
+            - text: تفاصيل إضافية
+          - generic [ref=e1678]:
+            - text: صفة الموكل
+            - generic [ref=e1679]:
+              - generic [ref=e1681]:
+                - img [ref=e1683]
+                - 'textbox "مثال: مدعي" [ref=e1686]'
+              - alert [ref=e1687]
+          - generic [ref=e1689]:
+            - text: التقييم الفني
+            - generic [ref=e1690]:
+              - generic [ref=e1692]:
+                - img [ref=e1694]
+                - textbox "تقييم فني لحالة القضية..." [ref=e1697]
+              - alert [ref=e1698]
+          - generic [ref=e1700]:
+            - text: ملاحظات عامة
+            - generic [ref=e1701]:
+              - generic [ref=e1703]:
+                - img [ref=e1705]
+                - textbox "أي ملاحظات إضافية..." [ref=e1709]
+              - alert [ref=e1710]
+          - separator [ref=e1713]
+          - generic [ref=e1715]:
+            - img [ref=e1716]
+            - text: روابط وملفات القضية
+          - generic [ref=e1719]:
+            - text: رابط مجلد القضية
+            - generic [ref=e1720]:
+              - generic [ref=e1722]:
+                - img [ref=e1724]
+                - textbox "ضع رابط المجلد هنا للوصول السريع..." [ref=e1727]
+              - alert [ref=e1728]
+          - generic [ref=e1730]:
+            - text: رابط القضية في ناجز
+            - generic [ref=e1731]:
+              - generic [ref=e1733]:
+                - img [ref=e1735]
+                - textbox "https://najiz.sa/..." [ref=e1739]
+              - alert [ref=e1740]
+        - separator [ref=e1742]
+        - generic [ref=e1743]:
+          - button "إلغاء" [ref=e1744] [cursor=pointer]:
+            - generic [ref=e1745]: إلغاء
+          - button "تأكيد التسجيل والنشر" [disabled]:
+            - generic: تأكيد التسجيل والنشر

@@ -1,0 +1,269 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e78]:
+      - banner [ref=e79]:
+        - generic [ref=e81]:
+          - button [ref=e82] [cursor=pointer]:
+            - generic [ref=e84]: 󰍜
+          - generic [ref=e86]: التنفيذ والتحصيل
+          - button [ref=e87] [cursor=pointer]:
+            - generic [ref=e89]: 󰖔
+      - navigation [ref=e90]:
+        - generic [ref=e92]:
+          - generic [ref=e93]:
+            - generic [ref=e96]: OpenCode
+            - generic [ref=e97]: admin
+          - list [ref=e99]:
+            - link "المهام" [ref=e100] [cursor=pointer]:
+              - /url: "#/tasks"
+              - generic [ref=e102]: 󱃔
+              - generic [ref=e104]: المهام
+            - link "المالية" [ref=e105] [cursor=pointer]:
+              - /url: "#/finance"
+              - generic [ref=e107]: 󰁰
+              - generic [ref=e109]: المالية
+            - link "المستندات" [ref=e110] [cursor=pointer]:
+              - /url: "#/documents"
+              - generic [ref=e112]: 󰈙
+              - generic [ref=e114]: المستندات
+            - link "المذكرات" [ref=e115] [cursor=pointer]:
+              - /url: "#/memoranda"
+              - generic [ref=e117]: 󰷈
+              - generic [ref=e119]: المذكرات
+            - link "العقود" [ref=e120] [cursor=pointer]:
+              - /url: "#/contracts"
+              - generic [ref=e122]: 󱧃
+              - generic [ref=e124]: العقود
+            - link "التنفيذ" [ref=e125] [cursor=pointer]:
+              - /url: "#/enforcement"
+              - generic [ref=e127]: 󰊛
+              - generic [ref=e129]: التنفيذ
+            - link "الملفات" [ref=e130] [cursor=pointer]:
+              - /url: "#/vault"
+              - generic [ref=e132]: 󰉐
+              - generic [ref=e134]: الملفات
+            - link "التقارير" [ref=e135] [cursor=pointer]:
+              - /url: "#/reports"
+              - generic [ref=e137]: 󱕍
+              - generic [ref=e139]: التقارير
+            - link "الملف الشخصي" [ref=e140] [cursor=pointer]:
+              - /url: "#/profile"
+              - generic [ref=e142]: 󰀄
+              - generic [ref=e144]: الملف الشخصي
+            - link "الإعدادات" [ref=e145] [cursor=pointer]:
+              - /url: "#/settings"
+              - generic [ref=e147]: 󰒓
+              - generic [ref=e149]: الإعدادات
+          - button "تسجيل الخروج" [ref=e151] [cursor=pointer]:
+            - generic [ref=e152]:
+              - img [ref=e153]
+              - text: تسجيل الخروج
+      - main [ref=e156]:
+        - generic [ref=e650]:
+          - generic [ref=e651]:
+            - generic [ref=e653]:
+              - img [ref=e655]
+              - generic [ref=e661]:
+                - heading "التنفيذ والتحصيل المالي" [level=1] [ref=e662]
+                - paragraph [ref=e663]: إدارة طلبات التنفيذ القضائي وأوامر السداد والتحصيل التعاقدي
+            - generic [ref=e665]:
+              - img [ref=e666]
+              - generic [ref=e669]: مركز التحصيل الآمن
+          - generic [ref=e670]:
+            - tablist [ref=e671]:
+              - generic [ref=e673]:
+                - tab "ملفات التنفيذ القضائي" [selected] [ref=e674] [cursor=pointer]:
+                  - generic [ref=e675]:
+                    - img [ref=e676]
+                    - text: ملفات التنفيذ القضائي
+                - tab "إدارة التحصيل الميداني" [ref=e680] [cursor=pointer]:
+                  - generic [ref=e681]:
+                    - img [ref=e682]
+                    - text: إدارة التحصيل الميداني
+            - separator [ref=e685]
+            - generic [ref=e689]:
+              - generic [ref=e690]:
+                - generic [ref=e694]:
+                  - img [ref=e696]
+                  - textbox "البحث في رقم الصك أو الجهة..." [ref=e700]
+                  - text: 󰅙
+                - combobox [ref=e704] [cursor=pointer]:
+                  - img [ref=e706]
+                  - generic [ref=e709]:
+                    - generic [ref=e711]: عرض الكل
+                    - combobox: عرض الكل
+                  - generic [ref=e713]: 󰍝
+                - generic [ref=e714]:
+                  - button "تحديث" [ref=e715] [cursor=pointer]:
+                    - generic [ref=e716]:
+                      - img [ref=e717]
+                      - text: تحديث
+                  - button "تقديم طلب تنفيذ" [ref=e722] [cursor=pointer]:
+                    - generic [ref=e723]:
+                      - img [ref=e724]
+                      - text: تقديم طلب تنفيذ
+              - generic [ref=e727]:
+                - generic [ref=e728]: 󱉴
+                - generic [ref=e729]: لا توجد ملفات تنفيذ مسجلة حالياً
+      - banner [ref=e195]:
+        - generic [ref=e196]:
+          - link "لوحة التحكم" [ref=e197] [cursor=pointer]:
+            - /url: "#/dashboard"
+            - generic [ref=e198]:
+              - generic [ref=e200]: 󰕮
+              - generic [ref=e201]: لوحة التحكم
+          - link "العملاء" [ref=e202] [cursor=pointer]:
+            - /url: "#/clients"
+            - generic [ref=e203]:
+              - generic [ref=e205]: 󰡉
+              - generic [ref=e206]: العملاء
+          - link "القضايا" [ref=e207] [cursor=pointer]:
+            - /url: "#/cases"
+            - generic [ref=e208]:
+              - generic [ref=e210]: 󰗑
+              - generic [ref=e211]: القضايا
+          - link "الجلسات" [ref=e212] [cursor=pointer]:
+            - /url: "#/sessions"
+            - generic [ref=e213]:
+              - generic [ref=e215]: 󰃰
+              - generic [ref=e216]: الجلسات
+          - button "المزيد" [ref=e217] [cursor=pointer]:
+            - generic [ref=e218]:
+              - generic [ref=e220]: 󰇘
+              - generic [ref=e221]: المزيد
+    - navigation [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]:
+          - img [ref=e65]
+          - generic [ref=e68]: معاينة سريعة
+        - button [ref=e70] [cursor=pointer]:
+          - img [ref=e72]
+  - generic:
+    - dialog:
+      - generic [ref=e732]:
+        - banner [ref=e733]:
+          - generic [ref=e734]:
+            - button [ref=e735] [cursor=pointer]
+            - generic [ref=e739]: تقديم طلب تنفيذ جديد
+        - generic [ref=e741]:
+          - generic [ref=e742]:
+            - button "1 البيانات الأساسية السند والأطراف" [disabled]:
+              - generic: "1"
+              - generic:
+                - generic: البيانات الأساسية
+                - generic: السند والأطراف
+            - separator
+            - button "2 الإجراءات والمسار القرارات والتفاصيل" [disabled]:
+              - generic: "2"
+              - generic:
+                - generic: الإجراءات والمسار
+                - generic: القرارات والتفاصيل
+            - separator
+            - button "3 المرفقات والتأكيد رفع المستندات" [disabled]:
+              - generic: "3"
+              - generic:
+                - generic: المرفقات والتأكيد
+                - generic: رفع المستندات
+          - generic [ref=e746]:
+            - generic [ref=e747]:
+              - img [ref=e748]
+              - text: بيانات الطلب والسند الأساسية
+            - generic [ref=e751]:
+              - generic [ref=e755]:
+                - checkbox "هل التنفيذ تابع لقضية في المكتب؟" [ref=e759] [cursor=pointer]
+                - generic [ref=e760] [cursor=pointer]: هل التنفيذ تابع لقضية في المكتب؟
+              - generic [ref=e762]:
+                - combobox [ref=e764] [cursor=pointer]:
+                  - generic [ref=e768]:
+                    - combobox "نوع التنفيذ المطلوب"
+                  - generic [ref=e770]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: نوع التنفيذ المطلوب
+                - alert [ref=e771]
+              - generic [ref=e774]:
+                - generic [ref=e779]:
+                  - generic: رقم السند
+                  - textbox "رقم السند" [ref=e780]
+                - alert [ref=e781]
+              - generic [ref=e784]:
+                - generic [ref=e789]:
+                  - generic: رقم الطلب في ناجز
+                  - textbox "رقم الطلب في ناجز" [ref=e790]
+                - alert [ref=e791]
+              - generic [ref=e794]:
+                - generic [ref=e795]:
+                  - img [ref=e796]
+                  - generic [ref=e800]: تاريخ السند
+                - generic [ref=e801]:
+                  - generic [ref=e805]:
+                    - textbox "ميلادي" [ref=e807]
+                    - generic:
+                      - generic:
+                        - generic: ميلادي
+                  - generic [ref=e814]:
+                    - generic: هجري
+                    - textbox "هجري" [ref=e815]
+              - generic [ref=e817]:
+                - combobox [ref=e819] [cursor=pointer]:
+                  - generic [ref=e821]:
+                    - combobox "نوع السند (رئيسي)"
+                  - generic [ref=e823]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: نوع السند (رئيسي)
+                - alert [ref=e824]
+              - generic [ref=e827]:
+                - combobox [ref=e829] [cursor=pointer]:
+                  - generic [ref=e831]:
+                    - combobox "نوع السند (فرعي)"
+                  - generic [ref=e833]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: نوع السند (فرعي)
+                - alert [ref=e834]
+              - generic [ref=e837]:
+                - combobox [ref=e839] [cursor=pointer]:
+                  - generic [ref=e841]:
+                    - combobox "اسم المحكمة"
+                  - generic [ref=e843]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: اسم المحكمة
+                - alert [ref=e844]
+              - generic [ref=e847]:
+                - generic [ref=e850]:
+                  - generic: رقم صك الحكم / القرار
+                  - textbox "رقم صك الحكم / القرار" [ref=e851]
+                - alert [ref=e852]
+              - generic [ref=e855]:
+                - combobox [ref=e857] [cursor=pointer]:
+                  - generic [ref=e859]:
+                    - combobox "تصنيف الطلب"
+                  - generic [ref=e861]: 󰍝
+                  - generic:
+                    - generic:
+                      - generic: تصنيف الطلب
+                - alert [ref=e862]
+              - generic [ref=e864]:
+                - generic [ref=e865]:
+                  - img [ref=e866]
+                  - text: أطراف التنفيذ
+                  - button "إضافة طرف" [ref=e871] [cursor=pointer]:
+                    - generic [ref=e874]: إضافة طرف
+                - table [ref=e877]:
+                  - rowgroup [ref=e878]:
+                    - row "الاسم الصفة من المكتب؟ حذف" [ref=e879]:
+                      - columnheader "الاسم" [ref=e880]
+                      - columnheader "الصفة" [ref=e881]
+                      - columnheader "من المكتب؟" [ref=e882]
+                      - columnheader "حذف" [ref=e883]
+                  - rowgroup [ref=e884]:
+                    - row "لا يوجد أطراف مضافة" [ref=e885]:
+                      - cell "لا يوجد أطراف مضافة" [ref=e886]
+        - separator [ref=e887]
+        - generic [ref=e888]:
+          - button "إلغاء وتراجع" [ref=e889] [cursor=pointer]:
+            - generic [ref=e890]: إلغاء وتراجع
+          - button "التالي" [disabled]:
+            - generic: التالي

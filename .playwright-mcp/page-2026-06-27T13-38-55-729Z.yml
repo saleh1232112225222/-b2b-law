@@ -1,0 +1,137 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e6]:
+      - banner [ref=e7]:
+        - generic [ref=e9]:
+          - button [ref=e10] [cursor=pointer]:
+            - generic [ref=e12]: 󰍜
+          - generic [ref=e14]: الأرشفة والمستندات
+          - button [ref=e15] [cursor=pointer]:
+            - generic [ref=e17]: 󰖔
+      - navigation [ref=e18]:
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - generic [ref=e24]: OpenCode
+            - generic [ref=e25]: admin
+          - list [ref=e27]:
+            - link "المهام" [ref=e28] [cursor=pointer]:
+              - /url: "#/tasks"
+              - generic [ref=e30]: 󱃔
+              - generic [ref=e32]: المهام
+            - link "المالية" [ref=e33] [cursor=pointer]:
+              - /url: "#/finance"
+              - generic [ref=e35]: 󰁰
+              - generic [ref=e37]: المالية
+            - link "المستندات" [ref=e38] [cursor=pointer]:
+              - /url: "#/documents"
+              - generic [ref=e40]: 󰈙
+              - generic [ref=e42]: المستندات
+            - link "المذكرات" [ref=e43] [cursor=pointer]:
+              - /url: "#/memoranda"
+              - generic [ref=e45]: 󰷈
+              - generic [ref=e47]: المذكرات
+            - link "العقود" [ref=e48] [cursor=pointer]:
+              - /url: "#/contracts"
+              - generic [ref=e50]: 󱧃
+              - generic [ref=e52]: العقود
+            - link "التنفيذ" [ref=e53] [cursor=pointer]:
+              - /url: "#/enforcement"
+              - generic [ref=e55]: 󰊛
+              - generic [ref=e57]: التنفيذ
+            - link "الملفات" [ref=e58] [cursor=pointer]:
+              - /url: "#/vault"
+              - generic [ref=e60]: 󰉐
+              - generic [ref=e62]: الملفات
+            - link "التقارير" [ref=e63] [cursor=pointer]:
+              - /url: "#/reports"
+              - generic [ref=e65]: 󱕍
+              - generic [ref=e67]: التقارير
+            - link "الملف الشخصي" [ref=e68] [cursor=pointer]:
+              - /url: "#/profile"
+              - generic [ref=e70]: 󰀄
+              - generic [ref=e72]: الملف الشخصي
+            - link "الإعدادات" [ref=e73] [cursor=pointer]:
+              - /url: "#/settings"
+              - generic [ref=e75]: 󰒓
+              - generic [ref=e77]: الإعدادات
+          - button "تسجيل الخروج" [ref=e79] [cursor=pointer]:
+            - generic [ref=e80]:
+              - img [ref=e81]
+              - text: تسجيل الخروج
+      - main [ref=e84]:
+        - generic [ref=e174]:
+          - generic [ref=e175]: 󱉴
+          - generic [ref=e176]: لا توجد مستندات
+          - button "رفع مستند" [ref=e177] [cursor=pointer]:
+            - generic [ref=e178]:
+              - generic [ref=e179]: 󰐕
+              - text: رفع مستند
+      - banner [ref=e86]:
+        - generic [ref=e87]:
+          - link "لوحة التحكم" [ref=e88] [cursor=pointer]:
+            - /url: "#/dashboard"
+            - generic [ref=e89]:
+              - generic [ref=e91]: 󰕮
+              - generic [ref=e92]: لوحة التحكم
+          - link "العملاء" [ref=e93] [cursor=pointer]:
+            - /url: "#/clients"
+            - generic [ref=e94]:
+              - generic [ref=e96]: 󰡉
+              - generic [ref=e97]: العملاء
+          - link "القضايا" [ref=e98] [cursor=pointer]:
+            - /url: "#/cases"
+            - generic [ref=e99]:
+              - generic [ref=e101]: 󰗑
+              - generic [ref=e102]: القضايا
+          - link "الجلسات" [ref=e103] [cursor=pointer]:
+            - /url: "#/sessions"
+            - generic [ref=e104]:
+              - generic [ref=e106]: 󰃰
+              - generic [ref=e107]: الجلسات
+          - button "المزيد" [ref=e108] [cursor=pointer]:
+            - generic [ref=e109]:
+              - generic [ref=e111]: 󰇘
+              - generic [ref=e112]: المزيد
+      - button [ref=e181] [cursor=pointer]:
+        - generic [ref=e183]: 󰅧
+    - navigation [ref=e113]:
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - img [ref=e118]
+          - generic [ref=e121]: معاينة سريعة
+        - button [ref=e123] [cursor=pointer]:
+          - img [ref=e125]
+  - generic:
+    - dialog:
+      - generic [ref=e186]:
+        - generic [ref=e187]:
+          - img [ref=e189]
+          - generic [ref=e193]: أرشفة مستند جديد
+          - button [ref=e194] [cursor=pointer]:
+            - img [ref=e196]
+        - generic [ref=e199]:
+          - generic [ref=e200]:
+            - img [ref=e201]
+            - generic [ref=e203]: تحديد التصنيف الصحيح للمستند يضمن ظهوره التلقائي في ملفات القضايا والمهام والجلسات المرتبطة.
+          - generic [ref=e204]: تصنيف المستند القانوني
+          - generic [ref=e205]:
+            - combobox [ref=e207] [cursor=pointer]:
+              - img [ref=e209]
+              - generic [ref=e214]:
+                - generic [ref=e216]: أرشفة عامة (مستند مستقل)
+                - combobox: أرشفة عامة (مستند مستقل)
+              - generic [ref=e218]: 󰍝
+            - alert [ref=e219]
+          - generic [ref=e221]:
+            - generic [ref=e222]: وصف المستند / المجلد
+            - generic [ref=e223]:
+              - generic [ref=e225]:
+                - img [ref=e227]
+                - 'textbox "مثال: مستندات تأسيس الشركة، ملفات عامة..." [ref=e231]'
+              - alert [ref=e232]
+        - separator [ref=e234]
+        - generic [ref=e235]:
+          - button "إلغاء" [ref=e236] [cursor=pointer]:
+            - generic [ref=e237]: إلغاء
+          - button "بدء الأرشفة السحابية" [ref=e238] [cursor=pointer]:
+            - generic [ref=e239]: بدء الأرشفة السحابية

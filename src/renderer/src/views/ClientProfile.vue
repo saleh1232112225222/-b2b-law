@@ -1,7 +1,16 @@
 <template>
   <v-container fluid class="pa-6 rtl">
-    <!-- Navigation Buttons -->
-    <div class="d-flex justify-space-between align-center mb-6">
+    <MobileClientProfile
+      v-if="isMobile"
+      :loading="loading"
+      :client="client"
+      :linked-cases="linkedCases"
+      :linked-agencies="linkedAgencies"
+      @edit="openEditDialog"
+    />
+    <template v-else>
+      <!-- Navigation Buttons -->
+      <div class="d-flex justify-space-between align-center mb-6">
       <v-btn
         variant="outlined"
         to="/clients"
@@ -342,11 +351,14 @@ import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import { useClientsStore } from '../stores/clients'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileClientProfile from '../components/mobile/MobileClientProfile.vue'
 
 const route = useRoute()
 const clientId = computed(() => route.params.id as string)
 const nextClientId = ref<string | null>(null)
 const clientsStore = useClientsStore()
+const { isMobile } = useMobileLayout()
 
 const loading = ref(true)
 const tab = ref('overview')
