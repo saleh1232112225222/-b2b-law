@@ -144,9 +144,12 @@
               </v-card>
             </v-col>
           </v-row>
+        </div>
+      </v-fade-transition>
+    </template>
 
-          <!-- Dialogs -->
-          <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
+      <!-- Dialogs -->
+      <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
             <v-card class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
               <v-toolbar color="white" class="px-6 border-b" height="72">
                 <div class="pa-2 rounded-lg bg-accent-alpha me-4">
@@ -564,9 +567,6 @@
             :loading="actionDialog.loading"
             @confirm="confirmActionDialog"
           />
-        </div>
-      </v-fade-transition>
-    </template>
   </v-container>
 </template>
 
