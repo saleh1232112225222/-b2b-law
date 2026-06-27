@@ -193,16 +193,71 @@
         <v-card-text class="pa-6 rtl">
           <div class="text-h5 font-weight-black text-center mb-4">{{ selectedPlan?.name_ar }}</div>
 
-          <div
-            class="d-flex justify-space-between align-center mb-3 pa-4 bg-grey-lighten-4 rounded-lg"
-          >
-            <span class="font-weight-black">المبلغ</span>
+          <div class="d-flex justify-space-between align-center mb-6 pa-4 bg-grey-lighten-4 rounded-lg">
+            <span class="font-weight-black">المبلغ الإجمالي</span>
             <span class="text-h5 font-weight-black text-gold">{{ selectedPlan?.price }} ريال</span>
           </div>
 
-          <div class="text-body-2 text-grey-darken-1 text-center mb-6">
-            بعد الدفع سيتم تفعيل اشتراكك فوراً. يمكنك الدخول من أي جهاز.
-          </div>
+          <v-form ref="paymentFormRef" v-model="isPaymentFormValid">
+            <v-text-field
+              v-model="cardName"
+              label="اسم صاحب البطاقة"
+              variant="outlined"
+              density="comfortable"
+              :prepend-inner-icon="'mdi-account-outline'"
+              :rules="[(v) => !!v || 'يرجى إدخال اسم صاحب البطاقة']"
+              class="mb-2"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="cardNumber"
+              label="رقم البطاقة الائتمانية"
+              variant="outlined"
+              density="comfortable"
+              placeholder="0000 0000 0000 0000"
+              :prepend-inner-icon="'mdi-credit-card-outline'"
+              :rules="[
+                (v) => !!v || 'يرجى إدخال رقم البطاقة',
+                (v) => (v && v.replace(/\s/g, '').length >= 15) || 'رقم البطاقة غير صالح'
+              ]"
+              class="mb-2"
+              @input="formatCardNumber"
+            ></v-text-field>
+
+            <v-row dense>
+              <v-col cols="6">
+                <v-text-field
+                  v-model="cardExpiry"
+                  label="تاريخ الانتهاء"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="MM/YY"
+                  :prepend-inner-icon="'mdi-calendar-blank'"
+                  :rules="[
+                    (v) => !!v || 'مطلوب',
+                    (v) => (v && /^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(v)) || 'صيغة غير صالحة'
+                  ]"
+                  @input="formatExpiry"
+                ></v-text-field>
+              </v-col>
+              <v-col cols="6">
+                <v-text-field
+                  v-model="cardCvc"
+                  label="رمز التحقق (CVC)"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="123"
+                  type="password"
+                  :prepend-inner-icon="'mdi-lock-outline'"
+                  :rules="[
+                    (v) => !!v || 'مطلوب',
+                    (v) => (v && v.length >= 3) || 'رمز غير صالح'
+                  ]"
+                  maxlength="4"
+                ></v-text-field>
+              </v-col>
+            </v-row>
+          </v-form>
 
           <v-alert v-if="paymentError" type="error" variant="tonal" class="mb-4" closable>
             {{ paymentError }}
@@ -212,16 +267,17 @@
             block
             color="accent"
             size="x-large"
-            class="font-weight-black rounded-xl mb-3 premium-btn-gold-gradient"
+            class="font-weight-black rounded-xl mb-3 mt-2 premium-btn-gold-gradient"
             :loading="processingPayment"
+            :disabled="!isPaymentFormValid"
             @click="processPayment"
           >
             <LucideIcon name="shield-check" :size="22" class="me-3" />
-            تأكيد الدفع
+            تأكيد الدفع والتفعيل
           </v-btn>
 
           <p class="text-caption text-grey text-center mt-4">
-            مدفوعاتك آمنة ومشفرة. لن يتم مشاركة معلومات بطاقتك مع أي طرف ثالث.
+            مدفوعاتك آمنة ومشفرة تماماً عبر اتصال SSL.
           </p>
         </v-card-text>
       </v-card>
@@ -267,6 +323,28 @@ const selectedPlan = ref<any>(null)
 const processingPayment = ref(false)
 const paymentError = ref('')
 
+// Mock Payment Form State
+const paymentFormRef = ref<any>(null)
+const isPaymentFormValid = ref(false)
+const cardName = ref('')
+const cardNumber = ref('')
+const cardExpiry = ref('')
+const cardCvc = ref('')
+
+// Helpers for simple formatting
+const formatCardNumber = (e: Event) => {
+  let val = (e.target as HTMLInputElement).value.replace(/\\D/g, '').substring(0, 16)
+  val = val.replace(/(\\d{4})(?=\\d)/g, '$1 ')
+  cardNumber.value = val
+}
+const formatExpiry = (e: Event) => {
+  let val = (e.target as HTMLInputElement).value.replace(/\\D/g, '').substring(0, 4)
+  if (val.length >= 2) {
+    val = val.substring(0, 2) + '/' + val.substring(2)
+  }
+  cardExpiry.value = val
+}
+
 const isTrialExpired = computed(() => licensingStore.isTrialExpired)
 
 const fetchData = async () => {
@@ -298,10 +376,17 @@ const selectPlan = (plan: any) => {
 }
 
 const processPayment = async () => {
-  if (!selectedPlan.value) return
+  if (!selectedPlan.value || !paymentFormRef.value) return
+  
+  const { valid } = await paymentFormRef.value.validate()
+  if (!valid) return
+
   processingPayment.value = true
   paymentError.value = ''
   try {
+    // Add realistic artificial delay to simulate contacting a payment gateway
+    await new Promise((resolve) => setTimeout(resolve, 2000))
+
     const intent = await (window as any).api.subscriptions.createPaymentIntent(
       selectedPlan.value.id
     )
@@ -309,6 +394,13 @@ const processPayment = async () => {
     if (confirm.success) {
       showPaymentDialog.value = false
       showSuccessDialog.value = true
+      // Reset form
+      cardName.value = ''
+      cardNumber.value = ''
+      cardExpiry.value = ''
+      cardCvc.value = ''
+      paymentFormRef.value?.resetValidation()
+      
       await licensingStore.refreshStatus()
       await fetchData()
     }
