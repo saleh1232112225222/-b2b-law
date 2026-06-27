@@ -65,6 +65,7 @@ import { subscriptionRouter } from './routes/subscriptions'
 import { adminSubscriptionRouter } from './routes/adminSubscriptions'
 import { subscriberTrackingRouter } from './routes/subscriberTracking'
 import { sessionsRouter } from './routes/sessions'
+import legalServicesRouter from './routes/legal_services'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -156,6 +157,7 @@ app.use('/api/admin/subscriptions', adminSubscriptionRouter)
 app.use('/api/admin/subscriber-tracking', subscriberTrackingRouter)
 app.use('/api', marketingRouter)
 app.use('/api/debug', debugRouter)
+app.use('/api/legal-services', legalServicesRouter)
 
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },
@@ -241,6 +243,12 @@ for (const entity of entityTables) {
   } else if (entity.name === 'collections') {
     readPermission = 'view_finances'
     writePermission = 'create_finances'
+  } else if (entity.name === 'legal-services') {
+    readPermission = 'view_legal_services'
+    writePermission = 'manage_legal_services'
+  } else if (entity.name === 'legal-engagements') {
+    readPermission = 'view_legal_services'
+    writePermission = 'create_legal_engagements'
   }
 
   const entityRouter = createEntityRouter(entity)

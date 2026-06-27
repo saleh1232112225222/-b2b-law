@@ -158,6 +158,7 @@ import { useClientsStore } from '../stores/clients'
 import { useCasesStore } from '../stores/cases'
 import { useSessionsStore } from '../stores/sessions'
 import { useTasksStore } from '../stores/tasks'
+import { useLegalStore } from '../stores/legal'
 import { useAgenciesStore } from '../stores/agencies'
 import { safeArray, safeLength } from '../utils/safe'
 import { useMobileLayout } from '../composables/useMobileLayout'
@@ -186,6 +187,7 @@ const clientsStore = useClientsStore()
 const casesStore = useCasesStore()
 const sessionsStore = useSessionsStore()
 const tasksStore = useTasksStore()
+const legalStore = useLegalStore()
 const agenciesStore = useAgenciesStore()
 
 const { isMobile } = useMobileLayout()
@@ -491,6 +493,13 @@ const stats = computed(() => [
     icon: 'hand-coins',
     color: 'error',
     to: '/enforcement'
+  },
+  {
+    title: 'الخدمات القانونية',
+    value: legalStore.total,
+    icon: 'scale',
+    color: 'accent',
+    to: '/legal-services'
   }
 ])
 
@@ -666,6 +675,7 @@ const fetchData = async () => {
   await Promise.allSettled([
     safeCall('جلب الموكلين', () => clientsStore.fetchClients(), 8000),
     safeCall('جلب القضايا', () => casesStore.fetchCases(), 8000),
+    safeCall('الخدمات القانونية', () => legalStore.fetchServices({ page: 1, pageSize: 1 }), 4500),
     safeCall('جلسات اليوم', () => sessionsStore.fetchTodaySessions(25), 8000),
     safeCall('جلسات الغد', () => sessionsStore.fetchTomorrowSessions(25), 8000),
     safeCall('المهام المعلقة', () => tasksStore.fetchPendingTasks(), 8000),

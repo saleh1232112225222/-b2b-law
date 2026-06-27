@@ -537,6 +537,44 @@ const api = {
     onLockTriggered: (_cb: () => void) => () => {} // handled differently in cloud
   },
   clients: buildCrudApi('clients'),
+  legalServices: {
+    getCategories: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getCategories')
+        : cloudRequest({ method: 'GET', url: '/legal-services/categories' }),
+    getTypes: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getTypes')
+        : cloudRequest({ method: 'GET', url: '/legal-services/types' }),
+    getStatuses: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getStatuses')
+        : cloudRequest({ method: 'GET', url: '/legal-services/statuses' }),
+    getPriorities: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getPriorities')
+        : cloudRequest({ method: 'GET', url: '/legal-services/priorities' }),
+    count: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:count', params)
+        : cloudRequest({ method: 'GET', url: '/legal-services/engagements/count', params }),
+    list: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:list', params)
+        : cloudRequest({ method: 'GET', url: '/legal-services/engagements', params }),
+    create: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:create', data)
+        : cloudRequest({ method: 'POST', url: '/legal-services/engagements', data }).then((r: any) => r.id),
+    update: (id: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:update', id, data)
+        : cloudRequest({ method: 'PUT', url: `/legal-services/engagements/${id}`, data }),
+    delete: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:delete', id)
+        : cloudRequest({ method: 'DELETE', url: `/legal-services/engagements/${id}` })
+  },
   defendants: {
     ...buildCrudApi('defendants'),
     restore: (id: string) =>

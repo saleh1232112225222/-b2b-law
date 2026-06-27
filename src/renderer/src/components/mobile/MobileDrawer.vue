@@ -83,6 +83,7 @@ const handleLogout = () => {
 const moreItems = [
   { title: 'المهام', icon: 'mdi-clipboard-list', to: '/tasks' },
   { title: 'المالية', icon: 'mdi-bank', to: '/finance' },
+  { title: 'الخدمات القانونية', icon: 'mdi-scale-balance', to: '/legal-services' },
   { title: 'المستندات', icon: 'mdi-file-document', to: '/documents' },
   { title: 'المذكرات', icon: 'mdi-file-document-edit', to: '/memoranda' },
   { title: 'العقود', icon: 'mdi-file-sign', to: '/contracts' },

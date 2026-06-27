@@ -141,6 +141,19 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/legal-services',
+    name: 'LegalServices',
+    component: () => import('../views/LegalServices.vue'),
+    meta: { requiresAuth: true, permissions: ['view_legal_services'] }
+  },
+  {
+    path: '/legal-engagements/:id',
+    name: 'LegalEngagementDetails',
+    component: () => import('../views/LegalEngagementDetails.vue'),
+    props: true,
+    meta: { requiresAuth: true, permissions: ['view_legal_services'] }
+  },
+  {
     path: '/firm',
     name: 'Firm',
     component: () => import('../views/Firm.vue'),
@@ -234,6 +247,12 @@ const routes = [
     path: '/reports/court-cases',
     name: 'CourtCasesReport',
     component: () => import('../views/CourtCasesReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'] }
+  },
+  {
+    path: '/reports/legal-services',
+    name: 'LegalServicesReport',
+    component: () => import('../views/LegalServicesReport.vue'),
     meta: { requiresAuth: true, permissions: ['export_reports'] }
   },
   {

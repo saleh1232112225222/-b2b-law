@@ -518,6 +518,7 @@ const categorizedMenu = computed(() => {
         { title: 'الأرشيف', icon: 'archive', to: '/archive' }
       ]
     },
+    { title: 'الخدمات القانونية', icon: 'scale', to: '/legal-services', perm: 'view_legal_services' },
     {
       title: 'الإدارة والمالية',
       icon: 'bar-chart-3',

@@ -34,7 +34,10 @@ export const DEFAULT_PERMISSIONS = [
   { key: 'view_activity_logs', name: 'عرض سجل النشاطات', module: 'settings' },
   { key: 'manage_users', name: 'إدارة المستخدمين', module: 'settings' },
   { key: 'export_reports', name: 'تصدير التقارير', module: 'reports' },
-  { key: 'view_files', name: 'عرض خزانة الملفات', module: 'vault' }
+  { key: 'view_files', name: 'عرض خزانة الملفات', module: 'vault' },
+  { key: 'view_legal_services', name: 'عرض الخدمات القانونية', module: 'legal_services' },
+  { key: 'manage_legal_services', name: 'إدارة قائمة الخدمات', module: 'legal_services' },
+  { key: 'create_legal_engagements', name: 'إضافة التعاقدات القانونية', module: 'legal_services' }
 ]
 
 export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
@@ -64,7 +67,10 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'view_enforcement',
     'create_enforcement',
     'export_reports',
-    'view_files'
+    'view_files',
+    'view_legal_services',
+    'manage_legal_services',
+    'create_legal_engagements'
   ],
   trainee_lawyer: [
     'view_cases',
@@ -76,7 +82,8 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'view_defendants',
     'view_documents',
     'create_documents',
-    'view_files'
+    'view_files',
+    'view_legal_services'
   ],
   secretary: [
     'view_cases',
@@ -94,7 +101,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'edit_defendants',
     'view_documents',
     'create_documents',
-    'view_files'
+    'view_files',
+    'view_legal_services',
+    'create_legal_engagements'
   ]
 }
 

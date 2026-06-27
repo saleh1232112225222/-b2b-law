@@ -75,6 +75,12 @@ import LucideIcon from '../components/common/LucideIcon.vue'
 
 const reportCards = [
   {
+    title: 'الخدمات والارتباطات القانونية',
+    subtitle: 'تحليل شامل للخدمات القانونية والتعاقدات والمستحقات',
+    icon: 'scale',
+    path: '/reports/legal-services'
+  },
+  {
     title: 'تقرير القضية',
     subtitle: 'تحليل شامل للقضية',
     icon: 'briefcase',

@@ -224,6 +224,120 @@ CREATE TABLE session_outcomes (
 );
 
 -- ============================================================
+-- 2.5. الخدمات القانونية (Legal Services) - Advanced Schema
+-- ============================================================
+
+CREATE TABLE legal_service_categories (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    key TEXT UNIQUE NOT NULL,
+    name_ar TEXT NOT NULL,
+    name_en TEXT
+);
+
+CREATE TABLE legal_service_types (
+    id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+    category_id TEXT NOT NULL REFERENCES legal_service_categories(id) ON DELETE CASCADE,
+    key TEXT UNIQUE NOT NULL,
+    name_ar TEXT NOT NULL,
+    name_en TEXT
+);
+
+CREATE TABLE legal_service_statuses (
+    id TEXT PRIMARY KEY,
+    status_key TEXT UNIQUE NOT NULL,
+    status_name_ar TEXT NOT NULL,
+    status_name_en TEXT,
+    color TEXT
+);
+
+CREATE TABLE legal_service_priorities (
+    id TEXT PRIMARY KEY,
+    priority_key TEXT UNIQUE NOT NULL,
+    priority_name_ar TEXT NOT NULL,
+    priority_name_en TEXT,
+    color TEXT
+);
+
+CREATE TABLE legal_engagements (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    engagement_number TEXT UNIQUE NOT NULL,
+    engagement_type_id TEXT NOT NULL REFERENCES legal_service_types(id),
+    category_id TEXT NOT NULL REFERENCES legal_service_categories(id),
+    client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+    beneficiary TEXT,
+    linked_parties TEXT,
+    responsible_lawyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    assistant_team TEXT,
+    description TEXT,
+    purpose TEXT,
+    start_date DATE,
+    expected_end_date DATE,
+    completion_date DATE,
+    status_id TEXT NOT NULL REFERENCES legal_service_statuses(id),
+    priority_id TEXT NOT NULL REFERENCES legal_service_priorities(id),
+    financial_compensation NUMERIC(12,2) DEFAULT 0,
+    tax NUMERIC(12,2) DEFAULT 0,
+    paid_amount NUMERIC(12,2) DEFAULT 0,
+    remaining_amount NUMERIC(12,2) DEFAULT 0,
+    payment_method TEXT,
+    contract_id UUID REFERENCES contracts(id) ON DELETE SET NULL,
+    case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
+    invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID
+);
+
+CREATE TABLE consultation_service_details (
+    engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    consultation_medium TEXT,
+    legal_opinion_summary TEXT
+);
+
+CREATE TABLE litigation_service_details (
+    engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    court_level TEXT,
+    opponent_details TEXT
+);
+
+CREATE TABLE contract_service_details (
+    engagement_id UUID PRIMARY KEY REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    contract_scope TEXT,
+    drafting_language TEXT
+);
+
+CREATE TABLE legal_service_attachments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    file_name TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    uploaded_by UUID,
+    uploaded_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE legal_service_notes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    note_text TEXT NOT NULL,
+    created_by UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE legal_service_timeline (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    event_type TEXT NOT NULL,
+    event_title TEXT NOT NULL,
+    event_description TEXT,
+    actor UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ============================================================
 -- 3. المهام (Tasks)
 -- ============================================================
 
@@ -232,6 +346,7 @@ CREATE TABLE tasks_v2 (
     company_id UUID NOT NULL,
     case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
     client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+    legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL,
     link_type TEXT,
     external_name TEXT,
     owner_type TEXT,
@@ -314,6 +429,7 @@ CREATE TABLE finances (
     company_id UUID NOT NULL,
     case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
     client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
+    legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL,
     type TEXT NOT NULL,
     amount NUMERIC(12,2) NOT NULL,
     category TEXT,
