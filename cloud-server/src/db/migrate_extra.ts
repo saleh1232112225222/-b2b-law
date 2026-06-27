@@ -237,12 +237,12 @@ export async function runExtraMigrations() {
       'الوساطة': ['وساطة', 'تفاوض', 'تسوية', 'صلح'],
       'الامتثال': ['سياسات', 'لوائح داخلية', 'مكافحة غسل الأموال', 'حماية البيانات', 'الحوكمة'],
       'الجهات الحكومية': ['استخراج تراخيص', 'الاعتراضات الإدارية', 'التظلمات', 'متابعة الطلبات'],
-      'الترجمة القانونية': ['ترجمة العقود', 'ترجمة الأحكام', 'ترجمة المذكرات'],
       'خدمات أخرى': ['إنذار عدلي', 'مذكرة قانونية', 'خطاب رسمي', 'دراسة نظامية', 'بحث قانوني', 'خدمة أخرى']
     }
 
-    // Clean up removed types
+    // Clean up removed types/categories
     await query(`DELETE FROM legal_service_types WHERE name_ar = 'فتوى نظامية'`)
+    await query(`DELETE FROM legal_service_categories WHERE name_ar = 'الترجمة القانونية'`)
 
     for (const [catName, subServices] of Object.entries(classificationSeed)) {
       const catKey = catName
