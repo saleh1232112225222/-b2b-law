@@ -79,7 +79,7 @@ const search = ref('')
 const contracts = ref<any[]>([])
 
 const filtered = computed(() => {
-  const list = contracts.value.filter((c) => c.contract_type === tab.value)
+  const list = safeArray(contracts.value).filter((c) => c.contract_type === tab.value)
   if (!search.value) return list
   const q = search.value.toLowerCase()
   return list.filter(

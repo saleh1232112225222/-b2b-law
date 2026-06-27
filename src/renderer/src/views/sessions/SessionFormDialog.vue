@@ -357,11 +357,13 @@ const handleSave = async () => {
 
 const arabicFilter = (item: any, query: string): boolean => {
   if (!query) return true
+  if (!item) return false
   const q = query.toLowerCase().trim()
+  const display = item.display || ''
   return (
-    item.display.toLowerCase().includes(q) ||
-    item.case_number?.toLowerCase().includes(q) ||
-    item.client_name?.toLowerCase().includes(q)
+    display.toLowerCase().includes(q) ||
+    (item.case_number || '').toLowerCase().includes(q) ||
+    (item.client_name || '').toLowerCase().includes(q)
   )
 }
 </script>

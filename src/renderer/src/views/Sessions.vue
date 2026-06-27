@@ -65,7 +65,7 @@
         />
         <MobileSessions
           v-else
-          :items="safeArray(store.sessions)"
+          :items="mobileSessions"
           :loading="store.loading"
           @edit="openEditDialog"
           @add="openAddDialog"
@@ -144,6 +144,13 @@ const store = useSessionsStore()
 const casesStore = useCasesStore()
 
 const { isMobile } = useMobileLayout()
+
+const mobileSessions = computed(() =>
+  safeArray(store.sessions).map((s) => ({
+    ...s,
+    date: s.date ? s.date.split('T')[0] : s.date
+  }))
+)
 
 const pageLoading = ref(true)
 
