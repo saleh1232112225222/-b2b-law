@@ -223,7 +223,7 @@ export async function runExtraMigrations() {
 
     // 6. Seed Categories and Types
     const classificationSeed: Record<string, string[]> = {
-      'الاستشارات': ['استشارة شفوية', 'استشارة مكتوبة', 'رأي قانوني', 'فتوى نظامية'],
+      'الاستشارات': ['استشارة شفوية', 'استشارة مكتوبة', 'رأي قانوني'],
       'التقاضي': ['رفع دعوى', 'الدفاع في دعوى', 'الاعتراض على حكم', 'الاستئناف', 'النقض', 'التماس إعادة النظر', 'التنفيذ'],
       'العقود': ['إعداد عقد', 'مراجعة عقد', 'تعديل عقد', 'ترجمة عقد', 'توثيق عقد'],
       'الشركات': ['تأسيس شركة', 'تعديل عقد تأسيس', 'تحويل كيان', 'زيادة رأس المال', 'تخفيض رأس المال', 'تصفية شركة', 'حوكمة'],
@@ -240,6 +240,9 @@ export async function runExtraMigrations() {
       'الترجمة القانونية': ['ترجمة العقود', 'ترجمة الأحكام', 'ترجمة المذكرات'],
       'خدمات أخرى': ['إنذار عدلي', 'مذكرة قانونية', 'خطاب رسمي', 'دراسة نظامية', 'بحث قانوني', 'خدمة أخرى']
     }
+
+    // Clean up removed types
+    await query(`DELETE FROM legal_service_types WHERE name_ar = 'فتوى نظامية'`)
 
     for (const [catName, subServices] of Object.entries(classificationSeed)) {
       const catKey = catName
