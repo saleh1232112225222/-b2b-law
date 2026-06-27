@@ -338,6 +338,7 @@
         {{ snackbar.text }}
       </div>
     </v-snackbar>
+    </template>
   </v-container>
 </template>
 
