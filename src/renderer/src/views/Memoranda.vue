@@ -4,6 +4,7 @@
       v-if="isMobile"
       :items="safeArray(filteredMemos)"
       :loading="memorandaStore.loading"
+      @add="openAddDialog"
     />
     <template v-else>
       <!-- Header -->
