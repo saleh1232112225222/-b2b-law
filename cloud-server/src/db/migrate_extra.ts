@@ -181,6 +181,7 @@ export async function runExtraMigrations() {
     console.log('[MIGRATE_EXTRA] Legal services tables created if not exists')
 
     // Ensure Legal engagement relations
+    await query(`
       ALTER TABLE tasks_v2 ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
     `)
     await query(`
