@@ -26,6 +26,9 @@ export function setCloudBaseUrl(url: string) {
   cloudClient.interceptors.response.use(
     (res) => res,
     async (error) => {
+      if (error.response?.data?.error) {
+        error.message = error.response.data.error
+      }
       if (error.response?.status === 401 && mode === 'cloud') {
         if (isMockMode()) {
           return Promise.reject(error)
@@ -573,7 +576,35 @@ const api = {
     delete: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:delete', id)
-        : cloudRequest({ method: 'DELETE', url: `/legal-services/engagements/${id}` })
+        : cloudRequest({ method: 'DELETE', url: `/legal-services/engagements/${id}` }),
+    getById: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getById', id)
+        : cloudRequest({ method: 'GET', url: `/legal-services/engagements/${id}` }),
+    getNotes: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getNotes', id)
+        : cloudRequest({ method: 'GET', url: `/legal-services/engagements/${id}/notes` }),
+    addNote: (id: string, noteText: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:addNote', id, noteText)
+        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/notes`, data: { noteText } }),
+    getAttachments: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getAttachments', id)
+        : cloudRequest({ method: 'GET', url: `/legal-services/engagements/${id}/attachments` }),
+    addAttachment: (id: string, fileName: string, filePath: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:addAttachment', id, fileName, filePath)
+        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/attachments`, data: { fileName, filePath } }),
+    getTimeline: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getTimeline', id)
+        : cloudRequest({ method: 'GET', url: `/legal-services/engagements/${id}/timeline` }),
+    generateInvoice: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:generateInvoice', id)
+        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/invoice` })
   },
   defendants: {
     ...buildCrudApi('defendants'),

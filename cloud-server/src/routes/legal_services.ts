@@ -1,7 +1,9 @@
 import { Router } from 'express'
 import { query } from '../db/connection'
+import { authMiddleware } from '../middleware/auth'
 
 const router = Router()
+router.use(authMiddleware)
 
 // Metadata Routes
 router.get('/categories', async (req: any, res) => {
@@ -43,7 +45,7 @@ router.get('/priorities', async (req: any, res) => {
 // Main Engagements Routes
 router.get('/engagements/count', async (req: any, res) => {
   try {
-    const { companyId } = req.user
+    const { companyId } = req.auth
     const { q, category_id, status_id } = req.query
     
     let sql = 'SELECT COUNT(*) as total FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL'
@@ -71,7 +73,7 @@ router.get('/engagements/count', async (req: any, res) => {
 
 router.get('/engagements', async (req: any, res) => {
   try {
-    const { companyId } = req.user
+    const { companyId } = req.auth
     const { page = 1, pageSize = 25, q, category_id, status_id } = req.query
     
     let sql = `
@@ -122,7 +124,7 @@ router.get('/engagements', async (req: any, res) => {
 
 router.post('/engagements', async (req: any, res) => {
   try {
-    const { companyId, userId } = req.user
+    const { companyId, userId } = req.auth
     const data = req.body
     
     // Generate engagement number
@@ -153,13 +155,14 @@ router.post('/engagements', async (req: any, res) => {
 
     res.json({ id: result.rows[0].id })
   } catch (err: any) {
+    console.error('[legal_services] POST /engagements error:', err.message, err.stack)
     res.status(500).json({ error: err.message })
   }
 })
 
 router.put('/engagements/:id', async (req: any, res) => {
   try {
-    const { companyId, userId } = req.user
+    const { companyId, userId } = req.auth
     const { id } = req.params
     const data = req.body
 
@@ -198,13 +201,14 @@ router.put('/engagements/:id', async (req: any, res) => {
 
     res.json({ success: true })
   } catch (err: any) {
+    console.error('[legal_services] PUT /engagements/:id error:', err.message, err.stack)
     res.status(500).json({ error: err.message })
   }
 })
 
 router.delete('/engagements/:id', async (req: any, res) => {
   try {
-    const { companyId, userId } = req.user
+    const { companyId, userId } = req.auth
     const { id } = req.params
     
     await query(`
@@ -214,6 +218,230 @@ router.delete('/engagements/:id', async (req: any, res) => {
     `, [userId, id, companyId])
 
     res.json({ success: true })
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Engagement by ID
+router.get('/engagements/:id', async (req: any, res) => {
+  try {
+    const { companyId } = req.auth
+    const { id } = req.params
+    const result = await query(`
+      SELECT 
+        e.*,
+        c.name_ar as category_name,
+        t.name_ar as service_type_name,
+        s.status_name_ar as status_name,
+        p.priority_name_ar as priority_name,
+        cl.name as client_name,
+        u.full_name as responsible_name
+      FROM legal_engagements e
+      LEFT JOIN legal_service_categories c ON e.category_id = c.id
+      LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+      LEFT JOIN legal_service_statuses s ON e.status_id = s.id
+      LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
+      LEFT JOIN clients cl ON e.client_id = cl.id
+      LEFT JOIN users u ON e.responsible_lawyer_id = u.id
+      WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+    `, [id, companyId])
+    
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'الارتباط القانوني غير موجود' })
+      return
+    }
+    res.json(result.rows[0])
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Engagement Notes
+router.get('/engagements/:id/notes', async (req: any, res) => {
+  try {
+    const { id } = req.params
+    const result = await query(`
+      SELECT n.*, u.full_name as created_by 
+      FROM legal_service_notes n
+      LEFT JOIN users u ON n.created_by = u.id
+      WHERE n.engagement_id = $1
+      ORDER BY n.created_at DESC
+    `, [id])
+    res.json(result.rows)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Add Note
+router.post('/engagements/:id/notes', async (req: any, res) => {
+  try {
+    const { userId } = req.auth
+    const { id } = req.params
+    const { noteText } = req.body
+    
+    const noteResult = await query(`
+      INSERT INTO legal_service_notes (engagement_id, note_text, created_by)
+      VALUES ($1, $2, $3)
+      RETURNING *
+    `, [id, noteText, userId])
+
+    // Add event to timeline
+    await query(`
+      INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
+      VALUES ($1, 'إضافة ملاحظة', $2, $3)
+    `, [id, noteText.substring(0, 100), userId])
+
+    res.json(noteResult.rows[0])
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Engagement Attachments
+router.get('/engagements/:id/attachments', async (req: any, res) => {
+  try {
+    const { id } = req.params
+    const result = await query(`
+      SELECT a.*, u.full_name as uploaded_by
+      FROM legal_service_attachments a
+      LEFT JOIN users u ON a.uploaded_by = u.id
+      WHERE a.engagement_id = $1
+      ORDER BY a.uploaded_at DESC
+    `, [id])
+    res.json(result.rows)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Add Attachment
+router.post('/engagements/:id/attachments', async (req: any, res) => {
+  try {
+    const { userId } = req.auth
+    const { id } = req.params
+    const { fileName, filePath } = req.body
+    
+    const attachmentResult = await query(`
+      INSERT INTO legal_service_attachments (engagement_id, file_name, file_path, uploaded_by)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `, [id, fileName, filePath, userId])
+
+    // Add event to timeline
+    await query(`
+      INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
+      VALUES ($1, 'إضافة مرفق', $2, $3)
+    `, [id, fileName, userId])
+
+    res.json(attachmentResult.rows[0])
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Timeline
+router.get('/engagements/:id/timeline', async (req: any, res) => {
+  try {
+    const { id } = req.params
+    const result = await query(`
+      SELECT t.*, u.full_name as actor
+      FROM legal_service_timeline t
+      LEFT JOIN users u ON t.created_by = u.id
+      WHERE t.engagement_id = $1
+      ORDER BY t.event_date DESC
+    `, [id])
+    res.json(result.rows)
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Generate Invoice
+router.post('/engagements/:id/invoice', async (req: any, res) => {
+  try {
+    const { companyId, userId } = req.auth
+    const { id } = req.params
+
+    // Fetch engagement info
+    const engResult = await query(`
+      SELECT e.*, c.name_ar as category_name, t.name_ar as service_type_name
+      FROM legal_engagements e
+      LEFT JOIN legal_service_categories c ON e.category_id = c.id
+      LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+      WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+    `, [id, companyId])
+
+    if (engResult.rows.length === 0) {
+      res.status(404).json({ error: 'الارتباط القانوني غير موجود' })
+      return
+    }
+
+    const eng = engResult.rows[0]
+    if (eng.invoice_id) {
+      res.status(400).json({ error: 'تم بالفعل إصدار فاتورة لهذا الارتباط' })
+      return
+    }
+
+    // Generate invoice number
+    const countRes = await query('SELECT COUNT(*) FROM invoices WHERE company_id = $1', [companyId])
+    const count = parseInt(countRes.rows[0].count) + 1
+    const invoice_number = `INV-${new Date().getFullYear()}-${count.toString().padStart(4, '0')}`
+
+    const subtotal = Number(eng.financial_compensation || 0)
+    const tax = Number(eng.tax || 0)
+    const total = subtotal + tax
+    const vat_rate = subtotal > 0 ? Number((tax / subtotal * 100).toFixed(2)) : 15.00
+
+    const paid = Number(eng.paid_amount || 0)
+    let status = 'unpaid'
+    if (paid >= total) {
+      status = 'paid'
+    } else if (paid > 0) {
+      status = 'partially_paid'
+    }
+
+    // Insert invoice
+    const invInsert = await query(`
+      INSERT INTO invoices (
+        company_id, client_id, case_id, invoice_number, date,
+        subtotal, tax_amount, vat_rate, total, status, notes, created_by, updated_by
+      ) VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING id
+    `, [
+      companyId, eng.client_id || null, eng.case_id || null, invoice_number,
+      subtotal, tax, vat_rate, total, status,
+      `فاتورة صادرة تلقائياً عن الخدمة القانونية رقم: ${eng.engagement_number}`,
+      userId, userId
+    ])
+
+    const invoiceId = invInsert.rows[0].id
+
+    // Insert invoice item
+    await query(`
+      INSERT INTO invoice_items (company_id, invoice_id, description, amount)
+      VALUES ($1, $2, $3, $4)
+    `, [
+      companyId, invoiceId,
+      `تقديم خدمة قانونية: ${eng.service_type_name} (تصنيف: ${eng.category_name})`,
+      subtotal
+    ])
+
+    // Update engagement with invoice_id
+    await query(`
+      UPDATE legal_engagements
+      SET invoice_id = $1
+      WHERE id = $2
+    `, [invoiceId, id])
+
+    // Add event to timeline
+    await query(`
+      INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
+      VALUES ($1, 'إصدار فاتورة', $2, $3)
+    `, [id, `تم إصدار الفاتورة رقم ${invoice_number}`, userId])
+
+    res.json({ success: true, invoiceId })
   } catch (err: any) {
     res.status(500).json({ error: err.message })
   }
