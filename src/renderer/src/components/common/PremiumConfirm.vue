@@ -4,26 +4,30 @@
       <!-- Top Decorative Accent -->
       <div class="decorative-accent" :style="{ backgroundColor: `var(--${color})` }"></div>
 
-      <v-card-title class="d-flex flex-column align-center pa-8">
+      <v-card-title class="d-flex flex-column align-center" :class="isMobile ? 'pa-5 pb-2' : 'pa-8'">
         <div
-          class="icon-wrapper pa-4 rounded-xl mb-4"
+          class="icon-wrapper rounded-xl mb-4"
+          :class="isMobile ? 'pa-3' : 'pa-4'"
           :style="{ backgroundColor: `var(--${color}-alpha)` }"
         >
-          <LucideIcon :name="icon" :size="40" :style="{ color: `var(--${color})` }" />
+          <LucideIcon :name="icon" :size="isMobile ? 32 : 40" :style="{ color: `var(--${color})` }" />
         </div>
-        <h3 class="text-h5 font-weight-black text-center">{{ title }}</h3>
+        <h3 class="font-weight-black text-center" :class="isMobile ? 'text-h6' : 'text-h5'">{{ title }}</h3>
       </v-card-title>
 
-      <v-card-text class="text-center px-10 py-0 text-body-1 text-secondary font-weight-medium">
+      <v-card-text 
+        class="text-center py-0 text-secondary font-weight-medium"
+        :class="isMobile ? 'px-5 text-body-2 mb-2' : 'px-10 text-body-1'"
+      >
         {{ message }}
       </v-card-text>
 
-      <v-card-actions class="pa-8 justify-center gap-4">
+      <v-card-actions class="justify-center gap-4" :class="isMobile ? 'pa-5 pt-0' : 'pa-8'">
         <v-btn
           variant="tonal"
           color="secondary"
           class="rounded-lg flex-grow-1 font-weight-black"
-          height="52"
+          :height="isMobile ? 44 : 52"
           @click="handleCancel"
         >
           {{ cancelText }}
@@ -32,7 +36,7 @@
           variant="flat"
           :color="confirmButtonColor || color"
           class="rounded-lg flex-grow-1 font-weight-black shadow-lg"
-          height="52"
+          :height="isMobile ? 44 : 52"
           :loading="loading"
           @click="handleConfirm"
         >
@@ -46,6 +50,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import LucideIcon from './LucideIcon.vue'
+import { useMobileLayout } from '../../composables/useMobileLayout'
 
 interface Props {
   modelValue: boolean
@@ -71,6 +76,8 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
+
+const { isMobile } = useMobileLayout()
 
 const visible = computed({
   get: () => props.modelValue,
