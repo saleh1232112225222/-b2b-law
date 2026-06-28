@@ -75,7 +75,7 @@
               block
               color="accent"
               class="font-weight-black rounded-xl mt-2 premium-btn-gold-gradient"
-              @click="$router.push('/subscription')"
+              @click="showSuspensionDialog = true"
             >
               <LucideIcon name="crown" :size="18" class="me-2" />
               {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
@@ -416,6 +416,40 @@
     </v-row>
 
     <SettingsWipeDialog v-model="showClearDialog" :clearing="clearing" @confirm="executeWipe" />
+
+    <!-- Suspension Dialog -->
+    <v-dialog v-model="showSuspensionDialog" max-width="500">
+      <v-card class="glass-card overflow-hidden border-gold border-2 glass-card pa-6 text-center">
+        <LucideIcon name="alert-triangle" :size="64" class="text-gold mx-auto mb-4" />
+        <h2 class="text-h5 font-weight-black mb-4">الاشتراك معلق</h2>
+        <p class="text-body-1 text-grey-darken-1 mb-6">
+          عذراً، تم إيقاف صفحة الاشتراك والدفع مؤقتاً. يرجى مراجعة الدعم الفني لمعرفة المزيد من التفاصيل حول حالة اشتراكك وتفعيله.
+        </p>
+        <v-divider class="mb-6 opacity-10" />
+        <h3 class="text-subtitle-1 font-weight-black mb-4">للتواصل مع الدعم الفني المباشر</h3>
+        <div class="d-flex justify-center gap-3 flex-wrap">
+          <v-btn
+            color="success"
+            variant="elevated"
+            class="font-weight-black px-4 rounded-xl"
+            href="https://wa.me/966567905696"
+            target="_blank"
+          >
+            <LucideIcon name="message-circle" :size="18" class="me-2" />
+            واتساب
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="outlined"
+            class="font-weight-black px-4 rounded-xl"
+            href="tel:0567905696"
+          >
+            <LucideIcon name="phone" :size="18" class="me-2" />
+            اتصال
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
 
     <!-- Google Apps Script Instructions Dialog -->
     <v-dialog v-model="showGasInstructions" max-width="700">
@@ -782,6 +816,7 @@ const clearing = ref(false)
 const checkingInventory = ref(false)
 const inventory = ref<InventoryItem[]>([])
 const showClearDialog = ref(false)
+const showSuspensionDialog = ref(false)
 const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
