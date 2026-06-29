@@ -327,6 +327,7 @@
           <!-- Details Tabs -->
           <v-tabs v-model="detailsTab" color="accent" align-tabs="start" class="border-b">
             <v-tab value="general" class="font-weight-black">البيانات العامة</v-tab>
+            <v-tab value="finance" class="font-weight-black">المالية</v-tab>
             <v-tab value="notes" class="font-weight-black">الملاحظات الداخلية ({{ notes.length }})</v-tab>
             <v-tab value="attachments" class="font-weight-black">المرفقات ({{ attachments.length }})</v-tab>
             <v-tab value="tasks" class="font-weight-black">المهام المرتبطة ({{ tasks.length }})</v-tab>
@@ -427,6 +428,106 @@
                 <v-col cols="12">
                   <div class="text-caption text-grey">ملاحظات عامة</div>
                   <div class="text-body-1 leading-relaxed mb-4" style="white-space: pre-wrap;">{{ selectedService?.notes || '-' }}</div>
+                </v-col>
+              </v-row>
+            </v-window-item>
+
+            <!-- Finance Window -->
+            <v-window-item value="finance">
+              <v-row>
+                <v-col cols="12" md="6">
+                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
+                    <div class="text-subtitle-2 font-weight-black text-primary mb-4">ملخص المالية</div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">المقابل المالي:</span>
+                      <span class="font-weight-black text-accent">{{ formatCurrency(selectedService?.financial_compensation || 0) }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">الضريبة:</span>
+                      <span class="font-weight-black text-grey-darken-1">{{ formatCurrency(selectedService?.tax || 0) }}</span>
+                    </div>
+                    <v-divider class="my-3" />
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">الإجمالي:</span>
+                      <span class="font-weight-black text-accent">{{ formatCurrency((selectedService?.financial_compensation || 0) + (selectedService?.tax || 0)) }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">المسدد:</span>
+                      <span class="font-weight-black text-success">{{ formatCurrency(selectedService?.paid_amount || 0) }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">المتبقي:</span>
+                      <span class="font-weight-black text-error">{{ formatCurrency(selectedService?.remaining_amount || 0) }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center mb-3">
+                      <span class="text-grey">طريقة الدفع:</span>
+                      <span class="font-weight-black">{{ selectedService?.payment_method || '-' }}</span>
+                    </div>
+                    <div class="d-flex justify-space-between align-center">
+                      <span class="text-grey">الفاتورة:</span>
+                      <span class="font-weight-black">{{ selectedService?.invoice_number || 'لا توجد' }}</span>
+                    </div>
+                  </v-card>
+                </v-col>
+                <v-col cols="12" md="6">
+                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
+                    <div class="text-subtitle-2 font-weight-black text-gold mb-4">سجل المالية (حسابات المكتب)</div>
+                    <div v-if="loadingFinance" class="text-center py-6">
+                      <v-progress-circular indeterminate color="accent" size="24" />
+                    </div>
+                    <div v-else-if="financeRecord">
+                      <div class="d-flex justify-space-between align-center mb-3">
+                        <span class="text-grey">رقم المرجع المالي:</span>
+                        <span class="font-weight-black font-mono">{{ financeRecord.id?.substring(0, 8) || '-' }}</span>
+                      </div>
+                      <div class="d-flex justify-space-between align-center mb-3">
+                        <span class="text-grey">تاريخ التسجيل:</span>
+                        <span class="font-weight-black">{{ formatDate(financeRecord.date) }}</span>
+                      </div>
+                      <div class="d-flex justify-space-between align-center mb-3">
+                        <span class="text-grey">حالة الدفع:</span>
+                        <v-chip size="x-small" :color="getFinanceStatusColor(financeRecord.status)" class="font-weight-black text-ebony">
+                          {{ getFinanceStatusLabel(financeRecord.status) }}
+                        </v-chip>
+                      </div>
+                      <div class="d-flex justify-space-between align-center mb-3">
+                        <span class="text-grey">المبلغ المسجل:</span>
+                        <span class="font-weight-black">{{ formatCurrency(financeRecord.amount || 0) }}</span>
+                      </div>
+                      <div class="d-flex justify-space-between align-center mb-3">
+                        <span class="text-grey">المبلغ الإجمالي:</span>
+                        <span class="font-weight-black">{{ formatCurrency(financeRecord.total || 0) }}</span>
+                      </div>
+                    </div>
+                    <div v-else class="text-center py-6 text-grey">
+                      <LucideIcon name="banknote" :size="32" class="mb-2 opacity-50" />
+                      <div>لا يوجد سجل مالي مرتبط في حسابات المكتب</div>
+                      <div class="text-caption mt-2">يتم إنشاء سجل مالي تلقائياً عند إدخال مقابل مالي للخدمة</div>
+                    </div>
+                  </v-card>
+                </v-col>
+              </v-row>
+              <v-row class="mt-4">
+                <v-col cols="12">
+                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
+                    <div class="d-flex align-center justify-space-between mb-4">
+                      <div class="text-subtitle-2 font-weight-black text-primary">إجراءات مالية</div>
+                    </div>
+                    <div class="d-flex flex-wrap ga-3">
+                      <v-btn v-if="!selectedService?.invoice_id" color="accent" variant="flat"
+                        class="rounded-lg font-weight-black text-ebony" :loading="generatingInvoice"
+                        @click="handleGenerateInvoice">
+                        <LucideIcon name="receipt" :size="16" class="me-2" /> إنشاء فاتورة ضريبية
+                      </v-btn>
+                      <v-btn v-else color="success" variant="tonal" class="rounded-lg font-weight-black"
+                        :loading="printingInvoice" @click="handlePrintInvoice(selectedService?.invoice_id)">
+                        <LucideIcon name="printer" :size="16" class="me-2" /> طباعة / تصدير الفاتورة
+                      </v-btn>
+                      <v-btn color="gold" variant="tonal" class="rounded-lg font-weight-black">
+                        <LucideIcon name="wallet" :size="16" class="me-2" /> تسجيل دفعة جديدة
+                      </v-btn>
+                    </div>
+                  </v-card>
                 </v-col>
               </v-row>
             </v-window-item>
@@ -751,6 +852,8 @@ const timeline = ref<any[]>([])
 const tasks = ref<any[]>([])
 const showAddTaskForm = ref(false)
 const savingTask = ref(false)
+const financeRecord = ref<any>(null)
+const loadingFinance = ref(false)
 const taskFormRef = ref<any>(null)
 const assignableUsers = ref<any[]>([])
 const newTask = reactive({
@@ -924,8 +1027,9 @@ const openDetails = async (item: LegalEngagement) => {
   newNoteText.value = ''
   showAddTaskForm.value = false
   
-  // Load notes, attachments, timeline and tasks
-  await Promise.all([loadNotes(), loadAttachments(), loadTimeline(), loadTasks()])
+  // Load notes, attachments, timeline, tasks and finance
+  financeRecord.value = null
+  await Promise.all([loadNotes(), loadAttachments(), loadTimeline(), loadTasks(), loadFinanceRecord()])
   showDetailsDialog.value = true
 }
 
@@ -1112,6 +1216,37 @@ const openAttachmentFile = async (path: string) => {
     await window.api.documents.open(path)
   } catch (e: any) {
     triggerSnackbar('فشل فتح ملف المرفق', 'error')
+  }
+}
+
+const loadFinanceRecord = async () => {
+  if (!selectedService.value?.id) return
+  loadingFinance.value = true
+  try {
+    financeRecord.value = await window.api.legalServices.getFinance(selectedService.value.id)
+  } catch (e) {
+    financeRecord.value = null
+  } finally {
+    loadingFinance.value = false
+  }
+}
+
+const getFinanceStatusColor = (status: string) => {
+  switch (status) {
+    case 'paid': return 'success'
+    case 'partially_paid': return 'warning'
+    case 'overdue': return 'error'
+    default: return 'grey'
+  }
+}
+
+const getFinanceStatusLabel = (status: string) => {
+  switch (status) {
+    case 'paid': return 'مدفوع بالكامل'
+    case 'partially_paid': return 'مدفوع جزئياً'
+    case 'overdue': return 'متأخر'
+    case 'pending': return 'معلق'
+    default: return status || 'معلق'
   }
 }
 

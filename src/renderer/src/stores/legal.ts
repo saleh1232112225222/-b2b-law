@@ -24,6 +24,9 @@ export const useLegalStore = defineStore('legal', () => {
   const priorities = ref<any[]>([])
   const metadataLoaded = ref(false)
 
+  // Finance record cache
+  const financeRecord = ref<any | null>(null)
+
   const fetchMetadata = async (): Promise<void> => {
     if (metadataLoaded.value) return
     loading.value = true
@@ -124,6 +127,14 @@ export const useLegalStore = defineStore('legal', () => {
     }
   }
 
+  const fetchFinanceRecord = async (engagementId: string): Promise<void> => {
+    try {
+      financeRecord.value = await window.api.legalServices.getFinance(engagementId)
+    } catch (e: any) {
+      financeRecord.value = null
+    }
+  }
+
   return {
     services,
     loading,
@@ -139,10 +150,12 @@ export const useLegalStore = defineStore('legal', () => {
     statuses,
     priorities,
     metadataLoaded,
+    financeRecord,
     fetchMetadata,
     fetchServices,
     addService,
     updateService,
-    deleteService
+    deleteService,
+    fetchFinanceRecord
   }
 })

@@ -753,18 +753,59 @@ reportsRouter.get(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const { clientId, caseId, lawyerId, fromDate, toDate, groupBy } = req.query
+      const {
+        clientId, caseId, lawyerId, fromDate, toDate, groupBy,
+        category_id, status_id, priority_id, q,
+        page = '1', pageSize = '500'
+      } = req.query
 
-      let sql = `
-        SELECT 
-          e.*,
-          c.name_ar as category_name,
-          t.name_ar as service_type_name,
-          s.status_name_ar as status_name,
-          p.priority_name_ar as priority_name,
-          cl.name as client_name,
-          emp.name as responsible_name,
-          ca.case_number as linked_case_number
+      const limit = parseInt(pageSize as string)
+      const offset = (parseInt(page as string) - 1) * limit
+
+      // Build WHERE clause
+      let whereSql = ' WHERE e.company_id = $1 AND e.deleted_at IS NULL'
+      const params: any[] = [companyId]
+      let paramIndex = 2
+
+      if (clientId) {
+        whereSql += ` AND e.client_id = $${paramIndex++}`
+        params.push(clientId)
+      }
+      if (caseId) {
+        whereSql += ` AND e.case_id = $${paramIndex++}`
+        params.push(caseId)
+      }
+      if (lawyerId) {
+        whereSql += ` AND e.responsible_lawyer_id = $${paramIndex++}`
+        params.push(lawyerId)
+      }
+      if (fromDate) {
+        whereSql += ` AND e.start_date >= $${paramIndex++}`
+        params.push(fromDate)
+      }
+      if (toDate) {
+        whereSql += ` AND e.start_date <= $${paramIndex++}`
+        params.push(toDate)
+      }
+      if (category_id && category_id !== 'الكل') {
+        whereSql += ` AND e.category_id = $${paramIndex++}`
+        params.push(category_id)
+      }
+      if (status_id && status_id !== 'الكل') {
+        whereSql += ` AND e.status_id = $${paramIndex++}`
+        params.push(status_id)
+      }
+      if (priority_id && priority_id !== 'الكل') {
+        whereSql += ` AND e.priority_id = $${paramIndex++}`
+        params.push(priority_id)
+      }
+      if (q) {
+        whereSql += ` AND (e.engagement_number ILIKE $${paramIndex} OR e.description ILIKE $${paramIndex} OR e.purpose ILIKE $${paramIndex})`
+        params.push(`%${q}%`)
+        paramIndex++
+      }
+
+      const joinSql = `
         FROM legal_engagements e
         LEFT JOIN legal_service_categories c ON e.category_id = c.id
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
@@ -773,46 +814,138 @@ reportsRouter.get(
         LEFT JOIN clients cl ON e.client_id = cl.id
         LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
         LEFT JOIN cases ca ON e.case_id = ca.id
-        WHERE e.company_id = $1 AND e.deleted_at IS NULL
+        LEFT JOIN invoices inv ON e.invoice_id = inv.id
       `
-      const params: any[] = [companyId]
-      let paramIndex = 2
 
-      if (clientId) {
-        sql += ` AND e.client_id = $${paramIndex++}`
-        params.push(clientId)
-      }
-      if (caseId) {
-        sql += ` AND e.case_id = $${paramIndex++}`
-        params.push(caseId)
-      }
-      if (lawyerId) {
-        sql += ` AND e.responsible_lawyer_id = $${paramIndex++}`
-        params.push(lawyerId)
-      }
-      if (fromDate) {
-        sql += ` AND e.start_date >= $${paramIndex++}`
-        params.push(fromDate)
-      }
-      if (toDate) {
-        sql += ` AND e.start_date <= $${paramIndex++}`
-        params.push(toDate)
+      // Get total count
+      const countResult = await query(`SELECT COUNT(*) ${joinSql} ${whereSql}`, params)
+      const totalRows = parseInt(countResult.rows[0].count)
+
+      // Get grouped data if groupBy is specified
+      let groupResult = null
+      if (groupBy) {
+        let groupSelect: string
+        let groupField: string
+        switch (groupBy) {
+          case 'lawyer':
+            groupSelect = `COALESCE(emp.name, 'غير معين') as group_name, emp.id as group_id`
+            groupField = `emp.name`
+            break
+          case 'client':
+            groupSelect = `cl.name as group_name, cl.id as group_id`
+            groupField = `cl.name`
+            break
+          case 'category':
+            groupSelect = `c.name_ar as group_name, c.id as group_id`
+            groupField = `c.name_ar`
+            break
+          case 'case':
+            groupSelect = `COALESCE(ca.case_number, 'بدون قضية') as group_name, ca.id as group_id`
+            groupField = `ca.case_number`
+            break
+          case 'month':
+            groupSelect = `TO_CHAR(e.start_date, 'YYYY-MM') as group_name, TO_CHAR(e.start_date, 'YYYY-MM') as group_id`
+            groupField = `TO_CHAR(e.start_date, 'YYYY-MM')`
+            break
+          case 'year':
+            groupSelect = `TO_CHAR(e.start_date, 'YYYY') as group_name, TO_CHAR(e.start_date, 'YYYY') as group_id`
+            groupField = `TO_CHAR(e.start_date, 'YYYY')`
+            break
+          default:
+            groupSelect = 'NULL as group_name, NULL as group_id'
+            groupField = 'NULL'
+        }
+
+        const groupSql = `
+          SELECT ${groupSelect},
+            COUNT(*) as service_count,
+            COALESCE(SUM(e.financial_compensation), 0) as total_compensation,
+            COALESCE(SUM(e.paid_amount), 0) as total_paid,
+            COALESCE(SUM(e.remaining_amount), 0) as total_remaining,
+            COALESCE(SUM(e.tax), 0) as total_tax
+          ${joinSql} ${whereSql}
+          GROUP BY ${groupField}
+          ORDER BY service_count DESC
+        `
+        groupResult = await query(groupSql, params)
       }
 
-      sql += ' ORDER BY e.created_at DESC'
+      // Get paginated detailed data
+      const selectSql = `
+        SELECT e.*,
+          c.name_ar as category_name,
+          t.name_ar as service_type_name,
+          s.status_name_ar as status_name,
+          s.color as status_color,
+          p.priority_name_ar as priority_name,
+          p.color as priority_color,
+          cl.name as client_name,
+          COALESCE(emp.name, 'غير معين') as responsible_name,
+          ca.case_number as linked_case_number,
+          inv.invoice_number
+      `
 
-      const result = await query(sql, params)
+      const dataSql = `${selectSql} ${joinSql} ${whereSql} ORDER BY e.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`
+      const dataResult = await query(dataSql, [...params, limit, offset])
 
-      // Summary stats
-      const totalServices = result.rows.length
-      const totalRevenue = result.rows.reduce((sum: number, r: any) => sum + Number(r.financial_compensation || 0), 0)
-      const totalPaid = result.rows.reduce((sum: number, r: any) => sum + Number(r.paid_amount || 0), 0)
-      const totalRemaining = result.rows.reduce((sum: number, r: any) => sum + Number(r.remaining_amount || 0), 0)
-      const completedCount = result.rows.filter((r: any) => r.status_id === 'status_completed').length
-      const inProgressCount = result.rows.filter((r: any) => r.status_id === 'status_in_progress').length
+      // Status distribution for charts
+      const statusDistSql = `
+        SELECT s.status_name_ar, s.color, COUNT(*) as count
+        ${joinSql} ${whereSql}
+        GROUP BY s.status_name_ar, s.color
+        ORDER BY count DESC
+      `
+      const statusDist = await query(statusDistSql, params)
+
+      // Category distribution for charts
+      const catDistSql = `
+        SELECT c.name_ar, COUNT(*) as count,
+          COALESCE(SUM(e.financial_compensation), 0) as total_amount
+        ${joinSql} ${whereSql}
+        GROUP BY c.name_ar
+        ORDER BY count DESC
+      `
+      const catDist = await query(catDistSql, params)
+
+      // Lawyer distribution for charts
+      const lawyerDistSql = `
+        SELECT COALESCE(emp.name, 'غير معين') as name, COUNT(*) as count,
+          COALESCE(SUM(e.financial_compensation), 0) as total_amount,
+          COALESCE(SUM(e.paid_amount), 0) as total_paid
+        ${joinSql} ${whereSql}
+        GROUP BY emp.name
+        ORDER BY count DESC
+      `
+      const lawyerDist = await query(lawyerDistSql, params)
+
+      // Summary stats from ALL matching rows (not just paginated page)
+      const summarySql = `
+        SELECT
+          COUNT(*) as total_services,
+          COALESCE(SUM(e.financial_compensation), 0) as total_revenue,
+          COALESCE(SUM(e.paid_amount), 0) as total_paid,
+          COALESCE(SUM(e.remaining_amount), 0) as total_remaining,
+          COUNT(*) FILTER (WHERE e.status_id = 'status_completed') as completed_count,
+          COUNT(*) FILTER (WHERE e.status_id = 'status_in_progress') as in_progress_count
+        ${joinSql} ${whereSql}
+      `
+      const summaryResult = await query(summarySql, params)
+      const s = summaryResult.rows[0]
+
+      const totalServices = parseInt(s.total_services)
+      const totalRevenue = parseFloat(s.total_revenue)
+      const totalPaid = parseFloat(s.total_paid)
+      const totalRemaining = parseFloat(s.total_remaining)
+      const completedCount = parseInt(s.completed_count)
+      const inProgressCount = parseInt(s.in_progress_count)
 
       res.json({
-        services: result.rows,
+        services: dataResult.rows,
+        pageInfo: {
+          page: parseInt(page as string),
+          pageSize: limit,
+          totalRows
+        },
         summary: {
           totalServices,
           totalRevenue,
@@ -820,11 +953,140 @@ reportsRouter.get(
           totalRemaining,
           completedCount,
           inProgressCount
-        }
+        },
+        distributions: {
+          byStatus: statusDist.rows,
+          byCategory: catDist.rows,
+          byLawyer: lawyerDist.rows
+        },
+        groups: groupResult ? groupResult.rows : null
       })
     } catch (err) {
       console.error('[REPORTS] legal-services error:', err)
       res.status(500).json({ error: 'فشل جلب تقرير الخدمات القانونية' })
+    }
+  }
+)
+
+// Export legal services report as CSV
+// Quick stats summary for dashboard KPI
+reportsRouter.get(
+  '/legal-services/stats',
+  requirePermission('view_legal_services'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+
+      const totalResult = await query(`
+        SELECT
+          COUNT(*) as total_services,
+          COALESCE(SUM(financial_compensation), 0) as total_compensation,
+          COALESCE(SUM(paid_amount), 0) as total_paid,
+          COALESCE(SUM(remaining_amount), 0) as total_remaining,
+          COUNT(*) FILTER (WHERE status_id = 'status_completed') as completed_count,
+          COUNT(*) FILTER (WHERE status_id = 'status_in_progress') as in_progress_count,
+          COUNT(*) FILTER (WHERE status_id = 'status_pending') as pending_count
+        FROM legal_engagements
+        WHERE company_id = $1 AND deleted_at IS NULL
+      `, [companyId])
+
+      const monthlyResult = await query(`
+        SELECT
+          TO_CHAR(start_date, 'YYYY-MM') as month,
+          COUNT(*) as count,
+          COALESCE(SUM(financial_compensation), 0) as total_amount
+        FROM legal_engagements
+        WHERE company_id = $1 AND deleted_at IS NULL AND start_date IS NOT NULL
+        GROUP BY TO_CHAR(start_date, 'YYYY-MM')
+        ORDER BY month DESC
+        LIMIT 12
+      `, [companyId])
+
+      res.json({
+        totals: totalResult.rows[0],
+        monthly: monthlyResult.rows
+      })
+    } catch (err) {
+      console.error('[REPORTS] legal-services stats error:', err)
+      res.status(500).json({ error: 'فشل جلب إحصائيات الخدمات القانونية' })
+    }
+  }
+)
+
+reportsRouter.post(
+  '/legal-services/export',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { format, clientId, caseId, lawyerId, fromDate, toDate, category_id, status_id } = req.body
+
+      let sql = `
+        SELECT e.engagement_number, e.description, e.purpose,
+          c.name_ar as category_name,
+          t.name_ar as service_type_name,
+          s.status_name_ar as status_name,
+          p.priority_name_ar as priority_name,
+          cl.name as client_name,
+          COALESCE(emp.name, 'غير معين') as responsible_name,
+          ca.case_number as linked_case_number,
+          inv.invoice_number,
+          e.financial_compensation, e.tax, e.paid_amount, e.remaining_amount,
+          e.start_date, e.expected_end_date, e.completion_date,
+          e.payment_method
+        FROM legal_engagements e
+        LEFT JOIN legal_service_categories c ON e.category_id = c.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN legal_service_statuses s ON e.status_id = s.id
+        LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
+        LEFT JOIN clients cl ON e.client_id = cl.id
+        LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
+        LEFT JOIN cases ca ON e.case_id = ca.id
+        LEFT JOIN invoices inv ON e.invoice_id = inv.id
+        WHERE e.company_id = $1 AND e.deleted_at IS NULL
+      `
+      const params: any[] = [companyId]
+      let paramIndex = 2
+
+      if (clientId) { sql += ` AND e.client_id = $${paramIndex++}`; params.push(clientId) }
+      if (caseId) { sql += ` AND e.case_id = $${paramIndex++}`; params.push(caseId) }
+      if (lawyerId) { sql += ` AND e.responsible_lawyer_id = $${paramIndex++}`; params.push(lawyerId) }
+      if (fromDate) { sql += ` AND e.start_date >= $${paramIndex++}`; params.push(fromDate) }
+      if (toDate) { sql += ` AND e.start_date <= $${paramIndex++}`; params.push(toDate) }
+      if (category_id && category_id !== 'الكل') { sql += ` AND e.category_id = $${paramIndex++}`; params.push(category_id) }
+      if (status_id && status_id !== 'الكل') { sql += ` AND e.status_id = $${paramIndex++}`; params.push(status_id) }
+
+      sql += ' ORDER BY e.created_at DESC'
+
+      const result = await query(sql, params)
+
+      if (format === 'csv') {
+        const headers = ['رقم الخدمة', 'الوصف', 'الغرض', 'التصنيف', 'نوع الخدمة', 'الحالة', 'الأولوية',
+          'العميل', 'المسؤول', 'رقم القضية', 'رقم الفاتورة', 'المقابل المالي', 'الضريبة', 'المدفوع', 'المتبقي',
+          'تاريخ البداية', 'تاريخ الانتهاء المتوقع', 'تاريخ الإنجاز', 'طريقة الدفع']
+
+        const csvRows = [
+          headers.join(','),
+          ...result.rows.map((r: any) => [
+            r.engagement_number, r.description || '', r.purpose || '',
+            r.category_name || '', r.service_type_name || '', r.status_name || '', r.priority_name || '',
+            r.client_name || '', r.responsible_name || '', r.linked_case_number || '',
+            r.invoice_number || '',
+            r.financial_compensation || 0, r.tax || 0, r.paid_amount || 0, r.remaining_amount || 0,
+            r.start_date || '', r.expected_end_date || '', r.completion_date || '', r.payment_method || ''
+          ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+        ]
+
+        const csv = '\uFEFF' + csvRows.join('\n')
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+        res.setHeader('Content-Disposition', `attachment; filename="legal-services-report.csv"`)
+        res.send(csv)
+      } else {
+        res.status(400).json({ error: 'الصيغة المطلوبة غير مدعومة. استخدم csv' })
+      }
+    } catch (err) {
+      console.error('[REPORTS] legal-services export error:', err)
+      res.status(500).json({ error: 'فشل تصدير تقرير الخدمات القانونية' })
     }
   }
 )

@@ -604,7 +604,15 @@ const api = {
     generateInvoice: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:generateInvoice', id)
-        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/invoice` })
+        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/invoice` }),
+    getFinance: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getFinance', id)
+        : cloudRequest({ method: 'GET', url: `/legal-services/engagements/${id}/finance` }),
+    getByCaseId: (caseId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:list', { case_id: caseId, pageSize: 100 })
+        : cloudRequest({ method: 'GET', url: '/legal-services/engagements', params: { case_id: caseId, pageSize: 100 } })
   },
   defendants: {
     ...buildCrudApi('defendants'),
@@ -1109,6 +1117,14 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getLegalServicesReport', params)
         : cloudRequest({ method: 'GET', url: '/reports/legal-services', params }),
+    getLegalServicesStats: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getLegalServicesStats')
+        : cloudRequest({ method: 'GET', url: '/reports/legal-services/stats' }),
+    exportLegalServices: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:exportLegalServices', params)
+        : cloudRequest({ method: 'POST', url: '/reports/legal-services/export', data: params, responseType: 'blob' }),
     listCases: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:listCases')

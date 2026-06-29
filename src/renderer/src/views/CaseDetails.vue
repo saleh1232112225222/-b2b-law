@@ -58,6 +58,9 @@
           <v-tab value="memoranda" class="font-weight-black"
             ><LucideIcon name="scroll-text" :size="18" class="me-2" /> المذكرات</v-tab
           >
+          <v-tab value="legal-services" class="font-weight-black"
+            ><LucideIcon name="briefcase" :size="18" class="me-2" /> الخدمات القانونية</v-tab
+          >
         </v-tabs>
 
         <v-window v-model="tab" class="pa-6">
@@ -96,6 +99,9 @@
           <v-window-item value="memoranda">
             <CaseMemorandaTab :memoranda="linkedMemoranda" :case-id="caseId" />
           </v-window-item>
+          <v-window-item value="legal-services">
+            <CaseLegalServicesTab :case-id="caseId" />
+          </v-window-item>
         </v-window>
       </v-card>
     </div>
@@ -118,6 +124,7 @@ import CaseJudgmentsTab from './case-details/CaseJudgmentsTab.vue'
 import CaseTasksTab from './case-details/CaseTasksTab.vue'
 import CaseDocumentsTab from './case-details/CaseDocumentsTab.vue'
 import CaseMemorandaTab from './case-details/CaseMemorandaTab.vue'
+import CaseLegalServicesTab from './case-details/CaseLegalServicesTab.vue'
 
 const route = useRoute()
 const router = useRouter()

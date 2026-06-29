@@ -76,24 +76,24 @@ router.get('/engagements', async (req: any, res) => {
     const { companyId } = req.auth
     const { page = 1, pageSize = 25, q, category_id, status_id } = req.query
     
-    let sql = `
-      SELECT 
-        e.*,
-        c.name_ar as category_name,
-        t.name_ar as service_type_name,
-        s.status_name_ar as status_name,
-        p.priority_name_ar as priority_name,
-        cl.name as client_name,
-        emp.name as responsible_name
-      FROM legal_engagements e
-      LEFT JOIN legal_service_categories c ON e.category_id = c.id
-      LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
-      LEFT JOIN legal_service_statuses s ON e.status_id = s.id
-      LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
-      LEFT JOIN clients cl ON e.client_id = cl.id
-      LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
-      WHERE e.company_id = $1 AND e.deleted_at IS NULL
-    `
+      let sql = `
+        SELECT 
+          e.*,
+          c.name_ar as category_name,
+          t.name_ar as service_type_name,
+          s.status_name_ar as status_name,
+          p.priority_name_ar as priority_name,
+          cl.name as client_name,
+          emp.name as responsible_name
+        FROM legal_engagements e
+        LEFT JOIN legal_service_categories c ON e.category_id = c.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN legal_service_statuses s ON e.status_id = s.id
+        LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
+        LEFT JOIN clients cl ON e.client_id = cl.id
+        LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
+        WHERE e.company_id = $1 AND e.deleted_at IS NULL
+      `
     const params: any[] = [companyId]
 
     if (q && q !== 'null') {
@@ -107,6 +107,10 @@ router.get('/engagements', async (req: any, res) => {
     if (status_id && status_id !== 'الكل') {
       params.push(status_id)
       sql += ` AND e.status_id = $${params.length}`
+    }
+    if (req.query.case_id) {
+      params.push(req.query.case_id)
+      sql += ` AND e.case_id = $${params.length}`
     }
 
     sql += ' ORDER BY e.created_at DESC'
@@ -203,21 +207,19 @@ router.post('/engagements', async (req: any, res) => {
 
     // Auto-create finance entry if financial_compensation > 0
     if (financial_compensation > 0) {
-      try {
-        const finId = await query('SELECT gen_random_uuid() as id')
-        const financeId = finId.rows[0].id
-        await query(`
-          INSERT INTO finances (id, company_id, type, category, amount, tax_amount, paid_amount, remaining_amount,
-            description, reference_type, reference_id, client_id, case_id, status, payment_method, created_by)
-          VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, $7, 'legal_engagement', $8, $9, $10, 'pending', $11, $12)
-        `, [
-          financeId, companyId, financial_compensation, tax, paid_amount, remaining_amount,
-          `خدمة قانونية رقم ${engagement_number}`, newId,
-          data.client_id || null, data.case_id || null, data.payment_method || null, userId
-        ])
-      } catch (finErr: any) {
-        console.error('[legal_services] Failed to create finance entry:', finErr.message)
-      }
+      const finId = await query('SELECT gen_random_uuid() as id')
+      const financeId = finId.rows[0].id
+      const total = financial_compensation + tax
+      await query(`
+        INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
+          description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
+        VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
+      `, [
+        financeId, companyId, financial_compensation, tax, total,
+        `خدمة قانونية رقم ${engagement_number}`, newId,
+        data.client_id || null, data.case_id || null, data.payment_method || null,
+        paid_amount, remaining_amount, userId
+      ])
     }
 
     res.json({ id: newId })
@@ -301,15 +303,35 @@ router.put('/engagements/:id', async (req: any, res) => {
 
     // Update finance entry if exists
     if (financial_compensation > 0) {
-      try {
+      const total = financial_compensation + tax
+      const updateResult = await query(`
+        UPDATE finances SET
+          amount = $1, vat_amount = $2, total = $3, paid_amount = $4,
+          remaining_amount = $5, payment_method = COALESCE($6, payment_method),
+          status = CASE
+            WHEN $4 >= $3 THEN 'paid'
+            WHEN $4 > 0 THEN 'partially_paid'
+            ELSE status
+          END,
+          updated_at = NOW()
+        WHERE legal_engagement_id = $7 AND company_id = $8
+        RETURNING id
+      `, [financial_compensation, tax, total, paid_amount, remaining_amount, data.payment_method || null, id, companyId])
+
+      // If no finance record exists yet, create one
+      if (updateResult.rows.length === 0) {
+        const finId = await query('SELECT gen_random_uuid() as id')
+        const financeId = finId.rows[0].id
         await query(`
-          UPDATE finances SET
-            amount = $1, tax_amount = $2, paid_amount = $3, remaining_amount = $4,
-            updated_at = NOW()
-          WHERE reference_type = 'legal_engagement' AND reference_id = $5 AND company_id = $6
-        `, [financial_compensation, tax, paid_amount, remaining_amount, id, companyId])
-      } catch (finErr: any) {
-        console.error('[legal_services] Failed to update finance entry:', finErr.message)
+          INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
+            description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
+          VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
+        `, [
+          financeId, companyId, financial_compensation, tax, total,
+          `خدمة قانونية رقم ${id}`, id,
+          data.client_id || null, data.case_id || null, data.payment_method || null,
+          paid_amount, remaining_amount, userId
+        ])
       }
     }
 
@@ -366,6 +388,23 @@ router.get('/engagements/:id', async (req: any, res) => {
       return
     }
     res.json(result.rows[0])
+  } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Finance Record for Engagement
+router.get('/engagements/:id/finance', async (req: any, res) => {
+  try {
+    const { companyId } = req.auth
+    const { id } = req.params
+    const result = await query(`
+      SELECT *
+      FROM finances
+      WHERE legal_engagement_id = $1 AND company_id = $2
+      LIMIT 1
+    `, [id, companyId])
+    res.json(result.rows[0] || null)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
   }
@@ -548,6 +587,13 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
       SET invoice_id = $1
       WHERE id = $2
     `, [invoiceId, id])
+
+    // Sync finance record status with invoice
+    await query(`
+      UPDATE finances
+      SET status = $1, updated_at = NOW()
+      WHERE legal_engagement_id = $2
+    `, [status, id])
 
     // Add event to timeline
     await query(`

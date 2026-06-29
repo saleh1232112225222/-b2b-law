@@ -187,6 +187,18 @@ export async function runExtraMigrations() {
     await query(`
       ALTER TABLE finances ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
     `)
+    await query(`
+      ALTER TABLE finances ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12,2) DEFAULT 0
+    `)
+    await query(`
+      ALTER TABLE finances ADD COLUMN IF NOT EXISTS remaining_amount NUMERIC(12,2) DEFAULT 0
+    `)
+    await query(`
+      ALTER TABLE finances ADD COLUMN IF NOT EXISTS payment_method TEXT
+    `)
+    await query(`
+      ALTER TABLE finances ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'
+    `)
     console.log('[MIGRATE_EXTRA] Legal engagement relations ensured for tasks and finances')
 
     // Fix FK: responsible_lawyer_id should reference employees(id), not users(id)
@@ -289,6 +301,9 @@ export async function runExtraMigrations() {
       const companyId = company.id
       const newPerms = [
         { key: 'view_legal_services', name: 'عرض الخدمات القانونية', module: 'legal_services' },
+        { key: 'create_legal_services', name: 'إضافة خدمة قانونية', module: 'legal_services' },
+        { key: 'edit_legal_services', name: 'تعديل خدمة قانونية', module: 'legal_services' },
+        { key: 'delete_legal_services', name: 'حذف خدمة قانونية', module: 'legal_services' },
         { key: 'manage_legal_services', name: 'إدارة قائمة الخدمات', module: 'legal_services' },
         { key: 'create_legal_engagements', name: 'إضافة التعاقدات القانونية', module: 'legal_services' }
       ]
@@ -306,7 +321,7 @@ export async function runExtraMigrations() {
 
       // Add to licensed_lawyer
       const roleKey = 'licensed_lawyer'
-      for (const pKey of ['view_legal_services', 'manage_legal_services', 'create_legal_engagements']) {
+      for (const pKey of ['view_legal_services', 'create_legal_services', 'edit_legal_services', 'delete_legal_services', 'manage_legal_services', 'create_legal_engagements']) {
         await query(
           `INSERT INTO role_permissions (id, company_id, role_key, permission_key)
            SELECT gen_random_uuid(), $1, $2, $3

@@ -36,6 +36,9 @@ export const DEFAULT_PERMISSIONS = [
   { key: 'export_reports', name: 'تصدير التقارير', module: 'reports' },
   { key: 'view_files', name: 'عرض خزانة الملفات', module: 'vault' },
   { key: 'view_legal_services', name: 'عرض الخدمات القانونية', module: 'legal_services' },
+  { key: 'create_legal_services', name: 'إضافة خدمة قانونية', module: 'legal_services' },
+  { key: 'edit_legal_services', name: 'تعديل خدمة قانونية', module: 'legal_services' },
+  { key: 'delete_legal_services', name: 'حذف خدمة قانونية', module: 'legal_services' },
   { key: 'manage_legal_services', name: 'إدارة قائمة الخدمات', module: 'legal_services' },
   { key: 'create_legal_engagements', name: 'إضافة التعاقدات القانونية', module: 'legal_services' }
 ]
@@ -69,6 +72,9 @@ export const DEFAULT_ROLE_PERMISSIONS: Record<string, string[]> = {
     'export_reports',
     'view_files',
     'view_legal_services',
+    'create_legal_services',
+    'edit_legal_services',
+    'delete_legal_services',
     'manage_legal_services',
     'create_legal_engagements'
   ],
