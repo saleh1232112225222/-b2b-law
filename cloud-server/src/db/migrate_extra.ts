@@ -182,10 +182,25 @@ export async function runExtraMigrations() {
 
     // Ensure Legal engagement relations
     await query(`
-      ALTER TABLE tasks_v2 ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
+      ALTER TABLE tasks_v2 ADD COLUMN IF NOT EXISTS legal_engagement_id UUID
     `)
     await query(`
-      ALTER TABLE finances ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
+      ALTER TABLE finances ADD COLUMN IF NOT EXISTS legal_engagement_id UUID
+    `)
+    // Add FK constraints separately (column may exist from Drizzle without FK)
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'tasks_v2_legal_engagement_id_fkey') THEN
+          ALTER TABLE tasks_v2 ADD CONSTRAINT tasks_v2_legal_engagement_id_fkey FOREIGN KEY (legal_engagement_id) REFERENCES legal_engagements(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
+    `)
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'finances_legal_engagement_id_fkey') THEN
+          ALTER TABLE finances ADD CONSTRAINT finances_legal_engagement_id_fkey FOREIGN KEY (legal_engagement_id) REFERENCES legal_engagements(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
     `)
     await query(`
       ALTER TABLE finances ADD COLUMN IF NOT EXISTS paid_amount NUMERIC(12,2) DEFAULT 0
