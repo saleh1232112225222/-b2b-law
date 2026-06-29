@@ -843,7 +843,7 @@ const defaultItem: Partial<LegalEngagement> = {
   client_id: '',
   beneficiary: '',
   linked_parties: '',
-  responsible_lawyer_id: '',
+  responsible_lawyer_id: null,
   assistant_team: '',
   description: '',
   purpose: '',

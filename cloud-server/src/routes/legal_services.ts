@@ -84,14 +84,14 @@ router.get('/engagements', async (req: any, res) => {
         s.status_name_ar as status_name,
         p.priority_name_ar as priority_name,
         cl.name as client_name,
-        u.full_name as responsible_name
+        emp.name as responsible_name
       FROM legal_engagements e
       LEFT JOIN legal_service_categories c ON e.category_id = c.id
       LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
       LEFT JOIN legal_service_statuses s ON e.status_id = s.id
       LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
       LEFT JOIN clients cl ON e.client_id = cl.id
-      LEFT JOIN users u ON e.responsible_lawyer_id = u.id
+      LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
       WHERE e.company_id = $1 AND e.deleted_at IS NULL
     `
     const params: any[] = [companyId]
@@ -122,6 +122,22 @@ router.get('/engagements', async (req: any, res) => {
   }
 })
 
+// Helper: resolve responsible_lawyer_id - accepts employee_id or user_id
+async function resolveLawyerId(value: string | null | undefined, companyId: string): Promise<string | null> {
+  if (!value || value === '') return null
+  
+  // Check if it's a valid employee_id
+  const empRes = await query('SELECT id FROM employees WHERE id = $1 AND company_id = $2', [value, companyId])
+  if (empRes.rows.length > 0) return empRes.rows[0].id
+  
+  // Check if it's a user_id and get the employee_id
+  const userRes = await query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [value, companyId])
+  if (userRes.rows.length > 0 && userRes.rows[0].employee_id) return userRes.rows[0].employee_id
+  
+  // If neither, return null (will be stored as NULL in DB)
+  return null
+}
+
 router.post('/engagements', async (req: any, res) => {
   try {
     const { companyId, userId } = req.auth
@@ -133,6 +149,9 @@ router.post('/engagements', async (req: any, res) => {
     const engagement_number = `LEG-${new Date().getFullYear()}-${count.toString().padStart(4, '0')}`
 
     const id = data.id || undefined
+
+    // Resolve responsible_lawyer_id
+    const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
 
     const result = await query(`
       INSERT INTO legal_engagements (
@@ -146,7 +165,7 @@ router.post('/engagements', async (req: any, res) => {
       ) RETURNING id
     `, [
       companyId, engagement_number, data.engagement_type_id, data.category_id,
-      data.client_id || null, data.beneficiary || null, JSON.stringify(data.linked_parties || []), data.responsible_lawyer_id || null,
+      data.client_id || null, data.beneficiary || null, JSON.stringify(data.linked_parties || []), resolvedLawyerId,
       JSON.stringify(data.assistant_team || []), data.description || null, data.purpose || null, data.start_date || null, data.expected_end_date || null,
       data.completion_date || null, data.status_id, data.priority_id, data.financial_compensation || 0,
       data.tax || 0, data.paid_amount || 0, data.remaining_amount || 0, data.payment_method || null,
@@ -165,6 +184,9 @@ router.put('/engagements/:id', async (req: any, res) => {
     const { companyId, userId } = req.auth
     const { id } = req.params
     const data = req.body
+
+    // Resolve responsible_lawyer_id
+    const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
 
     await query(`
       UPDATE legal_engagements SET
@@ -192,7 +214,7 @@ router.put('/engagements/:id', async (req: any, res) => {
       WHERE id = $21 AND company_id = $22
     `, [
       data.engagement_type_id, data.category_id, data.client_id || null, data.beneficiary || null,
-      data.linked_parties ? JSON.stringify(data.linked_parties) : null, data.responsible_lawyer_id || null, 
+      data.linked_parties ? JSON.stringify(data.linked_parties) : null, resolvedLawyerId, 
       data.assistant_team ? JSON.stringify(data.assistant_team) : null, data.description || null,
       data.purpose || null, data.start_date || null, data.expected_end_date || null, data.completion_date || null,
       data.status_id, data.priority_id, data.financial_compensation || 0, data.tax || 0,
@@ -236,14 +258,14 @@ router.get('/engagements/:id', async (req: any, res) => {
         s.status_name_ar as status_name,
         p.priority_name_ar as priority_name,
         cl.name as client_name,
-        u.full_name as responsible_name
+        emp.name as responsible_name
       FROM legal_engagements e
       LEFT JOIN legal_service_categories c ON e.category_id = c.id
       LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
       LEFT JOIN legal_service_statuses s ON e.status_id = s.id
       LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
       LEFT JOIN clients cl ON e.client_id = cl.id
-      LEFT JOIN users u ON e.responsible_lawyer_id = u.id
+      LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
       WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
     `, [id, companyId])
     
