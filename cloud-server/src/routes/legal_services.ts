@@ -153,26 +153,74 @@ router.post('/engagements', async (req: any, res) => {
     // Resolve responsible_lawyer_id
     const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
 
+    // Calculate remaining_amount
+    const financial_compensation = Number(data.financial_compensation || 0)
+    const tax = Number(data.tax || 0)
+    const paid_amount = Number(data.paid_amount || 0)
+    const remaining_amount = (financial_compensation + tax) - paid_amount
+
+    // Handle linked_parties - accept both string and array
+    let linkedPartiesValue: string
+    if (Array.isArray(data.linked_parties)) {
+      linkedPartiesValue = JSON.stringify(data.linked_parties)
+    } else if (data.linked_parties && typeof data.linked_parties === 'string') {
+      linkedPartiesValue = data.linked_parties
+    } else {
+      linkedPartiesValue = '[]'
+    }
+
+    // Handle assistant_team - accept both string and array
+    let assistantTeamValue: string
+    if (Array.isArray(data.assistant_team)) {
+      assistantTeamValue = JSON.stringify(data.assistant_team)
+    } else if (data.assistant_team && typeof data.assistant_team === 'string') {
+      assistantTeamValue = data.assistant_team
+    } else {
+      assistantTeamValue = '[]'
+    }
+
     const result = await query(`
       INSERT INTO legal_engagements (
         company_id, engagement_number, engagement_type_id, category_id,
         client_id, beneficiary, linked_parties, responsible_lawyer_id,
         assistant_team, description, purpose, start_date, expected_end_date,
         completion_date, status_id, priority_id, financial_compensation,
-        tax, paid_amount, remaining_amount, payment_method, created_by, updated_by
+        tax, paid_amount, remaining_amount, payment_method, contract_id, case_id, created_by, updated_by
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
       ) RETURNING id
     `, [
       companyId, engagement_number, data.engagement_type_id, data.category_id,
-      data.client_id || null, data.beneficiary || null, JSON.stringify(data.linked_parties || []), resolvedLawyerId,
-      JSON.stringify(data.assistant_team || []), data.description || null, data.purpose || null, data.start_date || null, data.expected_end_date || null,
-      data.completion_date || null, data.status_id, data.priority_id, data.financial_compensation || 0,
-      data.tax || 0, data.paid_amount || 0, data.remaining_amount || 0, data.payment_method || null,
+      data.client_id || null, data.beneficiary || null, linkedPartiesValue, resolvedLawyerId,
+      assistantTeamValue, data.description || null, data.purpose || null, data.start_date || null, data.expected_end_date || null,
+      data.completion_date || null, data.status_id, data.priority_id, financial_compensation,
+      tax, paid_amount, remaining_amount, data.payment_method || null,
+      data.contract_id || null, data.case_id || null,
       userId, userId
     ])
 
-    res.json({ id: result.rows[0].id })
+    const newId = result.rows[0].id
+
+    // Auto-create finance entry if financial_compensation > 0
+    if (financial_compensation > 0) {
+      try {
+        const finId = await query('SELECT gen_random_uuid() as id')
+        const financeId = finId.rows[0].id
+        await query(`
+          INSERT INTO finances (id, company_id, type, category, amount, tax_amount, paid_amount, remaining_amount,
+            description, reference_type, reference_id, client_id, case_id, status, payment_method, created_by)
+          VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, $7, 'legal_engagement', $8, $9, $10, 'pending', $11, $12)
+        `, [
+          financeId, companyId, financial_compensation, tax, paid_amount, remaining_amount,
+          `خدمة قانونية رقم ${engagement_number}`, newId,
+          data.client_id || null, data.case_id || null, data.payment_method || null, userId
+        ])
+      } catch (finErr: any) {
+        console.error('[legal_services] Failed to create finance entry:', finErr.message)
+      }
+    }
+
+    res.json({ id: newId })
   } catch (err: any) {
     console.error('[legal_services] POST /engagements error:', err.message, err.stack)
     res.status(500).json({ error: err.message })
@@ -187,6 +235,32 @@ router.put('/engagements/:id', async (req: any, res) => {
 
     // Resolve responsible_lawyer_id
     const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
+
+    // Calculate remaining_amount
+    const financial_compensation = Number(data.financial_compensation || 0)
+    const tax = Number(data.tax || 0)
+    const paid_amount = Number(data.paid_amount || 0)
+    const remaining_amount = (financial_compensation + tax) - paid_amount
+
+    // Handle linked_parties - accept both string and array
+    let linkedPartiesValue: string | null
+    if (data.linked_parties === undefined || data.linked_parties === null) {
+      linkedPartiesValue = null
+    } else if (Array.isArray(data.linked_parties)) {
+      linkedPartiesValue = JSON.stringify(data.linked_parties)
+    } else {
+      linkedPartiesValue = String(data.linked_parties)
+    }
+
+    // Handle assistant_team - accept both string and array
+    let assistantTeamValue: string | null
+    if (data.assistant_team === undefined || data.assistant_team === null) {
+      assistantTeamValue = null
+    } else if (Array.isArray(data.assistant_team)) {
+      assistantTeamValue = JSON.stringify(data.assistant_team)
+    } else {
+      assistantTeamValue = String(data.assistant_team)
+    }
 
     await query(`
       UPDATE legal_engagements SET
@@ -207,19 +281,37 @@ router.put('/engagements/:id', async (req: any, res) => {
         financial_compensation = COALESCE($15, financial_compensation),
         tax = COALESCE($16, tax),
         paid_amount = COALESCE($17, paid_amount),
-        remaining_amount = COALESCE($18, remaining_amount),
+        remaining_amount = $18,
         payment_method = COALESCE($19, payment_method),
-        updated_by = $20,
+        contract_id = COALESCE($20, contract_id),
+        case_id = COALESCE($21, case_id),
+        updated_by = $22,
         updated_at = NOW()
-      WHERE id = $21 AND company_id = $22
+      WHERE id = $23 AND company_id = $24
     `, [
       data.engagement_type_id, data.category_id, data.client_id || null, data.beneficiary || null,
-      data.linked_parties ? JSON.stringify(data.linked_parties) : null, resolvedLawyerId, 
-      data.assistant_team ? JSON.stringify(data.assistant_team) : null, data.description || null,
+      linkedPartiesValue, resolvedLawyerId, 
+      assistantTeamValue, data.description || null,
       data.purpose || null, data.start_date || null, data.expected_end_date || null, data.completion_date || null,
-      data.status_id, data.priority_id, data.financial_compensation || 0, data.tax || 0,
-      data.paid_amount || 0, data.remaining_amount || 0, data.payment_method || null, userId, id, companyId
+      data.status_id, data.priority_id, financial_compensation, tax,
+      paid_amount, remaining_amount, data.payment_method || null,
+      data.contract_id || null, data.case_id || null,
+      userId, id, companyId
     ])
+
+    // Update finance entry if exists
+    if (financial_compensation > 0) {
+      try {
+        await query(`
+          UPDATE finances SET
+            amount = $1, tax_amount = $2, paid_amount = $3, remaining_amount = $4,
+            updated_at = NOW()
+          WHERE reference_type = 'legal_engagement' AND reference_id = $5 AND company_id = $6
+        `, [financial_compensation, tax, paid_amount, remaining_amount, id, companyId])
+      } catch (finErr: any) {
+        console.error('[legal_services] Failed to update finance entry:', finErr.message)
+      }
+    }
 
     res.json({ success: true })
   } catch (err: any) {

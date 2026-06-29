@@ -1105,6 +1105,10 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getCaseReport', params)
         : cloudRequest({ method: 'GET', url: '/reports/case', params }),
+    getLegalServicesReport: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getLegalServicesReport', params)
+        : cloudRequest({ method: 'GET', url: '/reports/legal-services', params }),
     listCases: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:listCases')

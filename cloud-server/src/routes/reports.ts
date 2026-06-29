@@ -747,6 +747,88 @@ reportsRouter.get(
   }
 )
 
+reportsRouter.get(
+  '/legal-services',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { clientId, caseId, lawyerId, fromDate, toDate, groupBy } = req.query
+
+      let sql = `
+        SELECT 
+          e.*,
+          c.name_ar as category_name,
+          t.name_ar as service_type_name,
+          s.status_name_ar as status_name,
+          p.priority_name_ar as priority_name,
+          cl.name as client_name,
+          emp.name as responsible_name,
+          ca.case_number as linked_case_number
+        FROM legal_engagements e
+        LEFT JOIN legal_service_categories c ON e.category_id = c.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN legal_service_statuses s ON e.status_id = s.id
+        LEFT JOIN legal_service_priorities p ON e.priority_id = p.id
+        LEFT JOIN clients cl ON e.client_id = cl.id
+        LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
+        LEFT JOIN cases ca ON e.case_id = ca.id
+        WHERE e.company_id = $1 AND e.deleted_at IS NULL
+      `
+      const params: any[] = [companyId]
+      let paramIndex = 2
+
+      if (clientId) {
+        sql += ` AND e.client_id = $${paramIndex++}`
+        params.push(clientId)
+      }
+      if (caseId) {
+        sql += ` AND e.case_id = $${paramIndex++}`
+        params.push(caseId)
+      }
+      if (lawyerId) {
+        sql += ` AND e.responsible_lawyer_id = $${paramIndex++}`
+        params.push(lawyerId)
+      }
+      if (fromDate) {
+        sql += ` AND e.start_date >= $${paramIndex++}`
+        params.push(fromDate)
+      }
+      if (toDate) {
+        sql += ` AND e.start_date <= $${paramIndex++}`
+        params.push(toDate)
+      }
+
+      sql += ' ORDER BY e.created_at DESC'
+
+      const result = await query(sql, params)
+
+      // Summary stats
+      const totalServices = result.rows.length
+      const totalRevenue = result.rows.reduce((sum: number, r: any) => sum + Number(r.financial_compensation || 0), 0)
+      const totalPaid = result.rows.reduce((sum: number, r: any) => sum + Number(r.paid_amount || 0), 0)
+      const totalRemaining = result.rows.reduce((sum: number, r: any) => sum + Number(r.remaining_amount || 0), 0)
+      const completedCount = result.rows.filter((r: any) => r.status_id === 'status_completed').length
+      const inProgressCount = result.rows.filter((r: any) => r.status_id === 'status_in_progress').length
+
+      res.json({
+        services: result.rows,
+        summary: {
+          totalServices,
+          totalRevenue,
+          totalPaid,
+          totalRemaining,
+          completedCount,
+          inProgressCount
+        }
+      })
+    } catch (err) {
+      console.error('[REPORTS] legal-services error:', err)
+      res.status(500).json({ error: 'فشل جلب تقرير الخدمات القانونية' })
+    }
+  }
+)
+
 reportsRouter.post(
   '/preview',
   requirePermission('export_reports'),

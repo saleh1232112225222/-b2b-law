@@ -837,7 +837,6 @@ const prevPage = () => {
 
 // Actions: Create, Edit, Save
 const defaultItem: Partial<LegalEngagement> = {
-  engagement_number: '',
   engagement_type_id: '',
   category_id: '',
   client_id: '',

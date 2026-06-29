@@ -33,18 +33,7 @@
         ></v-select>
       </v-col>
 
-      <!-- Service Number & Service Type -->
-      <v-col cols="12" md="6">
-        <v-text-field
-          v-model="modelValue.engagement_number"
-          label="رقم الخدمة*"
-          variant="outlined"
-          density="comfortable"
-          :prepend-inner-icon="ICONS.UI.ID_CARD"
-          :rules="[(v) => !!v || 'رقم الخدمة مطلوب']"
-          required
-        ></v-text-field>
-      </v-col>
+      <!-- Service Type -->
       <v-col cols="12" md="6">
         <v-text-field
           v-model="modelValue.service_type"
