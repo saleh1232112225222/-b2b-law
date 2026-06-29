@@ -112,6 +112,16 @@
               inline
             ></v-badge>
           </v-tab>
+          <v-tab value="legal-services" class="font-weight-black text-gold py-6">
+            <LucideIcon name="scale" :size="18" class="me-3" /> الخدمات القانونية
+            <v-badge
+              v-if="legalServicesSummary.total_services > 0"
+              :content="legalServicesSummary.total_services"
+              color="accent"
+              class="ms-4"
+              inline
+            ></v-badge>
+          </v-tab>
         </v-tabs>
 
         <v-window v-model="tab" class="pa-8">
@@ -249,6 +259,77 @@
               </template>
             </v-data-table>
           </v-window-item>
+
+          <!-- Legal Services Tab -->
+          <v-window-item value="legal-services">
+            <!-- Financial Summary Cards -->
+            <v-row class="mb-6" dense>
+              <v-col cols="12" sm="6" md="3">
+                <v-card elevation="0" class="pa-5 rounded-xl border border-gold border-opacity-20 glass-card text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-2">إجمالي الخدمات</div>
+                  <div class="text-h5 font-weight-black text-white">{{ legalServicesSummary.total_services || 0 }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="12" sm="6" md="3">
+                <v-card elevation="0" class="pa-5 rounded-xl border border-success border-opacity-20 glass-card text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المقابل المالي الكلي</div>
+                  <div class="text-h5 font-weight-black text-success">{{ formatCurrency(legalServicesSummary.total_with_tax || 0) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="12" sm="6" md="3">
+                <v-card elevation="0" class="pa-5 rounded-xl border border-accent border-opacity-20 glass-card text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المحصل فعلياً</div>
+                  <div class="text-h5 font-weight-black text-accent">{{ formatCurrency(legalServicesSummary.total_paid || 0) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="12" sm="6" md="3">
+                <v-card elevation="0" class="pa-5 rounded-xl border border-error border-opacity-20 glass-card text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المستحقات المتبقية</div>
+                  <div class="text-h5 font-weight-black text-error">{{ formatCurrency(legalServicesSummary.total_remaining || 0) }}</div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Legal Services Table -->
+            <v-data-table
+              :headers="legalServiceHeaders"
+              :items="legalServicesList"
+              class="bg-transparent premium-table"
+              hover
+              no-data-text="لا توجد خدمات قانونية مسجلة لهذا الموكل"
+            >
+              <template #[`item.engagement_number`]="{ item }">
+                <v-btn
+                  variant="text"
+                  color="accent"
+                  class="px-0 font-weight-black text-decoration-underline ltr-text premium-btn-gold-gradient"
+                  density="compact"
+                  :to="'/legal-engagements/' + item.id"
+                >
+                  {{ item.engagement_number }}
+                </v-btn>
+              </template>
+              <template #[`item.status_name`]="{ item }">
+                <v-chip
+                  size="x-small"
+                  :color="getLegalServiceStatusColor(item.status_id)"
+                  variant="flat"
+                  class="font-weight-black px-3 rounded-lg"
+                >
+                  {{ item.status_name }}
+                </v-chip>
+              </template>
+              <template #[`item.financial_compensation`]="{ item }">
+                <div class="font-weight-black text-accent">{{ formatCurrency(item.financial_compensation || 0) }}</div>
+              </template>
+              <template #[`item.paid_amount`]="{ item }">
+                <div class="font-weight-black text-success">{{ formatCurrency(item.paid_amount || 0) }}</div>
+              </template>
+              <template #[`item.remaining_amount`]="{ item }">
+                <div class="font-weight-black text-error">{{ formatCurrency(item.remaining_amount || 0) }}</div>
+              </template>
+            </v-data-table>
+          </v-window-item>
         </v-window>
       </v-card>
     </div>
@@ -366,7 +447,18 @@ const tab = ref('overview')
 const client = ref<Client | null>(null)
 const linkedCases = ref<Case[]>([])
 const linkedAgencies = ref<Agency[]>([])
-
+const legalServicesList = ref<any[]>([])
+const legalServicesSummary = ref<any>({
+  total_services: 0,
+  total_compensation: 0,
+  total_tax: 0,
+  total_with_tax: 0,
+  total_paid: 0,
+  total_remaining: 0,
+  completed_count: 0,
+  in_progress_count: 0,
+  pending_count: 0
+})
 const showEditDialog = ref(false)
 const formValid = ref(false)
 const saving = ref(false)
@@ -420,6 +512,23 @@ const agencyHeaders = [
   { title: 'تاريخ الانتهاء', key: 'expiry_date', align: 'center' as const }
 ]
 
+const legalServiceHeaders = [
+  { title: 'رقم الخدمة', key: 'engagement_number', align: 'start' as const },
+  { title: 'الخدمة', key: 'service_type_name', align: 'start' as const },
+  { title: 'التصنيف', key: 'category_name', align: 'start' as const },
+  { title: 'الحالة', key: 'status_name', align: 'center' as const, width: '120px' },
+  { title: 'المقابل المالي', key: 'financial_compensation', align: 'end' as const },
+  { title: 'المحصل', key: 'paid_amount', align: 'end' as const },
+  { title: 'المتبقي', key: 'remaining_amount', align: 'end' as const }
+]
+
+const getLegalServiceStatusColor = (statusId: string) => {
+  if (statusId === 'status_completed') return 'success'
+  if (statusId === 'status_in_progress') return 'info'
+  if (statusId === 'status_cancelled') return 'error'
+  return 'warning'
+}
+
 const loadAllData = async (): Promise<void> => {
   loading.value = true
   try {
@@ -432,6 +541,17 @@ const loadAllData = async (): Promise<void> => {
       // Fetch agencies
       const agencies = await window.api.agencies.getByClientId(clientId.value)
       linkedAgencies.value = safeArray(agencies)
+
+      // Fetch legal services summary for this client
+      try {
+        const legalData = await window.api.legalServices.getClientSummary(clientId.value)
+        if (legalData) {
+          legalServicesSummary.value = legalData.summary || legalServicesSummary.value
+          legalServicesList.value = legalData.services || []
+        }
+      } catch (e) {
+        console.warn('Failed to load legal services for client:', e)
+      }
 
       // Calculate next client
       await calculateNextClientId()
@@ -518,6 +638,10 @@ const getStatusColor = (status?: string) => {
 const formatDate = (date?: string) => {
   if (!date) return '---'
   return new Date(date).toLocaleDateString('ar-SA')
+}
+
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
 }
 </script>
 

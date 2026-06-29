@@ -262,6 +262,41 @@
         </v-col>
       </v-row>
 
+      <!-- Legal Services Financial Summary -->
+      <div class="d-flex align-center mb-6 mt-4">
+        <div class="glass-panel-light pa-2 rounded-lg me-3 border border-gold border-opacity-10">
+          <LucideIcon name="scale" :size="20" class="text-gold" />
+        </div>
+        <span class="text-h6 font-weight-black text-white">ملخص الخدمات القانونية المالية</span>
+      </div>
+
+      <v-row dense class="mb-8">
+        <v-col cols="12" sm="6" md="3">
+          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card">
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">إجمالي الخدمات</div>
+            <div class="text-h5 font-weight-black text-white">{{ legalServicesStats.total_services || 0 }}</div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-success border-opacity-10 glass-card">
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المقابل المالي</div>
+            <div class="text-h5 font-weight-black text-success">{{ formatCurrency(legalServicesStats.total_revenue || 0) }}</div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-accent border-opacity-10 glass-card">
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المحصل</div>
+            <div class="text-h5 font-weight-black text-accent">{{ formatCurrency(legalServicesStats.total_paid || 0) }}</div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-error border-opacity-10 glass-card">
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المتبقي</div>
+            <div class="text-h5 font-weight-black text-error">{{ formatCurrency(legalServicesStats.total_remaining || 0) }}</div>
+          </v-card>
+        </v-col>
+      </v-row>
+
       <!-- Ledger Table -->
       <div class="d-flex align-center mb-4">
         <div class="glass-panel-light pa-2 rounded-lg me-3 border border-gold border-opacity-10">
@@ -405,6 +440,13 @@ const totalRows = ref(0)
 const totalPages = ref(1)
 const cases = ref<{ title: string; value: string }[]>([])
 
+// Legal Services Stats
+const legalServicesStats = ref<any>({
+  total_services: 0,
+  total_revenue: 0,
+  total_paid: 0,
+  total_remaining: 0
+})
 const load = async (): Promise<void> => {
   loading.value = true
   error.value = ''
@@ -524,7 +566,24 @@ const loadCases = async (): Promise<void> => {
 onMounted(() => {
   loadCases()
   load()
+  loadLegalServicesStats()
 })
+
+const loadLegalServicesStats = async () => {
+  try {
+    const data = await (window as any).api.reports.getLegalServicesReport({ pageSize: 1 })
+    if (data && data.summary) {
+      legalServicesStats.value = {
+        total_services: data.summary.totalServices || 0,
+        total_revenue: data.summary.totalRevenue || 0,
+        total_paid: data.summary.totalPaid || 0,
+        total_remaining: data.summary.totalRemaining || 0
+      }
+    }
+  } catch (e) {
+    console.warn('Failed to load legal services stats:', e)
+  }
+}
 </script>
 
 <style scoped>

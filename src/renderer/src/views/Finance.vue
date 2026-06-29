@@ -98,6 +98,9 @@
             <v-tab value="reports" class="font-weight-black">
               <LucideIcon name="pie-chart" :size="18" class="me-2" /> تقارير الأداء
             </v-tab>
+            <v-tab value="legal-finance" class="font-weight-black">
+              <LucideIcon name="scale" :size="18" class="me-2" /> الخدمات القانونية
+            </v-tab>
           </v-tabs>
         </div>
         <v-divider class="border-gold opacity-10" />
@@ -264,6 +267,68 @@
             <v-window-item value="receivables"><ReceivablesList /></v-window-item>
             <v-window-item value="accounts"><AccountsChart /></v-window-item>
             <v-window-item value="reports"><ProfitabilityReport /></v-window-item>
+            <v-window-item value="legal-finance">
+              <div class="pa-6">
+                <div class="d-flex align-center justify-space-between mb-6">
+                  <div class="text-subtitle-1 font-weight-black text-gold">ملخص الخدمات القانونية المالية</div>
+                  <v-btn variant="text" color="accent" class="rounded-lg font-weight-black" @click="loadLegalFinanceData" :loading="legalFinanceLoading">
+                    <LucideIcon name="refresh-cw" :size="18" class="me-2" /> تحديث
+                  </v-btn>
+                </div>
+                <v-row dense class="mb-6">
+                  <v-col cols="12" sm="6" md="3">
+                    <v-card elevation="0" class="pa-5 rounded-xl border border-gold border-opacity-20 glass-card text-center">
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">إجمالي الخدمات</div>
+                      <div class="text-h5 font-weight-black text-white">{{ legalFinanceStats.total_services || 0 }}</div>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3">
+                    <v-card elevation="0" class="pa-5 rounded-xl border border-success border-opacity-20 glass-card text-center">
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">إجمالي المقابل المالي</div>
+                      <div class="text-h5 font-weight-black text-success">{{ formatCurrency(legalFinanceStats.total_compensation || 0) }}</div>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3">
+                    <v-card elevation="0" class="pa-5 rounded-xl border border-accent border-opacity-20 glass-card text-center">
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المحصل فعلياً</div>
+                      <div class="text-h5 font-weight-black text-accent">{{ formatCurrency(legalFinanceStats.total_paid || 0) }}</div>
+                    </v-card>
+                  </v-col>
+                  <v-col cols="12" sm="6" md="3">
+                    <v-card elevation="0" class="pa-5 rounded-xl border border-error border-opacity-20 glass-card text-center">
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المتبقي المستحق</div>
+                      <div class="text-h5 font-weight-black text-error">{{ formatCurrency(legalFinanceStats.total_remaining || 0) }}</div>
+                    </v-card>
+                  </v-col>
+                </v-row>
+                <v-data-table
+                  :headers="legalFinanceHeaders"
+                  :items="legalFinanceList"
+                  class="bg-transparent premium-table"
+                  hover
+                  :items-per-page="10"
+                  no-data-text="لا توجد خدمات قانونية مسجلة"
+                >
+                  <template #[`item.engagement_number`]="{ item }">
+                    <v-btn variant="text" color="accent" class="px-0 font-weight-black text-decoration-underline ltr-text" density="compact" @click="$router.push('/legal-engagements/' + item.id)">
+                      {{ item.engagement_number }}
+                    </v-btn>
+                  </template>
+                  <template #[`item.client_name`]="{ item }">
+                    <span class="font-weight-black text-white">{{ item.client_name || '-' }}</span>
+                  </template>
+                  <template #[`item.financial_compensation`]="{ item }">
+                    <span class="font-weight-black text-accent">{{ formatCurrency(item.financial_compensation || 0) }}</span>
+                  </template>
+                  <template #[`item.paid_amount`]="{ item }">
+                    <span class="font-weight-black text-success">{{ formatCurrency(item.paid_amount || 0) }}</span>
+                  </template>
+                  <template #[`item.remaining_amount`]="{ item }">
+                    <span class="font-weight-black text-error">{{ formatCurrency(item.remaining_amount || 0) }}</span>
+                  </template>
+                </v-data-table>
+              </div>
+            </v-window-item>
           </v-window>
         </v-card-text>
       </v-card>
@@ -590,6 +655,25 @@ const snackbarText = ref('')
 const snackbarColor = ref('success')
 const showCreditNoteDialog = ref(false)
 
+// Legal Services Finance Data
+const legalFinanceLoading = ref(false)
+const legalFinanceStats = ref<any>({
+  total_services: 0,
+  total_compensation: 0,
+  total_paid: 0,
+  total_remaining: 0
+})
+const legalFinanceList = ref<any[]>([])
+const legalFinanceHeaders = [
+  { title: 'رقم الخدمة', key: 'engagement_number', align: 'start' as const },
+  { title: 'الخدمة', key: 'service_type_name', align: 'start' as const },
+  { title: 'العميل', key: 'client_name', align: 'start' as const },
+  { title: 'التصنيف', key: 'category_name', align: 'start' as const },
+  { title: 'المقابل المالي', key: 'financial_compensation', align: 'end' as const },
+  { title: 'المحصل', key: 'paid_amount', align: 'end' as const },
+  { title: 'المتبقي', key: 'remaining_amount', align: 'end' as const }
+]
+
 const onCreditNoteCreated = () => {
   showSnackbar('تم إصدار إشعار الدائن بنجاح. يرجى اعتماده لتفعيل الأثر المالي.', 'success')
   financeStore.fetchFinanceData()
@@ -775,6 +859,33 @@ const loadLookups = async (): Promise<void> => {
 }
 
 onMounted(loadLookups)
+
+// Load legal finance data when tab changes
+watch(tab, async (newTab) => {
+  if (newTab === 'legal-finance') {
+    await loadLegalFinanceData()
+  }
+})
+
+const loadLegalFinanceData = async () => {
+  legalFinanceLoading.value = true
+  try {
+    const data = await (window as any).api.reports.getLegalServicesReport({ pageSize: 500 })
+    if (data) {
+      legalFinanceStats.value = {
+        total_services: data.summary?.totalServices || 0,
+        total_compensation: data.summary?.totalRevenue || 0,
+        total_paid: data.summary?.totalPaid || 0,
+        total_remaining: data.summary?.totalRemaining || 0
+      }
+      legalFinanceList.value = data.services || []
+    }
+  } catch (e) {
+    console.error('Failed to load legal finance data:', e)
+  } finally {
+    legalFinanceLoading.value = false
+  }
+}
 
 const showSnackbar = (text: string, color: string = 'success'): void => {
   snackbarText.value = text

@@ -135,6 +135,15 @@ export const useLegalStore = defineStore('legal', () => {
     }
   }
 
+  const fetchClientSummary = async (clientId: string): Promise<{ summary: any; services: any[] }> => {
+    try {
+      const result = await window.api.legalServices.getClientSummary(clientId)
+      return result || { summary: {}, services: [] }
+    } catch (e: any) {
+      return { summary: {}, services: [] }
+    }
+  }
+
   return {
     services,
     loading,
@@ -156,6 +165,7 @@ export const useLegalStore = defineStore('legal', () => {
     addService,
     updateService,
     deleteService,
-    fetchFinanceRecord
+    fetchFinanceRecord,
+    fetchClientSummary
   }
 })

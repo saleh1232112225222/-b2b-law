@@ -59,6 +59,10 @@
             <LucideIcon name="file-text" :size="18" class="me-2" /> الوكالات
             <v-badge v-if="safeLength(linkedAgencies) > 0" :content="safeLength(linkedAgencies)" color="accent" class="ms-2" inline></v-badge>
           </v-tab>
+          <v-tab value="legal-services" class="font-weight-black text-gold py-4">
+            <LucideIcon name="scale" :size="18" class="me-2" /> الخدمات
+            <v-badge v-if="legalServicesSummary.total_services > 0" :content="legalServicesSummary.total_services" color="accent" class="ms-2" inline></v-badge>
+          </v-tab>
         </v-tabs>
 
         <v-window v-model="tab" class="pa-4">
@@ -168,6 +172,49 @@
               </v-list-item>
             </v-list>
           </v-window-item>
+
+          <!-- Legal Services Tab -->
+          <v-window-item value="legal-services">
+            <!-- Financial Summary -->
+            <v-row dense class="mb-4">
+              <v-col cols="6">
+                <v-card elevation="0" class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-1">المحصل</div>
+                  <div class="text-h6 font-weight-black text-success">{{ formatCurrency(legalServicesSummary.total_paid || 0) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6">
+                <v-card elevation="0" class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center">
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-1">المتبقي</div>
+                  <div class="text-h6 font-weight-black text-error">{{ formatCurrency(legalServicesSummary.total_remaining || 0) }}</div>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <v-list class="pa-0" v-if="legalServicesList.length === 0">
+              <v-list-item class="text-center py-12">
+                <LucideIcon name="scale" :size="48" class="text-gold opacity-30 mb-2" />
+                <div class="text-gold opacity-50 font-weight-black">لا توجد خدمات قانونية مسجلة</div>
+              </v-list-item>
+            </v-list>
+            <v-list class="pa-0" v-else>
+              <v-list-item v-for="svc in legalServicesList" :key="svc.id" class="px-0 mb-3" @click="$router.push('/legal-engagements/' + svc.id)">
+                <template #prepend>
+                  <div class="glass-panel-light pa-3 rounded-lg me-3 bg-accent-alpha">
+                    <LucideIcon name="scale" :size="24" class="text-accent" />
+                  </div>
+                </template>
+                <v-list-item-title class="text-h6 font-weight-black text-white">{{ svc.service_type_name }}</v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-gold opacity-70">{{ svc.category_name }} - {{ svc.engagement_number }}</v-list-item-subtitle>
+                <template #append>
+                  <div class="text-end">
+                    <div class="text-caption text-success font-weight-black">{{ formatCurrency(svc.paid_amount || 0) }}</div>
+                    <div class="text-caption text-error font-weight-black" v-if="(svc.remaining_amount || 0) > 0">متبقي: {{ formatCurrency(svc.remaining_amount || 0) }}</div>
+                  </div>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-window-item>
         </v-window>
       </v-card>
     </template>
@@ -201,7 +248,15 @@ const tab = ref('overview')
 const client = ref<Client | null>(null)
 const linkedCases = ref<Case[]>([])
 const linkedAgencies = ref<Agency[]>([])
-
+const legalServicesList = ref<any[]>([])
+const legalServicesSummary = ref<any>({
+  total_services: 0,
+  total_compensation: 0,
+  total_tax: 0,
+  total_with_tax: 0,
+  total_paid: 0,
+  total_remaining: 0
+})
 onMounted(async () => {
   await loadData()
 })
@@ -220,6 +275,17 @@ const loadData = async () => {
       linkedCases.value = safeArray(cases)
       const agencies = await (window as any).api.agencies.getByClientId(clientId.value)
       linkedAgencies.value = safeArray(agencies)
+
+      // Fetch legal services for this client
+      try {
+        const legalData = await (window as any).api.legalServices.getClientSummary(clientId.value)
+        if (legalData) {
+          legalServicesSummary.value = legalData.summary || legalServicesSummary.value
+          legalServicesList.value = legalData.services || []
+        }
+      } catch (e) {
+        console.warn('Failed to load legal services for client:', e)
+      }
     }
   } catch (err) {
     console.error('Failed to load client details:', err)
@@ -263,5 +329,9 @@ const getStatusColor = (status?: string) => {
 const formatDate = (date?: string) => {
   if (!date) return '---'
   return new Date(date).toLocaleDateString('ar-SA')
+}
+
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
 }
 </script>

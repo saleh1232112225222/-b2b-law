@@ -53,7 +53,7 @@ router.get('/engagements/count', async (req: any, res) => {
 
     if (q && q !== 'null') {
       params.push(`%${q}%`)
-      sql += ` AND (engagement_number ILIKE $${params.length} OR description ILIKE $${params.length} OR title ILIKE $${params.length})`
+      sql += ` AND (engagement_number ILIKE $${params.length} OR description ILIKE $${params.length} OR service_type ILIKE $${params.length})`
     }
     if (category_id && category_id !== 'الكل') {
       params.push(category_id)
@@ -138,7 +138,7 @@ async function resolveLawyerId(value: string | null | undefined, companyId: stri
   const userRes = await query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [value, companyId])
   if (userRes.rows.length > 0 && userRes.rows[0].employee_id) return userRes.rows[0].employee_id
   
-  // If neither, return null (will be stored as NULL in DB)
+  // If neither found, return null
   return null
 }
 
@@ -603,6 +603,54 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
 
     res.json({ success: true, invoiceId })
   } catch (err: any) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// Get Legal Services Summary for a Client
+router.get('/client/:clientId/summary', async (req: any, res) => {
+  try {
+    const { companyId } = req.auth
+    const { clientId } = req.params
+
+    const result = await query(`
+      SELECT 
+        COUNT(*) as total_services,
+        COUNT(*) FILTER (WHERE e.status_id = 'status_completed') as completed_count,
+        COUNT(*) FILTER (WHERE e.status_id = 'status_in_progress') as in_progress_count,
+        COUNT(*) FILTER (WHERE e.status_id = 'status_pending') as pending_count,
+        COALESCE(SUM(e.financial_compensation), 0) as total_compensation,
+        COALESCE(SUM(e.tax), 0) as total_tax,
+        COALESCE(SUM(e.financial_compensation + e.tax), 0) as total_with_tax,
+        COALESCE(SUM(e.paid_amount), 0) as total_paid,
+        COALESCE(SUM(e.remaining_amount), 0) as total_remaining
+      FROM legal_engagements e
+      WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+    `, [clientId, companyId])
+
+    const servicesResult = await query(`
+      SELECT 
+        e.id, e.engagement_number, e.financial_compensation, e.tax, 
+        e.paid_amount, e.remaining_amount, e.status_id, e.start_date,
+        c.name_ar as category_name,
+        t.name_ar as service_type_name,
+        s.status_name_ar as status_name,
+        emp.name as responsible_name
+      FROM legal_engagements e
+      LEFT JOIN legal_service_categories c ON e.category_id = c.id
+      LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+      LEFT JOIN legal_service_statuses s ON e.status_id = s.id
+      LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
+      WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+      ORDER BY e.created_at DESC
+    `, [clientId, companyId])
+
+    res.json({
+      summary: result.rows[0],
+      services: servicesResult.rows
+    })
+  } catch (err: any) {
+    console.error('[legal_services] GET /client/:clientId/summary error:', err.message)
     res.status(500).json({ error: err.message })
   }
 })

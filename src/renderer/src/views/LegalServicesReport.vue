@@ -135,6 +135,38 @@
       </v-col>
     </v-row>
 
+    <!-- Client Financial Summary (auto-computed from data) -->
+    <v-card v-if="clientFinancialSummary.length > 0" elevation="0" class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden">
+      <div class="pa-5 border-b border-gold-alpha">
+        <div class="text-subtitle-2 font-weight-black text-gold">الملخص المالي حسب العميل</div>
+      </div>
+      <v-table density="comfortable" class="glass-table">
+        <thead>
+          <tr>
+            <th class="text-right text-gold font-weight-black">العميل</th>
+            <th class="text-right text-gold font-weight-black">عدد الخدمات</th>
+            <th class="text-right text-gold font-weight-black">إجمالي المقابل</th>
+            <th class="text-right text-gold font-weight-black">المحصل</th>
+            <th class="text-right text-gold font-weight-black">المتبقي</th>
+            <th class="text-right text-gold font-weight-black">نسبة التحصيل</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="c in clientFinancialSummary" :key="c.client_name" class="premium-hover-row">
+            <td class="font-weight-black text-white">{{ c.client_name || 'غير محدد' }}</td>
+            <td class="font-weight-black text-accent">{{ c.count }}</td>
+            <td class="font-weight-black text-accent">{{ fmt(c.total_compensation) }}</td>
+            <td class="font-weight-black text-success">{{ fmt(c.total_paid) }}</td>
+            <td class="font-weight-black text-gold">{{ fmt(c.total_remaining) }}</td>
+            <td>
+              <v-progress-linear :model-value="c.collection_rate" color="success" height="8" rounded class="mt-1" style="max-width: 100px;" />
+              <div class="text-caption text-grey mt-1">{{ c.collection_rate.toFixed(0) }}%</div>
+            </td>
+          </tr>
+        </tbody>
+      </v-table>
+    </v-card>
+
     <!-- Grouped Data -->
     <v-card v-if="groups && groups.length" elevation="0" class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden">
       <v-table density="comfortable" class="glass-table">
@@ -286,6 +318,36 @@ const distributions = reactive({
 const hasChartData = computed(() =>
   distributions.byStatus.length > 0 || distributions.byCategory.length > 0
 )
+
+// Auto-compute client financial summary from items
+const clientFinancialSummary = computed(() => {
+  const map = new Map<string, any>()
+  for (const item of items.value) {
+    const name = item.client_name || 'غير محدد'
+    if (!map.has(name)) {
+      map.set(name, {
+        client_name: name,
+        count: 0,
+        total_compensation: 0,
+        total_paid: 0,
+        total_remaining: 0,
+        collection_rate: 0
+      })
+    }
+    const entry = map.get(name)
+    entry.count++
+    entry.total_compensation += Number(item.financial_compensation || 0)
+    entry.total_paid += Number(item.paid_amount || 0)
+    entry.total_remaining += Number(item.remaining_amount || 0)
+  }
+  const result = Array.from(map.values())
+  for (const entry of result) {
+    entry.collection_rate = entry.total_compensation > 0
+      ? Math.round((entry.total_paid / entry.total_compensation) * 100)
+      : 0
+  }
+  return result.sort((a, b) => b.total_compensation - a.total_compensation)
+})
 
 const statusLabels = computed(() => distributions.byStatus.map((d: any) => d.status_name_ar))
 const statusValues = computed(() => distributions.byStatus.map((d: any) => parseInt(d.count)))

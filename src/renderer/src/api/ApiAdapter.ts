@@ -612,7 +612,11 @@ const api = {
     getByCaseId: (caseId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:list', { case_id: caseId, pageSize: 100 })
-        : cloudRequest({ method: 'GET', url: '/legal-services/engagements', params: { case_id: caseId, pageSize: 100 } })
+        : cloudRequest({ method: 'GET', url: '/legal-services/engagements', params: { case_id: caseId, pageSize: 100 } }),
+    getClientSummary: (clientId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getClientSummary', clientId)
+        : cloudRequest({ method: 'GET', url: `/legal-services/client/${clientId}/summary` })
   },
   defendants: {
     ...buildCrudApi('defendants'),

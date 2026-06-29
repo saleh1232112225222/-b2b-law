@@ -57,6 +57,7 @@
           density="comfortable"
           :prepend-inner-icon="ICONS.ENTITY.CLIENT"
           clearable
+          :return-object="false"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
@@ -93,6 +94,7 @@
           density="comfortable"
           :prepend-inner-icon="ICONS.ENTITY.EXPERT"
           clearable
+          :return-object="false"
         ></v-autocomplete>
       </v-col>
       <v-col cols="12" md="6">
@@ -344,24 +346,49 @@ watch(internalFormValid, (newVal) => {
   emit('update:valid', newVal)
 })
 
+// Ensure client_id is properly set when modelValue changes (e.g., editing existing service)
+watch(() => props.modelValue?.client_id, (newVal) => {
+  if (newVal && clients.value.length > 0) {
+    const found = clients.value.find((c: any) => c.id === newVal)
+    if (!found) {
+      console.warn('[LegalServiceForm] client_id not found in clients list:', newVal)
+    }
+  }
+})
+
+// Ensure responsible_lawyer_id is properly set
+watch(() => props.modelValue?.responsible_lawyer_id, (newVal) => {
+  if (newVal && lawyers.value.length > 0) {
+    const found = lawyers.value.find((l: any) => l.id === newVal)
+    if (!found) {
+      console.warn('[LegalServiceForm] responsible_lawyer_id not found in lawyers list:', newVal)
+    }
+  }
+})
+
 const loadReferenceData = async () => {
   try {
     await store.fetchMetadata()
     
     // Fetch clients
-    clients.value = await window.api.clients.getAll()
+    const clientsData = await window.api.clients.getAll()
+    clients.value = Array.isArray(clientsData) ? clientsData : []
     
     // Fetch employees/lawyers
-    lawyers.value = await window.api.employees.list()
+    const lawyersData = await window.api.employees.list()
+    lawyers.value = Array.isArray(lawyersData) ? lawyersData : []
     
     // Fetch contracts
-    contracts.value = await window.api.contracts.list()
+    const contractsData = await window.api.contracts.list()
+    contracts.value = Array.isArray(contractsData) ? contractsData : []
     
     // Fetch cases
-    cases.value = await window.api.cases.getAll()
+    const casesData = await window.api.cases.getAll()
+    cases.value = Array.isArray(casesData) ? casesData : []
 
     // Fetch invoices
-    invoices.value = await window.api.invoices.getAll()
+    const invoicesData = await window.api.invoices.getAll()
+    invoices.value = Array.isArray(invoicesData) ? invoicesData : []
   } catch (e) {
     console.error('Failed to load form reference datasets:', e)
   }

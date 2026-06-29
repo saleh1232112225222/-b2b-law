@@ -27,6 +27,7 @@
       <v-tab value="transactions" class="font-weight-bold">المعاملات</v-tab>
       <v-tab value="invoices" class="font-weight-bold">الفواتير</v-tab>
       <v-tab value="receivables" class="font-weight-bold">الذمم</v-tab>
+      <v-tab value="legal" class="font-weight-bold">الخدمات القانونية</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
@@ -89,6 +90,49 @@
           @add="emit('add-receivable')"
         />
       </v-window-item>
+
+      <v-window-item value="legal">
+        <div class="pa-2">
+          <div class="d-flex justify-space-between align-center mb-3">
+            <div class="text-subtitle-2 font-weight-black">الخدمات القانونية المالية</div>
+            <v-btn size="x-small" variant="tonal" color="accent" :loading="legalLoading" @click="loadLegalData">
+              <v-icon size="14">mdi-refresh</v-icon>
+            </v-btn>
+          </div>
+          <v-row dense class="mb-3">
+            <v-col cols="6">
+              <v-card variant="outlined" class="pa-3 text-center rounded-lg">
+                <div class="text-caption text-medium-emphasis">المحصل</div>
+                <div class="text-subtitle-1 font-weight-black text-success">{{ formatMoney(legalStats.total_paid) }}</div>
+              </v-card>
+            </v-col>
+            <v-col cols="6">
+              <v-card variant="outlined" class="pa-3 text-center rounded-lg">
+                <div class="text-caption text-medium-emphasis">المتبقي</div>
+                <div class="text-subtitle-1 font-weight-black text-error">{{ formatMoney(legalStats.total_remaining) }}</div>
+              </v-card>
+            </v-col>
+          </v-row>
+          <div v-if="legalLoading" class="text-center py-6">
+            <v-progress-circular indeterminate color="accent" size="32" />
+          </div>
+          <div v-else-if="legalList.length === 0" class="text-center py-6 text-medium-emphasis">
+            لا توجد خدمات قانونية
+          </div>
+          <v-card v-for="svc in legalList" :key="svc.id" variant="outlined" class="mb-2 pa-3 rounded-lg" @click="$router.push('/legal-engagements/' + svc.id)">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <div class="font-weight-bold text-body-2">{{ svc.service_type_name }}</div>
+                <div class="text-caption text-medium-emphasis">{{ svc.engagement_number }} - {{ svc.category_name }}</div>
+              </div>
+              <div class="text-end">
+                <div class="text-caption text-success font-weight-bold">{{ formatMoney(svc.paid_amount || 0) }}</div>
+                <div class="text-caption text-error font-weight-bold" v-if="(svc.remaining_amount || 0) > 0">متبقي: {{ formatMoney(svc.remaining_amount || 0) }}</div>
+              </div>
+            </div>
+          </v-card>
+        </div>
+      </v-window-item>
     </v-window>
   </div>
 </template>
@@ -110,7 +154,32 @@ const { transactions, invoices, receivables, stats, loading } = storeToRefs(fina
 
 const activeTab = ref('transactions')
 
+// Legal services finance data
+const legalLoading = ref(false)
+const legalStats = ref<any>({ total_services: 0, total_compensation: 0, total_paid: 0, total_remaining: 0 })
+const legalList = ref<any[]>([])
+
 const formatMoney = (val: number) => (val || 0).toLocaleString()
+
+const loadLegalData = async () => {
+  legalLoading.value = true
+  try {
+    const data = await (window as any).api.reports.getLegalServicesReport({ pageSize: 100 })
+    if (data && data.summary) {
+      legalStats.value = {
+        total_services: data.summary.totalServices || 0,
+        total_compensation: data.summary.totalRevenue || 0,
+        total_paid: data.summary.totalPaid || 0,
+        total_remaining: data.summary.totalRemaining || 0
+      }
+      legalList.value = data.services || []
+    }
+  } catch (e) {
+    console.warn('Failed to load legal finance data:', e)
+  } finally {
+    legalLoading.value = false
+  }
+}
 
 const openItem = (item: any) => {
   // handled by parent if needed
