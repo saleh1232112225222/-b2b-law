@@ -84,9 +84,9 @@
                 <span class="text-white opacity-70">المبلغ: </span>
                 <span class="font-weight-black text-success">{{ formatCurrency(eng.financial_compensation || 0) }}</span>
               </div>
-              <div class="text-caption" v-if="eng.remaining_amount > 0">
+              <div class="text-caption" v-if="(eng.remaining_amount ?? 0) > 0">
                 <span class="text-white opacity-70">متبقي: </span>
-                <span class="font-weight-black text-error">{{ formatCurrency(eng.remaining_amount) }}</span>
+                <span class="font-weight-black text-error">{{ formatCurrency(eng.remaining_amount ?? 0) }}</span>
               </div>
             </div>
             <LucideIcon name="chevron-left" :size="18" class="text-gold opacity-40" />
