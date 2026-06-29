@@ -58,6 +58,8 @@ debug.log
 dist
 electron-builder.yml
 node_modules
+*.keystore
+*.jks
 
 # Local Netlify folder
 .netlify

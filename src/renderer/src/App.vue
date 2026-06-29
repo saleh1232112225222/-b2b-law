@@ -5,7 +5,7 @@
     :class="{ 'dark-mode': isDark, 'juris-crystal-canvas': isDark, 'the-jurist-canvas': !isDark }"
     class="app-root-fix"
   >
-    <v-layout full-height>
+    <v-layout full-height :class="{ 'mobile-layout': isMobile }">
       <component
         :is="layoutComponent"
         v-if="layoutComponent"

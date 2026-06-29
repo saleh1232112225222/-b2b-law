@@ -267,7 +267,7 @@ CREATE TABLE legal_engagements (
     client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
     beneficiary TEXT,
     linked_parties TEXT,
-    responsible_lawyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    responsible_lawyer_id UUID REFERENCES employees(id) ON DELETE SET NULL,
     assistant_team TEXT,
     description TEXT,
     purpose TEXT,

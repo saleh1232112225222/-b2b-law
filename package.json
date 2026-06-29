@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "vite --config vite.config.ts",
     "build": "vue-tsc --noEmit && vite build --config vite.config.ts",
+    "build:capacitor": "vue-tsc --noEmit && vite build --config vite.config.ts --mode capacitor",
     "preview": "vite preview --config vite.config.ts",
     "typecheck": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "format": "prettier --write .",
@@ -17,6 +18,12 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capacitor/keyboard": "^8.0.5",
+    "@capacitor/splash-screen": "^8.0.1",
+    "@capacitor/status-bar": "^8.0.2",
     "@mdi/font": "^7.4.47",
     "@types/luxon": "^3.7.1",
     "@vueuse/core": "^14.2.1",
@@ -35,6 +42,7 @@
     "vuetify": "^3.7.15"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@electric-sql/pglite": "^0.5.1",
     "@electron-toolkit/eslint-config-prettier": "3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",

@@ -102,7 +102,7 @@ export async function runExtraMigrations() {
         client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
         beneficiary TEXT,
         linked_parties TEXT,
-        responsible_lawyer_id UUID REFERENCES users(id) ON DELETE SET NULL,
+        responsible_lawyer_id UUID REFERENCES employees(id) ON DELETE SET NULL,
         assistant_team TEXT,
         description TEXT,
         purpose TEXT,
@@ -188,6 +188,18 @@ export async function runExtraMigrations() {
       ALTER TABLE finances ADD COLUMN IF NOT EXISTS legal_engagement_id UUID REFERENCES legal_engagements(id) ON DELETE SET NULL
     `)
     console.log('[MIGRATE_EXTRA] Legal engagement relations ensured for tasks and finances')
+
+    // Fix FK: responsible_lawyer_id should reference employees(id), not users(id)
+    await query(`
+      ALTER TABLE legal_engagements
+      DROP CONSTRAINT IF EXISTS legal_engagements_responsible_lawyer_id_fkey
+    `)
+    await query(`
+      ALTER TABLE legal_engagements
+      ADD CONSTRAINT legal_engagements_responsible_lawyer_id_fkey
+      FOREIGN KEY (responsible_lawyer_id) REFERENCES employees(id) ON DELETE SET NULL
+    `)
+    console.log('[MIGRATE_EXTRA] Fixed responsible_lawyer_id FK to reference employees(id)')
 
     // 4. Seed Statuses
     const statuses = [

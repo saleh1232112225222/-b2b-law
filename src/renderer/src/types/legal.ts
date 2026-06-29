@@ -7,7 +7,7 @@ export interface LegalEngagement {
   client_id?: string
   beneficiary?: string
   linked_parties?: string
-  responsible_lawyer_id?: string
+  responsible_lawyer_id?: string | null
   assistant_team?: string
   description?: string
   purpose?: string
