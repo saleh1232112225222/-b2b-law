@@ -312,8 +312,7 @@ router.put('/engagements/:id', async (req: any, res) => {
         UPDATE finances SET
           amount = $1, vat_amount = $2, total = $3, paid_amount = $4,
           remaining_amount = $5, payment_method = COALESCE($6, payment_method),
-          status = $7,
-          updated_at = NOW()
+          status = $7
         WHERE legal_engagement_id = $8 AND company_id = $9
         RETURNING id
       `, [financial_compensation, tax, total, paid_amount, remaining_amount, data.payment_method || null, financeStatus, id, companyId])
