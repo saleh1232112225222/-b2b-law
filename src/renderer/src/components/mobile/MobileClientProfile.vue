@@ -1,8 +1,8 @@
 <template>
   <div class="pa-2">
-    <v-card v-if="loading" elevation="0" class="glass-panel-light pa-6 text-center">
-      <v-progress-circular indeterminate color="accent" size="48"></v-progress-circular>
-      <div class="mt-4 text-gold opacity-40 font-weight-black">جاري التحميل...</div>
+    <v-card v-if="loading" elevation="0" class="glass-panel-light pa-8 text-center">
+      <v-progress-circular indeterminate color="accent" size="56" width="4"></v-progress-circular>
+      <div class="mt-6 text-body-1 text-gold opacity-60 font-weight-black">جاري تحميل بيانات الموكل...</div>
     </v-card>
 
     <template v-else-if="client">

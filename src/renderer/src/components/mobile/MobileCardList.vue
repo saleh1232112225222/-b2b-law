@@ -1,5 +1,10 @@
 <template>
   <div ref="containerRef" class="mobile-card-list">
+    <div v-if="isRefreshing" class="mobile-pull-indicator mobile-pull-indicator--active">
+      <v-progress-circular indeterminate color="accent" :size="20" :width="2" class="me-2" />
+      جاري التحديث...
+    </div>
+
     <div v-if="loading && (!items || items.length === 0)" class="d-flex justify-center pa-8">
       <v-progress-circular indeterminate color="primary" :size="40" />
     </div>
@@ -81,6 +86,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { usePullToRefresh } from '../../composables/usePullToRefresh'
 
 interface InfoField {
   key: string
@@ -106,10 +112,15 @@ const props = defineProps<{
 const emit = defineEmits<{
   'item-click': [item: any]
   add: []
+  refresh: []
 }>()
 
 const containerRef = ref<HTMLElement | null>(null)
 const sentinelRef = ref<HTMLElement | null>(null)
+
+const { isRefreshing } = usePullToRefresh(containerRef, async () => {
+  emit('refresh')
+})
 
 const getNestedValue = (obj: any, path: string) => {
   if (!path) return ''

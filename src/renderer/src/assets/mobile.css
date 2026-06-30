@@ -68,10 +68,11 @@ html {
 }
 
 .nav-label {
-  font-size: 0.65rem;
+  font-size: 0.7rem;
   font-weight: 700;
   color: var(--text-muted);
   line-height: 1;
+  white-space: nowrap;
 }
 
 .v-btn--active .nav-label {
@@ -87,13 +88,24 @@ html {
 }
 
 .mobile-header {
-  height: var(--mobile-header-height) !important;
-  min-height: var(--mobile-header-height) !important;
-}
-
-.mobile-header {
   padding-top: env(safe-area-inset-top);
   height: calc(var(--mobile-header-height) + env(safe-area-inset-top));
+}
+
+.mobile-app-shell .v-btn {
+  min-height: 44px !important;
+}
+
+.mobile-app-shell .v-btn.block {
+  min-height: 48px !important;
+}
+
+.mobile-app-shell .v-tab {
+  min-height: 44px !important;
+}
+
+.mobile-app-shell .v-list-item {
+  min-height: 48px !important;
 }
 
 .mobile-layout {
@@ -174,4 +186,17 @@ html {
   .mobile-app-shell {
     padding-top: env(safe-area-inset-top);
   }
+}
+
+/* Pull-to-Refresh indicator */
+.mobile-pull-indicator {
+  text-align: center;
+  padding: 8px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.mobile-pull-indicator--active {
+  color: var(--accent);
 }

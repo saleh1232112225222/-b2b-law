@@ -25,6 +25,7 @@
         add-label="إضافة جلسة"
         @item-click="goToSession"
         @add="addSession"
+        @refresh="refreshSessions"
       />
 
       <div class="text-subtitle-2 font-weight-black mb-2 mt-4">آخر المعاملات</div>
@@ -39,6 +40,7 @@
         add-label="إضافة معاملة"
         @item-click="goToFinance"
         @add="addTransaction"
+        @refresh="refreshTransactions"
       />
     </div>
   </div>
@@ -91,4 +93,12 @@ const goToSession = (item: any) => router.push(`/sessions?id=${item.id}`)
 const goToFinance = (item: any) => router.push(`/finance?id=${item.id}`)
 const addSession = () => router.push('/sessions?new=1')
 const addTransaction = () => router.push('/finance?new=1')
+
+const refreshSessions = async () => {
+  await sessionsStore.listSessions({})
+}
+
+const refreshTransactions = async () => {
+  await financeStore.fetchFinanceData()
+}
 </script>

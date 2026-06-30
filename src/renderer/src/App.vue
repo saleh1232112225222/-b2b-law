@@ -291,6 +291,7 @@ const currentRouteName = computed(() => {
   const nameMap: Record<string, string> = {
     Dashboard: 'لوحة التحكم',
     Clients: 'إدارة الموكلين',
+    ClientProfile: 'ملف الموكل',
     Cases: 'القضايا والملفات',
     Sessions: 'الجلسات والتقويم',
     Tasks: 'المهام والتذكيرات',

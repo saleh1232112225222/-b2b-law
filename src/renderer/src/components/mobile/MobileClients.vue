@@ -17,8 +17,7 @@
       title-field="name"
       subtitle-field="phone"
       :info-fields="[
-        { key: 'type', label: 'النوع' },
-        { key: 'city', label: 'المدينة' }
+        { key: 'type', label: 'النوع' }
       ]"
       icon-field="icon"
       default-icon="mdi-account"
