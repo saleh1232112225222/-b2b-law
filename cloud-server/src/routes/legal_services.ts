@@ -304,19 +304,19 @@ router.put('/engagements/:id', async (req: any, res) => {
     // Update finance entry if exists
     if (financial_compensation > 0) {
       const total = financial_compensation + tax
+      let financeStatus = 'pending'
+      if (paid_amount >= total) financeStatus = 'paid'
+      else if (paid_amount > 0) financeStatus = 'partially_paid'
+
       const updateResult = await query(`
         UPDATE finances SET
           amount = $1, vat_amount = $2, total = $3, paid_amount = $4,
           remaining_amount = $5, payment_method = COALESCE($6, payment_method),
-          status = CASE
-            WHEN $4 >= $3 THEN 'paid'
-            WHEN $4 > 0 THEN 'partially_paid'
-            ELSE status
-          END,
+          status = $7,
           updated_at = NOW()
-        WHERE legal_engagement_id = $7 AND company_id = $8
+        WHERE legal_engagement_id = $8 AND company_id = $9
         RETURNING id
-      `, [financial_compensation, tax, total, paid_amount, remaining_amount, data.payment_method || null, id, companyId])
+      `, [financial_compensation, tax, total, paid_amount, remaining_amount, data.payment_method || null, financeStatus, id, companyId])
 
       // If no finance record exists yet, create one
       if (updateResult.rows.length === 0) {
