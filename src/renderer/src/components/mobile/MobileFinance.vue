@@ -184,7 +184,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { storeToRefs } from 'pinia'
 import MobileCardList from './MobileCardList.vue'
@@ -250,4 +250,8 @@ const loadOfficeData = async () => {
     officeLoading.value = false
   }
 }
+
+onMounted(() => {
+  financeStore.fetchFinanceData()
+})
 </script>
