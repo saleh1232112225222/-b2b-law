@@ -101,6 +101,9 @@
             <v-tab value="legal-finance" class="font-weight-black">
               <LucideIcon name="scale" :size="18" class="me-2" /> الخدمات القانونية
             </v-tab>
+            <v-tab value="office-accounts" class="font-weight-black">
+              <LucideIcon name="landmark" :size="18" class="me-2" /> حسابات المكتب
+            </v-tab>
           </v-tabs>
         </div>
         <v-divider class="border-gold opacity-10" />
@@ -328,6 +331,9 @@
                   </template>
                 </v-data-table>
               </div>
+            </v-window-item>
+            <v-window-item value="office-accounts">
+              <OfficeAccountsReport />
             </v-window-item>
           </v-window>
         </v-card-text>
@@ -634,6 +640,7 @@ import VouchersList from '../components/finance/VouchersList.vue'
 import ReceivablesList from '../components/finance/ReceivablesList.vue'
 import AccountsChart from '../components/finance/AccountsChart.vue'
 import ProfitabilityReport from '../components/finance/ProfitabilityReport.vue'
+import OfficeAccountsReport from '../components/finance/OfficeAccountsReport.vue'
 import CreateCreditNoteModal from '../components/finance/CreateCreditNoteModal.vue'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'

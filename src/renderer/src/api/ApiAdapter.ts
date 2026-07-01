@@ -616,7 +616,46 @@ const api = {
     getClientSummary: (clientId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getClientSummary', clientId)
-        : cloudRequest({ method: 'GET', url: `/legal-services/client/${clientId}/summary` })
+        : cloudRequest({ method: 'GET', url: `/legal-services/client/${clientId}/summary` }),
+    // ═══════════════════════════════════════════════════
+    // Office Accounts APIs
+    // ═══════════════════════════════════════════════════
+    recordPayment: (engagementId: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:recordPayment', engagementId, data)
+        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/payments`, data }),
+    getPayments: (engagementId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getPayments', engagementId)
+        : cloudRequest({ method: 'GET', url: `/office-accounts/engagements/${engagementId}/payments` }),
+    createInstallments: (engagementId: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:createInstallments', engagementId, data)
+        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/installments`, data }),
+    getInstallments: (engagementId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getInstallments', engagementId)
+        : cloudRequest({ method: 'GET', url: `/office-accounts/engagements/${engagementId}/installments` }),
+    adjustFee: (engagementId: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:adjustFee', engagementId, data)
+        : cloudRequest({ method: 'PUT', url: `/office-accounts/engagements/${engagementId}/adjust-fee`, data }),
+    closeFinance: (engagementId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:closeFinance', engagementId)
+        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/close-finance` }),
+    getClientFinancialSummary: (clientId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getClientFinancialSummary', clientId)
+        : cloudRequest({ method: 'GET', url: `/office-accounts/clients/${clientId}/financial-summary` }),
+    getOfficeAccountsReport: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getOfficeAccountsReport', params)
+        : cloudRequest({ method: 'GET', url: '/office-accounts/report', params }),
+    applyLateFee: (engagementId: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:applyLateFee', engagementId, data)
+        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/late-fee`, data })
   },
   defendants: {
     ...buildCrudApi('defendants'),

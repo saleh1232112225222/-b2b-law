@@ -66,6 +66,7 @@ import { adminSubscriptionRouter } from './routes/adminSubscriptions'
 import { subscriberTrackingRouter } from './routes/subscriberTracking'
 import { sessionsRouter } from './routes/sessions'
 import legalServicesRouter from './routes/legal_services'
+import officeAccountsRouter from './routes/office_accounts'
 import { archiveRouter } from './routes/archive'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
@@ -159,6 +160,7 @@ app.use('/api/admin/subscriber-tracking', subscriberTrackingRouter)
 app.use('/api', marketingRouter)
 app.use('/api/debug', debugRouter)
 app.use('/api/legal-services', legalServicesRouter)
+app.use('/api/office-accounts', officeAccountsRouter)
 app.use('/api/archive', archiveRouter)
 
 // Finance stats endpoint - must be registered before the generic entity router

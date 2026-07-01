@@ -289,7 +289,15 @@ CREATE TABLE legal_engagements (
     updated_at TIMESTAMPTZ DEFAULT NOW(),
     updated_by UUID,
     deleted_at TIMESTAMPTZ,
-    deleted_by UUID
+    deleted_by UUID,
+    installment_count INTEGER DEFAULT 1,
+    installment_frequency TEXT DEFAULT 'none',
+    finance_status TEXT DEFAULT 'pending',
+    discount_amount NUMERIC(12,2) DEFAULT 0,
+    discount_reason TEXT,
+    original_compensation NUMERIC(12,2),
+    late_fee_rate NUMERIC(5,2) DEFAULT 0,
+    late_fee_amount NUMERIC(12,2) DEFAULT 0
 );
 
 CREATE TABLE consultation_service_details (
@@ -444,7 +452,9 @@ CREATE TABLE finances (
     reference_id TEXT,
     created_by UUID,
     updated_by UUID,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    payment_schedules_count INTEGER DEFAULT 0,
+    finance_status TEXT DEFAULT 'pending'
 );
 
 CREATE TABLE invoices (
@@ -737,3 +747,61 @@ CREATE TABLE scheduled_reports (
     status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ============================================================
+-- 11. نظام حسابات المكتب (Office Accounts)
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS payment_schedules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    legal_engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+    installment_number INTEGER NOT NULL,
+    title TEXT NOT NULL,
+    amount NUMERIC(12,2) NOT NULL,
+    due_date DATE NOT NULL,
+    paid_amount NUMERIC(12,2) DEFAULT 0,
+    paid_date DATE,
+    status TEXT DEFAULT 'pending' CHECK (status IN ('pending','paid','overdue','cancelled')),
+    payment_method TEXT,
+    voucher_id UUID REFERENCES vouchers(id),
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS payment_history (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    legal_engagement_id UUID NOT NULL REFERENCES legal_engagements(id),
+    payment_schedule_id UUID REFERENCES payment_schedules(id),
+    amount NUMERIC(12,2) NOT NULL,
+    payment_method TEXT NOT NULL,
+    voucher_id UUID REFERENCES vouchers(id),
+    notes TEXT,
+    received_by UUID,
+    received_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS client_accounts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+    total_due NUMERIC(12,2) DEFAULT 0,
+    total_paid NUMERIC(12,2) DEFAULT 0,
+    balance NUMERIC(12,2) DEFAULT 0,
+    overdue_amount NUMERIC(12,2) DEFAULT 0,
+    last_payment_date DATE,
+    status TEXT DEFAULT 'active' CHECK (status IN ('active','settled','overdue')),
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(company_id, client_id)
+);
+
+-- فهارس حسابات المكتب
+CREATE INDEX IF NOT EXISTS idx_payment_schedules_engagement ON payment_schedules(legal_engagement_id);
+CREATE INDEX IF NOT EXISTS idx_payment_schedules_status ON payment_schedules(status);
+CREATE INDEX IF NOT EXISTS idx_payment_schedules_due_date ON payment_schedules(due_date);
+CREATE INDEX IF NOT EXISTS idx_payment_history_engagement ON payment_history(legal_engagement_id);
+CREATE INDEX IF NOT EXISTS idx_client_accounts_client ON client_accounts(client_id);
+CREATE INDEX IF NOT EXISTS idx_client_accounts_status ON client_accounts(status);

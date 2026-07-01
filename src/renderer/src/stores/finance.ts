@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { Transaction, Account, FinanceStats, Invoice, Voucher, Receivable } from '../types'
+import { Transaction, Account, FinanceStats, Invoice, Voucher, Receivable, PaymentSchedule, PaymentRecord } from '../types'
 
 export const useFinanceStore = defineStore('finance', () => {
   const transactions = ref<Transaction[]>([])
@@ -117,6 +117,78 @@ export const useFinanceStore = defineStore('finance', () => {
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  // Office Accounts — حسابات المكتب
+  // ═══════════════════════════════════════════════════
+  const paymentSchedules = ref<PaymentSchedule[]>([])
+  const paymentHistory = ref<PaymentRecord[]>([])
+
+  const recordPayment = async (engagementId: string, payment: {
+    amount: number
+    payment_method?: string
+    payment_schedule_id?: string
+    notes?: string
+  }) => {
+    try {
+      const result = await window.api.legalServices.recordPayment(engagementId, payment)
+      await fetchFinanceData()
+      return result
+    } catch (e: unknown) {
+      error.value = (e as Error).message
+      throw e
+    }
+  }
+
+  const fetchPayments = async (engagementId: string) => {
+    try {
+      paymentHistory.value = await window.api.legalServices.getPayments(engagementId)
+    } catch (e: unknown) {
+      paymentHistory.value = []
+    }
+  }
+
+  const createInstallments = async (engagementId: string, installments: {
+    title: string
+    amount: number
+    due_date: string
+  }[], frequency?: string) => {
+    try {
+      await window.api.legalServices.createInstallments(engagementId, { installments, frequency })
+    } catch (e: unknown) {
+      throw e
+    }
+  }
+
+  const fetchInstallments = async (engagementId: string) => {
+    try {
+      paymentSchedules.value = await window.api.legalServices.getInstallments(engagementId)
+    } catch (e: unknown) {
+      paymentSchedules.value = []
+    }
+  }
+
+  const adjustFee = async (engagementId: string, adjustment: {
+    new_compensation: number
+    reason: string
+    adjustment_type: 'increase' | 'decrease'
+  }) => {
+    try {
+      await window.api.legalServices.adjustFee(engagementId, adjustment)
+      await fetchFinanceData()
+    } catch (e: unknown) {
+      throw e
+    }
+  }
+
+  const closeFinance = async (engagementId: string) => {
+    try {
+      await window.api.legalServices.closeFinance(engagementId)
+      await fetchFinanceData()
+    } catch (e: unknown) {
+      throw e
+    }
+  }
+
   return {
     transactions,
     invoices,
@@ -134,6 +206,15 @@ export const useFinanceStore = defineStore('finance', () => {
     applyReceivablePayment,
     deleteTransaction,
     deleteInvoice,
-    deleteVoucher
+    deleteVoucher,
+    // Office Accounts
+    paymentSchedules,
+    paymentHistory,
+    recordPayment,
+    fetchPayments,
+    createInstallments,
+    fetchInstallments,
+    adjustFee,
+    closeFinance
   }
 })

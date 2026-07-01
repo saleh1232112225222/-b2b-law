@@ -28,6 +28,7 @@
       <v-tab value="invoices" class="font-weight-bold">الفواتير</v-tab>
       <v-tab value="receivables" class="font-weight-bold">الذمم</v-tab>
       <v-tab value="legal" class="font-weight-bold">الخدمات القانونية</v-tab>
+      <v-tab value="client-accounts" class="font-weight-bold">حسابات المكتب</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
@@ -133,6 +134,51 @@
           </v-card>
         </div>
       </v-window-item>
+
+      <v-window-item value="client-accounts">
+        <div class="pa-2">
+          <div class="d-flex justify-space-between align-center mb-3">
+            <div class="text-subtitle-2 font-weight-black">حسابات المكتب</div>
+            <v-btn size="x-small" variant="tonal" color="accent" :loading="officeLoading" @click="loadOfficeData">
+              <v-icon size="14">mdi-refresh</v-icon>
+            </v-btn>
+          </div>
+          <v-card variant="outlined" class="pa-3 mb-3 rounded-lg">
+            <v-row dense>
+              <v-col cols="4" class="text-center">
+                <div class="text-caption text-medium-emphasis">الإجمالي</div>
+                <div class="text-subtitle-2 font-weight-black text-primary">{{ formatMoney(officeReport.total_revenue || 0) }}</div>
+              </v-col>
+              <v-col cols="4" class="text-center">
+                <div class="text-caption text-medium-emphasis">المحصل</div>
+                <div class="text-subtitle-2 font-weight-black text-success">{{ formatMoney(officeReport.total_collected || 0) }}</div>
+              </v-col>
+              <v-col cols="4" class="text-center">
+                <div class="text-caption text-medium-emphasis">المتبقي</div>
+                <div class="text-subtitle-2 font-weight-black text-error">{{ formatMoney(officeReport.total_pending || 0) }}</div>
+              </v-col>
+            </v-row>
+          </v-card>
+          <div v-if="officeLoading" class="text-center py-6">
+            <v-progress-circular indeterminate color="accent" size="32" />
+          </div>
+          <div v-else-if="!officeReport.clients?.length" class="text-center py-6 text-medium-emphasis">
+            لا توجد حسابات مسجلة
+          </div>
+          <v-card v-for="cl in officeReport.clients || []" :key="cl.client_id" variant="outlined" class="mb-2 pa-3 rounded-lg">
+            <div class="d-flex justify-space-between align-start">
+              <div>
+                <div class="font-weight-bold text-body-2">{{ cl.client_name }}</div>
+                <div class="text-caption text-medium-emphasis">{{ cl.engagement_count || 0 }} تعاقدهات</div>
+              </div>
+              <div class="text-end">
+                <div class="text-caption text-success font-weight-bold">{{ formatMoney(cl.total_paid || 0) }}</div>
+                <div class="text-caption text-error font-weight-bold" v-if="(cl.total_remaining || 0) > 0">متبقي: {{ formatMoney(cl.total_remaining || 0) }}</div>
+              </div>
+            </div>
+          </v-card>
+        </div>
+      </v-window-item>
     </v-window>
   </div>
 </template>
@@ -159,6 +205,10 @@ const legalLoading = ref(false)
 const legalStats = ref<any>({ total_services: 0, total_compensation: 0, total_paid: 0, total_remaining: 0 })
 const legalList = ref<any[]>([])
 
+// Office accounts data
+const officeLoading = ref(false)
+const officeReport = ref<any>({ total_revenue: 0, total_collected: 0, total_pending: 0, clients: [] })
+
 const formatMoney = (val: number) => (val || 0).toLocaleString()
 
 const loadLegalData = async () => {
@@ -183,5 +233,21 @@ const loadLegalData = async () => {
 
 const openItem = (item: any) => {
   // handled by parent if needed
+}
+
+const loadOfficeData = async () => {
+  officeLoading.value = true
+  try {
+    const { useOfficeAccountsStore } = await import('../../stores/officeAccounts')
+    const officeStore = useOfficeAccountsStore()
+    const data = await officeStore.fetchReport()
+    if (data) {
+      officeReport.value = data
+    }
+  } catch (e) {
+    console.warn('Failed to load office accounts:', e)
+  } finally {
+    officeLoading.value = false
+  }
 }
 </script>

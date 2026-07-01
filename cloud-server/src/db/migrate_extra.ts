@@ -216,6 +216,83 @@ export async function runExtraMigrations() {
     `)
     console.log('[MIGRATE_EXTRA] Legal engagement relations ensured for tasks and finances')
 
+    // ═══════════════════════════════════════════════════
+    // Office Accounts: payment_schedules, payment_history, client_accounts
+    // ═══════════════════════════════════════════════════
+    try {
+      await query(`
+        CREATE TABLE IF NOT EXISTS payment_schedules (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          legal_engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+          installment_number INTEGER NOT NULL,
+          title TEXT NOT NULL,
+          amount NUMERIC(12,2) NOT NULL,
+          due_date DATE NOT NULL,
+          paid_amount NUMERIC(12,2) DEFAULT 0,
+          paid_date DATE,
+          status TEXT DEFAULT 'pending',
+          payment_method TEXT,
+          voucher_id UUID REFERENCES vouchers(id),
+          notes TEXT,
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `)
+      await query(`
+        CREATE TABLE IF NOT EXISTS payment_history (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          legal_engagement_id UUID NOT NULL REFERENCES legal_engagements(id),
+          payment_schedule_id UUID REFERENCES payment_schedules(id),
+          amount NUMERIC(12,2) NOT NULL,
+          payment_method TEXT NOT NULL,
+          voucher_id UUID REFERENCES vouchers(id),
+          notes TEXT,
+          received_by UUID,
+          received_at TIMESTAMPTZ DEFAULT NOW()
+        )
+      `)
+      await query(`
+        CREATE TABLE IF NOT EXISTS client_accounts (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          company_id UUID NOT NULL,
+          client_id UUID NOT NULL REFERENCES clients(id) ON DELETE CASCADE,
+          total_due NUMERIC(12,2) DEFAULT 0,
+          total_paid NUMERIC(12,2) DEFAULT 0,
+          balance NUMERIC(12,2) DEFAULT 0,
+          overdue_amount NUMERIC(12,2) DEFAULT 0,
+          last_payment_date DATE,
+          status TEXT DEFAULT 'active',
+          created_at TIMESTAMPTZ DEFAULT NOW(),
+          updated_at TIMESTAMPTZ DEFAULT NOW(),
+          UNIQUE(company_id, client_id)
+        )
+      `)
+      // Indexes
+      await query(`CREATE INDEX IF NOT EXISTS idx_payment_schedules_engagement ON payment_schedules(legal_engagement_id)`)
+      await query(`CREATE INDEX IF NOT EXISTS idx_payment_schedules_status ON payment_schedules(status)`)
+      await query(`CREATE INDEX IF NOT EXISTS idx_payment_schedules_due_date ON payment_schedules(due_date)`)
+      await query(`CREATE INDEX IF NOT EXISTS idx_payment_history_engagement ON payment_history(legal_engagement_id)`)
+      await query(`CREATE INDEX IF NOT EXISTS idx_client_accounts_client ON client_accounts(client_id)`)
+      await query(`CREATE INDEX IF NOT EXISTS idx_client_accounts_status ON client_accounts(status)`)
+      // New columns on legal_engagements
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS installment_count INTEGER DEFAULT 1`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS installment_frequency TEXT DEFAULT 'none'`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS finance_status TEXT DEFAULT 'pending'`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS discount_amount NUMERIC(12,2) DEFAULT 0`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS discount_reason TEXT`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS original_compensation NUMERIC(12,2)`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS late_fee_rate NUMERIC(5,2) DEFAULT 0`)
+      await query(`ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS late_fee_amount NUMERIC(12,2) DEFAULT 0`)
+      // New columns on finances
+      await query(`ALTER TABLE finances ADD COLUMN IF NOT EXISTS payment_schedules_count INTEGER DEFAULT 0`)
+      await query(`ALTER TABLE finances ADD COLUMN IF NOT EXISTS finance_status TEXT DEFAULT 'pending'`)
+      console.log('[MIGRATE_EXTRA] Office accounts tables and columns ensured')
+    } catch (err: any) {
+      console.warn('[MIGRATE_EXTRA] Office accounts migration warning:', err.message)
+    }
+
     // Fix FK: responsible_lawyer_id should reference employees(id), not users(id)
     await query(`
       ALTER TABLE legal_engagements

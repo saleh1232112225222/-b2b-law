@@ -523,7 +523,7 @@
                         :loading="printingInvoice" @click="handlePrintInvoice(selectedService?.invoice_id)">
                         <LucideIcon name="printer" :size="16" class="me-2" /> طباعة / تصدير الفاتورة
                       </v-btn>
-                      <v-btn color="gold" variant="tonal" class="rounded-lg font-weight-black">
+                      <v-btn color="gold" variant="tonal" class="rounded-lg font-weight-black" @click="showPaymentDialog = true">
                         <LucideIcon name="wallet" :size="16" class="me-2" /> تسجيل دفعة جديدة
                       </v-btn>
                     </div>
@@ -794,6 +794,14 @@
       </v-card>
     </v-dialog>
 
+    <!-- Payment Dialog -->
+    <PaymentDialog
+      v-if="showPaymentDialog && selectedService"
+      v-model="showPaymentDialog"
+      :engagement="selectedService"
+      @save="handlePaymentSaved"
+    />
+
     <!-- Feedback Snackbars -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
       <div class="d-flex align-center">
@@ -809,6 +817,7 @@ import { ref, onMounted, computed, watch, reactive } from 'vue'
 import { useLegalStore } from '../stores/legal'
 import { usePermissions } from '../composables/usePermissions'
 import LegalServiceForm from '../components/LegalServiceForm.vue'
+import PaymentDialog from '../components/finance/PaymentDialog.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { LegalEngagement } from '../types/legal'
 
@@ -838,6 +847,9 @@ const snackbarColor = ref('success')
 const showDetailsDialog = ref(false)
 const selectedService = ref<LegalEngagement | null>(null)
 const detailsTab = ref('general')
+
+// Payment Dialog
+const showPaymentDialog = ref(false)
 
 // Auxiliary Notes, Attachments, Timeline, Tasks
 const notes = ref<any[]>([])
@@ -1247,6 +1259,15 @@ const getFinanceStatusLabel = (status: string) => {
     case 'overdue': return 'متأخر'
     case 'pending': return 'معلق'
     default: return status || 'معلق'
+  }
+}
+
+const handlePaymentSaved = () => {
+  showPaymentDialog.value = false
+  triggerSnackbar('تم تسجيل الدفعة بنجاح')
+  if (selectedService.value) {
+    loadFinanceRecord()
+    store.fetchServices()
   }
 }
 

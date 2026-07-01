@@ -189,9 +189,11 @@ router.post('/engagements', async (req: any, res) => {
         client_id, beneficiary, linked_parties, responsible_lawyer_id,
         assistant_team, description, purpose, start_date, expected_end_date,
         completion_date, status_id, priority_id, financial_compensation,
-        tax, paid_amount, remaining_amount, payment_method, contract_id, case_id, created_by, updated_by
+        tax, paid_amount, remaining_amount, payment_method, contract_id, case_id, created_by, updated_by,
+        finance_status
       ) VALUES (
-        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+        $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25,
+        $26
       ) RETURNING id
     `, [
       companyId, engagement_number, data.engagement_type_id, data.category_id,
@@ -200,7 +202,8 @@ router.post('/engagements', async (req: any, res) => {
       data.completion_date || null, data.status_id, data.priority_id, financial_compensation,
       tax, paid_amount, remaining_amount, data.payment_method || null,
       data.contract_id || null, data.case_id || null,
-      userId, userId
+      userId, userId,
+      'pending'
     ])
 
     const newId = result.rows[0].id
@@ -288,7 +291,12 @@ router.put('/engagements/:id', async (req: any, res) => {
         contract_id = COALESCE($20, contract_id),
         case_id = COALESCE($21, case_id),
         updated_by = $22,
-        updated_at = NOW()
+        updated_at = NOW(),
+        finance_status = CASE
+          WHEN $17 >= ($15 + $16) THEN 'paid'
+          WHEN $17 > 0 THEN 'partial'
+          ELSE 'pending'
+        END
       WHERE id = $23 AND company_id = $24
     `, [
       data.engagement_type_id, data.category_id, data.client_id || null, data.beneficiary || null,

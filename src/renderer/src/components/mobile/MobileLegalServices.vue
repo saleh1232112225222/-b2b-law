@@ -89,7 +89,10 @@
                 <span class="font-weight-black text-error">{{ formatCurrency(eng.remaining_amount ?? 0) }}</span>
               </div>
             </div>
-            <LucideIcon name="chevron-left" :size="18" class="text-gold opacity-40" />
+            <v-btn v-if="(eng.remaining_amount ?? 0) > 0" size="x-small" color="accent" variant="flat" class="rounded-pill font-weight-black" @click.stop="openPayment(eng)">
+              <LucideIcon name="wallet" :size="14" class="me-1" /> دفع
+            </v-btn>
+            <LucideIcon v-else name="chevron-left" :size="18" class="text-gold opacity-40" />
           </div>
         </v-card>
 
@@ -113,12 +116,24 @@
         </div>
       </template>
     </div>
+
+    <!-- Payment Dialog -->
+    <MobilePaymentDialog
+      :open="showPaymentDialog"
+      :engagement-id="paymentEngagement?.id || ''"
+      :engagement-number="paymentEngagement?.engagement_number || ''"
+      :client-id="paymentEngagement?.client_id || ''"
+      :remaining-amount="paymentEngagement?.remaining_amount || 0"
+      @update:open="showPaymentDialog = $event"
+      @saved="onPaymentSaved"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import MobileHeader from './MobileHeader.vue'
+import MobilePaymentDialog from './MobilePaymentDialog.vue'
 import LucideIcon from '../common/LucideIcon.vue'
 import { useLegalStore } from '../../stores/legal'
 
@@ -129,6 +144,10 @@ const legalStore = useLegalStore()
 const search = ref('')
 const filterStatus = ref(null)
 const filterCategory = ref(null)
+
+// Payment dialog state
+const showPaymentDialog = ref(false)
+const paymentEngagement = ref<any>(null)
 
 const statusOptions = computed(() =>
   legalStore.statuses.map((s: any) => ({ title: s.status_name_ar, value: s.id }))
@@ -185,6 +204,16 @@ const prevPage = () => {
     legalStore.page--
     loadData()
   }
+}
+
+const openPayment = (eng: any) => {
+  paymentEngagement.value = eng
+  showPaymentDialog.value = true
+}
+
+const onPaymentSaved = () => {
+  showPaymentDialog.value = false
+  loadData()
 }
 
 onMounted(async () => {
