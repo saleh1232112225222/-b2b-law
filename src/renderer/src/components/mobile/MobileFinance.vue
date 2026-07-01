@@ -29,6 +29,7 @@
       <v-tab value="receivables" class="font-weight-bold">الذمم</v-tab>
       <v-tab value="legal" class="font-weight-bold">الخدمات القانونية</v-tab>
       <v-tab value="client-accounts" class="font-weight-bold">حسابات المكتب</v-tab>
+      <v-tab value="client-statement" class="font-weight-bold">كشف حساب</v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
@@ -179,6 +180,83 @@
           </v-card>
         </div>
       </v-window-item>
+
+      <v-window-item value="client-statement">
+        <div class="pa-2">
+          <div class="d-flex justify-space-between align-center mb-3">
+            <div class="text-subtitle-2 font-weight-black">كشف حساب العميل</div>
+            <v-btn size="x-small" variant="tonal" color="accent" :loading="statementLoading" @click="loadStatement">
+              <v-icon size="14">mdi-refresh</v-icon>
+            </v-btn>
+          </div>
+          <v-autocomplete
+            v-model="statementClientId"
+            :items="allClients"
+            item-title="name"
+            item-value="id"
+            label="اختر العميل..."
+            variant="outlined"
+            density="compact"
+            hide-details
+            clearable
+            class="mb-3"
+          />
+          <div v-if="statementLoading" class="text-center py-6">
+            <v-progress-circular indeterminate color="accent" size="32" />
+          </div>
+          <template v-else-if="statementData">
+            <v-row dense class="mb-3">
+              <v-col cols="3" class="text-center">
+                <div class="text-caption text-medium-emphasis">الخدمات</div>
+                <div class="text-subtitle-2 font-weight-black">{{ statementData.summary?.total_services || 0 }}</div>
+              </v-col>
+              <v-col cols="3" class="text-center">
+                <div class="text-caption text-medium-emphasis">الإجمالي</div>
+                <div class="text-subtitle-2 font-weight-black text-primary">{{ formatMoney(statementData.summary?.total_due || 0) }}</div>
+              </v-col>
+              <v-col cols="3" class="text-center">
+                <div class="text-caption text-medium-emphasis">المدفوع</div>
+                <div class="text-subtitle-2 font-weight-black text-success">{{ formatMoney(statementData.summary?.total_paid || 0) }}</div>
+              </v-col>
+              <v-col cols="3" class="text-center">
+                <div class="text-caption text-medium-emphasis">المتبقي</div>
+                <div class="text-subtitle-2 font-weight-black text-error">{{ formatMoney(statementData.summary?.balance || 0) }}</div>
+              </v-col>
+            </v-row>
+            <div class="text-subtitle-2 font-weight-black mb-2">الخدمات</div>
+            <v-card v-for="svc in statementData.services || []" :key="svc.id" variant="outlined" class="mb-2 pa-3 rounded-lg">
+              <div class="d-flex justify-space-between align-start">
+                <div>
+                  <div class="font-weight-bold text-body-2">{{ svc.service_type_name }}</div>
+                  <div class="text-caption text-medium-emphasis">{{ svc.engagement_number }} - {{ svc.category_name }}</div>
+                </div>
+                <div class="text-end">
+                  <div class="text-caption text-success font-weight-bold">{{ formatMoney(svc.paid_amount || 0) }}</div>
+                  <div class="text-caption text-error font-weight-bold" v-if="(svc.remaining_amount || 0) > 0">متبقي: {{ formatMoney(svc.remaining_amount || 0) }}</div>
+                </div>
+              </div>
+            </v-card>
+            <template v-if="(statementData.payments || []).length > 0">
+              <div class="text-subtitle-2 font-weight-black mb-2 mt-4">سجل الدفعات</div>
+              <v-card v-for="p in statementData.payments" :key="p.id" variant="outlined" class="mb-2 pa-3 rounded-lg">
+                <div class="d-flex justify-space-between align-center">
+                  <div>
+                    <div class="font-weight-bold text-body-2 text-success">{{ formatMoney(p.amount) }} ريال</div>
+                    <div class="text-caption text-medium-emphasis">{{ p.service_type_name }} - {{ p.engagement_number }}</div>
+                  </div>
+                  <div class="text-end">
+                    <div class="text-caption text-medium-emphasis">{{ p.payment_date }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ p.payment_method }}</div>
+                  </div>
+                </div>
+              </v-card>
+            </template>
+          </template>
+          <div v-else-if="statementClientId && !statementLoading" class="text-center py-6 text-medium-emphasis">
+            لا توجد بيانات
+          </div>
+        </div>
+      </v-window-item>
     </v-window>
   </div>
 </template>
@@ -208,6 +286,12 @@ const legalList = ref<any[]>([])
 // Office accounts data
 const officeLoading = ref(false)
 const officeReport = ref<any>({ total_revenue: 0, total_collected: 0, total_pending: 0, clients: [] })
+
+// Client statement data
+const statementClientId = ref('')
+const statementLoading = ref(false)
+const statementData = ref<any>(null)
+const allClients = ref<any[]>([])
 
 const formatMoney = (val: number) => (val || 0).toLocaleString()
 
@@ -251,7 +335,35 @@ const loadOfficeData = async () => {
   }
 }
 
-onMounted(() => {
+const loadStatement = async () => {
+  if (!statementClientId.value) {
+    statementData.value = null
+    return
+  }
+  statementLoading.value = true
+  try {
+    const { useOfficeAccountsStore } = await import('../../stores/officeAccounts')
+    const officeStore = useOfficeAccountsStore()
+    await officeStore.fetchClientSummary(statementClientId.value)
+    statementData.value = officeStore.clientSummary
+  } catch (e) {
+    console.warn('Failed to load client statement:', e)
+    statementData.value = null
+  } finally {
+    statementLoading.value = false
+  }
+}
+
+onMounted(async () => {
   financeStore.fetchFinanceData()
+  // Load clients for statement selector
+  try {
+    const { useClientsStore } = await import('../../stores/clients')
+    const clientsStore = useClientsStore()
+    await clientsStore.fetchClients()
+    allClients.value = clientsStore.clients
+  } catch (e) {
+    console.warn('Failed to load clients:', e)
+  }
 })
 </script>

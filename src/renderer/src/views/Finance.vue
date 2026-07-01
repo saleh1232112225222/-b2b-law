@@ -104,6 +104,9 @@
             <v-tab value="office-accounts" class="font-weight-black">
               <LucideIcon name="landmark" :size="18" class="me-2" /> حسابات المكتب
             </v-tab>
+            <v-tab value="client-statement" class="font-weight-black">
+              <LucideIcon name="file-text" :size="18" class="me-2" /> كشف حساب عميل
+            </v-tab>
           </v-tabs>
         </div>
         <v-divider class="border-gold opacity-10" />
@@ -334,6 +337,9 @@
             </v-window-item>
             <v-window-item value="office-accounts">
               <OfficeAccountsReport />
+            </v-window-item>
+            <v-window-item value="client-statement">
+              <ClientFinancialStatement />
             </v-window-item>
           </v-window>
         </v-card-text>
@@ -641,6 +647,7 @@ import ReceivablesList from '../components/finance/ReceivablesList.vue'
 import AccountsChart from '../components/finance/AccountsChart.vue'
 import ProfitabilityReport from '../components/finance/ProfitabilityReport.vue'
 import OfficeAccountsReport from '../components/finance/OfficeAccountsReport.vue'
+import ClientFinancialStatement from '../components/finance/ClientFinancialStatement.vue'
 import CreateCreditNoteModal from '../components/finance/CreateCreditNoteModal.vue'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'

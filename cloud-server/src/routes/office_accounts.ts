@@ -380,6 +380,7 @@ router.get('/clients/:clientId/financial-summary',
       const { companyId } = req.auth
       const { clientId } = req.params
 
+      // 1. الملخص الإجمالي
       const summaryResult = await query(`
         SELECT
           COUNT(*) as total_services,
@@ -391,18 +392,36 @@ router.get('/clients/:clientId/financial-summary',
         WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
       `, [clientId, companyId])
 
+      // 2. كل الخدمات القانونية (من البداية)
       const servicesResult = await query(`
         SELECT e.id, e.engagement_number, e.financial_compensation, e.tax,
+          (e.financial_compensation + e.tax) as total_amount,
           e.paid_amount, e.remaining_amount, e.finance_status, e.start_date,
+          e.payment_method, e.description,
           c.name_ar as category_name, t.name_ar as service_type_name
         FROM legal_engagements e
         LEFT JOIN legal_service_categories c ON e.category_id = c.id
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
         WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
-          AND e.remaining_amount > 0
         ORDER BY e.created_at DESC
       `, [clientId, companyId])
 
+      // 3. سجل الدفعات الكامل
+      const paymentsResult = await query(`
+        SELECT ph.id, ph.amount, ph.payment_method, ph.payment_date,
+          ph.voucher_id, ph.notes, ph.created_at,
+          e.engagement_number, e.id as engagement_id,
+          t.name_ar as service_type_name,
+          v.voucher_number
+        FROM payment_history ph
+        JOIN legal_engagements e ON ph.legal_engagement_id = e.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN vouchers v ON ph.voucher_id = v.id
+        WHERE e.client_id = $1 AND e.company_id = $2
+        ORDER BY ph.payment_date DESC, ph.created_at DESC
+      `, [clientId, companyId])
+
+      // 4. الأقساط المتأخرة
       const overdueItems = await query(`
         SELECT ps.*, e.engagement_number
         FROM payment_schedules ps
@@ -411,6 +430,7 @@ router.get('/clients/:clientId/financial-summary',
         ORDER BY ps.due_date
       `, [clientId, companyId])
 
+      // 5. الأقساط القادمة
       const upcomingItems = await query(`
         SELECT ps.*, e.engagement_number
         FROM payment_schedules ps
@@ -423,6 +443,7 @@ router.get('/clients/:clientId/financial-summary',
       res.json({
         summary: summaryResult.rows[0],
         services: servicesResult.rows,
+        payments: paymentsResult.rows,
         overdue_items: overdueItems.rows,
         upcoming_items: upcomingItems.rows
       })

@@ -139,6 +139,18 @@ export interface ClientFinancialSummary {
     overdue_amount: number
   }
   services: any[]
+  payments: {
+    id: string
+    amount: number
+    payment_method: string
+    payment_date: string
+    voucher_id: string | null
+    voucher_number: string | null
+    notes: string | null
+    engagement_number: string
+    engagement_id: string
+    service_type_name: string
+  }[]
   overdue_items: PaymentSchedule[]
   upcoming_items: PaymentSchedule[]
 }
