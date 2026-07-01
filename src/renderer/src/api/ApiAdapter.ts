@@ -655,7 +655,11 @@ const api = {
     applyLateFee: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:applyLateFee', engagementId, data)
-        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/late-fee`, data })
+        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/late-fee`, data }),
+    getClientFullProfile: (clientId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('legalServices:getClientFullProfile', clientId)
+        : cloudRequest({ method: 'GET', url: `/office-accounts/clients/${clientId}/full-profile` })
   },
   defendants: {
     ...buildCrudApi('defendants'),

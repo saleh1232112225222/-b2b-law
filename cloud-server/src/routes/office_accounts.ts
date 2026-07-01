@@ -580,4 +580,152 @@ router.post('/engagements/:id/late-fee',
   }
 )
 
+// ═══════════════════════════════════════════════════
+// 10. GET /clients/:clientId/full-profile — الملف المالي الشامل
+// ═══════════════════════════════════════════════════
+router.get('/clients/:clientId/full-profile',
+  requirePermission('view_finances'),
+  async (req: any, res) => {
+    try {
+      const { companyId } = req.auth
+      const { clientId } = req.params
+
+      // 1. بيانات العميل الأساسية
+      const clientResult = await query(`
+        SELECT id, name, type, id_number, phone, email, city, address, notes, created_at
+        FROM clients WHERE id = $1 AND company_id = $2 AND deleted_at IS NULL
+      `, [clientId, companyId])
+      if (!clientResult.rows.length) {
+        return res.status(404).json({ error: 'العميل غير موجود' })
+      }
+      const client = clientResult.rows[0]
+
+      // 2. أول تاريخ تعامل
+      const firstEngagement = await query(`
+        SELECT MIN(created_at) as first_deal_date
+        FROM legal_engagements
+        WHERE client_id = $1 AND company_id = $2 AND deleted_at IS NULL
+      `, [clientId, companyId])
+
+      // 3. جميع القضايا المرتبطة
+      const casesResult = await query(`
+        SELECT c.id, c.case_number, c.case_type, c.status,
+          c.plaintiff_fee as total_fee, c.opponent_name,
+          ct.name_ar as case_type_name,
+          cs.name_ar as status_name,
+          COALESCE(c.paid_amount, 0) as paid_amount,
+          (COALESCE(c.plaintiff_fee, 0) - COALESCE(c.paid_amount, 0)) as remaining
+        FROM cases c
+        LEFT JOIN case_types ct ON c.case_type_id = ct.id
+        LEFT JOIN case_statuses cs ON c.status_id = cs.id
+        WHERE c.client_id = $1 AND c.company_id = $2 AND c.deleted_at IS NULL
+        ORDER BY c.created_at DESC
+      `, [clientId, companyId])
+
+      // 4. جميع الخدمات القانونية
+      const servicesResult = await query(`
+        SELECT e.id, e.engagement_number, e.financial_compensation, e.tax,
+          (e.financial_compensation + e.tax) as total_amount,
+          e.paid_amount, e.remaining_amount, e.finance_status,
+          e.start_date, e.payment_method, e.description, e.installment_count,
+          c.name_ar as category_name, t.name_ar as service_type_name,
+          u.name as responsible_name
+        FROM legal_engagements e
+        LEFT JOIN legal_service_categories c ON e.category_id = c.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN users u ON e.responsible_user_id = u.id
+        WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+        ORDER BY e.created_at DESC
+      `, [clientId, companyId])
+
+      // 5. سجل الدفعات الكامل (من services + cases)
+      const paymentsResult = await query(`
+        SELECT ph.id, ph.amount, ph.payment_method, ph.payment_date,
+          ph.voucher_id, ph.notes, ph.created_at,
+          e.engagement_number, e.id as engagement_id,
+          t.name_ar as service_type_name,
+          v.voucher_number
+        FROM payment_history ph
+        JOIN legal_engagements e ON ph.legal_engagement_id = e.id
+        LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+        LEFT JOIN vouchers v ON ph.voucher_id = v.id
+        WHERE e.client_id = $1 AND e.company_id = $2
+        ORDER BY ph.payment_date DESC, ph.created_at DESC
+      `, [clientId, companyId])
+
+      // 6. جميع الفواتير
+      const invoicesResult = await query(`
+        SELECT i.id, i.invoice_number, i.date, i.amount, i.vat_amount, i.total_amount,
+          i.status, i.description
+        FROM invoices i
+        WHERE i.client_id = $1 AND i.company_id = $2
+        ORDER BY i.date DESC
+      `, [clientId, companyId])
+
+      // 7. جميع سندات القبض
+      const vouchersResult = await query(`
+        SELECT v.id, v.voucher_number, v.date, v.type, v.amount, v.description
+        FROM vouchers v
+        WHERE v.client_id = $1 AND v.company_id = $2
+        ORDER BY v.date DESC
+      `, [clientId, companyId])
+
+      // 8. الأقساط المعلقة والمتأخرة
+      const schedulesResult = await query(`
+        SELECT ps.id, ps.installment_number, ps.title, ps.amount, ps.due_date,
+          ps.paid_amount, ps.status, e.engagement_number
+        FROM payment_schedules ps
+        JOIN legal_engagements e ON ps.legal_engagement_id = e.id
+        WHERE e.client_id = $1 AND e.company_id = $2 AND ps.status IN ('pending', 'overdue')
+        ORDER BY ps.due_date
+      `, [clientId, companyId])
+
+      // 9. ملخص الأرقام
+      const summaryResult = await query(`
+        SELECT
+          COUNT(DISTINCT c.id) as total_cases,
+          COUNT(DISTINCT e.id) as total_services,
+          COALESCE(SUM(DISTINCT e.financial_compensation + e.tax), 0) as total_services_amount,
+          COALESCE(SUM(DISTINCT e.paid_amount), 0) as total_services_paid,
+          COALESCE(SUM(DISTINCT e.remaining_amount), 0) as total_services_remaining
+        FROM legal_engagements e
+        LEFT JOIN cases c ON e.client_id = c.client_id AND e.company_id = c.company_id
+        WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+      `, [clientId, companyId])
+
+      // 10. عدد القضايا منجدول القضايا
+      const casesCountResult = await query(`
+        SELECT COUNT(*) as count FROM cases
+        WHERE client_id = $1 AND company_id = $2 AND deleted_at IS NULL
+      `, [clientId, companyId])
+
+      res.json({
+        client,
+        first_deal_date: firstEngagement.rows[0]?.first_deal_date || null,
+        cases: casesResult.rows,
+        services: servicesResult.rows,
+        payments: paymentsResult.rows,
+        invoices: invoicesResult.rows,
+        vouchers: vouchersResult.rows,
+        installment_schedules: schedulesResult.rows,
+        summary: {
+          total_cases: Number(casesCountResult.rows[0]?.count || 0),
+          total_services: Number(summaryResult.rows[0]?.total_services || 0),
+          total_services_amount: Number(summaryResult.rows[0]?.total_services_amount || 0),
+          total_services_paid: Number(summaryResult.rows[0]?.total_services_paid || 0),
+          total_services_remaining: Number(summaryResult.rows[0]?.total_services_remaining || 0),
+          total_payments: paymentsResult.rows.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0),
+          total_invoices: invoicesResult.rows.length,
+          total_vouchers: vouchersResult.rows.length,
+          pending_installments: schedulesResult.rows.filter((s: any) => s.status === 'pending').length,
+          overdue_installments: schedulesResult.rows.filter((s: any) => s.status === 'overdue').length
+        }
+      })
+    } catch (err: any) {
+      console.error('[office-accounts] GET /full-profile error:', err.message)
+      res.status(500).json({ error: 'حدث خطأ في جلب الملف المالي' })
+    }
+  }
+)
+
 export default router
