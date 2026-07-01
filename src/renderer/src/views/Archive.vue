@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6 rtl">
     <!-- Header Section -->
     <v-row dense class="mb-8 align-center">
@@ -34,7 +34,7 @@
 
     <!-- Content Section -->
     <v-card elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
-      <v-tabs v-model="tab" color="accent" grow class="border-b border-gold opacity-10">
+      <v-tabs v-model="tab" color="accent" grow class="border-b border-gold-alpha">
         <v-tab value="case" class="font-weight-black text-gold py-6">
           <LucideIcon name="briefcase" :size="18" class="me-3" /> القضايا
         </v-tab>
@@ -49,6 +49,9 @@
         </v-tab>
         <v-tab value="task" class="font-weight-black text-gold py-6">
           <LucideIcon name="clipboard-check" :size="18" class="me-3" /> المهام
+        </v-tab>
+        <v-tab value="legal-service" class="font-weight-black text-gold py-6">
+          <LucideIcon name="scale" :size="18" class="me-3" /> الخدمات القانونية
         </v-tab>
       </v-tabs>
 
@@ -172,21 +175,25 @@ interface ArchiveItem {
   court_room?: string
   title?: string
   due_date?: string
+  engagement_number?: string
+  service_type_name?: string
+  responsible_name?: string
   archived_at: string
 }
 
-const tab = ref<'case' | 'document' | 'session' | 'evidence' | 'task'>('case')
+const tab = ref<'case' | 'document' | 'session' | 'evidence' | 'task' | 'legal-service'>('case')
 const { search } = useSearch(() => loadData())
 const loading = ref(false)
 const items = ref<ArchiveItem[]>([])
-const types = ['case', 'document', 'session', 'evidence', 'task']
+const types = ['case', 'document', 'session', 'evidence', 'task', 'legal-service']
 
 const itemsPerPageText: Record<string, string> = {
   case: 'عدد القضايا لكل صفحة:',
   document: 'عدد المستندات لكل صفحة:',
   session: 'عدد الجلسات لكل صفحة:',
   evidence: 'عدد الأدلة لكل صفحة:',
-  task: 'عدد المهام لكل صفحة:'
+  task: 'عدد المهام لكل صفحة:',
+  'legal-service': 'عدد الخدمات لكل صفحة:'
 }
 
 const snackbar = ref({
@@ -230,6 +237,14 @@ const headers: Record<string, any[]> = {
     { title: 'اسم المهمة', key: 'title', align: 'start' as const },
     { title: 'المرجع', key: 'context_label', align: 'start' as const },
     { title: 'تاريخ الاستحقاق', key: 'due_date', align: 'center' as const, width: '150px' },
+    { title: 'تاريخ الأرشفة', key: 'archived_at', align: 'center' as const, width: '150px' },
+    { title: 'تحكم', key: 'actions', sortable: false, align: 'end' as const, width: '150px' }
+  ],
+  'legal-service': [
+    { title: 'الرقم المرجعي', key: 'engagement_number', align: 'start' as const },
+    { title: 'نوع الخدمة', key: 'service_type_name', align: 'start' as const },
+    { title: 'العميل', key: 'client_name', align: 'start' as const },
+    { title: 'المسؤول', key: 'responsible_name', align: 'start' as const },
     { title: 'تاريخ الأرشفة', key: 'archived_at', align: 'center' as const, width: '150px' },
     { title: 'تحكم', key: 'actions', sortable: false, align: 'end' as const, width: '150px' }
   ]

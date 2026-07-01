@@ -182,16 +182,16 @@
           </tr>
           <tr v-for="item in store.services" :key="item.id" class="premium-hover-row">
             <td class="text-right py-4">
-              <div class="font-weight-black text-white mb-1">{{ item.service_type_name }}</div>
+              <div class="font-weight-black mb-1">{{ item.service_type_name }}</div>
               <div class="text-tiny text-gold opacity-40 font-mono">REF: {{ item.engagement_number }}</div>
             </td>
-            <td class="text-right text-white opacity-80 font-weight-black">
+            <td class="text-right opacity-80 font-weight-black">
               {{ item.category_name }}
             </td>
-            <td class="text-right text-white opacity-80 font-weight-black">
+            <td class="text-right opacity-80 font-weight-black">
               {{ item.client_name || '-' }}
             </td>
-            <td class="text-right text-white opacity-80 font-weight-black">
+            <td class="text-right opacity-80 font-weight-black">
               {{ item.responsible_name || '-' }}
             </td>
             <td class="text-right py-3">
@@ -253,7 +253,7 @@
             :disabled="store.page <= 1"
             @click="prevPage"
           >السابق</v-btn>
-          <span class="text-caption text-white font-weight-black">
+          <span class="text-caption font-weight-black">
             صفحة {{ store.page }} من {{ Math.ceil(store.total / store.pageSize) || 1 }}
           </span>
           <v-btn

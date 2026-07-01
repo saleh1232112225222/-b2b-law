@@ -66,6 +66,7 @@ import { adminSubscriptionRouter } from './routes/adminSubscriptions'
 import { subscriberTrackingRouter } from './routes/subscriberTracking'
 import { sessionsRouter } from './routes/sessions'
 import legalServicesRouter from './routes/legal_services'
+import { archiveRouter } from './routes/archive'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -158,6 +159,41 @@ app.use('/api/admin/subscriber-tracking', subscriberTrackingRouter)
 app.use('/api', marketingRouter)
 app.use('/api/debug', debugRouter)
 app.use('/api/legal-services', legalServicesRouter)
+app.use('/api/archive', archiveRouter)
+
+// Finance stats endpoint - must be registered before the generic entity router
+app.get(
+  '/api/finances/stats',
+  require('./middleware/auth').authMiddleware,
+  require('./middleware/permission').requirePermission('view_finances'),
+  async (req: any, res: any) => {
+    try {
+      const { getCompanyId } = require('./middleware/tenant')
+      const companyId = getCompanyId(req)
+
+      const result = await query(`
+        SELECT
+          COALESCE(SUM(CASE WHEN type = 'income' OR type = 'receivable' THEN COALESCE(amount, 0) ELSE 0 END), 0) as income,
+          COALESCE(SUM(CASE WHEN type = 'expense' THEN COALESCE(amount, 0) ELSE 0 END), 0) as expense
+        FROM finances
+        WHERE company_id = $1
+      `, [companyId])
+
+      const row = result.rows[0]
+      const income = parseFloat(row.income)
+      const expense = parseFloat(row.expense)
+
+      res.json({
+        income,
+        expense,
+        balance: income - expense
+      })
+    } catch (err: any) {
+      console.error('[finances/stats] Error:', err)
+      res.status(500).json({ error: 'فشل في جلب إحصائيات المالية' })
+    }
+  }
+)
 
 const entityTables = [
   { name: 'clients', table: 'clients', searchFields: ['name', 'id_number', 'phone', 'email'] },

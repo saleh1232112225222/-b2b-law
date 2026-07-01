@@ -153,7 +153,7 @@
         </thead>
         <tbody>
           <tr v-for="c in clientFinancialSummary" :key="c.client_name" class="premium-hover-row">
-            <td class="font-weight-black text-white">{{ c.client_name || 'غير محدد' }}</td>
+            <td class="font-weight-black">{{ c.client_name || 'غير محدد' }}</td>
             <td class="font-weight-black text-accent">{{ c.count }}</td>
             <td class="font-weight-black text-accent">{{ fmt(c.total_compensation) }}</td>
             <td class="font-weight-black text-success">{{ fmt(c.total_paid) }}</td>
@@ -181,7 +181,7 @@
         </thead>
         <tbody>
           <tr v-for="g in groups" :key="g.group_id" class="premium-hover-row">
-            <td class="font-weight-black text-white">{{ g.group_name || 'غير محدد' }}</td>
+            <td class="font-weight-black">{{ g.group_name || 'غير محدد' }}</td>
             <td class="font-weight-black text-accent">{{ g.service_count }}</td>
             <td class="font-weight-black text-accent">{{ fmt(g.total_compensation) }}</td>
             <td class="font-weight-black text-success">{{ fmt(g.total_paid) }}</td>
@@ -215,13 +215,13 @@
           </tr>
           <tr v-for="item in items" :key="item.id" class="premium-hover-row">
             <td class="font-mono text-accent font-weight-black">{{ item.engagement_number }}</td>
-            <td class="text-white font-weight-black">{{ item.client_name || '-' }}</td>
-            <td class="text-white font-weight-bold">
+            <td class="font-weight-black">{{ item.client_name || '-' }}</td>
+            <td class="font-weight-bold">
               <div>{{ item.category_name }}</div>
-              <div class="text-caption text-grey">{{ item.service_type_name }}</div>
+              <div class="text-caption opacity-60">{{ item.service_type_name }}</div>
             </td>
-            <td class="text-grey-lighten-1">{{ item.responsible_name || '-' }}</td>
-            <td class="text-grey-lighten-1">{{ item.linked_case_number || '-' }}</td>
+            <td class="opacity-70">{{ item.responsible_name || '-' }}</td>
+            <td class="opacity-70">{{ item.linked_case_number || '-' }}</td>
             <td class="text-accent font-weight-black">{{ fmt(item.financial_compensation || 0) }}</td>
             <td class="text-success font-weight-black">{{ fmt(item.paid_amount || 0) }}</td>
             <td class="text-gold font-weight-black">{{ fmt(item.remaining_amount || 0) }}</td>
@@ -243,7 +243,7 @@
           <v-btn size="small" variant="tonal" color="accent" :disabled="page <= 1" @click="prevPage">
             السابق
           </v-btn>
-          <span class="text-caption text-white font-weight-black">
+          <span class="text-caption font-weight-black">
             صفحة {{ page }} من {{ totalPages }}
           </span>
           <v-btn size="small" variant="tonal" color="accent" :disabled="page >= totalPages" @click="nextPage">

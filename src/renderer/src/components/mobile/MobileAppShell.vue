@@ -27,7 +27,7 @@
         </div>
       </v-main>
 
-      <MobileBottomNav @more-click="drawerOpen = !drawerOpen" />
+      <MobileBottomNav :hidden="bottomNavHidden" @more-click="drawerOpen = !drawerOpen" />
 
       <div v-if="showFab" class="mobile-fab" :class="{ 'mobile-fab--hidden': fabHidden }">
         <v-btn
@@ -69,9 +69,10 @@ const route = useRoute()
 const drawerOpen = ref(false)
 const { fabAction: currentFabAction } = useFabAction()
 
-// --- FAB visibility based on scroll ---
+// --- FAB & BottomNav visibility based on scroll ---
 let lastScrollY = 0
 const fabHidden = ref(false)
+const bottomNavHidden = ref(false)
 const showFab = computed(() => {
   const fabRoutes = [
     '/clients',
@@ -87,7 +88,13 @@ const showFab = computed(() => {
 
 const handleScroll = () => {
   const currentY = window.scrollY
-  fabHidden.value = currentY > lastScrollY && currentY > 50
+  const scrollingDown = currentY > lastScrollY && currentY > 50
+  const scrollingUp = currentY < lastScrollY
+  fabHidden.value = scrollingDown
+  bottomNavHidden.value = scrollingDown
+  if (scrollingUp) {
+    bottomNavHidden.value = false
+  }
   lastScrollY = currentY
 }
 

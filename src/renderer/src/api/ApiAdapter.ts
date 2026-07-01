@@ -891,7 +891,15 @@ const api = {
       throw new Error('File open not available in cloud mode')
     }
   },
-  finances: buildCrudApi('finances'),
+  finances: {
+    ...buildCrudApi('finances'),
+    getStats: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer
+          ? window.ipcRenderer.invoke('finances:getStats')
+          : Promise.resolve({ income: 0, expense: 0, balance: 0 })
+        : cloudRequest({ method: 'GET', url: '/finances/stats' })
+  },
   employees: {
     ...buildCrudApi('employees'),
     getPerformanceReport: (employeeId: string) =>

@@ -5,6 +5,7 @@
     fixed
     app
     class="mobile-bottom-nav"
+    :class="{ 'mobile-bottom-nav--hidden': hidden }"
     bg-color="surface"
     elevation="8"
   >
@@ -75,8 +76,18 @@ const visibleTabs = computed(() =>
   allTabs.value.filter((t) => !t.perm || (typeof can === 'function' && can(t.perm)))
 )
 
+defineProps<{
+  hidden?: boolean
+}>()
+
 defineEmits<{ 'more-click': [] }>()
-const hideBottomNav = computed(
-  () => route.path === '/login' || route.path === '/register' || route.query.window === 'new'
-)
 </script>
+
+<style scoped>
+.mobile-bottom-nav {
+  transition: transform 0.25s ease;
+}
+.mobile-bottom-nav--hidden {
+  transform: translateY(100%);
+}
+</style>

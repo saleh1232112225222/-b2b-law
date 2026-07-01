@@ -90,6 +90,7 @@ const moreItems = [
   { title: 'التنفيذ', icon: 'mdi-gavel', to: '/enforcement' },
   { title: 'الملفات', icon: 'mdi-folder-lock', to: '/vault' },
   { title: 'التقارير', icon: 'mdi-chart-box', to: '/reports' },
+  { title: 'الأرشيف', icon: 'mdi-archive', to: '/archive' },
   { title: 'الملف الشخصي', icon: 'mdi-account', to: '/profile' },
   { title: 'الإعدادات', icon: 'mdi-cog', to: '/settings' }
 ]
