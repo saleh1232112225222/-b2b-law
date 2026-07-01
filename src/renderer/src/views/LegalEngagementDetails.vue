@@ -26,10 +26,20 @@
     </v-row>
 
     <template v-else-if="engagement">
-      <v-row>
-        <v-col cols="12" md="8">
-          <v-card class="glass-card pa-6 mb-6">
-            <h3 class="text-h6 font-weight-black text-gold mb-4 border-b border-gold-thin pb-2">تفاصيل الخدمة</h3>
+      <v-card class="glass-card mb-6">
+        <v-tabs v-model="detailsTab" color="accent" grow class="border-b border-gold-thin">
+          <v-tab value="details" class="font-weight-black">
+            <LucideIcon name="info" :size="18" class="me-2" /> التفاصيل
+          </v-tab>
+          <v-tab value="finance" class="font-weight-black">
+            <LucideIcon name="wallet" :size="18" class="me-2" /> المالية
+            <v-badge v-if="paymentHistory.length > 0" :content="paymentHistory.length" color="accent" class="ms-2" inline />
+          </v-tab>
+        </v-tabs>
+
+        <v-window v-model="detailsTab" class="pa-6">
+          <!-- Details Tab -->
+          <v-window-item value="details">
             <v-row>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">الخدمة</div>
@@ -66,84 +76,158 @@
                 <div class="text-body-2 text-white opacity-80" style="white-space: pre-wrap;">{{ engagement.description }}</div>
               </v-col>
             </v-row>
-          </v-card>
-        </v-col>
+          </v-window-item>
 
-        <v-col cols="12" md="4">
-          <v-card class="glass-card pa-6 mb-6">
-            <h3 class="text-h6 font-weight-black text-gold mb-4 border-b border-gold-thin pb-2">المالية</h3>
-            <div class="d-flex justify-space-between align-center mb-3">
-              <span class="text-white opacity-80">المقابل المالي:</span>
-              <span class="font-weight-bold text-accent">{{ formatCurrency(engagement.financial_compensation || 0) }}</span>
-            </div>
-            <div class="d-flex justify-space-between align-center mb-3">
-              <span class="text-white opacity-80">الضريبة:</span>
-              <span class="font-weight-bold text-white">{{ formatCurrency(engagement.tax || 0) }}</span>
-            </div>
-            <v-divider class="my-3 border-gold-thin" />
-            <div class="d-flex justify-space-between align-center mb-3">
-              <span class="text-white opacity-80">الإجمالي:</span>
-              <span class="font-weight-bold text-accent">{{ formatCurrency((engagement.financial_compensation || 0) + (engagement.tax || 0)) }}</span>
-            </div>
-            <div class="d-flex justify-space-between align-center mb-3">
-              <span class="text-white opacity-80">المبلغ المدفوع:</span>
-              <span class="font-weight-bold text-success">{{ formatCurrency(engagement.paid_amount || 0) }}</span>
-            </div>
-            <div class="d-flex justify-space-between align-center mb-4">
-              <span class="text-white opacity-80">المتبقي:</span>
-              <span class="font-weight-bold text-error">{{ formatCurrency(engagement.remaining_amount || 0) }}</span>
-            </div>
-            <div class="d-flex justify-space-between align-center mb-4">
-              <span class="text-white opacity-80">طريقة الدفع:</span>
-              <span class="font-weight-bold text-white">{{ engagement.payment_method || '-' }}</span>
+          <!-- Finance Tab -->
+          <v-window-item value="finance">
+            <!-- Summary Cards -->
+            <v-row dense class="mb-4">
+              <v-col cols="6" sm="3">
+                <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
+                  <div class="text-caption text-gold mb-1">الإجمالي</div>
+                  <div class="text-subtitle-1 font-weight-black text-accent">{{ formatCurrency(totalDue) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6" sm="3">
+                <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
+                  <div class="text-caption text-gold mb-1">المدفوع</div>
+                  <div class="text-subtitle-1 font-weight-black text-success">{{ formatCurrency(engagement.paid_amount || 0) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6" sm="3">
+                <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
+                  <div class="text-caption text-gold mb-1">المتبقي</div>
+                  <div class="text-subtitle-1 font-weight-black text-error">{{ formatCurrency(engagement.remaining_amount || 0) }}</div>
+                </v-card>
+              </v-col>
+              <v-col cols="6" sm="3">
+                <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
+                  <div class="text-caption text-gold mb-1">الحالة</div>
+                  <v-chip size="x-small" :color="getFinanceStatusColor(engagement.finance_status || 'pending')" class="font-weight-black mt-1">
+                    {{ getFinanceStatusLabel(engagement.finance_status || 'pending') }}
+                  </v-chip>
+                </v-card>
+              </v-col>
+            </v-row>
+
+            <!-- Action Buttons -->
+            <div class="d-flex flex-wrap ga-3 mb-6">
+              <v-btn
+                v-if="(engagement.remaining_amount || 0) > 0"
+                color="accent"
+                class="font-weight-black rounded-lg"
+                @click="showPaymentDialog = true"
+              >
+                <LucideIcon name="wallet" :size="16" class="me-2" /> تسجيل دفعة جديدة
+              </v-btn>
+              <v-btn
+                v-if="(engagement.remaining_amount || 0) > 0 && !engagement.installment_count"
+                color="gold"
+                variant="tonal"
+                class="font-weight-black rounded-lg"
+                @click="showInstallmentDialog = true"
+              >
+                <LucideIcon name="calendar" :size="16" class="me-2" /> إنشاء جدول أقساط
+              </v-btn>
+              <v-btn
+                v-if="!engagement.invoice_id"
+                variant="outlined"
+                color="gold"
+                class="font-weight-black rounded-lg"
+                :loading="generatingInvoice"
+                @click="generateInvoice"
+              >
+                <LucideIcon name="receipt" :size="16" class="me-2" /> إنشاء فاتورة
+              </v-btn>
+              <v-btn
+                v-else
+                variant="outlined"
+                color="success"
+                class="font-weight-black rounded-lg"
+                :loading="printingInvoice"
+                @click="printInvoice"
+              >
+                <LucideIcon name="printer" :size="16" class="me-2" /> طباعة الفاتورة
+              </v-btn>
             </div>
 
-            <v-divider class="my-3 border-gold-thin" />
-
-            <!-- Finance Record Info -->
-            <div v-if="loadingFinance" class="text-center py-4">
-              <v-progress-circular indeterminate color="accent" size="20" />
+            <!-- Payment History -->
+            <div v-if="loadingPayments" class="text-center py-6">
+              <v-progress-circular indeterminate color="accent" size="32" />
             </div>
-            <div v-else-if="financeRecord" class="mb-4">
-              <div class="d-flex justify-space-between align-center mb-2">
-                <span class="text-caption text-white opacity-60">حالة السجل المالي:</span>
-                <v-chip size="x-small" :color="getFinanceStatusColor(financeRecord.status)" class="font-weight-black text-ebony">
-                  {{ getFinanceStatusLabel(financeRecord.status) }}
-                </v-chip>
+            <template v-else>
+              <h4 class="text-subtitle-2 font-weight-black text-gold mb-3">سجل الدفعات</h4>
+              <div v-if="paymentHistory.length === 0" class="text-center py-6 text-white opacity-50">
+                لا توجد دفعات مسجلة بعد.
               </div>
-              <div class="d-flex justify-space-between align-center">
-                <span class="text-caption text-white opacity-60">تاريخ التسجيل:</span>
-                <span class="text-caption font-weight-bold">{{ formatDate(financeRecord.date) }}</span>
-              </div>
-            </div>
+              <v-table v-else class="bg-transparent mb-6">
+                <thead>
+                  <tr>
+                    <th class="text-right text-gold font-weight-black">التاريخ</th>
+                    <th class="text-right text-gold font-weight-black">المبلغ</th>
+                    <th class="text-right text-gold font-weight-black">طريقة الدفع</th>
+                    <th class="text-right text-gold font-weight-black">رقم السند</th>
+                    <th class="text-right text-gold font-weight-black">ملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="p in paymentHistory" :key="p.id">
+                    <td class="text-right text-white">{{ formatDate(p.payment_date) }}</td>
+                    <td class="text-right text-success font-weight-black">{{ formatCurrency(p.amount) }}</td>
+                    <td class="text-right text-white">{{ getPaymentMethodLabel(p.payment_method) }}</td>
+                    <td class="text-right text-white opacity-70 font-mono">{{ p.voucher_number || '-' }}</td>
+                    <td class="text-right text-white opacity-70">{{ p.notes || '-' }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
 
-            <v-btn block color="accent" class="font-weight-black mb-3" @click="openFinanceTab">
-              <LucideIcon name="wallet" :size="16" class="me-2" /> عرض المالية الكامل
-            </v-btn>
-            <v-btn
-              v-if="!engagement.invoice_id"
-              block variant="outlined"
-              color="gold"
-              class="font-weight-black mb-3"
-              :loading="generatingInvoice"
-              @click="generateInvoice"
-            >
-              <LucideIcon name="receipt" :size="16" class="me-2" /> إنشاء فاتورة
-            </v-btn>
-            <v-btn
-              v-else
-              block variant="outlined"
-              color="success"
-              class="font-weight-black mb-3"
-              :loading="printingInvoice"
-              @click="printInvoice"
-            >
-              <LucideIcon name="printer" :size="16" class="me-2" /> طباعة الفاتورة
-            </v-btn>
-          </v-card>
-        </v-col>
-      </v-row>
+              <!-- Installment Schedule -->
+              <template v-if="installmentSchedules.length > 0">
+                <h4 class="text-subtitle-2 font-weight-black text-gold mb-3">جدول الأقساط</h4>
+                <v-table class="bg-transparent">
+                  <thead>
+                    <tr>
+                      <th class="text-right text-gold font-weight-black">القسط</th>
+                      <th class="text-right text-gold font-weight-black">المبلغ</th>
+                      <th class="text-right text-gold font-weight-black">تاريخ الاستحقاق</th>
+                      <th class="text-right text-gold font-weight-black">الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="(s, i) in installmentSchedules" :key="s.id">
+                      <td class="text-right text-white font-weight-black">{{ i + 1 }}</td>
+                      <td class="text-right text-white">{{ formatCurrency(s.amount) }}</td>
+                      <td class="text-right text-white">{{ formatDate(s.due_date) }}</td>
+                      <td class="text-right">
+                        <v-chip size="x-small" :color="getScheduleStatusColor(s.status)" class="font-weight-black">
+                          {{ getScheduleStatusLabel(s.status) }}
+                        </v-chip>
+                      </td>
+                    </tr>
+                  </tbody>
+                </v-table>
+              </template>
+            </template>
+          </v-window-item>
+        </v-window>
+      </v-card>
     </template>
+
+    <!-- Payment Dialog -->
+    <PaymentDialog
+      v-if="showPaymentDialog && engagement"
+      v-model="showPaymentDialog"
+      :engagement="engagement"
+      @save="handlePaymentSaved"
+    />
+
+    <!-- Installment Plan Dialog -->
+    <InstallmentPlanDialog
+      v-if="showInstallmentDialog && engagement"
+      v-model="showInstallmentDialog"
+      :engagement="engagement"
+      @save="handleInstallmentSaved"
+    />
   </v-container>
 </template>
 
@@ -151,6 +235,8 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import PaymentDialog from '../components/finance/PaymentDialog.vue'
+import InstallmentPlanDialog from '../components/finance/InstallmentPlanDialog.vue'
 import { useLegalStore } from '../stores/legal'
 import { useClientsStore } from '../stores/clients'
 
@@ -165,10 +251,22 @@ const loading = ref(true)
 const engagementId = (props.id || route.params.id) as string
 const engagement = computed(() => legalStore.services.find((e: any) => e.id === engagementId))
 
+const detailsTab = ref('details')
 const financeRecord = ref<any>(null)
 const loadingFinance = ref(false)
 const generatingInvoice = ref(false)
 const printingInvoice = ref(false)
+
+// Payment & installment state
+const paymentHistory = ref<any[]>([])
+const installmentSchedules = ref<any[]>([])
+const loadingPayments = ref(false)
+const showPaymentDialog = ref(false)
+const showInstallmentDialog = ref(false)
+
+const totalDue = computed(() =>
+  Number(engagement.value?.financial_compensation || 0) + Number(engagement.value?.tax || 0)
+)
 
 onMounted(async () => {
   loading.value = true
@@ -194,7 +292,41 @@ onMounted(async () => {
       loadingFinance.value = false
     }
   }
+
+  // Load payment history and installments
+  await loadPaymentData()
 })
+
+const loadPaymentData = async () => {
+  if (!engagementId) return
+  loadingPayments.value = true
+  try {
+    const { useFinanceStore } = await import('../stores/finance')
+    const financeStore = useFinanceStore()
+    await financeStore.fetchPayments(engagementId)
+    paymentHistory.value = financeStore.paymentHistory
+    if (engagement.value?.installment_count && engagement.value.installment_count > 1) {
+      await financeStore.fetchInstallments(engagementId)
+      installmentSchedules.value = financeStore.paymentSchedules
+    }
+  } catch (e) {
+    console.warn('Failed to load payment data:', e)
+  } finally {
+    loadingPayments.value = false
+  }
+}
+
+const handlePaymentSaved = () => {
+  showPaymentDialog.value = false
+  loadPaymentData()
+  legalStore.fetchServices({ page: 1, pageSize: 50 })
+}
+
+const handleInstallmentSaved = () => {
+  showInstallmentDialog.value = false
+  loadPaymentData()
+  legalStore.fetchServices({ page: 1, pageSize: 50 })
+}
 
 const clientName = computed(() => {
   if (!engagement.value) return ''
@@ -249,8 +381,27 @@ const formatDate = (dateStr?: string) => {
   }
 }
 
-const openFinanceTab = () => {
-  router.push('/legal-services')
+const getPaymentMethodLabel = (method: string) => {
+  const map: Record<string, string> = { cash: 'نقدي', bank_transfer: 'تحويل بنكي', check: 'شيك', card: 'بطاقة' }
+  return map[method] || method || '-'
+}
+
+const getScheduleStatusColor = (status: string) => {
+  switch (status) {
+    case 'paid': return 'success'
+    case 'pending': return 'warning'
+    case 'overdue': return 'error'
+    default: return 'grey'
+  }
+}
+
+const getScheduleStatusLabel = (status: string) => {
+  switch (status) {
+    case 'paid': return 'مدفوع'
+    case 'pending': return 'معلق'
+    case 'overdue': return 'متأخر'
+    default: return status || 'معلق'
+  }
 }
 
 const generateInvoice = async () => {
