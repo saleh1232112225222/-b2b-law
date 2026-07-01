@@ -45,21 +45,27 @@
           <v-card class="glass-card pa-5 text-center" elevation="0">
             <LucideIcon name="coins" :size="28" class="text-warning mb-2" />
             <div class="text-caption text-gold opacity-60 mb-1">الإجمالي المستحق</div>
-            <div class="text-h5 font-weight-black text-white">{{ formatCurrency(summary.total_due) }}</div>
+            <div class="text-h5 font-weight-black text-white">
+              {{ formatCurrency(summary.total_due) }}
+            </div>
           </v-card>
         </v-col>
         <v-col cols="6" md="3">
           <v-card class="glass-card pa-5 text-center" elevation="0">
             <LucideIcon name="check-circle" :size="28" class="text-success mb-2" />
             <div class="text-caption text-gold opacity-60 mb-1">المبلغ المدفوع</div>
-            <div class="text-h5 font-weight-black text-success">{{ formatCurrency(summary.total_paid) }}</div>
+            <div class="text-h5 font-weight-black text-success">
+              {{ formatCurrency(summary.total_paid) }}
+            </div>
           </v-card>
         </v-col>
         <v-col cols="6" md="3">
           <v-card class="glass-card pa-5 text-center" elevation="0">
             <LucideIcon name="alert-triangle" :size="28" class="text-error mb-2" />
             <div class="text-caption text-gold opacity-60 mb-1">المتبقي</div>
-            <div class="text-h5 font-weight-black text-error">{{ formatCurrency(summary.balance) }}</div>
+            <div class="text-h5 font-weight-black text-error">
+              {{ formatCurrency(summary.balance) }}
+            </div>
           </v-card>
         </v-col>
       </v-row>
@@ -68,7 +74,10 @@
       <v-card class="glass-card pa-5 mb-6">
         <div class="d-flex justify-space-between align-center mb-3">
           <span class="text-body-1 font-weight-black text-gold">نسبة التحصيل</span>
-          <span class="text-h6 font-weight-black" :class="collectionRate >= 50 ? 'text-success' : 'text-error'">
+          <span
+            class="text-h6 font-weight-black"
+            :class="collectionRate >= 50 ? 'text-success' : 'text-error'"
+          >
             {{ collectionRate }}%
           </span>
         </div>
@@ -84,10 +93,14 @@
       <v-card class="glass-card overflow-hidden">
         <v-tabs v-model="activeTab" color="accent" grow class="border-b border-gold-thin">
           <v-tab value="services" class="font-weight-black">
-            <LucideIcon name="layers" :size="18" class="me-2" /> الخدمات القانونية ({{ services.length }})
+            <LucideIcon name="layers" :size="18" class="me-2" /> الخدمات القانونية ({{
+              services.length
+            }})
           </v-tab>
           <v-tab value="payments" class="font-weight-black">
-            <LucideIcon name="banknote" :size="18" class="me-2" /> سجل الدفعات ({{ payments.length }})
+            <LucideIcon name="banknote" :size="18" class="me-2" /> سجل الدفعات ({{
+              payments.length
+            }})
           </v-tab>
         </v-tabs>
 
@@ -112,16 +125,29 @@
               </thead>
               <tbody>
                 <tr v-for="svc in services" :key="svc.id">
-                  <td class="text-right font-weight-black text-white font-mono">{{ svc.engagement_number }}</td>
+                  <td class="text-right font-weight-black text-white font-mono">
+                    {{ svc.engagement_number }}
+                  </td>
                   <td class="text-right text-white">{{ svc.service_type_name }}</td>
                   <td class="text-right text-gold opacity-80">{{ svc.category_name }}</td>
-                  <td class="text-right font-weight-black text-white">{{ formatCurrency(svc.total_amount || 0) }}</td>
-                  <td class="text-right font-weight-black text-success">{{ formatCurrency(svc.paid_amount || 0) }}</td>
-                  <td class="text-right font-weight-black" :class="(svc.remaining_amount || 0) > 0 ? 'text-error' : 'text-success'">
+                  <td class="text-right font-weight-black text-white">
+                    {{ formatCurrency(svc.total_amount || 0) }}
+                  </td>
+                  <td class="text-right font-weight-black text-success">
+                    {{ formatCurrency(svc.paid_amount || 0) }}
+                  </td>
+                  <td
+                    class="text-right font-weight-black"
+                    :class="(svc.remaining_amount || 0) > 0 ? 'text-error' : 'text-success'"
+                  >
                     {{ formatCurrency(svc.remaining_amount || 0) }}
                   </td>
                   <td class="text-right">
-                    <v-chip size="x-small" :color="getServiceStatusColor(svc.finance_status)" class="font-weight-black">
+                    <v-chip
+                      size="x-small"
+                      :color="getServiceStatusColor(svc.finance_status)"
+                      class="font-weight-black"
+                    >
                       {{ getServiceStatusLabel(svc.finance_status) }}
                     </v-chip>
                   </td>
@@ -130,9 +156,15 @@
               <tfoot>
                 <tr class="border-t border-gold-thin">
                   <td colspan="3" class="text-right font-weight-black text-gold">الإجمالي</td>
-                  <td class="text-right font-weight-black text-white">{{ formatCurrency(totals.total) }}</td>
-                  <td class="text-right font-weight-black text-success">{{ formatCurrency(totals.paid) }}</td>
-                  <td class="text-right font-weight-black text-error">{{ formatCurrency(totals.remaining) }}</td>
+                  <td class="text-right font-weight-black text-white">
+                    {{ formatCurrency(totals.total) }}
+                  </td>
+                  <td class="text-right font-weight-black text-success">
+                    {{ formatCurrency(totals.paid) }}
+                  </td>
+                  <td class="text-right font-weight-black text-error">
+                    {{ formatCurrency(totals.remaining) }}
+                  </td>
                   <td></td>
                 </tr>
               </tfoot>
@@ -163,16 +195,28 @@
                     <div class="text-white font-weight-black">{{ p.service_type_name }}</div>
                     <div class="text-caption text-gold opacity-60">{{ p.engagement_number }}</div>
                   </td>
-                  <td class="text-right font-weight-black text-success">{{ formatCurrency(p.amount) }}</td>
-                  <td class="text-right text-white">{{ getPaymentMethodLabel(p.payment_method) }}</td>
-                  <td class="text-right text-white opacity-70 font-mono text-caption">{{ p.voucher_number || '-' }}</td>
-                  <td class="text-right text-white opacity-70 text-caption">{{ p.notes || '-' }}</td>
+                  <td class="text-right font-weight-black text-success">
+                    {{ formatCurrency(p.amount) }}
+                  </td>
+                  <td class="text-right text-white">
+                    {{ getPaymentMethodLabel(p.payment_method) }}
+                  </td>
+                  <td class="text-right text-white opacity-70 font-mono text-caption">
+                    {{ p.voucher_number || '-' }}
+                  </td>
+                  <td class="text-right text-white opacity-70 text-caption">
+                    {{ p.notes || '-' }}
+                  </td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr class="border-t border-gold-thin">
-                  <td colspan="2" class="text-right font-weight-black text-gold">إجمالي المدفوعات</td>
-                  <td class="text-right font-weight-black text-success">{{ formatCurrency(totalPaid) }}</td>
+                  <td colspan="2" class="text-right font-weight-black text-gold">
+                    إجمالي المدفوعات
+                  </td>
+                  <td class="text-right font-weight-black text-success">
+                    {{ formatCurrency(totalPaid) }}
+                  </td>
                   <td colspan="3"></td>
                 </tr>
               </tfoot>
@@ -223,35 +267,58 @@ const totals = computed(() => {
 })
 
 const formatCurrency = (val: number) =>
-  new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val || 0)
+  new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(val || 0)
 
 const formatDate = (dateStr?: string) => {
   if (!dateStr) return '-'
-  try { return new Date(dateStr).toLocaleDateString('ar-SA') } catch { return dateStr }
+  try {
+    return new Date(dateStr).toLocaleDateString('ar-SA')
+  } catch {
+    return dateStr
+  }
 }
 
 const getPaymentMethodLabel = (method: string) => {
-  const map: Record<string, string> = { cash: 'نقدي', bank_transfer: 'تحويل بنكي', check: 'شيك', card: 'بطاقة ائتمان' }
+  const map: Record<string, string> = {
+    cash: 'نقدي',
+    bank_transfer: 'تحويل بنكي',
+    check: 'شيك',
+    card: 'بطاقة ائتمان'
+  }
   return map[method] || method || '-'
 }
 
 const getServiceStatusColor = (status: string) => {
   switch (status) {
-    case 'paid': return 'success'
-    case 'partial': return 'warning'
-    case 'overdue': return 'error'
-    default: return 'grey'
+    case 'paid':
+      return 'success'
+    case 'partial':
+      return 'warning'
+    case 'overdue':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 
 const getServiceStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid': return 'مدفوع بالكامل'
-    case 'partial': return 'مدفوع جزئياً'
-    case 'overdue': return 'متأخر'
-    case 'pending': return 'معلق'
-    case 'closed': return 'مغلق'
-    default: return status || 'معلق'
+    case 'paid':
+      return 'مدفوع بالكامل'
+    case 'partial':
+      return 'مدفوع جزئياً'
+    case 'overdue':
+      return 'متأخر'
+    case 'pending':
+      return 'معلق'
+    case 'closed':
+      return 'مغلق'
+    default:
+      return status || 'معلق'
   }
 }
 

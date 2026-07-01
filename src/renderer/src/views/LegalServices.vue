@@ -25,7 +25,9 @@
             <LucideIcon name="scale" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">مركز الخدمات والارتباطات القانونية</h1>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">
+              مركز الخدمات والارتباطات القانونية
+            </h1>
             <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
               إدارة وتتبع الاستشارات، عقود التأسيس، أعمال التوثيق، وكافة الخدمات القانونية
             </p>
@@ -48,7 +50,10 @@
     <!-- ERP Stats Summary -->
     <v-row class="mb-8" dense>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl">
+        <v-card
+          elevation="0"
+          class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl"
+        >
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4">
               <LucideIcon name="scale" :size="24" class="text-accent" />
@@ -61,7 +66,10 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl">
+        <v-card
+          elevation="0"
+          class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl"
+        >
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4">
               <LucideIcon name="clock" :size="24" class="text-accent" />
@@ -74,7 +82,10 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl">
+        <v-card
+          elevation="0"
+          class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl"
+        >
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4">
               <LucideIcon name="check-circle" :size="24" class="text-accent" />
@@ -87,14 +98,19 @@
         </v-card>
       </v-col>
       <v-col cols="12" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl">
+        <v-card
+          elevation="0"
+          class="glass-card pa-6 position-relative overflow-hidden border-gold-alpha rounded-xl"
+        >
           <div class="d-flex align-center">
             <div class="glass-panel-light pa-3 rounded-lg me-4">
               <LucideIcon name="banknote" :size="24" class="text-accent" />
             </div>
             <div>
               <div class="text-tiny font-weight-black text-white mb-1">المستحقات المعلقة</div>
-              <div class="text-h5 font-weight-black text-gold">{{ formatCurrency(totalRemainingFees) }}</div>
+              <div class="text-h5 font-weight-black text-gold">
+                {{ formatCurrency(totalRemainingFees) }}
+              </div>
             </div>
           </div>
         </v-card>
@@ -183,7 +199,9 @@
           <tr v-for="item in store.services" :key="item.id" class="premium-hover-row">
             <td class="text-right py-4">
               <div class="font-weight-black mb-1">{{ item.service_type_name }}</div>
-              <div class="text-tiny text-gold opacity-40 font-mono">REF: {{ item.engagement_number }}</div>
+              <div class="text-tiny text-gold opacity-40 font-mono">
+                REF: {{ item.engagement_number }}
+              </div>
             </td>
             <td class="text-right opacity-80 font-weight-black">
               {{ item.category_name }}
@@ -195,16 +213,30 @@
               {{ item.responsible_name || '-' }}
             </td>
             <td class="text-right py-3">
-              <div class="text-accent font-weight-black">{{ formatCurrency(item.financial_compensation || 0) }}</div>
-              <div class="text-tiny text-error font-weight-bold">متبقي: {{ formatCurrency(item.remaining_amount || 0) }}</div>
+              <div class="text-accent font-weight-black">
+                {{ formatCurrency(item.financial_compensation || 0) }}
+              </div>
+              <div class="text-tiny text-error font-weight-bold">
+                متبقي: {{ formatCurrency(item.remaining_amount || 0) }}
+              </div>
             </td>
             <td class="text-right">
-              <v-chip size="x-small" :color="getStatusColor(item.status_id)" variant="flat" class="font-weight-black">
+              <v-chip
+                size="x-small"
+                :color="getStatusColor(item.status_id)"
+                variant="flat"
+                class="font-weight-black"
+              >
                 {{ item.status_name }}
               </v-chip>
             </td>
             <td class="text-right">
-              <v-chip size="x-small" :color="getPriorityColor(item.priority_id)" variant="tonal" class="font-weight-black">
+              <v-chip
+                size="x-small"
+                :color="getPriorityColor(item.priority_id)"
+                variant="tonal"
+                class="font-weight-black"
+              >
                 {{ item.priority_name }}
               </v-chip>
             </td>
@@ -242,9 +274,7 @@
       <!-- Pagination Footer -->
       <v-divider class="border-gold opacity-10" />
       <div class="d-flex align-center justify-space-between pa-4 bg-transparent">
-        <span class="text-caption text-gold opacity-60">
-          إجمالي السجلات: {{ store.total }}
-        </span>
+        <span class="text-caption text-gold opacity-60"> إجمالي السجلات: {{ store.total }} </span>
         <div class="d-flex align-center ga-4">
           <v-btn
             size="small"
@@ -252,7 +282,8 @@
             color="accent"
             :disabled="store.page <= 1"
             @click="prevPage"
-          >السابق</v-btn>
+            >السابق</v-btn
+          >
           <span class="text-caption font-weight-black">
             صفحة {{ store.page }} من {{ Math.ceil(store.total / store.pageSize) || 1 }}
           </span>
@@ -262,7 +293,8 @@
             color="accent"
             :disabled="store.page >= Math.ceil(store.total / store.pageSize)"
             @click="nextPage"
-          >التالي</v-btn>
+            >التالي</v-btn
+          >
         </div>
       </div>
     </v-card>
@@ -289,7 +321,12 @@
 
         <v-divider class="border-gold" />
         <v-card-actions class="pa-8 modal-footer-solid">
-          <v-btn variant="flat" size="large" class="px-8 font-weight-black action-btn-unified" @click="showDialog = false">
+          <v-btn
+            variant="flat"
+            size="large"
+            class="px-8 font-weight-black action-btn-unified"
+            @click="showDialog = false"
+          >
             إلغاء
           </v-btn>
           <v-spacer />
@@ -309,7 +346,7 @@
 
     <!-- Details View Dialog -->
     <v-dialog v-model="showDetailsDialog" max-width="950" scrollable>
-      <v-card class="modal-card overflow-hidden" style="max-height: 90vh;">
+      <v-card class="modal-card overflow-hidden" style="max-height: 90vh">
         <v-card-title class="pa-6 modal-header-solid d-flex align-center">
           <div class="bg-accent-alpha pa-2 rounded-lg me-3">
             <LucideIcon name="scale" :size="20" class="text-primary" />
@@ -328,9 +365,15 @@
           <v-tabs v-model="detailsTab" color="accent" align-tabs="start" class="border-b">
             <v-tab value="general" class="font-weight-black">البيانات العامة</v-tab>
             <v-tab value="finance" class="font-weight-black">المالية</v-tab>
-            <v-tab value="notes" class="font-weight-black">الملاحظات الداخلية ({{ notes.length }})</v-tab>
-            <v-tab value="attachments" class="font-weight-black">المرفقات ({{ attachments.length }})</v-tab>
-            <v-tab value="tasks" class="font-weight-black">المهام المرتبطة ({{ tasks.length }})</v-tab>
+            <v-tab value="notes" class="font-weight-black"
+              >الملاحظات الداخلية ({{ notes.length }})</v-tab
+            >
+            <v-tab value="attachments" class="font-weight-black"
+              >المرفقات ({{ attachments.length }})</v-tab
+            >
+            <v-tab value="tasks" class="font-weight-black"
+              >المهام المرتبطة ({{ tasks.length }})</v-tab
+            >
             <v-tab value="timeline" class="font-weight-black">سجل الإجراءات (Timeline)</v-tab>
           </v-tabs>
 
@@ -340,94 +383,126 @@
               <v-row>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">التصنيف الرئيسي</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.category_name }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.category_name }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">اسم الخدمة</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.service_type_name }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.service_type_name }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">نوع الخدمة</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.service_type || '-' }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.service_type || '-' }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">العميل</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.client_name || '-' }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.client_name || '-' }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">المستفيد</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.beneficiary || '-' }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.beneficiary || '-' }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">المحامي المسؤول</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.responsible_name || '-' }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.responsible_name || '-' }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="6">
                   <div class="text-caption text-grey">تاريخ بدء الخدمة</div>
-                  <div class="text-body-1 font-weight-black mb-4">{{ formatDate(selectedService?.start_date) }}</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ formatDate(selectedService?.start_date) }}
+                  </div>
                 </v-col>
-                 <v-col cols="12" md="6">
-                   <div class="text-caption text-grey">تاريخ الانتهاء المتوقع</div>
-                   <div class="text-body-1 font-weight-black mb-4">{{ formatDate(selectedService?.expected_end_date) }}</div>
-                 </v-col>
-                 <v-col cols="12" md="4">
-                   <div class="text-caption text-grey">العقد المرتبط</div>
-                   <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.contract_number || '-' }}</div>
-                 </v-col>
-                 <v-col cols="12" md="4">
-                   <div class="text-caption text-grey">القضية المرتبطة</div>
-                   <div class="text-body-1 font-weight-black mb-4">{{ selectedService?.case_number || '-' }}</div>
-                 </v-col>
-                  <v-col cols="12" md="4">
-                    <div class="text-caption text-grey">الفاتورة المرتبطة</div>
-                    <div class="d-flex align-center gap-2 mb-4">
-                      <div class="text-body-1 font-weight-black">{{ selectedService?.invoice_number || 'لا توجد فاتورة' }}</div>
-                      
-                      <v-btn
-                        v-if="!selectedService?.invoice_id"
-                        size="x-small"
-                        color="accent"
-                        variant="flat"
-                        class="rounded-lg font-weight-black text-ebony ms-3"
-                        :loading="generatingInvoice"
-                        @click="handleGenerateInvoice"
-                      >
-                        <LucideIcon name="receipt" :size="12" class="me-1" /> إنشاء فاتورة للخدمة
-                      </v-btn>
-
-                      <v-btn
-                        v-else
-                        size="x-small"
-                        color="success"
-                        variant="tonal"
-                        class="rounded-lg font-weight-black ms-3"
-                        :loading="printingInvoice"
-                        @click="handlePrintInvoice(selectedService?.invoice_id)"
-                      >
-                        <LucideIcon name="printer" :size="12" class="me-1" /> طباعة / تصدير PDF
-                      </v-btn>
+                <v-col cols="12" md="6">
+                  <div class="text-caption text-grey">تاريخ الانتهاء المتوقع</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ formatDate(selectedService?.expected_end_date) }}
+                  </div>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <div class="text-caption text-grey">العقد المرتبط</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.contract_number || '-' }}
+                  </div>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <div class="text-caption text-grey">القضية المرتبطة</div>
+                  <div class="text-body-1 font-weight-black mb-4">
+                    {{ selectedService?.case_number || '-' }}
+                  </div>
+                </v-col>
+                <v-col cols="12" md="4">
+                  <div class="text-caption text-grey">الفاتورة المرتبطة</div>
+                  <div class="d-flex align-center gap-2 mb-4">
+                    <div class="text-body-1 font-weight-black">
+                      {{ selectedService?.invoice_number || 'لا توجد فاتورة' }}
                     </div>
-                  </v-col>
+
+                    <v-btn
+                      v-if="!selectedService?.invoice_id"
+                      size="x-small"
+                      color="accent"
+                      variant="flat"
+                      class="rounded-lg font-weight-black text-ebony ms-3"
+                      :loading="generatingInvoice"
+                      @click="handleGenerateInvoice"
+                    >
+                      <LucideIcon name="receipt" :size="12" class="me-1" /> إنشاء فاتورة للخدمة
+                    </v-btn>
+
+                    <v-btn
+                      v-else
+                      size="x-small"
+                      color="success"
+                      variant="tonal"
+                      class="rounded-lg font-weight-black ms-3"
+                      :loading="printingInvoice"
+                      @click="handlePrintInvoice(selectedService?.invoice_id)"
+                    >
+                      <LucideIcon name="printer" :size="12" class="me-1" /> طباعة / تصدير PDF
+                    </v-btn>
+                  </div>
+                </v-col>
                 <v-col cols="12" md="4">
                   <div class="text-caption text-grey">المقابل المالي</div>
-                  <div class="text-body-1 font-weight-black text-accent mb-4">{{ formatCurrency(selectedService?.financial_compensation || 0) }}</div>
+                  <div class="text-body-1 font-weight-black text-accent mb-4">
+                    {{ formatCurrency(selectedService?.financial_compensation || 0) }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="4">
                   <div class="text-caption text-grey">المسدد</div>
-                  <div class="text-body-1 font-weight-black text-success mb-4">{{ formatCurrency(selectedService?.paid_amount || 0) }}</div>
+                  <div class="text-body-1 font-weight-black text-success mb-4">
+                    {{ formatCurrency(selectedService?.paid_amount || 0) }}
+                  </div>
                 </v-col>
                 <v-col cols="12" md="4">
                   <div class="text-caption text-grey">المتبقي</div>
-                  <div class="text-body-1 font-weight-black text-error mb-4">{{ formatCurrency(selectedService?.remaining_amount || 0) }}</div>
+                  <div class="text-body-1 font-weight-black text-error mb-4">
+                    {{ formatCurrency(selectedService?.remaining_amount || 0) }}
+                  </div>
                 </v-col>
                 <v-col cols="12">
                   <v-divider class="my-4" />
                   <div class="text-caption text-grey">وصف الخدمة</div>
-                  <div class="text-body-1 leading-relaxed mb-4" style="white-space: pre-wrap;">{{ selectedService?.description || '-' }}</div>
+                  <div class="text-body-1 leading-relaxed mb-4" style="white-space: pre-wrap">
+                    {{ selectedService?.description || '-' }}
+                  </div>
                 </v-col>
                 <v-col cols="12">
                   <div class="text-caption text-grey">ملاحظات عامة</div>
-                  <div class="text-body-1 leading-relaxed mb-4" style="white-space: pre-wrap;">{{ selectedService?.notes || '-' }}</div>
+                  <div class="text-body-1 leading-relaxed mb-4" style="white-space: pre-wrap">
+                    {{ selectedService?.notes || '-' }}
+                  </div>
                 </v-col>
               </v-row>
             </v-window-item>
@@ -436,49 +511,78 @@
             <v-window-item value="finance">
               <v-row>
                 <v-col cols="12" md="6">
-                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
-                    <div class="text-subtitle-2 font-weight-black text-primary mb-4">ملخص المالية</div>
+                  <v-card
+                    variant="outlined"
+                    class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5"
+                  >
+                    <div class="text-subtitle-2 font-weight-black text-primary mb-4">
+                      ملخص المالية
+                    </div>
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">المقابل المالي:</span>
-                      <span class="font-weight-black text-accent">{{ formatCurrency(selectedService?.financial_compensation || 0) }}</span>
+                      <span class="font-weight-black text-accent">{{
+                        formatCurrency(selectedService?.financial_compensation || 0)
+                      }}</span>
                     </div>
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">الضريبة:</span>
-                      <span class="font-weight-black text-grey-darken-1">{{ formatCurrency(selectedService?.tax || 0) }}</span>
+                      <span class="font-weight-black text-grey-darken-1">{{
+                        formatCurrency(selectedService?.tax || 0)
+                      }}</span>
                     </div>
                     <v-divider class="my-3" />
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">الإجمالي:</span>
-                      <span class="font-weight-black text-accent">{{ formatCurrency((selectedService?.financial_compensation || 0) + (selectedService?.tax || 0)) }}</span>
+                      <span class="font-weight-black text-accent">{{
+                        formatCurrency(
+                          (selectedService?.financial_compensation || 0) +
+                            (selectedService?.tax || 0)
+                        )
+                      }}</span>
                     </div>
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">المسدد:</span>
-                      <span class="font-weight-black text-success">{{ formatCurrency(selectedService?.paid_amount || 0) }}</span>
+                      <span class="font-weight-black text-success">{{
+                        formatCurrency(selectedService?.paid_amount || 0)
+                      }}</span>
                     </div>
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">المتبقي:</span>
-                      <span class="font-weight-black text-error">{{ formatCurrency(selectedService?.remaining_amount || 0) }}</span>
+                      <span class="font-weight-black text-error">{{
+                        formatCurrency(selectedService?.remaining_amount || 0)
+                      }}</span>
                     </div>
                     <div class="d-flex justify-space-between align-center mb-3">
                       <span class="text-grey">طريقة الدفع:</span>
-                      <span class="font-weight-black">{{ selectedService?.payment_method || '-' }}</span>
+                      <span class="font-weight-black">{{
+                        selectedService?.payment_method || '-'
+                      }}</span>
                     </div>
                     <div class="d-flex justify-space-between align-center">
                       <span class="text-grey">الفاتورة:</span>
-                      <span class="font-weight-black">{{ selectedService?.invoice_number || 'لا توجد' }}</span>
+                      <span class="font-weight-black">{{
+                        selectedService?.invoice_number || 'لا توجد'
+                      }}</span>
                     </div>
                   </v-card>
                 </v-col>
                 <v-col cols="12" md="6">
-                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
-                    <div class="text-subtitle-2 font-weight-black text-gold mb-4">سجل المالية (حسابات المكتب)</div>
+                  <v-card
+                    variant="outlined"
+                    class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5"
+                  >
+                    <div class="text-subtitle-2 font-weight-black text-gold mb-4">
+                      سجل المالية (حسابات المكتب)
+                    </div>
                     <div v-if="loadingFinance" class="text-center py-6">
                       <v-progress-circular indeterminate color="accent" size="24" />
                     </div>
                     <div v-else-if="financeRecord">
                       <div class="d-flex justify-space-between align-center mb-3">
                         <span class="text-grey">رقم المرجع المالي:</span>
-                        <span class="font-weight-black font-mono">{{ financeRecord.id?.substring(0, 8) || '-' }}</span>
+                        <span class="font-weight-black font-mono">{{
+                          financeRecord.id?.substring(0, 8) || '-'
+                        }}</span>
                       </div>
                       <div class="d-flex justify-space-between align-center mb-3">
                         <span class="text-grey">تاريخ التسجيل:</span>
@@ -486,44 +590,75 @@
                       </div>
                       <div class="d-flex justify-space-between align-center mb-3">
                         <span class="text-grey">حالة الدفع:</span>
-                        <v-chip size="x-small" :color="getFinanceStatusColor(financeRecord.status)" class="font-weight-black text-ebony">
+                        <v-chip
+                          size="x-small"
+                          :color="getFinanceStatusColor(financeRecord.status)"
+                          class="font-weight-black text-ebony"
+                        >
                           {{ getFinanceStatusLabel(financeRecord.status) }}
                         </v-chip>
                       </div>
                       <div class="d-flex justify-space-between align-center mb-3">
                         <span class="text-grey">المبلغ المسجل:</span>
-                        <span class="font-weight-black">{{ formatCurrency(financeRecord.amount || 0) }}</span>
+                        <span class="font-weight-black">{{
+                          formatCurrency(financeRecord.amount || 0)
+                        }}</span>
                       </div>
                       <div class="d-flex justify-space-between align-center mb-3">
                         <span class="text-grey">المبلغ الإجمالي:</span>
-                        <span class="font-weight-black">{{ formatCurrency(financeRecord.total || 0) }}</span>
+                        <span class="font-weight-black">{{
+                          formatCurrency(financeRecord.total || 0)
+                        }}</span>
                       </div>
                     </div>
                     <div v-else class="text-center py-6 text-grey">
                       <LucideIcon name="banknote" :size="32" class="mb-2 opacity-50" />
                       <div>لا يوجد سجل مالي مرتبط في حسابات المكتب</div>
-                      <div class="text-caption mt-2">يتم إنشاء سجل مالي تلقائياً عند إدخال مقابل مالي للخدمة</div>
+                      <div class="text-caption mt-2">
+                        يتم إنشاء سجل مالي تلقائياً عند إدخال مقابل مالي للخدمة
+                      </div>
                     </div>
                   </v-card>
                 </v-col>
               </v-row>
               <v-row class="mt-4">
                 <v-col cols="12">
-                  <v-card variant="outlined" class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5">
+                  <v-card
+                    variant="outlined"
+                    class="pa-5 rounded-xl border-gold-alpha bg-grey-lighten-5"
+                  >
                     <div class="d-flex align-center justify-space-between mb-4">
-                      <div class="text-subtitle-2 font-weight-black text-primary">إجراءات مالية</div>
+                      <div class="text-subtitle-2 font-weight-black text-primary">
+                        إجراءات مالية
+                      </div>
                     </div>
                     <div class="d-flex flex-wrap ga-3">
-                      <v-btn v-if="!selectedService?.invoice_id" color="accent" variant="flat"
-                        class="rounded-lg font-weight-black text-ebony" :loading="generatingInvoice"
-                        @click="handleGenerateInvoice">
+                      <v-btn
+                        v-if="!selectedService?.invoice_id"
+                        color="accent"
+                        variant="flat"
+                        class="rounded-lg font-weight-black text-ebony"
+                        :loading="generatingInvoice"
+                        @click="handleGenerateInvoice"
+                      >
                         <LucideIcon name="receipt" :size="16" class="me-2" /> إنشاء فاتورة ضريبية
                       </v-btn>
-                      <v-btn v-else color="success" variant="tonal" class="rounded-lg font-weight-black"
-                        :loading="printingInvoice" @click="handlePrintInvoice(selectedService?.invoice_id)">
+                      <v-btn
+                        v-else
+                        color="success"
+                        variant="tonal"
+                        class="rounded-lg font-weight-black"
+                        :loading="printingInvoice"
+                        @click="handlePrintInvoice(selectedService?.invoice_id)"
+                      >
                         <LucideIcon name="printer" :size="16" class="me-2" /> طباعة / تصدير الفاتورة
                       </v-btn>
-                      <v-btn color="gold" variant="tonal" class="rounded-lg font-weight-black" @click="showPaymentDialog = true">
+                      <v-btn
+                        color="gold"
+                        variant="tonal"
+                        class="rounded-lg font-weight-black"
+                        @click="showPaymentDialog = true"
+                      >
                         <LucideIcon name="wallet" :size="16" class="me-2" /> تسجيل دفعة جديدة
                       </v-btn>
                     </div>
@@ -549,7 +684,8 @@
                   :disabled="!newNoteText.trim()"
                   :loading="addingNote"
                   @click="submitNote"
-                >إدراج الملاحظة</v-btn>
+                  >إدراج الملاحظة</v-btn
+                >
               </div>
 
               <div v-if="notes.length === 0" class="text-center py-6 text-grey">
@@ -563,10 +699,14 @@
                   class="pa-4 bg-grey-lighten-4 rounded-xl border-gold-alpha"
                 >
                   <div class="d-flex justify-space-between align-center mb-2">
-                    <span class="font-weight-black text-primary text-caption">{{ n.created_by }}</span>
+                    <span class="font-weight-black text-primary text-caption">{{
+                      n.created_by
+                    }}</span>
                     <span class="text-tiny text-grey">{{ formatDate(n.created_at) }}</span>
                   </div>
-                  <div class="text-body-2 leading-relaxed text-black" style="white-space: pre-wrap;">{{ n.note_text }}</div>
+                  <div class="text-body-2 leading-relaxed text-black" style="white-space: pre-wrap">
+                    {{ n.note_text }}
+                  </div>
                 </v-card>
               </div>
             </v-window-item>
@@ -602,7 +742,13 @@
                     <td class="text-right text-grey">{{ formatDate(att.uploaded_at) }}</td>
                     <td class="text-right text-grey">{{ att.uploaded_by }}</td>
                     <td class="text-left">
-                      <v-btn size="small" variant="tonal" color="accent" class="rounded-lg font-weight-black" @click="openAttachmentFile(att.file_path)">
+                      <v-btn
+                        size="small"
+                        variant="tonal"
+                        color="accent"
+                        class="rounded-lg font-weight-black"
+                        @click="openAttachmentFile(att.file_path)"
+                      >
                         فتح الملف
                       </v-btn>
                     </td>
@@ -616,7 +762,9 @@
               <!-- Add Quick Task Form Toggle -->
               <v-expand-transition>
                 <div v-if="showAddTaskForm" class="pa-4 mb-6 border rounded-xl bg-grey-lighten-5">
-                  <div class="text-subtitle-2 font-weight-black mb-4 text-primary">إضافة مهمة جديدة للخدمة</div>
+                  <div class="text-subtitle-2 font-weight-black mb-4 text-primary">
+                    إضافة مهمة جديدة للخدمة
+                  </div>
                   <v-form ref="taskFormRef">
                     <v-row dense>
                       <v-col cols="12" md="6">
@@ -625,7 +773,7 @@
                           label="عنوان المهمة*"
                           variant="outlined"
                           density="comfortable"
-                          :rules="[v => !!v || 'العنوان مطلوب']"
+                          :rules="[(v) => !!v || 'العنوان مطلوب']"
                           required
                         />
                       </v-col>
@@ -638,7 +786,7 @@
                           label="المسؤول عنها*"
                           variant="outlined"
                           density="comfortable"
-                          :rules="[v => !!v || 'المسؤول مطلوب']"
+                          :rules="[(v) => !!v || 'المسؤول مطلوب']"
                           required
                         />
                       </v-col>
@@ -671,8 +819,20 @@
                       </v-col>
                     </v-row>
                     <div class="d-flex justify-end gap-2 mt-2">
-                      <v-btn variant="text" color="grey" class="rounded-lg font-weight-bold" @click="showAddTaskForm = false">تراجع</v-btn>
-                      <v-btn color="accent" class="rounded-lg font-weight-black text-ebony" :loading="savingTask" @click="submitTask">حفظ المهمة</v-btn>
+                      <v-btn
+                        variant="text"
+                        color="grey"
+                        class="rounded-lg font-weight-bold"
+                        @click="showAddTaskForm = false"
+                        >تراجع</v-btn
+                      >
+                      <v-btn
+                        color="accent"
+                        class="rounded-lg font-weight-black text-ebony"
+                        :loading="savingTask"
+                        @click="submitTask"
+                        >حفظ المهمة</v-btn
+                      >
                     </div>
                   </v-form>
                 </div>
@@ -713,13 +873,23 @@
                     </td>
                     <td class="text-right text-grey">{{ t.responsible_name || '-' }}</td>
                     <td class="text-right">
-                      <v-chip size="x-small" :color="getTaskPriorityColor(t.priority)" variant="tonal" class="font-weight-black">
+                      <v-chip
+                        size="x-small"
+                        :color="getTaskPriorityColor(t.priority)"
+                        variant="tonal"
+                        class="font-weight-black"
+                      >
                         {{ t.priority }}
                       </v-chip>
                     </td>
                     <td class="text-right text-grey">{{ t.due_date || '-' }}</td>
                     <td class="text-right">
-                      <v-chip size="x-small" :color="getTaskStatusColor(t.status)" variant="flat" class="text-ebony font-weight-black">
+                      <v-chip
+                        size="x-small"
+                        :color="getTaskStatusColor(t.status)"
+                        variant="flat"
+                        class="text-ebony font-weight-black"
+                      >
                         {{ getTaskStatusLabel(t.status) }}
                       </v-chip>
                     </td>
@@ -739,11 +909,17 @@
                 >
                   <div class="mb-4">
                     <div class="d-flex justify-space-between align-center mb-1">
-                      <span class="font-weight-black text-black text-body-2">{{ t.event_title }}</span>
+                      <span class="font-weight-black text-black text-body-2">{{
+                        t.event_title
+                      }}</span>
                       <span class="text-tiny text-grey">{{ formatDate(t.created_at) }}</span>
                     </div>
-                    <div class="text-caption text-grey-darken-2 mb-1">{{ t.event_description }}</div>
-                    <div class="text-tiny text-primary font-weight-black">المسؤول: {{ t.actor }}</div>
+                    <div class="text-caption text-grey-darken-2 mb-1">
+                      {{ t.event_description }}
+                    </div>
+                    <div class="text-tiny text-primary font-weight-black">
+                      المسؤول: {{ t.actor }}
+                    </div>
                   </div>
                 </v-timeline-item>
               </v-timeline>
@@ -758,7 +934,9 @@
       <v-card class="modal-card overflow-hidden">
         <v-card-title class="pa-6 modal-header-solid d-flex align-center">
           <LucideIcon name="alert-triangle" :size="24" class="me-3 text-error" />
-          <span class="text-h6 font-weight-black text-pure-black">تأكيد الأرشفة / الحذف الناعم</span>
+          <span class="text-h6 font-weight-black text-pure-black"
+            >تأكيد الأرشفة / الحذف الناعم</span
+          >
           <v-spacer />
           <v-btn icon variant="text" size="small" @click="showDeleteDialog = false">
             <LucideIcon name="x" :size="20" class="text-primary" />
@@ -767,16 +945,23 @@
 
         <v-card-text class="pa-8 bg-white text-center">
           <div class="text-body-1 mb-6 text-pure-black font-weight-black leading-relaxed">
-            هل أنت متأكد من نقل هذه الخدمة القانونية إلى سلة المحذوفات؟
-            سيتم حجبها من جداول التشغيل الأساسية مع بقائها في قاعدة البيانات لأغراض الرقابة.
+            هل أنت متأكد من نقل هذه الخدمة القانونية إلى سلة المحذوفات؟ سيتم حجبها من جداول التشغيل
+            الأساسية مع بقائها في قاعدة البيانات لأغراض الرقابة.
           </div>
-          <div class="pa-4 rounded-lg font-weight-black text-h6 bg-grey-lighten-4 border-gold-alpha text-error mb-4">
+          <div
+            class="pa-4 rounded-lg font-weight-black text-h6 bg-grey-lighten-4 border-gold-alpha text-error mb-4"
+          >
             REF: {{ itemToDelete?.engagement_number }} - {{ itemToDelete?.service_type_name }}
           </div>
         </v-card-text>
 
         <v-card-actions class="pa-8 modal-footer-solid ga-3">
-          <v-btn variant="flat" size="large" class="px-8 font-weight-black action-btn-unified" @click="showDeleteDialog = false">
+          <v-btn
+            variant="flat"
+            size="large"
+            class="px-8 font-weight-black action-btn-unified"
+            @click="showDeleteDialog = false"
+          >
             تراجع
           </v-btn>
           <v-spacer />
@@ -805,7 +990,11 @@
     <!-- Feedback Snackbars -->
     <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
       <div class="d-flex align-center">
-        <LucideIcon :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'" :size="18" class="me-3" />
+        <LucideIcon
+          :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
+          :size="18"
+          class="me-3"
+        />
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
     </v-snackbar>
@@ -877,8 +1066,12 @@ const newTask = reactive({
 })
 
 // Reference dropdown options derived from store lookups
-const categoryOptions = computed(() => store.categories.map((c) => ({ title: c.name_ar, value: c.id })))
-const statusOptions = computed(() => store.statuses.map((s) => ({ title: s.status_name_ar, value: s.id })))
+const categoryOptions = computed(() =>
+  store.categories.map((c) => ({ title: c.name_ar, value: c.id }))
+)
+const statusOptions = computed(() =>
+  store.statuses.map((s) => ({ title: s.status_name_ar, value: s.id }))
+)
 
 // Top stats calculations computed strictly from loaded data
 const inProgressCount = computed(() => {
@@ -900,7 +1093,7 @@ const totalRemainingFees = computed(() => {
 // Check Feature Flag and load lookups on mount
 onMounted(async () => {
   try {
-    const s = await window.api.settings.get() as any
+    const s = (await window.api.settings.get()) as any
     isEnabled.value = s?.featureLegalServicesEnabled !== false
     if (isEnabled.value) {
       await store.fetchMetadata()
@@ -1038,10 +1231,16 @@ const openDetails = async (item: LegalEngagement) => {
   detailsTab.value = 'general'
   newNoteText.value = ''
   showAddTaskForm.value = false
-  
+
   // Load notes, attachments, timeline, tasks and finance
   financeRecord.value = null
-  await Promise.all([loadNotes(), loadAttachments(), loadTimeline(), loadTasks(), loadFinanceRecord()])
+  await Promise.all([
+    loadNotes(),
+    loadAttachments(),
+    loadTimeline(),
+    loadTasks(),
+    loadFinanceRecord()
+  ])
   showDetailsDialog.value = true
 }
 
@@ -1089,7 +1288,7 @@ const submitTask = async () => {
     const check = await taskFormRef.value.validate()
     if (!check.valid) return
   }
-  
+
   savingTask.value = true
   try {
     const payload = {
@@ -1129,14 +1328,16 @@ const handleGenerateInvoice = async () => {
   try {
     await (window as any).api.legalServices.generateInvoice(selectedService.value.id)
     triggerSnackbar('تم إصدار الفاتورة الضريبية وتوصيلها بالخدمة بنجاح')
-    
+
     // Reload data and update selection
     await loadData()
-    const refreshed = store.services.find(s => s.id === selectedService.value?.id)
+    const refreshed = store.services.find((s) => s.id === selectedService.value?.id)
     if (refreshed) {
       selectedService.value = refreshed
     } else {
-      selectedService.value = await (window as any).api.legalServices.getById(selectedService.value.id)
+      selectedService.value = await (window as any).api.legalServices.getById(
+        selectedService.value.id
+      )
     }
     await loadTimeline()
   } catch (e: any) {
@@ -1245,20 +1446,29 @@ const loadFinanceRecord = async () => {
 
 const getFinanceStatusColor = (status: string) => {
   switch (status) {
-    case 'paid': return 'success'
-    case 'partially_paid': return 'warning'
-    case 'overdue': return 'error'
-    default: return 'grey'
+    case 'paid':
+      return 'success'
+    case 'partially_paid':
+      return 'warning'
+    case 'overdue':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 
 const getFinanceStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid': return 'مدفوع بالكامل'
-    case 'partially_paid': return 'مدفوع جزئياً'
-    case 'overdue': return 'متأخر'
-    case 'pending': return 'معلق'
-    default: return status || 'معلق'
+    case 'paid':
+      return 'مدفوع بالكامل'
+    case 'partially_paid':
+      return 'مدفوع جزئياً'
+    case 'overdue':
+      return 'متأخر'
+    case 'pending':
+      return 'معلق'
+    default:
+      return status || 'معلق'
   }
 }
 
@@ -1292,7 +1502,11 @@ const getTimelineDotColor = (type: string) => {
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(val)
 }
 
 const formatDate = (dateStr?: string) => {

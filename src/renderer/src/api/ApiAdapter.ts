@@ -568,7 +568,9 @@ const api = {
     create: (data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:create', data)
-        : cloudRequest({ method: 'POST', url: '/legal-services/engagements', data }).then((r: any) => r.id),
+        : cloudRequest({ method: 'POST', url: '/legal-services/engagements', data }).then(
+            (r: any) => r.id
+          ),
     update: (id: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:update', id, data)
@@ -588,7 +590,11 @@ const api = {
     addNote: (id: string, noteText: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:addNote', id, noteText)
-        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/notes`, data: { noteText } }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/legal-services/engagements/${id}/notes`,
+            data: { noteText }
+          }),
     getAttachments: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getAttachments', id)
@@ -596,7 +602,11 @@ const api = {
     addAttachment: (id: string, fileName: string, filePath: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:addAttachment', id, fileName, filePath)
-        : cloudRequest({ method: 'POST', url: `/legal-services/engagements/${id}/attachments`, data: { fileName, filePath } }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/legal-services/engagements/${id}/attachments`,
+            data: { fileName, filePath }
+          }),
     getTimeline: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getTimeline', id)
@@ -612,7 +622,11 @@ const api = {
     getByCaseId: (caseId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:list', { case_id: caseId, pageSize: 100 })
-        : cloudRequest({ method: 'GET', url: '/legal-services/engagements', params: { case_id: caseId, pageSize: 100 } }),
+        : cloudRequest({
+            method: 'GET',
+            url: '/legal-services/engagements',
+            params: { case_id: caseId, pageSize: 100 }
+          }),
     getClientSummary: (clientId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getClientSummary', clientId)
@@ -623,31 +637,55 @@ const api = {
     recordPayment: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:recordPayment', engagementId, data)
-        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/payments`, data }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/office-accounts/engagements/${engagementId}/payments`,
+            data
+          }),
     getPayments: (engagementId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getPayments', engagementId)
-        : cloudRequest({ method: 'GET', url: `/office-accounts/engagements/${engagementId}/payments` }),
+        : cloudRequest({
+            method: 'GET',
+            url: `/office-accounts/engagements/${engagementId}/payments`
+          }),
     createInstallments: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:createInstallments', engagementId, data)
-        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/installments`, data }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/office-accounts/engagements/${engagementId}/installments`,
+            data
+          }),
     getInstallments: (engagementId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getInstallments', engagementId)
-        : cloudRequest({ method: 'GET', url: `/office-accounts/engagements/${engagementId}/installments` }),
+        : cloudRequest({
+            method: 'GET',
+            url: `/office-accounts/engagements/${engagementId}/installments`
+          }),
     adjustFee: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:adjustFee', engagementId, data)
-        : cloudRequest({ method: 'PUT', url: `/office-accounts/engagements/${engagementId}/adjust-fee`, data }),
+        : cloudRequest({
+            method: 'PUT',
+            url: `/office-accounts/engagements/${engagementId}/adjust-fee`,
+            data
+          }),
     closeFinance: (engagementId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:closeFinance', engagementId)
-        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/close-finance` }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/office-accounts/engagements/${engagementId}/close-finance`
+          }),
     getClientFinancialSummary: (clientId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getClientFinancialSummary', clientId)
-        : cloudRequest({ method: 'GET', url: `/office-accounts/clients/${clientId}/financial-summary` }),
+        : cloudRequest({
+            method: 'GET',
+            url: `/office-accounts/clients/${clientId}/financial-summary`
+          }),
     getOfficeAccountsReport: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getOfficeAccountsReport', params)
@@ -655,11 +693,69 @@ const api = {
     applyLateFee: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:applyLateFee', engagementId, data)
-        : cloudRequest({ method: 'POST', url: `/office-accounts/engagements/${engagementId}/late-fee`, data }),
+        : cloudRequest({
+            method: 'POST',
+            url: `/office-accounts/engagements/${engagementId}/late-fee`,
+            data
+          }),
     getClientFullProfile: (clientId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getClientFullProfile', clientId)
         : cloudRequest({ method: 'GET', url: `/office-accounts/clients/${clientId}/full-profile` })
+  },
+  officeManagement: {
+    getDashboard: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getDashboard', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/dashboard', params }),
+    getExpenses: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getExpenses', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/expenses', params }),
+    addExpense: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:addExpense', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/expenses', data }),
+    deleteExpense: (id: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:deleteExpense', id)
+        : cloudRequest({ method: 'DELETE', url: `/office-management/expenses/${id}` }),
+    getPartners: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getPartners')
+        : cloudRequest({ method: 'GET', url: '/office-management/partners' }),
+    addPartner: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:addPartner', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/partners', data }),
+    updatePartner: (id: string, data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:updatePartner', id, data)
+        : cloudRequest({ method: 'PUT', url: `/office-management/partners/${id}`, data }),
+    getContributions: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getContributions', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/contributions', params }),
+    addContribution: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:addContribution', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/contributions', data }),
+    getBudgets: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getBudgets', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/budgets', params }),
+    updateBudget: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:updateBudget', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/budgets', data }),
+    getDistributions: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:getDistributions', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/distributions', params }),
+    distributeProfits: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('officeManagement:distributeProfits', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/distributions', data })
   },
   defendants: {
     ...buildCrudApi('defendants'),
@@ -1179,7 +1275,12 @@ const api = {
     exportLegalServices: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:exportLegalServices', params)
-        : cloudRequest({ method: 'POST', url: '/reports/legal-services/export', data: params, responseType: 'blob' }),
+        : cloudRequest({
+            method: 'POST',
+            url: '/reports/legal-services/export',
+            data: params,
+            responseType: 'blob'
+          }),
     listCases: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:listCases')

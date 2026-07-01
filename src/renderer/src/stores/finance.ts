@@ -1,6 +1,15 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import { Transaction, Account, FinanceStats, Invoice, Voucher, Receivable, PaymentSchedule, PaymentRecord } from '../types'
+import {
+  Transaction,
+  Account,
+  FinanceStats,
+  Invoice,
+  Voucher,
+  Receivable,
+  PaymentSchedule,
+  PaymentRecord
+} from '../types'
 
 export const useFinanceStore = defineStore('finance', () => {
   const transactions = ref<Transaction[]>([])
@@ -123,12 +132,15 @@ export const useFinanceStore = defineStore('finance', () => {
   const paymentSchedules = ref<PaymentSchedule[]>([])
   const paymentHistory = ref<PaymentRecord[]>([])
 
-  const recordPayment = async (engagementId: string, payment: {
-    amount: number
-    payment_method?: string
-    payment_schedule_id?: string
-    notes?: string
-  }) => {
+  const recordPayment = async (
+    engagementId: string,
+    payment: {
+      amount: number
+      payment_method?: string
+      payment_schedule_id?: string
+      notes?: string
+    }
+  ) => {
     try {
       const result = await window.api.legalServices.recordPayment(engagementId, payment)
       await fetchFinanceData()
@@ -147,11 +159,15 @@ export const useFinanceStore = defineStore('finance', () => {
     }
   }
 
-  const createInstallments = async (engagementId: string, installments: {
-    title: string
-    amount: number
-    due_date: string
-  }[], frequency?: string) => {
+  const createInstallments = async (
+    engagementId: string,
+    installments: {
+      title: string
+      amount: number
+      due_date: string
+    }[],
+    frequency?: string
+  ) => {
     try {
       await window.api.legalServices.createInstallments(engagementId, { installments, frequency })
     } catch (e: unknown) {
@@ -167,11 +183,14 @@ export const useFinanceStore = defineStore('finance', () => {
     }
   }
 
-  const adjustFee = async (engagementId: string, adjustment: {
-    new_compensation: number
-    reason: string
-    adjustment_type: 'increase' | 'decrease'
-  }) => {
+  const adjustFee = async (
+    engagementId: string,
+    adjustment: {
+      new_compensation: number
+      reason: string
+      adjustment_type: 'increase' | 'decrease'
+    }
+  ) => {
     try {
       await window.api.legalServices.adjustFee(engagementId, adjustment)
       await fetchFinanceData()

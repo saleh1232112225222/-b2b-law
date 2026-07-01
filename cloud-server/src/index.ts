@@ -67,6 +67,7 @@ import { subscriberTrackingRouter } from './routes/subscriberTracking'
 import { sessionsRouter } from './routes/sessions'
 import legalServicesRouter from './routes/legal_services'
 import officeAccountsRouter from './routes/office_accounts'
+import officeManagementRouter from './routes/office_management'
 import { archiveRouter } from './routes/archive'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
@@ -120,8 +121,12 @@ async function initTrackingTables() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`)
     await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_user_id ON user_login_logs(user_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_company_id ON user_login_logs(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_created_at ON user_login_logs(created_at DESC)`)
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_login_logs_company_id ON user_login_logs(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_login_logs_created_at ON user_login_logs(created_at DESC)`
+    )
 
     await query(`CREATE TABLE IF NOT EXISTS user_activity_logs (
       id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -134,10 +139,18 @@ async function initTrackingTables() {
       ip_address TEXT,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON user_activity_logs(user_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_company_id ON user_activity_logs(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON user_activity_logs(created_at DESC)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_activity_logs_type ON user_activity_logs(activity_type)`)
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_activity_logs_user_id ON user_activity_logs(user_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_activity_logs_company_id ON user_activity_logs(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_activity_logs_created_at ON user_activity_logs(created_at DESC)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_activity_logs_type ON user_activity_logs(activity_type)`
+    )
     console.log('[TRACKING] User tracking tables ready')
   } catch (err) {
     console.error('[TRACKING] Failed to create tracking tables:', err)
@@ -161,6 +174,7 @@ app.use('/api', marketingRouter)
 app.use('/api/debug', debugRouter)
 app.use('/api/legal-services', legalServicesRouter)
 app.use('/api/office-accounts', officeAccountsRouter)
+app.use('/api/office-management', officeManagementRouter)
 app.use('/api/archive', archiveRouter)
 
 // Finance stats endpoint - must be registered before the generic entity router
@@ -173,13 +187,16 @@ app.get(
       const { getCompanyId } = require('./middleware/tenant')
       const companyId = getCompanyId(req)
 
-      const result = await query(`
+      const result = await query(
+        `
         SELECT
           COALESCE(SUM(CASE WHEN type = 'income' OR type = 'receivable' THEN COALESCE(amount, 0) ELSE 0 END), 0) as income,
           COALESCE(SUM(CASE WHEN type = 'expense' THEN COALESCE(amount, 0) ELSE 0 END), 0) as expense
         FROM finances
         WHERE company_id = $1
-      `, [companyId])
+      `,
+        [companyId]
+      )
 
       const row = result.rows[0]
       const income = parseFloat(row.income)

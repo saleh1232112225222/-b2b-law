@@ -1,6 +1,10 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { ClientFinancialSummary, ClientFullProfile, OfficeAccountsReport } from '../types/finance'
+import type {
+  ClientFinancialSummary,
+  ClientFullProfile,
+  OfficeAccountsReport
+} from '../types/finance'
 
 export const useOfficeAccountsStore = defineStore('officeAccounts', () => {
   const clientSummary = ref<ClientFinancialSummary | null>(null)
@@ -41,5 +45,13 @@ export const useOfficeAccountsStore = defineStore('officeAccounts', () => {
     }
   }
 
-  return { clientSummary, clientFullProfile, report, loading, fetchClientSummary, fetchClientFullProfile, fetchReport }
+  return {
+    clientSummary,
+    clientFullProfile,
+    report,
+    loading,
+    fetchClientSummary,
+    fetchClientFullProfile,
+    fetchReport
+  }
 })

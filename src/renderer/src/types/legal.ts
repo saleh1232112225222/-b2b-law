@@ -44,4 +44,6 @@ export interface LegalEngagement {
   contract_number?: string
   case_number?: string
   invoice_number?: string
+  finance_status?: string
+  installment_count?: number
 }

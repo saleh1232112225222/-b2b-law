@@ -47,8 +47,9 @@ router.get('/engagements/count', async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { q, category_id, status_id } = req.query
-    
-    let sql = 'SELECT COUNT(*) as total FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL'
+
+    let sql =
+      'SELECT COUNT(*) as total FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL'
     const params: any[] = [companyId]
 
     if (q && q !== 'null') {
@@ -75,8 +76,8 @@ router.get('/engagements', async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { page = 1, pageSize = 25, q, category_id, status_id } = req.query
-    
-      let sql = `
+
+    let sql = `
         SELECT 
           e.*,
           c.name_ar as category_name,
@@ -114,7 +115,7 @@ router.get('/engagements', async (req: any, res) => {
     }
 
     sql += ' ORDER BY e.created_at DESC'
-    
+
     const offset = (Number(page) - 1) * Number(pageSize)
     params.push(Number(pageSize), offset)
     sql += ` LIMIT $${params.length - 1} OFFSET $${params.length}`
@@ -127,17 +128,26 @@ router.get('/engagements', async (req: any, res) => {
 })
 
 // Helper: resolve responsible_lawyer_id - accepts employee_id or user_id
-async function resolveLawyerId(value: string | null | undefined, companyId: string): Promise<string | null> {
+async function resolveLawyerId(
+  value: string | null | undefined,
+  companyId: string
+): Promise<string | null> {
   if (!value || value === '') return null
-  
+
   // Check if it's a valid employee_id
-  const empRes = await query('SELECT id FROM employees WHERE id = $1 AND company_id = $2', [value, companyId])
+  const empRes = await query('SELECT id FROM employees WHERE id = $1 AND company_id = $2', [
+    value,
+    companyId
+  ])
   if (empRes.rows.length > 0) return empRes.rows[0].id
-  
+
   // Check if it's a user_id and get the employee_id
-  const userRes = await query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [value, companyId])
+  const userRes = await query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [
+    value,
+    companyId
+  ])
   if (userRes.rows.length > 0 && userRes.rows[0].employee_id) return userRes.rows[0].employee_id
-  
+
   // If neither found, return null
   return null
 }
@@ -146,9 +156,11 @@ router.post('/engagements', async (req: any, res) => {
   try {
     const { companyId, userId } = req.auth
     const data = req.body
-    
+
     // Generate engagement number
-    const countRes = await query('SELECT COUNT(*) FROM legal_engagements WHERE company_id = $1', [companyId])
+    const countRes = await query('SELECT COUNT(*) FROM legal_engagements WHERE company_id = $1', [
+      companyId
+    ])
     const count = parseInt(countRes.rows[0].count) + 1
     const engagement_number = `LEG-${new Date().getFullYear()}-${count.toString().padStart(4, '0')}`
 
@@ -161,7 +173,7 @@ router.post('/engagements', async (req: any, res) => {
     const financial_compensation = Number(data.financial_compensation || 0)
     const tax = Number(data.tax || 0)
     const paid_amount = Number(data.paid_amount || 0)
-    const remaining_amount = (financial_compensation + tax) - paid_amount
+    const remaining_amount = financial_compensation + tax - paid_amount
 
     // Handle linked_parties - accept both string and array
     let linkedPartiesValue: string
@@ -183,7 +195,8 @@ router.post('/engagements', async (req: any, res) => {
       assistantTeamValue = '[]'
     }
 
-    const result = await query(`
+    const result = await query(
+      `
       INSERT INTO legal_engagements (
         company_id, engagement_number, engagement_type_id, category_id,
         client_id, beneficiary, linked_parties, responsible_lawyer_id,
@@ -195,16 +208,36 @@ router.post('/engagements', async (req: any, res) => {
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25,
         $26
       ) RETURNING id
-    `, [
-      companyId, engagement_number, data.engagement_type_id, data.category_id,
-      data.client_id || null, data.beneficiary || null, linkedPartiesValue, resolvedLawyerId,
-      assistantTeamValue, data.description || null, data.purpose || null, data.start_date || null, data.expected_end_date || null,
-      data.completion_date || null, data.status_id, data.priority_id, financial_compensation,
-      tax, paid_amount, remaining_amount, data.payment_method || null,
-      data.contract_id || null, data.case_id || null,
-      userId, userId,
-      'pending'
-    ])
+    `,
+      [
+        companyId,
+        engagement_number,
+        data.engagement_type_id,
+        data.category_id,
+        data.client_id || null,
+        data.beneficiary || null,
+        linkedPartiesValue,
+        resolvedLawyerId,
+        assistantTeamValue,
+        data.description || null,
+        data.purpose || null,
+        data.start_date || null,
+        data.expected_end_date || null,
+        data.completion_date || null,
+        data.status_id,
+        data.priority_id,
+        financial_compensation,
+        tax,
+        paid_amount,
+        remaining_amount,
+        data.payment_method || null,
+        data.contract_id || null,
+        data.case_id || null,
+        userId,
+        userId,
+        'pending'
+      ]
+    )
 
     const newId = result.rows[0].id
 
@@ -213,16 +246,28 @@ router.post('/engagements', async (req: any, res) => {
       const finId = await query('SELECT gen_random_uuid() as id')
       const financeId = finId.rows[0].id
       const total = financial_compensation + tax
-      await query(`
+      await query(
+        `
         INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
           description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
         VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
-      `, [
-        financeId, companyId, financial_compensation, tax, total,
-        `خدمة قانونية رقم ${engagement_number}`, newId,
-        data.client_id || null, data.case_id || null, data.payment_method || null,
-        paid_amount, remaining_amount, userId
-      ])
+      `,
+        [
+          financeId,
+          companyId,
+          financial_compensation,
+          tax,
+          total,
+          `خدمة قانونية رقم ${engagement_number}`,
+          newId,
+          data.client_id || null,
+          data.case_id || null,
+          data.payment_method || null,
+          paid_amount,
+          remaining_amount,
+          userId
+        ]
+      )
     }
 
     res.json({ id: newId })
@@ -245,7 +290,7 @@ router.put('/engagements/:id', async (req: any, res) => {
     const financial_compensation = Number(data.financial_compensation || 0)
     const tax = Number(data.tax || 0)
     const paid_amount = Number(data.paid_amount || 0)
-    const remaining_amount = (financial_compensation + tax) - paid_amount
+    const remaining_amount = financial_compensation + tax - paid_amount
 
     // Handle linked_parties - accept both string and array
     let linkedPartiesValue: string | null
@@ -267,7 +312,8 @@ router.put('/engagements/:id', async (req: any, res) => {
       assistantTeamValue = String(data.assistant_team)
     }
 
-    await query(`
+    await query(
+      `
       UPDATE legal_engagements SET
         engagement_type_id = COALESCE($1, engagement_type_id),
         category_id = COALESCE($2, category_id),
@@ -298,16 +344,34 @@ router.put('/engagements/:id', async (req: any, res) => {
           ELSE 'pending'
         END
       WHERE id = $23 AND company_id = $24
-    `, [
-      data.engagement_type_id, data.category_id, data.client_id || null, data.beneficiary || null,
-      linkedPartiesValue, resolvedLawyerId, 
-      assistantTeamValue, data.description || null,
-      data.purpose || null, data.start_date || null, data.expected_end_date || null, data.completion_date || null,
-      data.status_id, data.priority_id, financial_compensation, tax,
-      paid_amount, remaining_amount, data.payment_method || null,
-      data.contract_id || null, data.case_id || null,
-      userId, id, companyId
-    ])
+    `,
+      [
+        data.engagement_type_id,
+        data.category_id,
+        data.client_id || null,
+        data.beneficiary || null,
+        linkedPartiesValue,
+        resolvedLawyerId,
+        assistantTeamValue,
+        data.description || null,
+        data.purpose || null,
+        data.start_date || null,
+        data.expected_end_date || null,
+        data.completion_date || null,
+        data.status_id,
+        data.priority_id,
+        financial_compensation,
+        tax,
+        paid_amount,
+        remaining_amount,
+        data.payment_method || null,
+        data.contract_id || null,
+        data.case_id || null,
+        userId,
+        id,
+        companyId
+      ]
+    )
 
     // Update finance entry if exists
     if (financial_compensation > 0) {
@@ -316,29 +380,54 @@ router.put('/engagements/:id', async (req: any, res) => {
       if (paid_amount >= total) financeStatus = 'paid'
       else if (paid_amount > 0) financeStatus = 'partially_paid'
 
-      const updateResult = await query(`
+      const updateResult = await query(
+        `
         UPDATE finances SET
           amount = $1, vat_amount = $2, total = $3, paid_amount = $4,
           remaining_amount = $5, payment_method = COALESCE($6, payment_method),
           status = $7
         WHERE legal_engagement_id = $8 AND company_id = $9
         RETURNING id
-      `, [financial_compensation, tax, total, paid_amount, remaining_amount, data.payment_method || null, financeStatus, id, companyId])
+      `,
+        [
+          financial_compensation,
+          tax,
+          total,
+          paid_amount,
+          remaining_amount,
+          data.payment_method || null,
+          financeStatus,
+          id,
+          companyId
+        ]
+      )
 
       // If no finance record exists yet, create one
       if (updateResult.rows.length === 0) {
         const finId = await query('SELECT gen_random_uuid() as id')
         const financeId = finId.rows[0].id
-        await query(`
+        await query(
+          `
           INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
             description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
           VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
-        `, [
-          financeId, companyId, financial_compensation, tax, total,
-          `خدمة قانونية رقم ${id}`, id,
-          data.client_id || null, data.case_id || null, data.payment_method || null,
-          paid_amount, remaining_amount, userId
-        ])
+        `,
+          [
+            financeId,
+            companyId,
+            financial_compensation,
+            tax,
+            total,
+            `خدمة قانونية رقم ${id}`,
+            id,
+            data.client_id || null,
+            data.case_id || null,
+            data.payment_method || null,
+            paid_amount,
+            remaining_amount,
+            userId
+          ]
+        )
       }
     }
 
@@ -353,12 +442,15 @@ router.delete('/engagements/:id', async (req: any, res) => {
   try {
     const { companyId, userId } = req.auth
     const { id } = req.params
-    
-    await query(`
+
+    await query(
+      `
       UPDATE legal_engagements 
       SET deleted_at = NOW(), deleted_by = $1 
       WHERE id = $2 AND company_id = $3
-    `, [userId, id, companyId])
+    `,
+      [userId, id, companyId]
+    )
 
     res.json({ success: true })
   } catch (err: any) {
@@ -371,7 +463,8 @@ router.get('/engagements/:id', async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { id } = req.params
-    const result = await query(`
+    const result = await query(
+      `
       SELECT 
         e.*,
         c.name_ar as category_name,
@@ -388,8 +481,10 @@ router.get('/engagements/:id', async (req: any, res) => {
       LEFT JOIN clients cl ON e.client_id = cl.id
       LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
       WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
-    `, [id, companyId])
-    
+    `,
+      [id, companyId]
+    )
+
     if (result.rows.length === 0) {
       res.status(404).json({ error: 'الارتباط القانوني غير موجود' })
       return
@@ -405,12 +500,15 @@ router.get('/engagements/:id/finance', async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { id } = req.params
-    const result = await query(`
+    const result = await query(
+      `
       SELECT *
       FROM finances
       WHERE legal_engagement_id = $1 AND company_id = $2
       LIMIT 1
-    `, [id, companyId])
+    `,
+      [id, companyId]
+    )
     res.json(result.rows[0] || null)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
@@ -421,13 +519,16 @@ router.get('/engagements/:id/finance', async (req: any, res) => {
 router.get('/engagements/:id/notes', async (req: any, res) => {
   try {
     const { id } = req.params
-    const result = await query(`
+    const result = await query(
+      `
       SELECT n.*, u.full_name as created_by 
       FROM legal_service_notes n
       LEFT JOIN users u ON n.created_by = u.id
       WHERE n.engagement_id = $1
       ORDER BY n.created_at DESC
-    `, [id])
+    `,
+      [id]
+    )
     res.json(result.rows)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
@@ -440,18 +541,24 @@ router.post('/engagements/:id/notes', async (req: any, res) => {
     const { userId } = req.auth
     const { id } = req.params
     const { noteText } = req.body
-    
-    const noteResult = await query(`
+
+    const noteResult = await query(
+      `
       INSERT INTO legal_service_notes (engagement_id, note_text, created_by)
       VALUES ($1, $2, $3)
       RETURNING *
-    `, [id, noteText, userId])
+    `,
+      [id, noteText, userId]
+    )
 
     // Add event to timeline
-    await query(`
+    await query(
+      `
       INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
       VALUES ($1, 'إضافة ملاحظة', $2, $3)
-    `, [id, noteText.substring(0, 100), userId])
+    `,
+      [id, noteText.substring(0, 100), userId]
+    )
 
     res.json(noteResult.rows[0])
   } catch (err: any) {
@@ -463,13 +570,16 @@ router.post('/engagements/:id/notes', async (req: any, res) => {
 router.get('/engagements/:id/attachments', async (req: any, res) => {
   try {
     const { id } = req.params
-    const result = await query(`
+    const result = await query(
+      `
       SELECT a.*, u.full_name as uploaded_by
       FROM legal_service_attachments a
       LEFT JOIN users u ON a.uploaded_by = u.id
       WHERE a.engagement_id = $1
       ORDER BY a.uploaded_at DESC
-    `, [id])
+    `,
+      [id]
+    )
     res.json(result.rows)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
@@ -482,18 +592,24 @@ router.post('/engagements/:id/attachments', async (req: any, res) => {
     const { userId } = req.auth
     const { id } = req.params
     const { fileName, filePath } = req.body
-    
-    const attachmentResult = await query(`
+
+    const attachmentResult = await query(
+      `
       INSERT INTO legal_service_attachments (engagement_id, file_name, file_path, uploaded_by)
       VALUES ($1, $2, $3, $4)
       RETURNING *
-    `, [id, fileName, filePath, userId])
+    `,
+      [id, fileName, filePath, userId]
+    )
 
     // Add event to timeline
-    await query(`
+    await query(
+      `
       INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
       VALUES ($1, 'إضافة مرفق', $2, $3)
-    `, [id, fileName, userId])
+    `,
+      [id, fileName, userId]
+    )
 
     res.json(attachmentResult.rows[0])
   } catch (err: any) {
@@ -505,13 +621,16 @@ router.post('/engagements/:id/attachments', async (req: any, res) => {
 router.get('/engagements/:id/timeline', async (req: any, res) => {
   try {
     const { id } = req.params
-    const result = await query(`
+    const result = await query(
+      `
       SELECT t.*, u.full_name as actor
       FROM legal_service_timeline t
       LEFT JOIN users u ON t.created_by = u.id
       WHERE t.engagement_id = $1
       ORDER BY t.event_date DESC
-    `, [id])
+    `,
+      [id]
+    )
     res.json(result.rows)
   } catch (err: any) {
     res.status(500).json({ error: err.message })
@@ -525,13 +644,16 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     const { id } = req.params
 
     // Fetch engagement info
-    const engResult = await query(`
+    const engResult = await query(
+      `
       SELECT e.*, c.name_ar as category_name, t.name_ar as service_type_name
       FROM legal_engagements e
       LEFT JOIN legal_service_categories c ON e.category_id = c.id
       LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
       WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
-    `, [id, companyId])
+    `,
+      [id, companyId]
+    )
 
     if (engResult.rows.length === 0) {
       res.status(404).json({ error: 'الارتباط القانوني غير موجود' })
@@ -552,7 +674,7 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     const subtotal = Number(eng.financial_compensation || 0)
     const tax = Number(eng.tax || 0)
     const total = subtotal + tax
-    const vat_rate = subtotal > 0 ? Number((tax / subtotal * 100).toFixed(2)) : 15.00
+    const vat_rate = subtotal > 0 ? Number(((tax / subtotal) * 100).toFixed(2)) : 15.0
 
     const paid = Number(eng.paid_amount || 0)
     let status = 'unpaid'
@@ -563,50 +685,74 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     }
 
     // Insert invoice
-    const invInsert = await query(`
+    const invInsert = await query(
+      `
       INSERT INTO invoices (
         company_id, client_id, case_id, invoice_number, date,
         subtotal, tax_amount, vat_rate, total, status, notes, created_by, updated_by
       ) VALUES ($1, $2, $3, $4, CURRENT_DATE, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING id
-    `, [
-      companyId, eng.client_id || null, eng.case_id || null, invoice_number,
-      subtotal, tax, vat_rate, total, status,
-      `فاتورة صادرة تلقائياً عن الخدمة القانونية رقم: ${eng.engagement_number}`,
-      userId, userId
-    ])
+    `,
+      [
+        companyId,
+        eng.client_id || null,
+        eng.case_id || null,
+        invoice_number,
+        subtotal,
+        tax,
+        vat_rate,
+        total,
+        status,
+        `فاتورة صادرة تلقائياً عن الخدمة القانونية رقم: ${eng.engagement_number}`,
+        userId,
+        userId
+      ]
+    )
 
     const invoiceId = invInsert.rows[0].id
 
     // Insert invoice item
-    await query(`
+    await query(
+      `
       INSERT INTO invoice_items (company_id, invoice_id, description, amount)
       VALUES ($1, $2, $3, $4)
-    `, [
-      companyId, invoiceId,
-      `تقديم خدمة قانونية: ${eng.service_type_name} (تصنيف: ${eng.category_name})`,
-      subtotal
-    ])
+    `,
+      [
+        companyId,
+        invoiceId,
+        `تقديم خدمة قانونية: ${eng.service_type_name} (تصنيف: ${eng.category_name})`,
+        subtotal
+      ]
+    )
 
     // Update engagement with invoice_id
-    await query(`
+    await query(
+      `
       UPDATE legal_engagements
       SET invoice_id = $1
       WHERE id = $2
-    `, [invoiceId, id])
+    `,
+      [invoiceId, id]
+    )
 
     // Sync finance record status with invoice
-    await query(`
+    await query(
+      `
       UPDATE finances
       SET status = $1, updated_at = NOW()
       WHERE legal_engagement_id = $2
-    `, [status, id])
+    `,
+      [status, id]
+    )
 
     // Add event to timeline
-    await query(`
+    await query(
+      `
       INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
       VALUES ($1, 'إصدار فاتورة', $2, $3)
-    `, [id, `تم إصدار الفاتورة رقم ${invoice_number}`, userId])
+    `,
+      [id, `تم إصدار الفاتورة رقم ${invoice_number}`, userId]
+    )
 
     res.json({ success: true, invoiceId })
   } catch (err: any) {
@@ -620,7 +766,8 @@ router.get('/client/:clientId/summary', async (req: any, res) => {
     const { companyId } = req.auth
     const { clientId } = req.params
 
-    const result = await query(`
+    const result = await query(
+      `
       SELECT 
         COUNT(*) as total_services,
         COUNT(*) FILTER (WHERE e.status_id = 'status_completed') as completed_count,
@@ -633,9 +780,12 @@ router.get('/client/:clientId/summary', async (req: any, res) => {
         COALESCE(SUM(e.remaining_amount), 0) as total_remaining
       FROM legal_engagements e
       WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
-    `, [clientId, companyId])
+    `,
+      [clientId, companyId]
+    )
 
-    const servicesResult = await query(`
+    const servicesResult = await query(
+      `
       SELECT 
         e.id, e.engagement_number, e.financial_compensation, e.tax, 
         e.paid_amount, e.remaining_amount, e.status_id, e.start_date,
@@ -650,7 +800,9 @@ router.get('/client/:clientId/summary', async (req: any, res) => {
       LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id
       WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
       ORDER BY e.created_at DESC
-    `, [clientId, companyId])
+    `,
+      [clientId, companyId]
+    )
 
     res.json({
       summary: result.rows[0],

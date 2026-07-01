@@ -52,8 +52,16 @@
 
     <div class="flex-grow-1 overflow-y-auto pa-4 pb-16">
       <div class="d-flex justify-space-between align-center mb-4">
-        <h2 class="text-subtitle-1 font-weight-black text-gold">التعاقدات ({{ legalStore.total }})</h2>
-        <v-btn size="small" color="accent" variant="tonal" class="rounded-pill px-4" @click="emit('add-engagement')">
+        <h2 class="text-subtitle-1 font-weight-black text-gold">
+          التعاقدات ({{ legalStore.total }})
+        </h2>
+        <v-btn
+          size="small"
+          color="accent"
+          variant="tonal"
+          class="rounded-pill px-4"
+          @click="emit('add-engagement')"
+        >
           <LucideIcon name="plus" :size="16" class="me-1" /> جديد
         </v-btn>
       </div>
@@ -71,10 +79,16 @@
         >
           <div class="d-flex justify-space-between align-start mb-2">
             <div class="flex-grow-1 ms-2">
-              <div class="font-weight-black text-body-1 text-white mb-1">{{ eng.service_type_name }}</div>
+              <div class="font-weight-black text-body-1 text-white mb-1">
+                {{ eng.service_type_name }}
+              </div>
               <div class="text-caption text-gold">{{ eng.client_name || 'غير معروف' }}</div>
             </div>
-            <v-chip size="x-small" :color="getStatusColor(eng.status_name || '')" class="font-weight-bold shrink">
+            <v-chip
+              size="x-small"
+              :color="getStatusColor(eng.status_name || '')"
+              class="font-weight-bold shrink"
+            >
               {{ eng.status_name }}
             </v-chip>
           </div>
@@ -82,14 +96,25 @@
             <div class="d-flex ga-3">
               <div class="text-caption">
                 <span class="text-white opacity-70">المبلغ: </span>
-                <span class="font-weight-black text-success">{{ formatCurrency(eng.financial_compensation || 0) }}</span>
+                <span class="font-weight-black text-success">{{
+                  formatCurrency(eng.financial_compensation || 0)
+                }}</span>
               </div>
               <div class="text-caption" v-if="(eng.remaining_amount ?? 0) > 0">
                 <span class="text-white opacity-70">متبقي: </span>
-                <span class="font-weight-black text-error">{{ formatCurrency(eng.remaining_amount ?? 0) }}</span>
+                <span class="font-weight-black text-error">{{
+                  formatCurrency(eng.remaining_amount ?? 0)
+                }}</span>
               </div>
             </div>
-            <v-btn v-if="(eng.remaining_amount ?? 0) > 0" size="x-small" color="accent" variant="flat" class="rounded-pill font-weight-black" @click.stop="openPayment(eng)">
+            <v-btn
+              v-if="(eng.remaining_amount ?? 0) > 0"
+              size="x-small"
+              color="accent"
+              variant="flat"
+              class="rounded-pill font-weight-black"
+              @click.stop="openPayment(eng)"
+            >
               <LucideIcon name="wallet" :size="14" class="me-1" /> دفع
             </v-btn>
             <LucideIcon v-else name="chevron-left" :size="18" class="text-gold opacity-40" />
@@ -102,15 +127,29 @@
         </div>
 
         <!-- Pagination -->
-        <div v-if="legalStore.total > legalStore.pageSize" class="d-flex justify-center align-center ga-4 mt-4">
-          <v-btn size="small" variant="tonal" color="accent" :disabled="legalStore.page <= 1" @click="prevPage">
+        <div
+          v-if="legalStore.total > legalStore.pageSize"
+          class="d-flex justify-center align-center ga-4 mt-4"
+        >
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="accent"
+            :disabled="legalStore.page <= 1"
+            @click="prevPage"
+          >
             السابق
           </v-btn>
           <span class="text-caption text-gold font-weight-black">
             {{ legalStore.page }} / {{ Math.ceil(legalStore.total / legalStore.pageSize) }}
           </span>
-          <v-btn size="small" variant="tonal" color="accent"
-            :disabled="legalStore.page >= Math.ceil(legalStore.total / legalStore.pageSize)" @click="nextPage">
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="accent"
+            :disabled="legalStore.page >= Math.ceil(legalStore.total / legalStore.pageSize)"
+            @click="nextPage"
+          >
             التالي
           </v-btn>
         </div>
@@ -159,15 +198,23 @@ const categoryOptions = computed(() =>
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'مكتمل': return 'success'
-    case 'قيد العمل': return 'primary'
-    case 'ملغى': return 'error'
-    default: return 'warning'
+    case 'مكتمل':
+      return 'success'
+    case 'قيد العمل':
+      return 'primary'
+    case 'ملغى':
+      return 'error'
+    default:
+      return 'warning'
   }
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(val)
 }
 
 let searchTimeout: any = null

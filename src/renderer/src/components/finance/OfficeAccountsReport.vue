@@ -5,14 +5,34 @@
       <div class="text-subtitle-2 font-weight-black mb-3">فلاتر التقرير</div>
       <v-row dense>
         <v-col cols="3">
-          <v-select v-model="filters.status" :items="statusOptions" item-title="text" item-value="value"
-            label="الحالة" variant="outlined" density="compact" clearable />
+          <v-select
+            v-model="filters.status"
+            :items="statusOptions"
+            item-title="text"
+            item-value="value"
+            label="الحالة"
+            variant="outlined"
+            density="compact"
+            clearable
+          />
         </v-col>
         <v-col cols="3">
-          <v-text-field v-model="filters.from_date" label="من تاريخ" type="date" variant="outlined" density="compact" />
+          <v-text-field
+            v-model="filters.from_date"
+            label="من تاريخ"
+            type="date"
+            variant="outlined"
+            density="compact"
+          />
         </v-col>
         <v-col cols="3">
-          <v-text-field v-model="filters.to_date" label="إلى تاريخ" type="date" variant="outlined" density="compact" />
+          <v-text-field
+            v-model="filters.to_date"
+            label="إلى تاريخ"
+            type="date"
+            variant="outlined"
+            density="compact"
+          />
         </v-col>
         <v-col cols="3">
           <v-btn color="accent" block :loading="loading" @click="loadReport">
@@ -53,10 +73,15 @@
               <td class="font-weight-bold">{{ cat.category || 'غير محدد' }}</td>
               <td>{{ formatMoney(cat.total) }}</td>
               <td class="text-success font-weight-black">{{ formatMoney(cat.collected) }}</td>
-              <td class="text-error font-weight-black">{{ formatMoney(cat.total - cat.collected) }}</td>
+              <td class="text-error font-weight-black">
+                {{ formatMoney(cat.total - cat.collected) }}
+              </td>
               <td>
-                <v-chip :color="cat.total > 0 && (cat.collected / cat.total) >= 0.7 ? 'success' : 'warning'"
-                  size="x-small" label>
+                <v-chip
+                  :color="cat.total > 0 && cat.collected / cat.total >= 0.7 ? 'success' : 'warning'"
+                  size="x-small"
+                  label
+                >
                   {{ cat.total > 0 ? ((cat.collected / cat.total) * 100).toFixed(1) : 0 }}%
                 </v-chip>
               </td>
@@ -84,7 +109,9 @@
               <td class="font-weight-bold">{{ client.client_name || 'غير محدد' }}</td>
               <td>{{ formatMoney(client.total) }}</td>
               <td class="text-success font-weight-black">{{ formatMoney(client.collected) }}</td>
-              <td class="text-error font-weight-black">{{ formatMoney(client.total - client.collected) }}</td>
+              <td class="text-error font-weight-black">
+                {{ formatMoney(client.total - client.collected) }}
+              </td>
             </tr>
           </tbody>
         </v-table>
@@ -122,7 +149,10 @@
     </div>
 
     <!-- لا توجد بيانات -->
-    <div v-if="report && !loading && !report.by_category?.length" class="text-center py-8 text-medium-emphasis">
+    <div
+      v-if="report && !loading && !report.by_category?.length"
+      class="text-center py-8 text-medium-emphasis"
+    >
       <LucideIcon name="check-circle" :size="48" class="mb-3 opacity-20" />
       <div>لا توجد بيانات تطابق الفلاتر المحددة</div>
     </div>

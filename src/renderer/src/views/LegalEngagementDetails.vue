@@ -3,14 +3,25 @@
     <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
-          <v-btn icon variant="text" class="me-4 text-gold" @click="$router.push('/legal-services')">
+          <v-btn
+            icon
+            variant="text"
+            class="me-4 text-gold"
+            @click="$router.push('/legal-services')"
+          >
             <LucideIcon name="arrow-right" :size="24" />
           </v-btn>
           <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">تفاصيل التعاقد: {{ engagement?.engagement_number || '...' }}</h1>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">
+              تفاصيل التعاقد: {{ engagement?.engagement_number || '...' }}
+            </h1>
             <p class="text-subtitle-1 text-white opacity-60 font-weight-black mb-0">
               العميل: {{ clientName }} | الحالة:
-              <v-chip size="small" :color="getStatusColor(engagement?.status_name || '')" class="font-weight-bold">
+              <v-chip
+                size="small"
+                :color="getStatusColor(engagement?.status_name || '')"
+                class="font-weight-bold"
+              >
                 {{ engagement?.status_name || '' }}
               </v-chip>
             </p>
@@ -33,7 +44,13 @@
           </v-tab>
           <v-tab value="finance" class="font-weight-black">
             <LucideIcon name="wallet" :size="18" class="me-2" /> المالية
-            <v-badge v-if="paymentHistory.length > 0" :content="paymentHistory.length" color="accent" class="ms-2" inline />
+            <v-badge
+              v-if="paymentHistory.length > 0"
+              :content="paymentHistory.length"
+              color="accent"
+              class="ms-2"
+              inline
+            />
           </v-tab>
         </v-tabs>
 
@@ -47,33 +64,50 @@
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">التصنيف</div>
-                <div class="text-body-1 font-weight-bold text-white">{{ engagement.category_name }}</div>
+                <div class="text-body-1 font-weight-bold text-white">
+                  {{ engagement.category_name }}
+                </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">المحامي المسؤول</div>
-                <div class="text-body-1 font-weight-bold text-white">{{ engagement.responsible_name || 'غير محدد' }}</div>
+                <div class="text-body-1 font-weight-bold text-white">
+                  {{ engagement.responsible_name || 'غير محدد' }}
+                </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">تاريخ البدء</div>
-                <div class="text-body-1 font-weight-bold text-white">{{ formatDate(engagement.start_date) }}</div>
+                <div class="text-body-1 font-weight-bold text-white">
+                  {{ formatDate(engagement.start_date) }}
+                </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">تاريخ الانتهاء المتوقع</div>
-                <div class="text-body-1 font-weight-bold text-white">{{ formatDate(engagement.expected_end_date) }}</div>
+                <div class="text-body-1 font-weight-bold text-white">
+                  {{ formatDate(engagement.expected_end_date) }}
+                </div>
               </v-col>
               <v-col cols="12" sm="6">
                 <div class="text-caption text-gold mb-1">الأولوية</div>
-                <v-chip size="x-small" :color="engagement.priority_color || 'grey'" variant="tonal" class="font-weight-black">
+                <v-chip
+                  size="x-small"
+                  :color="engagement.priority_color || 'grey'"
+                  variant="tonal"
+                  class="font-weight-black"
+                >
                   {{ engagement.priority_name }}
                 </v-chip>
               </v-col>
               <v-col cols="12" v-if="engagement.case_number">
                 <div class="text-caption text-gold mb-1">القضية المرتبطة</div>
-                <div class="text-body-1 font-weight-bold text-accent">{{ engagement.case_number }}</div>
+                <div class="text-body-1 font-weight-bold text-accent">
+                  {{ engagement.case_number }}
+                </div>
               </v-col>
               <v-col cols="12" v-if="engagement.description">
                 <div class="text-caption text-gold mb-1">الوصف</div>
-                <div class="text-body-2 text-white opacity-80" style="white-space: pre-wrap;">{{ engagement.description }}</div>
+                <div class="text-body-2 text-white opacity-80" style="white-space: pre-wrap">
+                  {{ engagement.description }}
+                </div>
               </v-col>
             </v-row>
           </v-window-item>
@@ -85,25 +119,35 @@
               <v-col cols="6" sm="3">
                 <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
                   <div class="text-caption text-gold mb-1">الإجمالي</div>
-                  <div class="text-subtitle-1 font-weight-black text-accent">{{ formatCurrency(totalDue) }}</div>
+                  <div class="text-subtitle-1 font-weight-black text-accent">
+                    {{ formatCurrency(totalDue) }}
+                  </div>
                 </v-card>
               </v-col>
               <v-col cols="6" sm="3">
                 <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
                   <div class="text-caption text-gold mb-1">المدفوع</div>
-                  <div class="text-subtitle-1 font-weight-black text-success">{{ formatCurrency(engagement.paid_amount || 0) }}</div>
+                  <div class="text-subtitle-1 font-weight-black text-success">
+                    {{ formatCurrency(engagement.paid_amount || 0) }}
+                  </div>
                 </v-card>
               </v-col>
               <v-col cols="6" sm="3">
                 <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
                   <div class="text-caption text-gold mb-1">المتبقي</div>
-                  <div class="text-subtitle-1 font-weight-black text-error">{{ formatCurrency(engagement.remaining_amount || 0) }}</div>
+                  <div class="text-subtitle-1 font-weight-black text-error">
+                    {{ formatCurrency(engagement.remaining_amount || 0) }}
+                  </div>
                 </v-card>
               </v-col>
               <v-col cols="6" sm="3">
                 <v-card variant="outlined" class="pa-3 text-center rounded-lg border-gold-thin">
                   <div class="text-caption text-gold mb-1">الحالة</div>
-                  <v-chip size="x-small" :color="getFinanceStatusColor(engagement.finance_status || 'pending')" class="font-weight-black mt-1">
+                  <v-chip
+                    size="x-small"
+                    :color="getFinanceStatusColor(engagement.finance_status || 'pending')"
+                    class="font-weight-black mt-1"
+                  >
                     {{ getFinanceStatusLabel(engagement.finance_status || 'pending') }}
                   </v-chip>
                 </v-card>
@@ -157,7 +201,10 @@
             </div>
             <template v-else>
               <h4 class="text-subtitle-2 font-weight-black text-gold mb-3">سجل الدفعات</h4>
-              <div v-if="paymentHistory.length === 0" class="text-center py-6 text-white opacity-50">
+              <div
+                v-if="paymentHistory.length === 0"
+                class="text-center py-6 text-white opacity-50"
+              >
                 لا توجد دفعات مسجلة بعد.
               </div>
               <v-table v-else class="bg-transparent mb-6">
@@ -173,9 +220,15 @@
                 <tbody>
                   <tr v-for="p in paymentHistory" :key="p.id">
                     <td class="text-right text-white">{{ formatDate(p.payment_date) }}</td>
-                    <td class="text-right text-success font-weight-black">{{ formatCurrency(p.amount) }}</td>
-                    <td class="text-right text-white">{{ getPaymentMethodLabel(p.payment_method) }}</td>
-                    <td class="text-right text-white opacity-70 font-mono">{{ p.voucher_number || '-' }}</td>
+                    <td class="text-right text-success font-weight-black">
+                      {{ formatCurrency(p.amount) }}
+                    </td>
+                    <td class="text-right text-white">
+                      {{ getPaymentMethodLabel(p.payment_method) }}
+                    </td>
+                    <td class="text-right text-white opacity-70 font-mono">
+                      {{ p.voucher_number || '-' }}
+                    </td>
                     <td class="text-right text-white opacity-70">{{ p.notes || '-' }}</td>
                   </tr>
                 </tbody>
@@ -199,7 +252,11 @@
                       <td class="text-right text-white">{{ formatCurrency(s.amount) }}</td>
                       <td class="text-right text-white">{{ formatDate(s.due_date) }}</td>
                       <td class="text-right">
-                        <v-chip size="x-small" :color="getScheduleStatusColor(s.status)" class="font-weight-black">
+                        <v-chip
+                          size="x-small"
+                          :color="getScheduleStatusColor(s.status)"
+                          class="font-weight-black"
+                        >
                           {{ getScheduleStatusLabel(s.status) }}
                         </v-chip>
                       </td>
@@ -264,8 +321,8 @@ const loadingPayments = ref(false)
 const showPaymentDialog = ref(false)
 const showInstallmentDialog = ref(false)
 
-const totalDue = computed(() =>
-  Number(engagement.value?.financial_compensation || 0) + Number(engagement.value?.tax || 0)
+const totalDue = computed(
+  () => Number(engagement.value?.financial_compensation || 0) + Number(engagement.value?.tax || 0)
 )
 
 onMounted(async () => {
@@ -330,7 +387,7 @@ const handleInstallmentSaved = () => {
 
 const clientName = computed(() => {
   if (!engagement.value) return ''
-  const client = clientsStore.clients.find(c => c.id === engagement.value?.client_id)
+  const client = clientsStore.clients.find((c) => c.id === engagement.value?.client_id)
   return client ? client.name : 'غير معروف'
 })
 
@@ -342,34 +399,51 @@ const serviceName = computed(() => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'مكتمل': return 'success'
-    case 'قيد العمل': return 'primary'
-    case 'ملغى': return 'error'
-    default: return 'warning'
+    case 'مكتمل':
+      return 'success'
+    case 'قيد العمل':
+      return 'primary'
+    case 'ملغى':
+      return 'error'
+    default:
+      return 'warning'
   }
 }
 
 const getFinanceStatusColor = (status: string) => {
   switch (status) {
-    case 'paid': return 'success'
-    case 'partially_paid': return 'warning'
-    case 'overdue': return 'error'
-    default: return 'grey'
+    case 'paid':
+      return 'success'
+    case 'partially_paid':
+      return 'warning'
+    case 'overdue':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 
 const getFinanceStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid': return 'مدفوع بالكامل'
-    case 'partially_paid': return 'مدفوع جزئياً'
-    case 'overdue': return 'متأخر'
-    case 'pending': return 'معلق'
-    default: return status || 'معلق'
+    case 'paid':
+      return 'مدفوع بالكامل'
+    case 'partially_paid':
+      return 'مدفوع جزئياً'
+    case 'overdue':
+      return 'متأخر'
+    case 'pending':
+      return 'معلق'
+    default:
+      return status || 'معلق'
   }
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(val)
 }
 
 const formatDate = (dateStr?: string) => {
@@ -382,25 +456,38 @@ const formatDate = (dateStr?: string) => {
 }
 
 const getPaymentMethodLabel = (method: string) => {
-  const map: Record<string, string> = { cash: 'نقدي', bank_transfer: 'تحويل بنكي', check: 'شيك', card: 'بطاقة' }
+  const map: Record<string, string> = {
+    cash: 'نقدي',
+    bank_transfer: 'تحويل بنكي',
+    check: 'شيك',
+    card: 'بطاقة'
+  }
   return map[method] || method || '-'
 }
 
 const getScheduleStatusColor = (status: string) => {
   switch (status) {
-    case 'paid': return 'success'
-    case 'pending': return 'warning'
-    case 'overdue': return 'error'
-    default: return 'grey'
+    case 'paid':
+      return 'success'
+    case 'pending':
+      return 'warning'
+    case 'overdue':
+      return 'error'
+    default:
+      return 'grey'
   }
 }
 
 const getScheduleStatusLabel = (status: string) => {
   switch (status) {
-    case 'paid': return 'مدفوع'
-    case 'pending': return 'معلق'
-    case 'overdue': return 'متأخر'
-    default: return status || 'معلق'
+    case 'paid':
+      return 'مدفوع'
+    case 'pending':
+      return 'معلق'
+    case 'overdue':
+      return 'متأخر'
+    default:
+      return status || 'معلق'
   }
 }
 

@@ -110,6 +110,9 @@
             <v-tab value="client-full-profile" class="font-weight-black">
               <LucideIcon name="account-details" :size="18" class="me-2" /> الملف المالي الشامل
             </v-tab>
+            <v-tab value="office-management" class="font-weight-black">
+              <LucideIcon name="office-building" :size="18" class="me-2" /> ميزانية الت骼ع وأصحاب الربح
+            </v-tab>
           </v-tabs>
         </div>
         <v-divider class="border-gold opacity-10" />
@@ -279,34 +282,70 @@
             <v-window-item value="legal-finance">
               <div class="pa-6">
                 <div class="d-flex align-center justify-space-between mb-6">
-                  <div class="text-subtitle-1 font-weight-black text-gold">ملخص الخدمات القانونية المالية</div>
-                  <v-btn variant="text" color="accent" class="rounded-lg font-weight-black" @click="loadLegalFinanceData" :loading="legalFinanceLoading">
+                  <div class="text-subtitle-1 font-weight-black text-gold">
+                    ملخص الخدمات القانونية المالية
+                  </div>
+                  <v-btn
+                    variant="text"
+                    color="accent"
+                    class="rounded-lg font-weight-black"
+                    @click="loadLegalFinanceData"
+                    :loading="legalFinanceLoading"
+                  >
                     <LucideIcon name="refresh-cw" :size="18" class="me-2" /> تحديث
                   </v-btn>
                 </div>
                 <v-row dense class="mb-6">
                   <v-col cols="12" sm="6" md="3">
-                    <v-card elevation="0" class="pa-5 rounded-xl border border-gold border-opacity-20 glass-card text-center">
-                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">إجمالي الخدمات</div>
-                      <div class="text-h5 font-weight-black text-white">{{ legalFinanceStats.total_services || 0 }}</div>
+                    <v-card
+                      elevation="0"
+                      class="pa-5 rounded-xl border border-gold border-opacity-20 glass-card text-center"
+                    >
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">
+                        إجمالي الخدمات
+                      </div>
+                      <div class="text-h5 font-weight-black text-white">
+                        {{ legalFinanceStats.total_services || 0 }}
+                      </div>
                     </v-card>
                   </v-col>
                   <v-col cols="12" sm="6" md="3">
-                    <v-card elevation="0" class="pa-5 rounded-xl border border-success border-opacity-20 glass-card text-center">
-                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">إجمالي المقابل المالي</div>
-                      <div class="text-h5 font-weight-black text-success">{{ formatCurrency(legalFinanceStats.total_compensation || 0) }}</div>
+                    <v-card
+                      elevation="0"
+                      class="pa-5 rounded-xl border border-success border-opacity-20 glass-card text-center"
+                    >
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">
+                        إجمالي المقابل المالي
+                      </div>
+                      <div class="text-h5 font-weight-black text-success">
+                        {{ formatCurrency(legalFinanceStats.total_compensation || 0) }}
+                      </div>
                     </v-card>
                   </v-col>
                   <v-col cols="12" sm="6" md="3">
-                    <v-card elevation="0" class="pa-5 rounded-xl border border-accent border-opacity-20 glass-card text-center">
-                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المحصل فعلياً</div>
-                      <div class="text-h5 font-weight-black text-accent">{{ formatCurrency(legalFinanceStats.total_paid || 0) }}</div>
+                    <v-card
+                      elevation="0"
+                      class="pa-5 rounded-xl border border-accent border-opacity-20 glass-card text-center"
+                    >
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">
+                        المحصل فعلياً
+                      </div>
+                      <div class="text-h5 font-weight-black text-accent">
+                        {{ formatCurrency(legalFinanceStats.total_paid || 0) }}
+                      </div>
                     </v-card>
                   </v-col>
                   <v-col cols="12" sm="6" md="3">
-                    <v-card elevation="0" class="pa-5 rounded-xl border border-error border-opacity-20 glass-card text-center">
-                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">المتبقي المستحق</div>
-                      <div class="text-h5 font-weight-black text-error">{{ formatCurrency(legalFinanceStats.total_remaining || 0) }}</div>
+                    <v-card
+                      elevation="0"
+                      class="pa-5 rounded-xl border border-error border-opacity-20 glass-card text-center"
+                    >
+                      <div class="text-caption font-weight-black text-gold opacity-60 mb-2">
+                        المتبقي المستحق
+                      </div>
+                      <div class="text-h5 font-weight-black text-error">
+                        {{ formatCurrency(legalFinanceStats.total_remaining || 0) }}
+                      </div>
                     </v-card>
                   </v-col>
                 </v-row>
@@ -319,7 +358,13 @@
                   no-data-text="لا توجد خدمات قانونية مسجلة"
                 >
                   <template #[`item.engagement_number`]="{ item }">
-                    <v-btn variant="text" color="accent" class="px-0 font-weight-black text-decoration-underline ltr-text" density="compact" @click="$router.push('/legal-engagements/' + item.id)">
+                    <v-btn
+                      variant="text"
+                      color="accent"
+                      class="px-0 font-weight-black text-decoration-underline ltr-text"
+                      density="compact"
+                      @click="$router.push('/legal-engagements/' + item.id)"
+                    >
                       {{ item.engagement_number }}
                     </v-btn>
                   </template>
@@ -327,13 +372,19 @@
                     <span class="font-weight-black text-white">{{ item.client_name || '-' }}</span>
                   </template>
                   <template #[`item.financial_compensation`]="{ item }">
-                    <span class="font-weight-black text-accent">{{ formatCurrency(item.financial_compensation || 0) }}</span>
+                    <span class="font-weight-black text-accent">{{
+                      formatCurrency(item.financial_compensation || 0)
+                    }}</span>
                   </template>
                   <template #[`item.paid_amount`]="{ item }">
-                    <span class="font-weight-black text-success">{{ formatCurrency(item.paid_amount || 0) }}</span>
+                    <span class="font-weight-black text-success">{{
+                      formatCurrency(item.paid_amount || 0)
+                    }}</span>
                   </template>
                   <template #[`item.remaining_amount`]="{ item }">
-                    <span class="font-weight-black text-error">{{ formatCurrency(item.remaining_amount || 0) }}</span>
+                    <span class="font-weight-black text-error">{{
+                      formatCurrency(item.remaining_amount || 0)
+                    }}</span>
                   </template>
                 </v-data-table>
               </div>
@@ -347,296 +398,299 @@
             <v-window-item value="client-full-profile">
               <ClientFullProfile />
             </v-window-item>
+            <v-window-item value="office-management">
+              <OfficeManagementDashboard />
+            </v-window-item>
           </v-window>
         </v-card-text>
       </v-card>
     </template>
 
-      <!-- Add Transaction Dialog -->
-      <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
-        <v-card
-          v-if="showDialog"
-          class="rounded-xl elevation-24 overflow-hidden modal-card glass-card"
-        >
-          <v-toolbar color="white" class="px-8 border-b" height="72">
-            <div class="bg-gold-alpha pa-2 rounded-lg me-4">
-              <LucideIcon name="plus-circle" :size="24" class="text-gold" />
-            </div>
-            <v-toolbar-title class="text-h5 font-weight-black text-pure-black"
-              >إدراج عملية مالية جديدة</v-toolbar-title
-            >
-            <v-spacer></v-spacer>
-            <v-btn
-              icon
-              variant="text"
-              size="small"
-              class="rounded-lg premium-btn-gold-gradient"
-              @click="closeDialog"
-            >
-              <LucideIcon name="x" :size="24" class="text-pure-black" />
-            </v-btn>
-          </v-toolbar>
+    <!-- Add Transaction Dialog -->
+    <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
+      <v-card
+        v-if="showDialog"
+        class="rounded-xl elevation-24 overflow-hidden modal-card glass-card"
+      >
+        <v-toolbar color="white" class="px-8 border-b" height="72">
+          <div class="bg-gold-alpha pa-2 rounded-lg me-4">
+            <LucideIcon name="plus-circle" :size="24" class="text-gold" />
+          </div>
+          <v-toolbar-title class="text-h5 font-weight-black text-pure-black"
+            >إدراج عملية مالية جديدة</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="closeDialog"
+          >
+            <LucideIcon name="x" :size="24" class="text-pure-black" />
+          </v-btn>
+        </v-toolbar>
 
-          <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
-            <v-form ref="formRef" v-model="formValid">
-              <v-row>
-                <!-- Transaction Type Switch -->
-                <v-col cols="12" class="mb-6">
-                  <div class="glass-panel-light pa-1 rounded-xl border overflow-hidden">
-                    <v-btn-toggle
-                      v-model="editItem.type"
-                      mandatory
-                      color="gold"
-                      class="w-100 rounded-lg overflow-hidden bg-white border-gold-alpha premium-btn-gold-gradient"
-                      variant="flat"
-                      density="comfortable"
+        <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
+          <v-form ref="formRef" v-model="formValid">
+            <v-row>
+              <!-- Transaction Type Switch -->
+              <v-col cols="12" class="mb-6">
+                <div class="glass-panel-light pa-1 rounded-xl border overflow-hidden">
+                  <v-btn-toggle
+                    v-model="editItem.type"
+                    mandatory
+                    color="gold"
+                    class="w-100 rounded-lg overflow-hidden bg-white border-gold-alpha premium-btn-gold-gradient"
+                    variant="flat"
+                    density="comfortable"
+                  >
+                    <v-btn
+                      value="income"
+                      class="flex-grow-1 h-48 font-weight-black text-gold premium-btn-gold-gradient"
+                      :active="editItem.type === 'income'"
                     >
-                      <v-btn
-                        value="income"
-                        class="flex-grow-1 h-48 font-weight-black text-gold premium-btn-gold-gradient"
-                        :active="editItem.type === 'income'"
-                      >
-                        <LucideIcon name="trending-up" :size="18" class="me-2" /> إيراد / أتعاب
-                      </v-btn>
-                      <v-btn
-                        value="expense"
-                        class="flex-grow-1 h-48 font-weight-black text-gold premium-btn-gold-gradient"
-                        :active="editItem.type === 'expense'"
-                      >
-                        <LucideIcon name="trending-down" :size="18" class="me-2" /> مصروفات تشغيلية
-                      </v-btn>
-                    </v-btn-toggle>
-                  </div>
-                </v-col>
+                      <LucideIcon name="trending-up" :size="18" class="me-2" /> إيراد / أتعاب
+                    </v-btn>
+                    <v-btn
+                      value="expense"
+                      class="flex-grow-1 h-48 font-weight-black text-gold premium-btn-gold-gradient"
+                      :active="editItem.type === 'expense'"
+                    >
+                      <LucideIcon name="trending-down" :size="18" class="me-2" /> مصروفات تشغيلية
+                    </v-btn>
+                  </v-btn-toggle>
+                </div>
+              </v-col>
 
-                <v-col v-if="editItem.type === 'expense'" cols="12">
-                  <label class="mb-2 font-weight-black text-gold">وجهة صرف المبلغ*</label>
-                  <v-select
-                    v-model="editItem.expense_owner_type"
-                    :items="expenseOwnerTypes"
-                    variant="outlined"
-                    class="glass-input glass-input"
-                    :rules="[(v) => !!v || 'وجهة الصرف مطلوبة']"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="share-2" :size="20" class="text-gold opacity-50" />
-                    </template>
-                  </v-select>
-                </v-col>
+              <v-col v-if="editItem.type === 'expense'" cols="12">
+                <label class="mb-2 font-weight-black text-gold">وجهة صرف المبلغ*</label>
+                <v-select
+                  v-model="editItem.expense_owner_type"
+                  :items="expenseOwnerTypes"
+                  variant="outlined"
+                  class="glass-input glass-input"
+                  :rules="[(v) => !!v || 'وجهة الصرف مطلوبة']"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="share-2" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-select>
+              </v-col>
 
-                <v-col v-if="shouldShowClientSelector" cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">الموكل المعني*</label>
-                  <v-autocomplete
-                    v-model="editItem.client_id"
-                    :items="safeArray(lookupClients)"
-                    item-title="name"
-                    item-value="id"
-                    placeholder="اختر الموكل..."
-                    variant="outlined"
-                    class="glass-input glass-input"
-                    :loading="loadingLookups"
-                    clearable
-                    :rules="[(v) => !!v || 'اختيار الموكل إلزامي لهذا النوع']"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="user" :size="20" class="text-gold opacity-50" />
-                    </template>
-                  </v-autocomplete>
-                </v-col>
+              <v-col v-if="shouldShowClientSelector" cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">الموكل المعني*</label>
+                <v-autocomplete
+                  v-model="editItem.client_id"
+                  :items="safeArray(lookupClients)"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="اختر الموكل..."
+                  variant="outlined"
+                  class="glass-input glass-input"
+                  :loading="loadingLookups"
+                  clearable
+                  :rules="[(v) => !!v || 'اختيار الموكل إلزامي لهذا النوع']"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="user" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-autocomplete>
+              </v-col>
 
-                <v-col v-if="shouldShowCaseSelector" cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">ملف القضية المتأثر*</label>
-                  <v-autocomplete
-                    v-model="editItem.case_id"
-                    :items="safeArray(filteredCasesForLink)"
-                    item-value="id"
-                    item-title="displayLabel"
-                    placeholder="رقم القضية..."
-                    variant="outlined"
-                    class="glass-input glass-input"
-                    :loading="loadingLookups"
-                    no-data-text="لا يوجد قضايا للموكل المحدد"
-                    clearable
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="gavel" :size="20" class="text-gold opacity-50" />
-                    </template>
-                  </v-autocomplete>
-                </v-col>
+              <v-col v-if="shouldShowCaseSelector" cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">ملف القضية المتأثر*</label>
+                <v-autocomplete
+                  v-model="editItem.case_id"
+                  :items="safeArray(filteredCasesForLink)"
+                  item-value="id"
+                  item-title="displayLabel"
+                  placeholder="رقم القضية..."
+                  variant="outlined"
+                  class="glass-input glass-input"
+                  :loading="loadingLookups"
+                  no-data-text="لا يوجد قضايا للموكل المحدد"
+                  clearable
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="gavel" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-autocomplete>
+              </v-col>
 
-                <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">المبلغ النقدي الأساسي*</label>
-                  <v-text-field
-                    v-model.number="editItem.amount"
-                    type="number"
-                    variant="outlined"
-                    class="glass-input glass-input"
-                    prefix="SAR"
-                    :rules="[(v) => !!v || 'المبلغ مطلوب', (v) => v > 0 || 'يجب إدخال مبلغ صحيح']"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="dollar-sign" :size="20" class="text-accent opacity-50" />
-                    </template>
-                  </v-text-field>
-                </v-col>
+              <v-col cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">المبلغ النقدي الأساسي*</label>
+                <v-text-field
+                  v-model.number="editItem.amount"
+                  type="number"
+                  variant="outlined"
+                  class="glass-input glass-input"
+                  prefix="SAR"
+                  :rules="[(v) => !!v || 'المبلغ مطلوب', (v) => v > 0 || 'يجب إدخال مبلغ صحيح']"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="dollar-sign" :size="20" class="text-accent opacity-50" />
+                  </template>
+                </v-text-field>
+              </v-col>
 
-                <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">وعاء الضريبة (VAT)*</label>
-                  <v-select
-                    v-model.number="editItem.vat_rate"
-                    :items="vatRates"
-                    variant="outlined"
-                    class="glass-input glass-input"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="percent" :size="20" class="text-gold opacity-50" />
-                    </template>
-                  </v-select>
-                </v-col>
+              <v-col cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">وعاء الضريبة (VAT)*</label>
+                <v-select
+                  v-model.number="editItem.vat_rate"
+                  :items="vatRates"
+                  variant="outlined"
+                  class="glass-input glass-input"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="percent" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-select>
+              </v-col>
 
-                <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">الحساب المالي المتأثر*</label>
-                  <v-select
-                    v-model="editItem.account_id"
-                    :items="safeArray(filteredAccounts)"
-                    item-title="name"
-                    item-value="id"
-                    placeholder="اختر الحساب..."
-                    variant="outlined"
-                    class="glass-input glass-input"
-                    :rules="[(v) => !!v || 'يجب اختيار الحساب المالي']"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="wallet" :size="20" class="text-gold opacity-50" />
-                    </template>
-                  </v-select>
-                </v-col>
+              <v-col cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">الحساب المالي المتأثر*</label>
+                <v-select
+                  v-model="editItem.account_id"
+                  :items="safeArray(filteredAccounts)"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="اختر الحساب..."
+                  variant="outlined"
+                  class="glass-input glass-input"
+                  :rules="[(v) => !!v || 'يجب اختيار الحساب المالي']"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="wallet" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-select>
+              </v-col>
 
-                <v-col cols="12" md="6">
-                  <label class="mb-2 font-weight-black text-gold">تاريخ تسجيل الحركة*</label>
-                  <DualDatePicker v-model="editItem.date" />
-                </v-col>
+              <v-col cols="12" md="6">
+                <label class="mb-2 font-weight-black text-gold">تاريخ تسجيل الحركة*</label>
+                <DualDatePicker v-model="editItem.date" />
+              </v-col>
 
-                <v-col cols="12">
-                  <label class="mb-2 font-weight-black text-gold"
-                    >وصف العملية / البيان المحاسبي</label
-                  >
-                  <v-textarea
-                    v-model="editItem.description"
-                    placeholder="اكتب تفاصيل إضافية لهذا القيد..."
-                    variant="outlined"
-                    class="glass-input"
-                    rows="3"
-                  >
-                    <template #prepend-inner>
-                      <LucideIcon name="edit-3" :size="20" class="text-gold opacity-50 mt-1" />
-                    </template>
-                  </v-textarea>
-                </v-col>
-              </v-row>
-            </v-form>
-          </v-card-text>
+              <v-col cols="12">
+                <label class="mb-2 font-weight-black text-gold"
+                  >وصف العملية / البيان المحاسبي</label
+                >
+                <v-textarea
+                  v-model="editItem.description"
+                  placeholder="اكتب تفاصيل إضافية لهذا القيد..."
+                  variant="outlined"
+                  class="glass-input"
+                  rows="3"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="edit-3" :size="20" class="text-gold opacity-50 mt-1" />
+                  </template>
+                </v-textarea>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
 
-          <v-card-actions class="pa-8 modal-footer-solid glass-card">
-            <v-btn
-              color="gold"
-              variant="outlined"
-              size="large"
-              class="px-12 font-weight-black btn-unified action-btn-unified h-56 premium-btn-gold-gradient"
-              @click="closeDialog"
-              >إلغاء</v-btn
-            >
-            <v-spacer></v-spacer>
-            <v-btn
-              color="gold"
-              variant="outlined"
-              size="large"
-              class="px-12 font-weight-black btn-unified action-btn-unified h-56 premium-btn-gold-gradient"
-              :loading="saving"
-              @click="handleSave"
-            >
-              تثبيت القيد المالي
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+        <v-card-actions class="pa-8 modal-footer-solid glass-card">
+          <v-btn
+            color="gold"
+            variant="outlined"
+            size="large"
+            class="px-12 font-weight-black btn-unified action-btn-unified h-56 premium-btn-gold-gradient"
+            @click="closeDialog"
+            >إلغاء</v-btn
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            color="gold"
+            variant="outlined"
+            size="large"
+            class="px-12 font-weight-black btn-unified action-btn-unified h-56 premium-btn-gold-gradient"
+            :loading="saving"
+            @click="handleSave"
+          >
+            تثبيت القيد المالي
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-      <!-- Delete Confirmation -->
-      <v-dialog v-model="showDeleteDialog" width="90%" max-width="500" persistent>
-        <v-card
-          class="rounded-xl elevation-24 overflow-hidden modal-card border-error-alpha glass-card"
-        >
-          <v-toolbar color="white" class="px-8 border-b" height="72">
-            <LucideIcon name="alert-triangle" :size="24" class="text-error me-4" />
-            <v-toolbar-title class="text-h6 font-weight-black text-error"
-              >شطب العملية المالية</v-toolbar-title
-            >
-            <v-spacer></v-spacer>
-            <v-btn
-              icon
-              variant="text"
-              size="small"
-              class="rounded-lg premium-btn-gold-gradient"
-              @click="showDeleteDialog = false"
-            >
-              <LucideIcon name="x" :size="24" class="text-pure-black" />
-            </v-btn>
-          </v-toolbar>
-          <v-card-text class="pa-8 bg-white text-center glass-card">
-            <div class="text-body-1 mb-6 font-weight-black text-pure-black">
-              هل أنت متأكد من حذف هذا القيد المالي نهائياً من السجلات؟
+    <!-- Delete Confirmation -->
+    <v-dialog v-model="showDeleteDialog" width="90%" max-width="500" persistent>
+      <v-card
+        class="rounded-xl elevation-24 overflow-hidden modal-card border-error-alpha glass-card"
+      >
+        <v-toolbar color="white" class="px-8 border-b" height="72">
+          <LucideIcon name="alert-triangle" :size="24" class="text-error me-4" />
+          <v-toolbar-title class="text-h6 font-weight-black text-error"
+            >شطب العملية المالية</v-toolbar-title
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            icon
+            variant="text"
+            size="small"
+            class="rounded-lg premium-btn-gold-gradient"
+            @click="showDeleteDialog = false"
+          >
+            <LucideIcon name="x" :size="24" class="text-pure-black" />
+          </v-btn>
+        </v-toolbar>
+        <v-card-text class="pa-8 bg-white text-center glass-card">
+          <div class="text-body-1 mb-6 font-weight-black text-pure-black">
+            هل أنت متأكد من حذف هذا القيد المالي نهائياً من السجلات؟
+          </div>
+          <div class="glass-panel-light pa-6 rounded-lg border border-error-alpha mb-6 bg-white">
+            <div class="text-h5 font-weight-black text-error mb-2">
+              {{ formatCurrency(itemToDelete?.amount) }}
+              <span class="text-subtitle-2 opacity-60">SAR</span>
             </div>
-            <div class="glass-panel-light pa-6 rounded-lg border border-error-alpha mb-6 bg-white">
-              <div class="text-h5 font-weight-black text-error mb-2">
-                {{ formatCurrency(itemToDelete?.amount) }}
-                <span class="text-subtitle-2 opacity-60">SAR</span>
-              </div>
-              <div class="text-tiny font-weight-black text-pure-black opacity-50">
-                {{ itemToDelete?.description || 'بدون بيان' }}
-              </div>
+            <div class="text-tiny font-weight-black text-pure-black opacity-50">
+              {{ itemToDelete?.description || 'بدون بيان' }}
             </div>
-            <div class="text-tiny text-error opacity-70 font-weight-black">
-              سيؤدي هذا الإجراء إلى إعادة حساب الأرصدة وإلغاء الربط بالقضية/الموكل بشكل قطعي.
-            </div>
-          </v-card-text>
-          <v-card-actions class="pa-8 modal-footer-solid glass-card">
-            <v-btn
-              color="gold"
-              variant="outlined"
-              size="large"
-              class="px-8 font-weight-black btn-unified h-56 premium-btn-gold-gradient"
-              @click="showDeleteDialog = false"
-              >تراجع</v-btn
-            >
-            <v-spacer></v-spacer>
-            <v-btn
-              color="error"
-              variant="flat"
-              size="large"
-              class="px-8 font-weight-black rounded-lg premium-lift h-56 premium-btn-gold-gradient"
-              :loading="deleting"
-              @click="handleDelete"
-            >
-              تأكيد الحذف النهائي
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
+          </div>
+          <div class="text-tiny text-error opacity-70 font-weight-black">
+            سيؤدي هذا الإجراء إلى إعادة حساب الأرصدة وإلغاء الربط بالقضية/الموكل بشكل قطعي.
+          </div>
+        </v-card-text>
+        <v-card-actions class="pa-8 modal-footer-solid glass-card">
+          <v-btn
+            color="gold"
+            variant="outlined"
+            size="large"
+            class="px-8 font-weight-black btn-unified h-56 premium-btn-gold-gradient"
+            @click="showDeleteDialog = false"
+            >تراجع</v-btn
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            color="error"
+            variant="flat"
+            size="large"
+            class="px-8 font-weight-black rounded-lg premium-lift h-56 premium-btn-gold-gradient"
+            :loading="deleting"
+            @click="handleDelete"
+          >
+            تأكيد الحذف النهائي
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
-      <!-- Success Snackbar -->
-      <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
-        <div class="d-flex align-center">
-          <LucideIcon
-            :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
-            :size="18"
-            class="me-3"
-          />
-          <span class="font-weight-black">{{ snackbarText }}</span>
-        </div>
-      </v-snackbar>
+    <!-- Success Snackbar -->
+    <v-snackbar v-model="snackbar" :color="snackbarColor" rounded="lg" elevation="24">
+      <div class="d-flex align-center">
+        <LucideIcon
+          :name="snackbarColor === 'success' ? 'check-circle' : 'alert-circle'"
+          :size="18"
+          class="me-3"
+        />
+        <span class="font-weight-black">{{ snackbarText }}</span>
+      </div>
+    </v-snackbar>
 
-      <!-- Credit Note Dialog -->
-      <CreateCreditNoteModal v-model="showCreditNoteDialog" @created="onCreditNoteCreated" />
+    <!-- Credit Note Dialog -->
+    <CreateCreditNoteModal v-model="showCreditNoteDialog" @created="onCreditNoteCreated" />
   </v-container>
 </template>
 
@@ -655,6 +709,7 @@ import ProfitabilityReport from '../components/finance/ProfitabilityReport.vue'
 import OfficeAccountsReport from '../components/finance/OfficeAccountsReport.vue'
 import ClientFinancialStatement from '../components/finance/ClientFinancialStatement.vue'
 import ClientFullProfile from '../components/finance/ClientFullProfile.vue'
+import OfficeManagementDashboard from '../components/finance/OfficeManagementDashboard.vue'
 import CreateCreditNoteModal from '../components/finance/CreateCreditNoteModal.vue'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'

@@ -1,5 +1,10 @@
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="$emit('update:modelValue', $event)" max-width="600" persistent>
+  <v-dialog
+    :model-value="modelValue"
+    @update:model-value="$emit('update:modelValue', $event)"
+    max-width="600"
+    persistent
+  >
     <v-card class="rounded-xl">
       <v-card-title class="text-h6 font-weight-black d-flex align-center">
         <LucideIcon name="wallet" :size="20" class="me-2" />
@@ -8,7 +13,8 @@
       <v-card-text>
         <v-card variant="outlined" class="pa-4 mb-4 rounded-xl bg-grey-lighten-5">
           <div class="text-body-2 text-medium-emphasis mb-1">
-            الخدمة: <span class="font-weight-bold text-primary">{{ engagement?.engagement_number }}</span>
+            الخدمة:
+            <span class="font-weight-bold text-primary">{{ engagement?.engagement_number }}</span>
           </div>
           <v-row dense class="mt-2">
             <v-col cols="6">
@@ -20,31 +26,68 @@
             <v-col cols="6">
               <div class="text-caption text-medium-emphasis">المتبقي</div>
               <div class="text-h6 font-weight-black text-error">
-                {{ formatMoney(engagement?.remaining_amount || 0) }} <span class="text-caption">ريال</span>
+                {{ formatMoney(engagement?.remaining_amount || 0) }}
+                <span class="text-caption">ريال</span>
               </div>
             </v-col>
           </v-row>
         </v-card>
 
-        <v-text-field v-model.number="paymentAmount" label="مبلغ الدفعة" type="number" variant="outlined"
-          class="mb-1" :rules="[v => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']" />
+        <v-text-field
+          v-model.number="paymentAmount"
+          label="مبلغ الدفعة"
+          type="number"
+          variant="outlined"
+          class="mb-1"
+          :rules="[(v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
+        />
 
-        <v-select v-model="paymentMethod" :items="paymentMethods" item-title="text" item-value="value"
-          label="طريقة الدفع" variant="outlined" class="mb-1" />
+        <v-select
+          v-model="paymentMethod"
+          :items="paymentMethods"
+          item-title="text"
+          item-value="value"
+          label="طريقة الدفع"
+          variant="outlined"
+          class="mb-1"
+        />
 
-        <v-textarea v-model="paymentNotes" label="ملاحظات (اختياري)" variant="outlined" rows="2" class="mb-1" />
+        <v-textarea
+          v-model="paymentNotes"
+          label="ملاحظات (اختياري)"
+          variant="outlined"
+          rows="2"
+          class="mb-1"
+        />
 
-        <v-checkbox v-model="linkToSchedule" label="ربط مع جدول الأقساط" color="primary" class="mt-0"
-          v-if="hasInstallments" />
+        <v-checkbox
+          v-model="linkToSchedule"
+          label="ربط مع جدول الأقساط"
+          color="primary"
+          class="mt-0"
+          v-if="hasInstallments"
+        />
 
-        <v-select v-if="linkToSchedule && hasInstallments" v-model="selectedScheduleId"
-          :items="availableSchedules" item-title="title" item-value="id" label="اختر القسط" variant="outlined" />
+        <v-select
+          v-if="linkToSchedule && hasInstallments"
+          v-model="selectedScheduleId"
+          :items="availableSchedules"
+          item-title="title"
+          item-value="id"
+          label="اختر القسط"
+          variant="outlined"
+        />
       </v-card-text>
 
       <v-card-actions class="pa-4 pt-0">
         <v-spacer />
         <v-btn variant="text" @click="$emit('update:modelValue', false)">إلغاء</v-btn>
-        <v-btn color="primary" :loading="saving" :disabled="!paymentAmount || paymentAmount <= 0" @click="handleSave">
+        <v-btn
+          color="primary"
+          :loading="saving"
+          :disabled="!paymentAmount || paymentAmount <= 0"
+          @click="handleSave"
+        >
           <LucideIcon name="check-circle" :size="16" class="me-1" />
           تسجيل الدفعة
         </v-btn>
@@ -82,32 +125,33 @@ const paymentMethods = [
   { text: 'بطاقة ائتمان', value: 'card' }
 ]
 
-const totalDue = computed(() =>
-  Number(props.engagement?.financial_compensation || 0) + Number(props.engagement?.tax || 0)
+const totalDue = computed(
+  () => Number(props.engagement?.financial_compensation || 0) + Number(props.engagement?.tax || 0)
 )
 
-const hasInstallments = computed(() =>
-  Number(props.engagement?.installment_count || 0) > 1
-)
+const hasInstallments = computed(() => Number(props.engagement?.installment_count || 0) > 1)
 
 const availableSchedules = computed(() =>
-  financeStore.paymentSchedules.filter(s => s.status === 'pending')
+  financeStore.paymentSchedules.filter((s) => s.status === 'pending')
 )
 
 const formatMoney = (v: number) => (v || 0).toLocaleString('ar-SA')
 
-watch(() => props.modelValue, (val) => {
-  if (val && props.engagement) {
-    paymentAmount.value = Number(props.engagement.remaining_amount || 0)
-    paymentMethod.value = 'cash'
-    paymentNotes.value = ''
-    linkToSchedule.value = false
-    selectedScheduleId.value = ''
-    if (Number(props.engagement.installment_count || 0) > 1) {
-      financeStore.fetchInstallments(props.engagement.id)
+watch(
+  () => props.modelValue,
+  (val) => {
+    if (val && props.engagement) {
+      paymentAmount.value = Number(props.engagement.remaining_amount || 0)
+      paymentMethod.value = 'cash'
+      paymentNotes.value = ''
+      linkToSchedule.value = false
+      selectedScheduleId.value = ''
+      if (Number(props.engagement.installment_count || 0) > 1) {
+        financeStore.fetchInstallments(props.engagement.id)
+      }
     }
   }
-})
+)
 
 const handleSave = async () => {
   saving.value = true

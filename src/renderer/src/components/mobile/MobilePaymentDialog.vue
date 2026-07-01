@@ -18,7 +18,9 @@
         <v-row dense class="mt-1">
           <v-col cols="6">
             <div class="text-caption text-medium-emphasis">المتبقي</div>
-            <div class="text-subtitle-1 font-weight-black text-error">{{ formatMoney(remainingAmount) }} ريال</div>
+            <div class="text-subtitle-1 font-weight-black text-error">
+              {{ formatMoney(remainingAmount) }} ريال
+            </div>
           </v-col>
         </v-row>
       </v-card>
@@ -30,7 +32,7 @@
         variant="outlined"
         density="comfortable"
         class="mb-3"
-        :rules="[v => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
+        :rules="[(v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
       />
 
       <v-select
@@ -101,14 +103,17 @@ const paymentMethods = [
 
 const formatMoney = (v: number) => (v || 0).toLocaleString('ar-SA')
 
-watch(() => props.open, (val) => {
-  localOpen.value = val
-  if (val) {
-    paymentAmount.value = props.remainingAmount || 0
-    paymentMethod.value = 'cash'
-    paymentNotes.value = ''
+watch(
+  () => props.open,
+  (val) => {
+    localOpen.value = val
+    if (val) {
+      paymentAmount.value = props.remainingAmount || 0
+      paymentMethod.value = 'cash'
+      paymentNotes.value = ''
+    }
   }
-})
+)
 
 watch(localOpen, (val) => {
   emit('update:open', val)
