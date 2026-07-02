@@ -167,21 +167,21 @@ const filteredCells = computed(() => {
 
 .calendar-cell-mini {
   border-radius: 8px;
-  background: rgba(31, 27, 19, 0.4);
+  background: rgba(255, 255, 255, 0.5);
   min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem !important;
-  border: 1px solid rgba(233, 195, 73, 0.3);
+  border: 1px solid #d0c6af;
   transition: all 0.2s ease;
-  color: #ffffff !important;
+  color: #1f1b13 !important;
   font-weight: 500;
   cursor: pointer;
 }
 
 .calendar-cell-mini:hover {
-  background: rgba(233, 195, 73, 0.2) !important;
+  background: rgba(233, 195, 73, 0.12) !important;
   border-color: #e9c349 !important;
   transform: scale(1.05);
 }
@@ -200,15 +200,15 @@ const filteredCells = computed(() => {
 }
 
 .calendar-day--muted {
-  color: rgba(255, 255, 255, 0.5) !important;
-  background: rgba(255, 255, 255, 0.05) !important;
+  color: #a09888 !important;
+  background: rgba(200, 190, 170, 0.15) !important;
 }
 
 .calendar-day--selected {
-  background: rgba(233, 195, 73, 0.3) !important;
-  color: #e9c349 !important;
+  background: rgba(233, 195, 73, 0.15) !important;
+  color: #1f1b13 !important;
   font-weight: 700 !important;
-  border: 2px solid #e9c349 !important;
+  border: 2px solid #1f1b13 !important;
 }
 
 .calendar-head {
@@ -216,17 +216,17 @@ const filteredCells = computed(() => {
   align-items: center;
   justify-content: center;
   font-size: 0.75rem !important;
-  color: rgba(233, 195, 73, 0.9) !important;
+  color: #735c00 !important;
   padding: 8px 0;
   text-align: center;
 }
 
 .border {
-  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  border: 1px solid #d0c6af !important;
 }
 
 .border-b {
-  border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
+  border-bottom: 1px solid #d0c6af !important;
 }
 
 .detail-date-label {
