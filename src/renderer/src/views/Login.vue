@@ -520,6 +520,37 @@ onMounted(async () => {
     window.dispatchEvent(new Event('auth-changed'))
     router.replace('/dashboard')
   }
+
+  const oauthCode = route.query.code as string
+  if (oauthCode) {
+    try {
+      const res = await (window as any).api.auth.exchangeOAuthCode(oauthCode)
+      if (res.token) {
+        localStorage.setItem('b2b_cloud_token', res.token)
+        localStorage.setItem('web_isLoggedIn', 'true')
+
+        localStorage.removeItem('mock_active')
+        localStorage.removeItem('isLoggedIn')
+        localStorage.removeItem('currentUser')
+        localStorage.removeItem('currentUserSession')
+
+        const session = await (window as any).api.auth.getSession()
+        if (session) {
+          localStorage.setItem(
+            'web_currentUser',
+            JSON.stringify({ username: session.username, roleKey: session.roleKey })
+          )
+          localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+        }
+
+        window.dispatchEvent(new Event('auth-changed'))
+        router.replace('/dashboard')
+      }
+    } catch (e) {
+      console.error('[AUTH] OAuth code exchange failed:', e)
+      error.value = 'فشل تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى.'
+    }
+  }
 })
 
 const handleLogin = async () => {

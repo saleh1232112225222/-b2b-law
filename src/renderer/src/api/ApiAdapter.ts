@@ -460,6 +460,8 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:logout')
         : cloudRequest({ method: 'POST', url: '/auth/logout' }),
+    exchangeOAuthCode: (code: string) =>
+      cloudRequest<any>({ method: 'POST', url: '/auth/exchange', data: { code } }),
     getSession: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:getSession')
