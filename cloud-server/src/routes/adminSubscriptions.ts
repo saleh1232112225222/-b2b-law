@@ -223,10 +223,10 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
     if (existingSub.rows.length > 0) {
       await query(
         `UPDATE subscriptions 
-         SET plan_id = $1, status = 'active', 
+         SET plan_id = $1, status = 'active',
              current_period_start = $2, current_period_end = $3,
              trial_start = NULL, trial_end = NULL,
-             canceled_at = NULL, updated_at = NOW()
+             canceled_at = NULL, suspended_at = NULL, suspend_reason = NULL, updated_at = NOW()
          WHERE id = $4`,
         [planId, now, periodEnd, existingSub.rows[0].id]
       )
@@ -309,8 +309,8 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
     }
 
     await query(
-      `UPDATE subscriptions 
-       SET current_period_end = $1, status = 'active', updated_at = NOW()
+      `UPDATE subscriptions
+       SET current_period_end = $1, status = 'active', suspended_at = NULL, suspend_reason = NULL, canceled_at = NULL, updated_at = NOW()
        WHERE id = $2`,
       [newEndDate, subscription.id]
     )
@@ -358,10 +358,10 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
     }
 
     await query(
-      `UPDATE subscriptions 
-       SET status = 'past_due', canceled_at = NOW(), updated_at = NOW()
+      `UPDATE subscriptions
+       SET status = 'past_due', suspended_at = NOW(), suspend_reason = $2, canceled_at = NULL, updated_at = NOW()
        WHERE id = $1`,
-      [subResult.rows[0].id]
+      [subResult.rows[0].id, reason || null]
     )
 
     // Deactivate all users in this company so they cannot log in

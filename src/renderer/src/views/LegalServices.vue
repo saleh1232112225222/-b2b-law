@@ -1,5 +1,6 @@
 <template>
-  <v-container v-if="!isEnabled" fluid class="pa-6 pb-12 rtl text-center">
+  <MobileLegalServices v-if="isMobile && isEnabled" />
+  <v-container v-else-if="!isEnabled" fluid class="pa-6 pb-12 rtl text-center">
     <v-row justify="center" class="mt-12">
       <v-col cols="12" md="6">
         <v-card class="glass-card pa-8 border-gold">
@@ -1009,9 +1010,12 @@ import LegalServiceForm from '../components/LegalServiceForm.vue'
 import PaymentDialog from '../components/finance/PaymentDialog.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { LegalEngagement } from '../types/legal'
+import { useMobileLayout } from '../composables/useMobileLayout'
+import MobileLegalServices from '../components/mobile/MobileLegalServices.vue'
 
 const store = useLegalStore()
 const { can } = usePermissions()
+const { isMobile } = useMobileLayout()
 
 // Feature Flag Check
 const isEnabled = ref(true)

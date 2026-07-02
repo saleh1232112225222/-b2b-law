@@ -23,6 +23,27 @@ if (!JWT_SECRET || DEFAULT_SECRETS.includes(JWT_SECRET)) {
   }
 }
 
+// Token blacklist for revoked tokens (H-08 fix)
+const tokenBlacklist = new Set<string>()
+
+// Cleanup expired tokens from blacklist periodically
+setInterval(
+  () => {
+    // We can't efficiently expire individual tokens from a Set,
+    // but the Set size is bounded by active logout events.
+    // In production, use Redis with TTL for automatic expiry.
+  },
+  60 * 60 * 1000
+).unref()
+
+export function revokeToken(jti: string): void {
+  tokenBlacklist.add(jti)
+}
+
+export function isTokenRevoked(jti: string): boolean {
+  return tokenBlacklist.has(jti)
+}
+
 export interface AuthPayload {
   userId: string
   companyId: string
@@ -30,6 +51,7 @@ export interface AuthPayload {
   roleKey: string
   trialExpired?: boolean
   subscriptionStatus?: string
+  jti?: string
 }
 
 declare global {
@@ -42,7 +64,8 @@ declare global {
 }
 
 export function generateToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any)
+  const jti = require('crypto').randomBytes(16).toString('hex')
+  return jwt.sign({ ...payload, jti }, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any)
 }
 
 export function verifyToken(token: string): AuthPayload {
@@ -61,6 +84,12 @@ export async function authMiddleware(
   }
   try {
     const payload = verifyToken(header.substring(7))
+
+    // Check if token has been revoked (H-08)
+    if (payload.jti && isTokenRevoked(payload.jti)) {
+      res.status(401).json({ error: 'تم إلغاء صلاحية هذا الرمز' })
+      return
+    }
 
     // Check subscription status from subscriptions table
     const subResult = await query(

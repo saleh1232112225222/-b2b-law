@@ -76,6 +76,9 @@
                     :trend-values="trendValues"
                   />
                 </v-window-item>
+                <v-window-item value="metrics">
+                  <DashboardMetricsPanel />
+                </v-window-item>
               </v-window>
 
               <DashboardSessionsAlerts
@@ -172,6 +175,7 @@ const MobileDashboard = defineAsyncComponent(
 import DashboardKpiCards from './dashboard/DashboardKpiCards.vue'
 import DashboardCalendarPanel from './dashboard/DashboardCalendarPanel.vue'
 import DashboardChartsPanel from './dashboard/DashboardChartsPanel.vue'
+import DashboardMetricsPanel from './dashboard/DashboardMetricsPanel.vue'
 import DashboardSessionsAlerts from './dashboard/DashboardSessionsAlerts.vue'
 import DashboardBottomStrip from './dashboard/DashboardBottomStrip.vue'
 import DashboardQuickActions from './dashboard/DashboardQuickActions.vue'
@@ -281,7 +285,9 @@ const refreshCaseCounts = async (): Promise<void> => {
       closed: Number(closed) || 0,
       urgent: Number(urgent) || 0
     }
-  } catch {}
+  } catch (err: any) {
+    console.error('[Dashboard] Case counts error:', err)
+  }
 }
 
 const topPanelTab = ref<'calendar' | 'charts' | 'metrics'>('calendar')
@@ -349,7 +355,8 @@ const refreshAnalytics = async (force: boolean): Promise<void> => {
         trend: {}
       }
     }
-  } catch {
+  } catch (e) {
+    console.error('[Dashboard] analytics refresh failed:', e)
     analytics.value = {
       total: 0,
       buckets: { new: 0, review: 0, court: 0, done: 0 },
@@ -400,7 +407,8 @@ const refreshMonthSessions = async (): Promise<void> => {
       status: 'الكل'
     })
     monthSessions.value = Array.isArray(data) ? (data as Session[]) : []
-  } catch {
+  } catch (e) {
+    console.error('[Dashboard] month sessions refresh failed:', e)
     monthSessions.value = []
   }
 }
@@ -524,7 +532,9 @@ const runAutoRefresh = async (forceAnalytics: boolean) => {
     await refreshMonthSessions()
     if (forceAnalytics || topPanelTab.value === 'charts') await refreshAnalytics(forceAnalytics)
     stampRefresh()
-  } catch {}
+  } catch (err: any) {
+    console.error('[Dashboard] Auto-refresh error:', err)
+  }
 }
 
 onMounted(async () => {
@@ -555,7 +565,10 @@ onMounted(async () => {
       8000
     )
     alerts.value = safeArray(alertsData as any)
-  } catch {}
+  } catch (alertErr: any) {
+    console.warn('[Dashboard] Failed to load alerts:', alertErr)
+    showMessage('تعذّر تحميل تنبيهات النظام', 'warning')
+  }
 
   await refreshCaseCounts()
 

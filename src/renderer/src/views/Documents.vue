@@ -439,6 +439,9 @@ onMounted(async () => {
     sessionsStore.fetchSessions()
   ])
   setFabAction('mdi-cloud-upload', openUploadDialog, route.path)
+  if (route.query.search) {
+    searchQuery.value = String(route.query.search)
+  }
 })
 
 onUnmounted(() => {

@@ -214,9 +214,9 @@
       <v-divider class="border-gold" style="opacity: 0.1" />
       <v-card-actions class="pa-8 session-dialog-footer">
         <v-btn
-          variant="flat"
+          variant="outlined"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
+          class="px-8 font-weight-black rounded-lg text-white btn-secondary"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >

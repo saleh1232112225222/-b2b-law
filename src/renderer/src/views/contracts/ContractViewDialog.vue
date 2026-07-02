@@ -71,8 +71,36 @@
           </v-chip>
 
           <v-divider class="my-6 border-gold opacity-20" />
-          <div class="text-h6 font-weight-black text-gold mb-4">نص العقد الكامل</div>
+          
+          <div class="d-flex align-center justify-space-between mb-4">
+            <div class="text-h6 font-weight-black text-gold">نص العقد الكامل</div>
+            <v-btn
+              v-if="selected.contract.status !== 'approved' && selected.contract.status !== 'archived' && !isEditingText"
+              size="small"
+              variant="tonal"
+              color="accent"
+              class="rounded-lg font-weight-black premium-btn-gold-gradient"
+              @click="startEditingText"
+            >
+              <LucideIcon name="edit" :size="16" class="me-2" />تعديل النص
+            </v-btn>
+          </div>
+
+          <div v-if="isEditingText">
+            <v-textarea
+              v-model="editedText"
+              rows="12"
+              variant="outlined"
+              class="glass-input font-judicial mb-4 text-white"
+              hide-details
+            ></v-textarea>
+            <div class="d-flex gap-2 justify-end mb-6">
+              <v-btn color="grey" variant="flat" size="small" @click="isEditingText = false">إلغاء</v-btn>
+              <v-btn color="success" variant="flat" size="small" :loading="savingText" @click="saveContractText">حفظ التغييرات</v-btn>
+            </div>
+          </div>
           <div
+            v-else
             class="glass-panel-light pa-6 rounded-xl mb-6 font-judicial whitespace-pre-wrap leading-relaxed"
           >
             {{ selected.contract.text_content || '—' }}
@@ -177,15 +205,31 @@
                 </td>
                 <td>{{ roleLabel(p.role_key) }}</td>
                 <td class="text-center">
-                  <v-select
-                    v-model="signatureStatusByParticipant[p.id]"
-                    :items="signatureStatusOptions"
-                    density="compact"
-                    variant="outlined"
-                    class="glass-input-compact glass-input"
-                    hide-details
-                    @update:model-value="$emit('save-signature', p.id)"
-                  />
+                  <div class="d-flex align-center justify-center gap-2">
+                    <v-select
+                      v-model="signatureStatusByParticipant[p.id]"
+                      :items="signatureStatusOptions"
+                      density="compact"
+                      variant="outlined"
+                      class="glass-input-compact glass-input"
+                      style="max-width: 130px;"
+                      hide-details
+                      @update:model-value="saveSignatureStatus(p.id)"
+                    />
+                    <v-btn
+                      v-if="signatureStatusByParticipant[p.id] !== 'signed'"
+                      size="small"
+                      variant="tonal"
+                      color="gold"
+                      class="font-weight-black"
+                      @click="openSignatureCanvas(p.id)"
+                    >
+                      رسم توقيع
+                    </v-btn>
+                    <div v-if="getSignatureImage(p.id)" class="pa-1 bg-white rounded border">
+                      <img :src="getSignatureImage(p.id)" style="max-height: 32px; display: block;" />
+                    </div>
+                  </div>
                 </td>
                 <td class="text-center">
                   <v-btn
@@ -198,32 +242,6 @@
                     ><LucideIcon name="trash-2" :size="14"
                   /></v-btn>
                 </td>
-              </tr>
-            </tbody>
-          </v-table>
-
-          <v-divider class="my-6 border-gold opacity-20" />
-          <div class="text-h6 font-weight-black text-gold mb-4">سجل التدقيق (Audit Trail)</div>
-          <v-table density="compact" class="glass-table border rounded-lg overflow-hidden mb-6">
-            <thead>
-              <tr>
-                <th class="text-right text-gold font-weight-black">الإجراء</th>
-                <th class="text-right text-gold font-weight-black">الطرف</th>
-                <th class="text-right text-gold font-weight-black">المستخدم</th>
-                <th class="text-right text-gold font-weight-black">التاريخ</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-if="safeLength(selected.partyAudits) === 0">
-                <td colspan="4" class="text-center py-6 text-gold opacity-20">
-                  لا توجد إجراءات تدقيق
-                </td>
-              </tr>
-              <tr v-for="a in safeArray(selected.partyAudits)" :key="a.id">
-                <td class="font-weight-black text-accent">{{ a.action_key }}</td>
-                <td>{{ auditParticipantLabel(a.participant_id) }}</td>
-                <td>{{ a.actor_name || '—' }}</td>
-                <td>{{ a.created_at || '—' }}</td>
               </tr>
             </tbody>
           </v-table>
@@ -263,14 +281,75 @@
       <v-divider class="border-gold opacity-20" />
       <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
         <v-btn
+          v-if="selected.contract"
+          color="accent"
           variant="flat"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
+          class="px-8 font-weight-black premium-btn-gold-gradient action-btn-unified me-4"
+          @click="exportContractPdf"
+        >
+          <LucideIcon name="file-down" :size="18" class="me-2" /> تصدير كـ PDF
+        </v-btn>
+        <v-spacer />
+        <v-btn
+          variant="flat"
+          size="large"
+          class="px-8 font-weight-black premium-button-highlight action-btn-unified"
           @click="$emit('update:show', false)"
           >إغلاق</v-btn
         >
       </v-card-actions>
     </v-card>
+
+    <!-- Signature Draw Dialog -->
+    <v-dialog v-model="showSignatureCanvasDialog" max-width="500" persistent>
+      <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+        <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
+          <LucideIcon name="edit-3" :size="24" class="me-3" />
+          <span class="text-h6 font-weight-black">رسم التوقيع اليدوي</span>
+          <v-spacer />
+          <v-btn icon variant="text" color="ebony" @click="showSignatureCanvasDialog = false">
+            <LucideIcon name="x" :size="24" />
+          </v-btn>
+        </div>
+
+        <v-card-text class="pa-6 d-flex flex-column align-center">
+          <p class="text-body-2 mb-4 text-right w-100">ارسم توقيعك داخل الإطار أدناه:</p>
+          
+          <div class="border rounded-lg bg-white overflow-hidden" style="width: 100%; max-width: 400px; height: 200px; touch-action: none;">
+            <canvas
+              ref="canvasRef"
+              width="400"
+              height="200"
+              @mousedown="startDrawing"
+              @mousemove="draw"
+              @mouseup="stopDrawing"
+              @mouseleave="stopDrawing"
+              @touchstart="startDrawing"
+              @touchmove="draw"
+              @touchend="stopDrawing"
+            ></canvas>
+          </div>
+
+          <v-btn variant="text" color="error" class="mt-3 font-weight-black" @click="clearCanvas">
+            <LucideIcon name="trash-2" :size="16" class="me-2" /> مسح اللوحة
+          </v-btn>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0">
+          <v-btn variant="text" color="gold" @click="showSignatureCanvasDialog = false">إلغاء</v-btn>
+          <v-spacer />
+          <v-btn
+            color="gold"
+            variant="flat"
+            class="px-6 font-weight-black premium-btn-gold-gradient"
+            @click="saveSignatureDrawing"
+          >
+            تأكيد وحفظ التوقيع
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-dialog>
 </template>
 
@@ -308,11 +387,149 @@ const linkCaseId = ref<string | null>(null)
 const linkCaseSaving = ref(false)
 const signatureStatusByParticipant = ref<Record<string, string>>({})
 
+// Text Content Edit State
+const isEditingText = ref(false)
+const editedText = ref('')
+const savingText = ref(false)
+
+// Canvas Drawing State
+const showSignatureCanvasDialog = ref(false)
+const activeParticipantId = ref<string | null>(null)
+const isDrawing = ref(false)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+let ctx: CanvasRenderingContext2D | null = null
+
 const signatureStatusOptions = [
   { title: 'قيد الانتظار', value: 'pending' },
   { title: 'موقع', value: 'signed' },
   { title: 'مرفوض', value: 'rejected' }
 ]
+
+const startEditingText = () => {
+  editedText.value = selected.contract.text_content || ''
+  isEditingText.value = true
+}
+
+const saveContractText = async () => {
+  savingText.value = true
+  try {
+    await (window as any).api.contracts.update(selected.contract.id, {
+      text_content: editedText.value
+    })
+    selected.contract.text_content = editedText.value
+    isEditingText.value = false
+  } catch (err) {
+    console.error('Failed to update contract text:', err)
+  } finally {
+    savingText.value = false
+  }
+}
+
+const startDrawing = (e: MouseEvent | TouchEvent) => {
+  isDrawing.value = true
+  ctx = canvasRef.value?.getContext('2d') || null
+  if (ctx) {
+    ctx.beginPath()
+    const rect = canvasRef.value?.getBoundingClientRect()
+    const x = ('touches' in e ? e.touches[0].clientX : e.clientX) - (rect?.left || 0)
+    const y = ('touches' in e ? e.touches[0].clientY : e.clientY) - (rect?.top || 0)
+    ctx.moveTo(x, y)
+    ctx.lineWidth = 3
+    ctx.lineCap = 'round'
+    ctx.strokeStyle = '#000000'
+  }
+}
+
+const draw = (e: MouseEvent | TouchEvent) => {
+  if (!isDrawing.value || !ctx) return
+  const rect = canvasRef.value?.getBoundingClientRect()
+  const x = ('touches' in e ? e.touches[0].clientX : e.clientX) - (rect?.left || 0)
+  const y = ('touches' in e ? e.touches[0].clientY : e.clientY) - (rect?.top || 0)
+  ctx.lineTo(x, y)
+  ctx.stroke()
+}
+
+const stopDrawing = () => {
+  isDrawing.value = false
+}
+
+const clearCanvas = () => {
+  ctx = canvasRef.value?.getContext('2d') || null
+  if (ctx && canvasRef.value) {
+    ctx.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height)
+  }
+}
+
+const openSignatureCanvas = (participantId: string) => {
+  activeParticipantId.value = participantId
+  showSignatureCanvasDialog.value = true
+  setTimeout(() => {
+    clearCanvas()
+  }, 100)
+}
+
+const saveSignatureDrawing = async () => {
+  if (!canvasRef.value || !activeParticipantId.value) return
+  const dataUrl = canvasRef.value.toDataURL()
+  const sig = (selected.signatures || []).find((s: any) => s.participant_id === activeParticipantId.value)
+  if (!sig) return
+  
+  try {
+    await (window as any).api.contracts.signatures.update(selected.contract.id, sig.id, {
+      signature_status: 'signed',
+      signature_payload_json: { image: dataUrl },
+      signed_at: new Date().toISOString()
+    })
+    sig.signature_status = 'signed'
+    sig.signature_payload_json = JSON.stringify({ image: dataUrl })
+    signatureStatusByParticipant.value[activeParticipantId.value] = 'signed'
+    showSignatureCanvasDialog.value = false
+  } catch (err) {
+    console.error('Failed to save signature drawing:', err)
+  }
+}
+
+const getSignatureImage = (participantId: string) => {
+  const sig = (selected.signatures || []).find((s: any) => s.participant_id === participantId)
+  if (sig && sig.signature_payload_json) {
+    try {
+      const payload = typeof sig.signature_payload_json === 'string'
+        ? JSON.parse(sig.signature_payload_json)
+        : sig.signature_payload_json
+      return payload.image || ''
+    } catch {
+      return ''
+    }
+  }
+  return ''
+}
+
+const saveSignatureStatus = async (participantId: string) => {
+  const status = signatureStatusByParticipant.value[participantId]
+  const sig = (selected.signatures || []).find((s: any) => s.participant_id === participantId)
+  if (!sig) return
+  try {
+    await (window as any).api.contracts.signatures.update(selected.contract.id, sig.id, {
+      signature_status: status
+    })
+    sig.signature_status = status
+  } catch (err) {
+    console.error('Failed to update signature status:', err)
+  }
+}
+
+const exportContractPdf = async () => {
+  try {
+    await (window as any).api.reports.exportPdf({
+      type: 'contract',
+      params: {
+        contractId: selected.contract.id
+      }
+    })
+  } catch (err) {
+    console.error('Failed to export contract PDF:', err)
+  }
+}
 
 const roleLabel = (key: string) => {
   const map: Record<string, string> = {
@@ -322,12 +539,6 @@ const roleLabel = (key: string) => {
     third_party: 'طرف ثالث'
   }
   return map[key] || key
-}
-
-const auditParticipantLabel = (pid: string) => {
-  const p = selected.participants.find((x: any) => x.id === pid)
-  if (!p) return pid
-  return selected.partiesById[p.party_id]?.display_name || p.party_id
 }
 
 const saveLinkCase = async () => {
@@ -348,6 +559,7 @@ watch(
   async (val) => {
     if (val) {
       viewLoading.value = true
+      isEditingText.value = false
       try {
         const res = await (window as any).api.contracts.getById(props.contractId)
         Object.assign(selected, res)

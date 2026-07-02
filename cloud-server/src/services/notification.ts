@@ -10,8 +10,8 @@ export function getTransporter(): nodemailer.Transporter | null {
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || 'slaehmap@gmail.com',
-      pass: process.env.SMTP_PASS || 'kkod vuiv zvgu izux'
+      user: process.env.SMTP_USER || '',
+      pass: process.env.SMTP_PASS || ''
     },
     connectionTimeout: 10000,
     greetingTimeout: 10000,
@@ -22,7 +22,7 @@ export function getTransporter(): nodemailer.Transporter | null {
 
 export async function sendOTP(email: string, phone: string, code: string): Promise<void> {
   const t = getTransporter()
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'slaehmap@gmail.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || ''
 
   console.log('\n================================================================================')
   console.log(`[OTP] Sending verification code...`)
@@ -73,7 +73,7 @@ export async function sendEmail(options: {
   html?: string
 }): Promise<void> {
   const t = getTransporter()
-  const from = process.env.SMTP_FROM || process.env.SMTP_USER || 'slaehmap@gmail.com'
+  const from = process.env.SMTP_FROM || process.env.SMTP_USER || ''
 
   if (t) {
     try {
@@ -148,7 +148,7 @@ export async function notifyAdminOfNewRegistration(details: {
   `
 
   await sendEmail({
-    to: 'slaehmap@gmail.com',
+    to: process.env.ADMIN_EMAIL || 'admin@b2blaw.local',
     subject: `🎉 مشترك جديد (${details.method === 'Google' ? 'Google' : 'يدوي'}): ${details.name}`,
     text: `مرحباً أستاذ صالح،\n\nتم تسجيل مشترك جديد بنجاح:\n- الاسم: ${details.name}\n- البريد الإلكتروني: ${details.email}\n- الهاتف: ${details.phone || 'غير متوفر'}\n- طريقة التسجيل: ${details.method}\n- التاريخ: ${formattedDate}\n\nشكراً لك.`,
     html

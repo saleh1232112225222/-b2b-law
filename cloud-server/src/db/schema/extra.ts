@@ -10,6 +10,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import { cases } from './cases'
 import { users, clients } from './core'
+import { tasksV2 } from './tasks'
 
 export const evidence = pgTable('evidence', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -177,3 +178,43 @@ export const scheduledReports = pgTable('scheduled_reports', {
   status: text('status').default('pending'), // 'pending', 'sent', 'failed'
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
+
+export const timeLogs = pgTable('time_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id').notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
+  taskId: uuid('task_id').references(() => tasksV2.id, { onDelete: 'set null' }),
+  description: text('description').notNull(),
+  startTime: timestamp('start_time', { withTimezone: true }).notNull(),
+  endTime: timestamp('end_time', { withTimezone: true }),
+  durationMinutes: numeric('duration_minutes').default('0'),
+  isBilled: boolean('is_billed').default(false),
+  invoiceId: uuid('invoice_id'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
+})
+
+export const notifications = pgTable('notifications', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id').notNull(),
+  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  type: text('type').notNull(), // 'session', 'task', 'payment', 'system'
+  isRead: boolean('is_read').default(false),
+  actionUrl: text('action_url'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})
+
+export const permissionAuditLogs = pgTable('permission_audit_logs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  companyId: uuid('company_id').notNull(),
+  actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
+  targetUserId: uuid('target_user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  actionType: text('action_type').notNull(), // 'role_change', 'permission_grant', 'permission_revoke'
+  details: text('details').notNull(),
+  ipAddress: text('ip_address'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
+})
+

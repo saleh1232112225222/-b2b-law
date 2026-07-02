@@ -458,6 +458,7 @@ const currentRouteName = computed(() => {
     Search: 'البحث الشامل',
     Archive: 'الأرشيف القانوني',
     Settings: 'إعدادات النظام',
+    TimeTracking: 'تتبع الوقت وساعات العمل',
     ActivityLog: 'سجل النشاط',
     Vault: 'خزانة المكتب',
     FileVault: 'خزانة المكتب',
@@ -524,6 +525,7 @@ const categorizedMenu = computed(() => {
       icon: 'bar-chart-3',
       children: [
         { title: 'المالية', icon: 'banknote', to: '/finance', perm: 'view_finances' },
+        { title: 'تتبع الوقت', icon: 'clock', to: '/time-tracking' },
         { title: 'العقود', icon: 'file-check-2', to: '/contracts', perm: 'view_contracts' },
         { title: 'شؤون الموظفين', icon: 'user-cog', to: '/employees', perm: 'view_employees' },
         { title: 'الخبراء', icon: 'graduation-cap', to: '/experts' },

@@ -501,7 +501,7 @@ router.get(
       // 3. سجل الدفعات الكامل
       const paymentsResult = await query(
         `
-        SELECT ph.id, ph.amount, ph.payment_method, ph.payment_date,
+        SELECT ph.id, ph.amount, ph.payment_method, ph.received_at,
           ph.voucher_id, ph.notes, ph.created_at,
           e.engagement_number, e.id as engagement_id,
           t.name_ar as service_type_name,
@@ -511,7 +511,7 @@ router.get(
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
         LEFT JOIN vouchers v ON ph.voucher_id = v.id
         WHERE e.client_id = $1 AND e.company_id = $2
-        ORDER BY ph.payment_date DESC, ph.created_at DESC
+        ORDER BY ph.received_at DESC, ph.created_at DESC
       `,
         [clientId, companyId]
       )
@@ -725,7 +725,7 @@ router.get(
       const clientResult = await query(
         `
         SELECT id, name, type, id_number, phone, email, city, address, notes, created_at
-        FROM clients WHERE id = $1 AND company_id = $2 AND deleted_at IS NULL
+        FROM clients WHERE id = $1 AND company_id = $2
       `,
         [clientId, companyId]
       )
@@ -748,15 +748,9 @@ router.get(
       const casesResult = await query(
         `
         SELECT c.id, c.case_number, c.case_type, c.status,
-          c.plaintiff_fee as total_fee, c.opponent_name,
-          ct.name_ar as case_type_name,
-          cs.name_ar as status_name,
-          COALESCE(c.paid_amount, 0) as paid_amount,
-          (COALESCE(c.plaintiff_fee, 0) - COALESCE(c.paid_amount, 0)) as remaining
+          c.contract_amount as total_fee, c.opponent_name
         FROM cases c
-        LEFT JOIN case_types ct ON c.case_type_id = ct.id
-        LEFT JOIN case_statuses cs ON c.status_id = cs.id
-        WHERE c.client_id = $1 AND c.company_id = $2 AND c.deleted_at IS NULL
+        WHERE c.client_id = $1 AND c.company_id = $2
         ORDER BY c.created_at DESC
       `,
         [clientId, companyId]
@@ -770,11 +764,11 @@ router.get(
           e.paid_amount, e.remaining_amount, e.finance_status,
           e.start_date, e.payment_method, e.description, e.installment_count,
           c.name_ar as category_name, t.name_ar as service_type_name,
-          u.name as responsible_name
+          em.name as responsible_name
         FROM legal_engagements e
         LEFT JOIN legal_service_categories c ON e.category_id = c.id
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
-        LEFT JOIN users u ON e.responsible_user_id = u.id
+        LEFT JOIN employees em ON e.responsible_lawyer_id = em.id
         WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
         ORDER BY e.created_at DESC
       `,
@@ -784,7 +778,7 @@ router.get(
       // 5. سجل الدفعات الكامل (من services + cases)
       const paymentsResult = await query(
         `
-        SELECT ph.id, ph.amount, ph.payment_method, ph.payment_date,
+        SELECT ph.id, ph.amount, ph.payment_method, ph.received_at,
           ph.voucher_id, ph.notes, ph.created_at,
           e.engagement_number, e.id as engagement_id,
           t.name_ar as service_type_name,
@@ -794,7 +788,7 @@ router.get(
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
         LEFT JOIN vouchers v ON ph.voucher_id = v.id
         WHERE e.client_id = $1 AND e.company_id = $2
-        ORDER BY ph.payment_date DESC, ph.created_at DESC
+        ORDER BY ph.received_at DESC, ph.created_at DESC
       `,
         [clientId, companyId]
       )
@@ -802,8 +796,8 @@ router.get(
       // 6. جميع الفواتير
       const invoicesResult = await query(
         `
-        SELECT i.id, i.invoice_number, i.date, i.amount, i.vat_amount, i.total_amount,
-          i.status, i.description
+        SELECT i.id, i.invoice_number, i.date, i.subtotal, i.tax_amount, i.total,
+          i.status, i.notes
         FROM invoices i
         WHERE i.client_id = $1 AND i.company_id = $2
         ORDER BY i.date DESC
@@ -814,7 +808,7 @@ router.get(
       // 7. جميع سندات القبض
       const vouchersResult = await query(
         `
-        SELECT v.id, v.voucher_number, v.date, v.type, v.amount, v.description
+        SELECT v.id, v.voucher_number, v.date, v.type, v.amount, v.notes
         FROM vouchers v
         WHERE v.client_id = $1 AND v.company_id = $2
         ORDER BY v.date DESC

@@ -805,3 +805,145 @@ CREATE INDEX IF NOT EXISTS idx_payment_schedules_due_date ON payment_schedules(d
 CREATE INDEX IF NOT EXISTS idx_payment_history_engagement ON payment_history(legal_engagement_id);
 CREATE INDEX IF NOT EXISTS idx_client_accounts_client ON client_accounts(client_id);
 CREATE INDEX IF NOT EXISTS idx_client_accounts_status ON client_accounts(status);
+
+-- ============================================================
+-- 11b. إدارة المكتب — الشركاء والمصروفات والميزانية
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS partners (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    employee_id UUID REFERENCES employees(id) ON DELETE SET NULL,
+    name TEXT NOT NULL,
+    share_percentage NUMERIC(5,2) NOT NULL DEFAULT 0,
+    role TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS partner_contributions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
+    engagement_id UUID,
+    case_id UUID,
+    contribution_type TEXT NOT NULL,
+    description TEXT,
+    amount NUMERIC(15,2) DEFAULT 0,
+    contribution_date DATE DEFAULT CURRENT_DATE,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS office_expenses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    category TEXT NOT NULL,
+    description TEXT NOT NULL,
+    amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+    expense_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    paid_by TEXT,
+    receipt_number TEXT,
+    notes TEXT,
+    created_by UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS office_budgets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    month INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    category TEXT NOT NULL,
+    budgeted_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+    actual_amount NUMERIC(15,2) NOT NULL DEFAULT 0,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(company_id, month, year, category)
+);
+
+CREATE TABLE IF NOT EXISTS profit_distributions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
+    month INTEGER NOT NULL,
+    year INTEGER NOT NULL,
+    total_revenue NUMERIC(15,2) NOT NULL DEFAULT 0,
+    total_expenses NUMERIC(15,2) NOT NULL DEFAULT 0,
+    net_profit NUMERIC(15,2) NOT NULL DEFAULT 0,
+    partner_share NUMERIC(15,2) NOT NULL DEFAULT 0,
+    distributed BOOLEAN DEFAULT FALSE,
+    distributed_date DATE,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    UNIQUE(company_id, partner_id, month, year)
+);
+
+-- فهارس إدارة المكتب
+CREATE INDEX IF NOT EXISTS idx_partners_company ON partners(company_id);
+CREATE INDEX IF NOT EXISTS idx_partner_contributions_company ON partner_contributions(company_id);
+CREATE INDEX IF NOT EXISTS idx_partner_contributions_partner ON partner_contributions(partner_id);
+CREATE INDEX IF NOT EXISTS idx_office_expenses_company ON office_expenses(company_id);
+CREATE INDEX IF NOT EXISTS idx_office_expenses_date ON office_expenses(expense_date);
+CREATE INDEX IF NOT EXISTS idx_office_expenses_category ON office_expenses(category);
+CREATE INDEX IF NOT EXISTS idx_office_budgets_company ON office_budgets(company_id);
+CREATE INDEX IF NOT EXISTS idx_office_budgets_period ON office_budgets(month, year);
+CREATE INDEX IF NOT EXISTS idx_profit_distributions_company ON profit_distributions(company_id);
+CREATE INDEX IF NOT EXISTS idx_profit_distributions_period ON profit_distributions(month, year);
+
+-- ============================================================
+-- 12. تتبع الوقت والإشعارات وسجلات التدقيق وحقول جديدة
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS time_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    case_id UUID REFERENCES cases(id) ON DELETE SET NULL,
+    task_id UUID REFERENCES tasks_v2(id) ON DELETE SET NULL,
+    description TEXT NOT NULL,
+    start_time TIMESTAMPTZ NOT NULL,
+    end_time TIMESTAMPTZ,
+    duration_minutes NUMERIC(10,2) DEFAULT 0,
+    is_billed BOOLEAN DEFAULT FALSE,
+    invoice_id UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    message TEXT NOT NULL,
+    type TEXT NOT NULL, -- 'session', 'task', 'payment', 'system'
+    is_read BOOLEAN DEFAULT FALSE,
+    action_url TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS permission_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID NOT NULL,
+    actor_user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+    target_user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    action_type TEXT NOT NULL, -- 'role_change', 'permission_grant', 'permission_revoke'
+    details TEXT NOT NULL,
+    ip_address TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- تحديث الجداول الحالية بأعمدة جديدة
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT FALSE;
+ALTER TABLE clients ADD COLUMN IF NOT EXISTS direct_notes TEXT;
+
+-- فهارس إضافية
+CREATE INDEX IF NOT EXISTS idx_time_logs_user ON time_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_time_logs_case ON time_logs(case_id);
+CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
+CREATE INDEX IF NOT EXISTS idx_permission_audit_actor ON permission_audit_logs(actor_user_id);
+

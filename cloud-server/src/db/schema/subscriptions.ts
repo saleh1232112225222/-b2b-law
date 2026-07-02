@@ -55,6 +55,8 @@ export const subscriptions = pgTable('subscriptions', {
   currentPeriodStart: timestamp('current_period_start', { withTimezone: true }),
   currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }),
   canceledAt: timestamp('canceled_at', { withTimezone: true }),
+  suspendedAt: timestamp('suspended_at', { withTimezone: true }),
+  suspendReason: text('suspend_reason'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()
 })

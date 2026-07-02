@@ -178,6 +178,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/time-tracking',
+    name: 'TimeTracking',
+    component: () => import('../views/TimeTracking.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/subscription',
     name: 'Subscription',
     component: () => import('../views/SubscriptionPlans.vue'),

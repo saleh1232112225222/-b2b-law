@@ -256,13 +256,31 @@
               <div class="text-caption text-grey-darken-1 font-weight-bold">البيان</div>
               <div class="text-body-2">{{ invoiceToView.description || '-' }}</div>
             </v-col>
-            <v-col cols="12">
-              <v-divider class="my-3"></v-divider>
-              <div class="d-flex justify-space-between font-weight-black">
-                <span>الإجمالي (مع الضريبة):</span>
-                <span>{{ (invoiceToView.total_amount || 0).toLocaleString('ar-SA') }} ريال</span>
-              </div>
-            </v-col>
+             <v-col cols="12">
+               <v-divider class="my-3"></v-divider>
+               <div class="d-flex justify-space-between font-weight-black align-center flex-wrap gap-4">
+                 <div class="flex-grow-1">
+                   <div class="d-flex justify-space-between mb-2">
+                     <span>الإجمالي الخاضع للضريبة:</span>
+                     <span>{{ (invoiceToView.amount || 0).toLocaleString('ar-SA') }} ريال</span>
+                   </div>
+                   <div class="d-flex justify-space-between mb-2 text-gold">
+                     <span>ضريبة القيمة المضافة (15%):</span>
+                     <span>{{ (invoiceToView.vat_amount || 0).toLocaleString('ar-SA') }} ريال</span>
+                   </div>
+                   <v-divider class="my-1 border-dashed"></v-divider>
+                   <div class="d-flex justify-space-between text-h6 font-weight-black mt-2">
+                     <span>الإجمالي شامل الضريبة:</span>
+                     <span>{{ (invoiceToView.total_amount || 0).toLocaleString('ar-SA') }} ريال</span>
+                   </div>
+                 </div>
+                 <!-- ZATCA QR Code -->
+                 <div class="d-flex flex-column align-center pa-2 bg-white rounded-lg border">
+                   <v-img :src="getZatcaQrUrl(invoiceToView)" width="120" height="120" />
+                   <span class="text-caption text-grey-darken-4 mt-1 font-weight-bold" style="font-size: 9px !important;">فاتورة ضريبية مبسطة (ZATCA)</span>
+                 </div>
+               </div>
+             </v-col>
           </v-row>
         </v-card-text>
         <v-card-actions class="pa-6 modal-footer-sticky">
@@ -314,8 +332,20 @@ onUnmounted(() => {
   // Store search cleanup handled by parent
 })
 
+const officeName = ref('مكتب المحاماة')
+const vatNumber = ref('300000000000003')
+
 onMounted(async () => {
   await store.fetchFinanceData()
+  try {
+    const settings = await (window as any).api.settings.get()
+    if (settings) {
+      if (settings.officeName) officeName.value = settings.officeName
+      if (settings.vatNumber) vatNumber.value = settings.vatNumber
+    }
+  } catch (e) {
+    console.error('Failed to load settings in InvoicesList:', e)
+  }
 })
 
 const showDialog = ref(false)
@@ -467,5 +497,53 @@ const confirmDelete = async (item: Invoice): Promise<void> => {
       }
     }
   })
+}
+
+const getZatcaQrUrl = (invoice: Invoice): string => {
+  const getTodayISO = () => {
+    return invoice.date ? `${invoice.date}T12:00:00Z` : new Date().toISOString()
+  }
+
+  const toUtf8Bytes = (str: string): number[] => {
+    const utf8 = []
+    for (let i = 0; i < str.length; i++) {
+      let charcode = str.charCodeAt(i)
+      if (charcode < 0x80) utf8.push(charcode)
+      else if (charcode < 0x800) {
+        utf8.push(0xc0 | (charcode >> 6), 0x80 | (charcode & 0x3f))
+      } else if (charcode < 0xd800 || charcode >= 0xe000) {
+        utf8.push(0xe0 | (charcode >> 12), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f))
+      } else {
+        i++
+        charcode = 0x10000 + (((charcode & 0x3ff) << 10) | (str.charCodeAt(i) & 0x3ff))
+        utf8.push(0xf0 | (charcode >> 18), 0x80 | ((charcode >> 12) & 0x3f), 0x80 | ((charcode >> 6) & 0x3f), 0x80 | (charcode & 0x3f))
+      }
+    }
+    return utf8
+  }
+
+  const getTlvBytes = (tag: number, val: string): number[] => {
+    const valBytes = toUtf8Bytes(val)
+    return [tag, valBytes.length, ...valBytes]
+  }
+
+  const totalStr = String(invoice.total_amount || '0')
+  const vatStr = String(invoice.vat_amount || '0')
+
+  try {
+    const bytes = [
+      ...getTlvBytes(1, officeName.value),
+      ...getTlvBytes(2, vatNumber.value),
+      ...getTlvBytes(3, getTodayISO()),
+      ...getTlvBytes(4, totalStr),
+      ...getTlvBytes(5, vatStr)
+    ]
+    const binString = String.fromCharCode(...bytes)
+    const b64 = btoa(binString)
+    return `https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=${encodeURIComponent(b64)}`
+  } catch (err) {
+    console.error('Zatca QR Code generation failed:', err)
+    return ''
+  }
 }
 </script>

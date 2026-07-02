@@ -82,6 +82,8 @@
             </v-btn>
           </div>
         </v-card>
+
+        <SettingsSecurityCard />
       </v-col>
 
       <!-- Row 2: Data & Sync -->
@@ -757,12 +759,14 @@ import LucideIcon from '../components/common/LucideIcon.vue'
 import SettingsWipeDialog from './settings/SettingsWipeDialog.vue'
 import SettingsOfficeCard from './settings/SettingsOfficeCard.vue'
 import SettingsLicensingCard from './settings/SettingsLicensingCard.vue'
+import SettingsSecurityCard from './settings/SettingsSecurityCard.vue'
 
 interface AppSettings {
   officeName: string
   firmAddress: string
   firmPhone: string
   firmEmail: string
+  vatNumber?: string
   theme: string
   activityLogRetentionDays: number
   casesRootPath: string
@@ -804,6 +808,7 @@ const settings = ref<AppSettings>({
   firmAddress: '',
   firmPhone: '',
   firmEmail: '',
+  vatNumber: '',
   theme: 'light',
   activityLogRetentionDays: 365,
   casesRootPath: '',
@@ -889,6 +894,7 @@ onMounted(async (): Promise<void> => {
         firmAddress: data.firmAddress || '',
         firmPhone: data.firmPhone || '',
         firmEmail: data.firmEmail || '',
+        vatNumber: (data as any).vatNumber || '',
         theme: data.theme || 'light',
         activityLogRetentionDays: data.activityLogRetentionDays || 365,
         casesRootPath: String((data as any).casesRootPath || ''),

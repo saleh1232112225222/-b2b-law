@@ -26,7 +26,7 @@
             <h2 class="welcome-back">مرحباً بعودتك</h2>
           </div>
 
-          <v-form v-model="formValid" class="login-form" @submit.prevent="handleLogin">
+          <v-form v-if="!mfaRequired" v-model="formValid" class="login-form" @submit.prevent="handleLogin">
             <!-- Username/Email Field -->
             <div class="input-group mb-6">
               <label class="input-label">اسم المستخدم</label>
@@ -121,6 +121,48 @@
                   >إنشاء حساب جديد</a
                 >
               </template>
+            </div>
+          </v-form>
+
+          <!-- 2FA OTP Code Verification Form -->
+          <v-form v-else class="login-form" @submit.prevent="handleVerifyMfa">
+            <div class="text-center mb-6">
+              <LucideIcon name="shield-check" :size="48" class="text-gold mb-2 mx-auto d-block" />
+              <h3 class="text-h6 font-weight-bold text-white mb-2">رمز التحقق الثنائي</h3>
+              <p class="text-caption text-gold opacity-60">
+                يرجى إدخال الرمز المكون من 6 أرقام من تطبيق المصادقة الخاص بك
+              </p>
+            </div>
+
+            <div class="input-group mb-6">
+              <label class="input-label">رمز التحقق (OTP)</label>
+              <v-text-field
+                v-model="mfaCode"
+                placeholder="000000"
+                variant="outlined"
+                class="premium-input glass-input text-center"
+                hide-details
+                type="text"
+                maxlength="6"
+                required
+              ></v-text-field>
+            </div>
+
+            <v-btn
+              type="submit"
+              block
+              height="56"
+              class="premium-submit-btn mb-4 premium-btn-gold-gradient"
+              :loading="mfaLoading"
+              :disabled="mfaCode.length !== 6"
+            >
+              تحقق ومتابعة
+            </v-btn>
+
+            <div class="form-footer text-center">
+              <a href="#" class="footer-link" @click.prevent="mfaRequired = false"
+                >العودة لتسجيل الدخول</a
+              >
             </div>
           </v-form>
 
@@ -361,6 +403,11 @@ const error = ref('')
 const accountSuspended = ref(false)
 const formValid = ref(false)
 
+const mfaRequired = ref(false)
+const mfaUserId = ref('')
+const mfaCode = ref('')
+const mfaLoading = ref(false)
+
 const isDesktop = computed(() => getApiMode() === 'desktop')
 
 // Recovery Flow
@@ -488,6 +535,14 @@ const handleLogin = async () => {
     localStorage.removeItem('mock_active')
     session = await (window as any).api.auth.login(username.value, password.value)
 
+    if (session && session.requiresMfa) {
+      mfaRequired.value = true
+      mfaUserId.value = session.userId
+      mfaCode.value = ''
+      loading.value = false
+      return
+    }
+
     // Clear any legacy desktop storage keys to avoid conflicts
     localStorage.removeItem('isLoggedIn')
     localStorage.removeItem('currentUser')
@@ -547,6 +602,48 @@ const handleLogin = async () => {
     }
   } finally {
     loading.value = false
+  }
+}
+
+const handleVerifyMfa = async () => {
+  if (!mfaCode.value || mfaCode.value.length !== 6) return
+  mfaLoading.value = true
+  error.value = ''
+  try {
+    const session = await (window as any).api.auth.verifyMfa(mfaUserId.value, mfaCode.value)
+
+    localStorage.removeItem('isLoggedIn')
+    localStorage.removeItem('currentUser')
+    localStorage.removeItem('currentUserSession')
+    localStorage.setItem('web_isLoggedIn', 'true')
+
+    const sessionToStore = {
+      userId: session.id || 'admin-bypass',
+      username: session.username,
+      roleKey: session.roleKey,
+      companyId: session.companyId || null,
+      permissions: session.permissions || [],
+      trialExpired: session.trialExpired || false,
+      subscriptionStatus: session.subscriptionStatus || 'trial',
+      mustChangePassword: session.mustChangePassword || false
+    }
+    localStorage.setItem(
+      'web_currentUser',
+      JSON.stringify({ username: session.username, roleKey: session.roleKey })
+    )
+    localStorage.setItem('web_currentUserSession', JSON.stringify(sessionToStore))
+    window.dispatchEvent(new Event('auth-changed'))
+
+    if (session.mustChangePassword) {
+      router.push('/force-password-change')
+      return
+    }
+
+    router.replace('/dashboard')
+  } catch (e: any) {
+    error.value = e?.response?.data?.error || e?.message || 'رمز التحقق غير صحيح'
+  } finally {
+    mfaLoading.value = false
   }
 }
 </script>

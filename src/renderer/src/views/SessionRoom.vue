@@ -464,7 +464,7 @@ const pdfSrc = computed(() => {
   return ''
 })
 
-const goBack = () => router.push('/dashboard')
+const goBack = () => router.back()
 
 const copy = async (text: string) => {
   const t = String(text || '').trim()

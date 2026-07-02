@@ -537,7 +537,40 @@ const api = {
             url: '/auth/recovery/reset',
             data: { username, answer, newPassword }
           }),
-    onLockTriggered: (_cb: () => void) => () => {} // handled differently in cloud
+    onLockTriggered: (_cb: () => void) => () => {}, // handled differently in cloud
+    verifyMfa: (userId: string, code: string) =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('MFA is not supported in desktop mode'))
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/verify-mfa',
+            data: { userId, code }
+          }).then((r) => {
+            if (r.token) {
+              localStorage.setItem('b2b_cloud_token', r.token)
+            }
+            return { ...(r.user || r), permissions: r.permissions || [] }
+          }),
+    mfaSetup: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('MFA is not supported in desktop mode'))
+        : cloudRequest<any>({ method: 'POST', url: '/auth/mfa/setup' }),
+    mfaEnable: (secret: string, code: string) =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('MFA is not supported in desktop mode'))
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/mfa/enable',
+            data: { secret, code }
+          }),
+    mfaDisable: (code: string) =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('MFA is not supported in desktop mode'))
+        : cloudRequest<any>({
+            method: 'POST',
+            url: '/auth/mfa/disable',
+            data: { code }
+          })
   },
   clients: buildCrudApi('clients'),
   legalServices: {
@@ -1305,6 +1338,16 @@ const api = {
             url: '/reports/export/csv',
             data: { filename, rows },
             responseType: 'blob'
+          }).then((blob) => {
+            if (blob instanceof Blob) {
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `${filename || 'export'}.csv`
+              a.click()
+              URL.revokeObjectURL(url)
+            }
+            return blob
           }),
     getUserActivityReport: (params: any) =>
       mode === 'desktop'
@@ -1358,11 +1401,36 @@ const api = {
             url: '/reports/export/pdf',
             data: payload,
             responseType: 'blob'
+          }).then((blob) => {
+            if (blob instanceof Blob) {
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `${payload.type || 'report'}-report.html`
+              a.click()
+              URL.revokeObjectURL(url)
+            }
+            return blob
           }),
     exportHtml: (payload: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:exportHtml', payload)
-        : cloudRequest({ method: 'POST', url: '/reports/export/html', data: payload }),
+        : cloudRequest({
+            method: 'POST',
+            url: '/reports/export/html',
+            data: payload,
+            responseType: 'blob'
+          }).then((blob) => {
+            if (blob instanceof Blob) {
+              const url = URL.createObjectURL(blob)
+              const a = document.createElement('a')
+              a.href = url
+              a.download = `${payload.type || 'report'}-report.html`
+              a.click()
+              URL.revokeObjectURL(url)
+            }
+            return blob
+          }),
     printReport: (_payload: any) => {
       throw new Error('Print not available in cloud mode')
     },
@@ -1912,6 +1980,28 @@ const api = {
     onStatus: (_cb: any) => () => {},
     commandFeedback: (_payload: any) => {},
     dataExtracted: (_data: any[]) => {}
+  },
+  timeTracking: {
+    list: (params: any) =>
+      mode === 'desktop'
+        ? Promise.resolve([])
+        : cloudRequest({ method: 'GET', url: '/time-tracking/list', params }),
+    start: (payload: any) =>
+      mode === 'desktop'
+        ? Promise.resolve({ success: true, id: 'mock-timer' })
+        : cloudRequest({ method: 'POST', url: '/time-tracking/start', data: payload }),
+    stop: () =>
+      mode === 'desktop'
+        ? Promise.resolve({ success: true, durationMinutes: 10 })
+        : cloudRequest({ method: 'POST', url: '/time-tracking/stop' }),
+    manual: (payload: any) =>
+      mode === 'desktop'
+        ? Promise.resolve({ success: true, id: 'mock-timer-manual' })
+        : cloudRequest({ method: 'POST', url: '/time-tracking/manual', data: payload }),
+    delete: (id: string) =>
+      mode === 'desktop'
+        ? Promise.resolve({ success: true })
+        : cloudRequest({ method: 'DELETE', url: `/time-tracking/${id}` })
   }
 }
 

@@ -1,21 +1,8 @@
-import { Router, Request, Response } from 'express'
-import { query } from '../db/connection'
+import { Router } from 'express'
 
 export const debugRouter = Router()
 
-// Extend trial expiration for all companies by 1 year (development helper)
-debugRouter.post('/extend-trial', async (req: Request, res: Response) => {
-  try {
-    await query(
-      `
-      UPDATE companies
-      SET trial_expires_at = NOW() + INTERVAL '365 days'
-    `,
-      []
-    )
-    res.json({ success: true, message: 'Trial dates extended by 1 year for all companies.' })
-  } catch (err) {
-    console.error('[DEBUG] Extend trial error:', err)
-    res.status(500).json({ error: 'فشل في تمديد تواريخ الفترة التجريبية' })
-  }
+// Security: debug routes removed — see security-audit.md C-01
+debugRouter.all('*', (_req, res) => {
+  res.status(404).json({ error: 'Not found' })
 })

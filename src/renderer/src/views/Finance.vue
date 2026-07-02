@@ -111,7 +111,8 @@
               <LucideIcon name="account-details" :size="18" class="me-2" /> الملف المالي الشامل
             </v-tab>
             <v-tab value="office-management" class="font-weight-black">
-              <LucideIcon name="office-building" :size="18" class="me-2" /> ميزانية الت骼ع وأصحاب الربح
+              <LucideIcon name="office-building" :size="18" class="me-2" /> ميزانية التوزيع وأصحاب
+              الربح
             </v-tab>
           </v-tabs>
         </div>
@@ -406,17 +407,16 @@
       </v-card>
     </template>
 
-    <!-- Add Transaction Dialog -->
     <v-dialog v-model="showDialog" width="90%" max-width="850" persistent scrollable>
       <v-card
         v-if="showDialog"
         class="rounded-xl elevation-24 overflow-hidden modal-card glass-card"
       >
-        <v-toolbar color="white" class="px-8 border-b" height="72">
+        <v-toolbar color="rgba(15, 23, 42, 0.95)" class="px-8 border-b text-white" height="72">
           <div class="bg-gold-alpha pa-2 rounded-lg me-4">
             <LucideIcon name="plus-circle" :size="24" class="text-gold" />
           </div>
-          <v-toolbar-title class="text-h5 font-weight-black text-pure-black"
+          <v-toolbar-title class="text-h5 font-weight-black text-white"
             >إدراج عملية مالية جديدة</v-toolbar-title
           >
           <v-spacer></v-spacer>
@@ -425,13 +425,14 @@
             variant="text"
             size="small"
             class="rounded-lg premium-btn-gold-gradient"
+            color="white"
             @click="closeDialog"
           >
-            <LucideIcon name="x" :size="24" class="text-pure-black" />
+            <LucideIcon name="x" :size="24" class="text-white" />
           </v-btn>
         </v-toolbar>
 
-        <v-card-text class="pa-8 bg-white modal-scrollable glass-card">
+        <v-card-text class="pa-8 modal-scrollable glass-card">
           <v-form ref="formRef" v-model="formValid">
             <v-row>
               <!-- Transaction Type Switch -->
@@ -593,10 +594,9 @@
 
         <v-card-actions class="pa-8 modal-footer-solid glass-card">
           <v-btn
-            color="gold"
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black btn-unified action-btn-unified h-56 premium-btn-gold-gradient"
+            class="px-12 font-weight-black rounded-lg text-white btn-secondary"
             @click="closeDialog"
             >إلغاء</v-btn
           >
@@ -1042,7 +1042,7 @@ const handleDelete = async (): Promise<void> => {
 }
 
 .modal-footer-solid {
-  background: #ffffff !important;
+  background: rgba(15, 23, 42, 0.95) !important;
   opacity: 1 !important;
   border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
 }

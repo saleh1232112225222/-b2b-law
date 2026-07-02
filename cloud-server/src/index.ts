@@ -29,6 +29,8 @@ try {
 
 import express from 'express'
 import cors from 'cors'
+import helmet from 'helmet'
+import { sanitizeInput } from './middleware/validation'
 import { healthCheck, query } from './db/connection'
 import { authRouter } from './routes/auth'
 import { debugRouter } from './routes/debug'
@@ -69,14 +71,50 @@ import legalServicesRouter from './routes/legal_services'
 import officeAccountsRouter from './routes/office_accounts'
 import officeManagementRouter from './routes/office_management'
 import { archiveRouter } from './routes/archive'
+import { timeTrackingRouter } from './routes/time_tracking'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
 const app = express()
 const PORT = parseInt(process.env.PORT || '8080', 10)
 
-app.use(cors({ origin: '*', credentials: true }))
+const allowedOrigins = [
+  process.env.FRONTEND_URL || 'https://b2b-law.netlify.app',
+  'https://b2blaw.com',
+  'http://localhost:5173',
+  'http://localhost:8080'
+]
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true)
+      } else {
+        callback(new Error('Not allowed by CORS'))
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+)
 app.use(express.json({ limit: '10mb' }))
+app.use(sanitizeInput)
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        imgSrc: ["'self'", 'data:', 'https:'],
+        connectSrc: ["'self'", process.env.FRONTEND_URL || 'https://b2b-law.netlify.app']
+      }
+    },
+    hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
+  })
+)
 // Catch JSON parse errors so they don't bubble to the generic handler
 app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
@@ -176,6 +214,7 @@ app.use('/api/legal-services', legalServicesRouter)
 app.use('/api/office-accounts', officeAccountsRouter)
 app.use('/api/office-management', officeManagementRouter)
 app.use('/api/archive', archiveRouter)
+app.use('/api/time-tracking', timeTrackingRouter)
 
 // Finance stats endpoint - must be registered before the generic entity router
 app.get(
@@ -354,6 +393,74 @@ app.get(
 app.use('/api/reports', reportsRouter)
 app.use('/api', systemRouter)
 
+app.get('/api/search', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
+  try {
+    const { getCompanyId } = require('./middleware/tenant')
+    const companyId = getCompanyId(req)
+    const q = String(req.query.q || '').trim()
+
+    if (!q) {
+      res.json([])
+      return
+    }
+
+    const term = `%${q}%`
+
+    // 1. Search cases
+    const casesRes = await query(
+      `SELECT id, case_number as title, subject as subtitle, 'case' as type 
+         FROM cases 
+         WHERE company_id = $1 AND (case_number ILIKE $2 OR subject ILIKE $2 OR court ILIKE $2)
+         LIMIT 20`,
+      [companyId, term]
+    )
+
+    // 2. Search clients
+    const clientsRes = await query(
+      `SELECT id, name as title, phone as subtitle, 'client' as type 
+         FROM clients 
+         WHERE company_id = $1 AND (name ILIKE $2 OR phone ILIKE $2 OR email ILIKE $2 OR id_number ILIKE $2)
+         LIMIT 20`,
+      [companyId, term]
+    )
+
+    // 3. Search documents
+    const docsRes = await query(
+      `SELECT id, title, file_path as subtitle, 'document' as type 
+         FROM documents_v2 
+         WHERE company_id = $1 AND (title ILIKE $2 OR description ILIKE $2)
+         LIMIT 20`,
+      [companyId, term]
+    ).catch(() => ({ rows: [] }))
+
+    const merged = [
+      ...casesRes.rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        subtitle: r.subtitle,
+        type: 'case'
+      })),
+      ...clientsRes.rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        subtitle: r.subtitle,
+        type: 'client'
+      })),
+      ...docsRes.rows.map((r) => ({
+        id: r.id,
+        title: r.title,
+        subtitle: r.subtitle,
+        type: 'document'
+      }))
+    ]
+
+    res.json(merged)
+  } catch (err: any) {
+    console.error('[GLOBAL SEARCH] Error:', err)
+    res.status(500).json({ error: 'Failed to search' })
+  }
+})
+
 // Briefing summary endpoint for BriefingDashboard
 app.get(
   '/api/briefing/summary',
@@ -484,24 +591,19 @@ async function seedSuperAdmin() {
       ['admin', '00000000-0000-0000-0000-000000000000']
     )
 
-    const ADMIN_HASH = '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm'
+    const ADMIN_HASH =
+      process.env.ADMIN_BOOTSTRAP_HASH ||
+      '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm'
+    const ADMIN_EMAIL = process.env.ADMIN_BOOTSTRAP_EMAIL || 'admin@b2blaw.local'
 
     if (adminCheck.rows.length === 0) {
-      // Create the seeded owner admin with the configured bootstrap hash.
       await dbQuery(
         `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', '${ADMIN_HASH}', 'admin', TRUE, FALSE, 'slaehmap@gmail.com', NOW())`,
-        []
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', $1, 'admin', TRUE, TRUE, $2, NOW())`,
+        [ADMIN_HASH, ADMIN_EMAIL]
       )
       console.log('[SEED] Super Admin user created in owner company')
     }
-
-    // Always sync/re-sync the super admin's password hash
-    await dbQuery(
-      `UPDATE users SET password_hash = '${ADMIN_HASH}', recovery_email = 'slaehmap@gmail.com', is_active = TRUE, must_change_password = FALSE WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
-      []
-    )
-    console.log('[SEED] Super Admin password hash synced')
   } catch (err) {
     console.error('[SEED] Failed to seed super admin:', err)
   }

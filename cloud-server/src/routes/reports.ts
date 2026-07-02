@@ -287,18 +287,250 @@ reportsRouter.post(
 reportsRouter.post(
   '/export/pdf',
   requirePermission('export_reports'),
-  (_req: Request, res: Response) => {
-    res.status(501).json({ error: 'تصدير PDF غير مُndoّن بعد على الخادم' })
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { type, params } = req.body
+      const html = await generateReportHtmlString(companyId, type, params, true)
+      res.setHeader('Content-Type', 'text/html')
+      res.setHeader('Content-Disposition', `inline; filename="report.html"`)
+      res.send(html)
+    } catch (err) {
+      console.error('[REPORTS] export pdf error:', err)
+      res.status(500).json({ error: 'فشل تصدير التقرير' })
+    }
   }
 )
 
 reportsRouter.post(
   '/export/html',
   requirePermission('export_reports'),
-  (_req: Request, res: Response) => {
-    res.status(501).json({ error: 'تصدير HTML غير مُndoّن بعد على الخادم' })
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { type, params } = req.body
+      const html = await generateReportHtmlString(companyId, type, params, false)
+      res.setHeader('Content-Type', 'text/html')
+      res.setHeader('Content-Disposition', `attachment; filename="report.html"`)
+      res.send(html)
+    } catch (err) {
+      console.error('[REPORTS] export html error:', err)
+      res.status(500).json({ error: 'فشل تصدير التقرير' })
+    }
   }
 )
+
+async function generateReportHtmlString(companyId: string, type: string, params: any, isPdf: boolean): Promise<string> {
+  let title = 'تقرير النظام'
+  let headers: string[] = []
+  let rows: any[][] = []
+  let summary = ''
+
+  if (type === 'contract') {
+    const contractId = params.contractId
+    const cRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [contractId, companyId])
+    if (cRes.rows.length > 0) {
+      const c = cRes.rows[0]
+      title = c.title || 'عقد قانوني'
+      summary = `مرجع العقد: ${c.contract_no || '—'} | تاريخ العقد: ${c.contract_date ? new Date(c.contract_date).toLocaleDateString('ar-SA') : '—'}`
+      
+      const textContent = c.text_content || 'نص العقد غير متوفر'
+      
+      const pRes = await query(`
+        SELECT cp.id, cp.role_key, cp.role_label, cs.signature_status, cs.signature_payload_json, cl.name as client_name, u.full_name as user_name
+        FROM contract_participants cp
+        LEFT JOIN contract_signatures cs ON cs.participant_id = cp.id
+        LEFT JOIN contract_parties p ON cp.party_id = p.id
+        LEFT JOIN clients cl ON p.client_id = cl.id
+        LEFT JOIN users u ON p.user_id = u.id
+        WHERE cp.contract_id = $1 AND cp.company_id = $2
+      `, [contractId, companyId])
+      
+      const sigsHtml = pRes.rows.map(p => {
+        let imgTag = ''
+        if (p.signature_payload_json) {
+          try {
+            const pay = JSON.parse(p.signature_payload_json)
+            if (pay.image) {
+              imgTag = `<img src="${pay.image}" style="max-height: 60px; max-width: 150px; display: block; margin-top: 5px; border: 1px dashed #ccc;" />`
+            }
+          } catch {}
+        }
+        const name = p.client_name || p.user_name || 'الطرف الآخر'
+        return `
+          <div style="width: 45%; margin-bottom: 20px; float: right; box-sizing: border-box; padding: 10px;">
+            <strong>الاسم:</strong> ${name}<br/>
+            <strong>الصفة:</strong> ${p.role_label || p.role_key}<br/>
+            <strong>التوقيع:</strong> ${imgTag ? imgTag : '<span style="color:#e9a049;">(لم يوقع بعد)</span>'}
+          </div>
+        `
+      }).join('')
+
+      return `
+        <!DOCTYPE html>
+        <html dir="rtl" lang="ar">
+        <head>
+          <meta charset="utf-8">
+          <title>${title}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 50px; color: #333; direction: rtl; line-height: 1.8; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #e9c349; padding-bottom: 20px; }
+            .header h1 { color: #1e293b; margin: 0 0 10px 0; font-size: 26px; }
+            .header p { color: #64748b; margin: 0; font-size: 14px; }
+            .content-box { background-color: #fcfcfc; border: 1px solid #e2e8f0; padding: 30px; border-radius: 8px; font-size: 15px; text-align: justify; white-space: pre-wrap; margin-bottom: 40px; }
+            .signatures-box { border-top: 2px solid #e2e8f0; padding-top: 20px; margin-top: 40px; }
+            .signatures-box::after { content: ""; clear: both; display: table; }
+            @media print {
+              body { margin: 20px; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${title}</h1>
+            <p>${summary}</p>
+          </div>
+          <div class="content-box">
+            ${textContent}
+          </div>
+          <div class="signatures-box">
+            <h3 style="margin-top:0; border-bottom:1px solid #ddd; padding-bottom:5px;">تواقيع أطراف العقد:</h3>
+            ${sigsHtml}
+          </div>
+          <script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>
+        </body>
+        </html>
+      `
+    }
+  }
+
+  if (type === 'financial') {
+    title = 'التقرير المالي وحسابات المكتب'
+    const result = await query(
+      `SELECT date, amount_in, amount_out, description, type FROM finances WHERE company_id = $1 ORDER BY date DESC`,
+      [companyId]
+    )
+    headers = ['التاريخ', 'الوارد (ريال)', 'الصادر (ريال)', 'البيان', 'النوع']
+    rows = result.rows.map(r => [
+      r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
+      r.amount_in || '0',
+      r.amount_out || '0',
+      r.description || '',
+      r.type || ''
+    ])
+    const totalIn = result.rows.reduce((sum, r) => sum + parseFloat(r.amount_in || 0), 0)
+    const totalOut = result.rows.reduce((sum, r) => sum + parseFloat(r.amount_out || 0), 0)
+    summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال`
+
+  } else if (type === 'activity_log') {
+    title = 'تقرير سجل النشاطات والعمليات'
+    const result = await query(
+      `SELECT timestamp, actor, details FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 200`,
+      [companyId]
+    )
+    headers = ['الوقت والتاريخ', 'المستخدم/المنفذ', 'تفاصيل العملية']
+    rows = result.rows.map(r => [
+      r.timestamp ? new Date(r.timestamp).toLocaleString('ar-SA') : '',
+      r.actor || 'النظام',
+      r.details || ''
+    ])
+    summary = `عدد العمليات المسجلة مؤخراً: ${result.rows.length}`
+
+  } else if (type === 'users_permissions') {
+    title = 'تقرير صلاحيات ومستخدمي النظام'
+    const result = await query(
+      `SELECT username, full_name, role_key, is_active FROM users WHERE company_id = $1`,
+      [companyId]
+    )
+    headers = ['اسم المستخدم', 'الاسم الكامل', 'الدور/الصلاحية', 'الحالة']
+    rows = result.rows.map(r => [
+      r.username || '',
+      r.full_name || '',
+      r.role_key || '',
+      r.is_active ? 'نشط' : 'معطل'
+    ])
+    summary = `إجمالي عدد مستخدمي النظام: ${result.rows.length}`
+
+  } else if (type === 'sessions') {
+    title = 'تقرير جلسات الموكلين والمحاكم'
+    const result = await query(
+      `SELECT date, time, type, status, notes FROM sessions WHERE company_id = $1 ORDER BY date DESC`,
+      [companyId]
+    )
+    headers = ['تاريخ الجلسة', 'الوقت', 'نوع الجلسة', 'الحالة', 'ملاحظات']
+    rows = result.rows.map(r => [
+      r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
+      r.time || '',
+      r.type || '',
+      r.status || '',
+      r.notes || ''
+    ])
+    summary = `إجمالي عدد الجلسات المسجلة: ${result.rows.length}`
+
+  } else {
+    title = 'تقرير القضايا والملفات القانونية'
+    const result = await query(
+      `SELECT case_number, client_name, court_name, status, subject FROM cases WHERE company_id = $1 ORDER BY created_at DESC`,
+      [companyId]
+    )
+    headers = ['رقم القضية', 'الموكل', 'المحكمة', 'الحالة', 'الموضوع']
+    rows = result.rows.map(r => [
+      r.case_number || '',
+      r.client_name || '',
+      r.court_name || '',
+      r.status || '',
+      r.subject || ''
+    ])
+    summary = `إجمالي عدد القضايا في النظام: ${result.rows.length}`
+  }
+
+  const tableHeaders = headers.map(h => `<th style="border: 1px solid #e2e8f0; padding: 12px; background-color: #f1f5f9; color: #1e293b; font-weight: bold; text-align: right;">${h}</th>`).join('')
+  const tableRows = rows.map(row => {
+    const cells = row.map(cell => `<td style="border: 1px solid #e2e8f0; padding: 12px; text-align: right;">${cell !== null && cell !== undefined ? cell : ''}</td>`).join('')
+    return `<tr>${cells}</tr>`
+  }).join('')
+
+  return `
+    <!DOCTYPE html>
+    <html dir="rtl" lang="ar">
+    <head>
+      <meta charset="utf-8">
+      <title>${title}</title>
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 40px; color: #333; direction: rtl; }
+        .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #e9c349; padding-bottom: 20px; }
+        .header h1 { color: #1e293b; margin: 0 0 10px 0; font-size: 24px; }
+        .header p { color: #64748b; margin: 0; font-size: 14px; }
+        .summary { background-color: #f8fafc; border-right: 4px solid #e9c349; padding: 15px; margin-bottom: 30px; border-radius: 4px; font-size: 14px; line-height: 1.6; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: right; }
+        th { background-color: #f1f5f9; color: #1e293b; font-weight: bold; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        @media print {
+          body { margin: 20px; }
+          .no-print { display: none; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="header">
+        <h1>${title}</h1>
+        <p>برنامج B2B LAWYER PRO - تقرير تم إنشاؤه في ${new Date().toLocaleDateString('ar-SA')}</p>
+      </div>
+      \${summary ? \`<div class="summary">\${summary}</div>\` : ''}
+      <table>
+        <thead>
+          <tr>\${tableHeaders}</tr>
+        </thead>
+        <tbody>
+          \${tableRows}
+        </tbody>
+      </table>
+      \${isPdf ? '<script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>' : ''}
+    </body>
+    </html>
+  `
+}
 
 reportsRouter.get(
   '/users',

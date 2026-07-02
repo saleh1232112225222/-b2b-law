@@ -203,6 +203,64 @@
                 </v-card>
               </v-col>
             </v-row>
+
+            <v-row class="mt-6">
+              <!-- Direct Contact Notes -->
+              <v-col cols="12" md="6">
+                <v-card elevation="0" class="pa-8 glass-panel-light rounded-xl h-100 border-gold-alpha glass-card">
+                  <div class="text-subtitle-1 font-weight-black text-gold mb-4 d-flex align-center">
+                    <LucideIcon name="notebook" :size="20" class="me-3 opacity-40" /> ملاحظات التواصل المباشر
+                  </div>
+                  <v-textarea
+                    v-model="directNotes"
+                    rows="4"
+                    variant="outlined"
+                    class="glass-input mb-3 text-white"
+                    placeholder="اكتب ملاحظات حول التواصل المباشر مع الموكل هنا..."
+                    hide-details
+                  ></v-textarea>
+                  <v-btn
+                    color="gold"
+                    variant="flat"
+                    block
+                    class="font-weight-black premium-btn-gold-gradient mt-2"
+                    :loading="savingDirectNotes"
+                    @click="saveDirectNotes"
+                  >
+                    <LucideIcon name="save" :size="18" class="me-2" /> حفظ الملاحظات
+                  </v-btn>
+                </v-card>
+              </v-col>
+
+              <!-- Interaction Timeline -->
+              <v-col cols="12" md="6">
+                <v-card elevation="0" class="pa-8 glass-panel-light rounded-xl h-100 border-gold-alpha glass-card">
+                  <div class="text-subtitle-1 font-weight-black text-gold mb-4 d-flex align-center">
+                    <LucideIcon name="history" :size="20" class="me-3 opacity-40" /> سجل تفاعلات الموكل (Timeline)
+                  </div>
+                  <v-timeline density="compact" side="end" class="timeline-compact">
+                    <v-timeline-item
+                      v-for="(item, idx) in interactionTimeline"
+                      :key="idx"
+                      :dot-color="item.color"
+                      size="small"
+                    >
+                      <template #opposite>
+                        <span class="text-caption text-grey">{{ formatDate(item.date) }}</span>
+                      </template>
+                      <div class="d-flex flex-column text-right">
+                        <span class="text-caption font-weight-bold text-white">{{ item.title }}</span>
+                        <span class="text-caption text-grey">{{ item.description }}</span>
+                        <span class="text-tiny text-grey-darken-2 mt-1">{{ formatDate(item.date) }}</span>
+                      </div>
+                    </v-timeline-item>
+                    <v-timeline-item v-if="interactionTimeline.length === 0" dot-color="grey" size="small">
+                      <div class="text-caption text-grey text-right">لا توجد تفاعلات مسجلة</div>
+                    </v-timeline-item>
+                  </v-timeline>
+                </v-card>
+              </v-col>
+            </v-row>
           </v-window-item>
 
           <!-- Cases Tab -->
@@ -529,12 +587,76 @@ const getLegalServiceStatusColor = (statusId: string) => {
   return 'warning'
 }
 
+const directNotes = ref('')
+const savingDirectNotes = ref(false)
+
+const interactionTimeline = computed(() => {
+  const events: Array<{ date: string; title: string; description: string; color: string }> = []
+  if (client.value?.created_at) {
+    events.push({
+      date: client.value.created_at,
+      title: 'انضمام الموكل',
+      description: 'تم إنشاء ملف الموكل في النظام',
+      color: 'info'
+    })
+  }
+  safeArray(linkedCases.value).forEach((c: any) => {
+    if (c.created_at) {
+      events.push({
+        date: c.created_at,
+        title: 'قضية مرتبطة',
+        description: `ربط القضية رقم: ${c.case_number}`,
+        color: 'success'
+      })
+    }
+  })
+  safeArray(linkedAgencies.value).forEach((a: any) => {
+    if (a.created_at) {
+      events.push({
+        date: a.created_at,
+        title: 'وكالة مسجلة',
+        description: `ربط الوكالة رقم: ${a.agency_number || a.id}`,
+        color: 'warning'
+      })
+    }
+  })
+  safeArray(legalServicesList.value).forEach((s: any) => {
+    if (s.created_at) {
+      events.push({
+        date: s.created_at,
+        title: 'خدمة قانونية',
+        description: `بدء الخدمة: ${s.description || s.engagement_number}`,
+        color: 'accent'
+      })
+    }
+  })
+  return events.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+})
+
+const saveDirectNotes = async () => {
+  if (!client.value) return
+  savingDirectNotes.value = true
+  try {
+    await window.api.clients.update(clientId.value, {
+      ...(client.value as any),
+      direct_notes: directNotes.value
+    })
+    ;(client.value as any).direct_notes = directNotes.value
+    showSnackbar('تم حفظ ملاحظات التواصل بنجاح', 'success')
+  } catch (err: any) {
+    showSnackbar('فشل حفظ الملاحظات: ' + err.message, 'error')
+  } finally {
+    savingDirectNotes.value = false
+  }
+}
+
 const loadAllData = async (): Promise<void> => {
   loading.value = true
   try {
     const data = await window.api.clients.getById(clientId.value)
     if (data) {
       client.value = data
+      directNotes.value = (data as any).direct_notes || ''
       // Fetch cases
       const cases = await window.api.cases.getByClientId(clientId.value)
       linkedCases.value = safeArray(cases)

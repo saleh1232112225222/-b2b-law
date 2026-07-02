@@ -5,10 +5,10 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: b2b_law
-      POSTGRES_PASSWORD: b2b_law_pass
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-in-production}
       POSTGRES_DB: b2b_law_db
     ports:
-      - '5432:5432'
+      - '127.0.0.1:5432:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -26,10 +26,12 @@ services:
     ports:
       - '8080:8080'
     environment:
-      DATABASE_URL: postgresql://b2b_law:b2b_law_pass@db:5432/b2b_law_db
+      DATABASE_URL: postgresql://b2b_law:${DB_PASSWORD:-change-me-in-production}@db:5432/b2b_law_db
       NODE_ENV: production
       PORT: 8080
-      JWT_SECRET: ${JWT_SECRET:-dev-secret-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      ADMIN_BOOTSTRAP_HASH: ${ADMIN_BOOTSTRAP_HASH:-}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@b2blaw.local}
     depends_on:
       db:
         condition: service_healthy

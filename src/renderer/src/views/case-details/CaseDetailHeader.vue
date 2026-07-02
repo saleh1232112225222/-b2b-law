@@ -45,9 +45,9 @@
           v-if="caseItem.folder_link"
           :href="caseItem.folder_link"
           target="_blank"
-          variant="tonal"
-          color="primary"
-          class="rounded-lg font-weight-black premium-btn-gold-gradient"
+          variant="outlined"
+          color="accent"
+          class="rounded-lg font-weight-black text-white"
           size="small"
         >
           <LucideIcon name="folder" :size="16" class="me-1" /> مجلد القضية
@@ -56,17 +56,17 @@
           v-if="caseItem.najiz_url"
           :href="caseItem.najiz_url"
           target="_blank"
-          variant="tonal"
-          color="primary"
-          class="rounded-lg font-weight-black premium-btn-gold-gradient"
+          variant="outlined"
+          color="success"
+          class="rounded-lg font-weight-black text-success"
           size="small"
         >
           <LucideIcon name="external-link" :size="16" class="me-1" /> ناجز
         </v-btn>
         <v-btn
           color="gold"
-          variant="tonal"
-          class="rounded-lg font-weight-black premium-btn-gold-gradient"
+          variant="outlined"
+          class="rounded-lg font-weight-black text-white"
           :loading="generatingReport"
           @click="$emit('generateReport')"
         >
@@ -74,9 +74,9 @@
         </v-btn>
         <v-btn
           v-if="canCreateContracts"
-          color="gold"
-          variant="tonal"
-          class="rounded-lg font-weight-black premium-btn-gold-gradient"
+          color="accent"
+          variant="outlined"
+          class="rounded-lg font-weight-black text-white"
           :to="{ path: '/contracts', query: { case_id: caseItem.id, new_contract: '1' } }"
         >
           <LucideIcon name="file-signature" :size="18" class="me-2" /> عقد الأتعاب

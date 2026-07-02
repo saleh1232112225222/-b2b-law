@@ -28,6 +28,7 @@ export const clients = pgTable('clients', {
   city: text('city'),
   birthDate: date('birth_date'),
   notes: text('notes'),
+  directNotes: text('direct_notes'),
   createdBy: uuid('created_by'),
   updatedBy: uuid('updated_by'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
@@ -94,6 +95,8 @@ export const users = pgTable(
     googleUserId: text('google_user_id'),
     securityQuestion: text('security_question'),
     securityAnswerHash: text('security_answer_hash'),
+    twoFactorSecret: text('two_factor_secret'),
+    twoFactorEnabled: boolean('two_factor_enabled').default(false),
     createdBy: uuid('created_by'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow()

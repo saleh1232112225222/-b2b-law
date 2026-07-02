@@ -394,24 +394,25 @@
         </v-card-text>
 
         <v-divider class="border-gold opacity-10"></v-divider>
-        <v-card-actions class="pa-8 poa-dialog-footer d-flex flex-column align-center gap-3">
+        <v-card-actions class="pa-6 poa-dialog-footer d-flex flex-row align-center gap-3">
+          <v-btn
+            variant="outlined"
+            size="large"
+            class="px-8 font-weight-black rounded-lg text-white"
+            @click="showDialog = false"
+          >
+            إلغاء
+          </v-btn>
+          <v-spacer />
           <v-btn
             variant="flat"
             size="large"
-            class="w-100 font-weight-black premium-btn-gold-gradient h-56 premium-btn-gold-gradient"
+            class="px-12 font-weight-black premium-btn-gold-gradient h-56"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"
           >
             {{ isEditing ? 'حفظ التعديلات' : 'تأكيد التسجيل' }}
-          </v-btn>
-          <v-btn
-            variant="text"
-            color="white"
-            class="text-body-1 font-weight-bold text-cancel-link mt-2 premium-btn-gold-gradient"
-            @click="showDialog = false"
-          >
-            إلغاء
           </v-btn>
         </v-card-actions>
       </v-card>

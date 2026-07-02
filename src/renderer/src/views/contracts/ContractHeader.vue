@@ -1,8 +1,8 @@
 <template>
-  <v-row dense class="mb-8 align-center">
-    <v-col>
-      <div class="d-flex align-center">
-        <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
+  <v-row dense class="mb-8 align-center" :class="{ 'flex-column text-center gap-4': isMobile }">
+    <v-col :cols="isMobile ? '12' : undefined">
+      <div class="d-flex align-center" :class="{ 'flex-column': isMobile }">
+        <div class="glass-panel-light pa-4 rounded-xl border-gold opacity-20" :class="isMobile ? 'mb-3' : 'me-5'">
           <LucideIcon name="file-text" :size="36" class="text-accent" />
         </div>
         <div>
@@ -13,11 +13,12 @@
         </div>
       </div>
     </v-col>
-    <v-col cols="auto">
+    <v-col :cols="isMobile ? '12' : 'auto'">
       <v-btn
         color="accent"
         size="large"
-        class="font-weight-black rounded-lg px-8 premium-lift h-100 premium-btn-gold-gradient"
+        :block="isMobile"
+        class="font-weight-black rounded-lg px-8 premium-lift h-56 premium-btn-gold-gradient"
         :disabled="!can('create_contracts')"
         @click="$emit('create')"
       >
@@ -29,6 +30,10 @@
 
 <script setup lang="ts">
 import LucideIcon from '../../components/common/LucideIcon.vue'
+import { useMobileLayout } from '../../composables/useMobileLayout'
+
 defineProps<{ can: (perm: string) => boolean }>()
 defineEmits<{ create: [] }>()
+
+const { isMobile } = useMobileLayout()
 </script>

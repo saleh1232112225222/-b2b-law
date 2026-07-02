@@ -3,8 +3,9 @@ import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query } from '../db/connection'
-import { generateToken, authMiddleware } from '../middleware/auth'
+import { generateToken, authMiddleware, revokeToken } from '../middleware/auth'
 import { getUserPermissions } from '../middleware/permission'
+import { generateSecret, getQrCodeUrl, verifyToken } from '../utils/totp'
 import {
   sendOTP,
   sendEmail,
@@ -62,7 +63,17 @@ async function logLoginAttempt(
     await query(
       `INSERT INTO user_login_logs (id, user_id, company_id, ip_address, user_agent, device_info, browser_info, is_successful, failure_reason)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-      [uuidv4(), userId, companyId, ip, userAgent, deviceInfo, browserInfo, isSuccessful, failureReason || null]
+      [
+        uuidv4(),
+        userId,
+        companyId,
+        ip,
+        userAgent,
+        deviceInfo,
+        browserInfo,
+        isSuccessful,
+        failureReason || null
+      ]
     )
   } catch (e: any) {
     console.error('[TRACKING] login_log write failed:', e?.message || e)
@@ -90,6 +101,26 @@ function parseBrowser(ua: string): string {
 }
 
 const authAttempts = new Map<string, { count: number; resetTime: number }>()
+const otpAttempts = new Map<string, { count: number; resetTime: number }>()
+const oauthCodes = new Map<string, { token: string; createdAt: number }>()
+
+// Periodic cleanup to prevent memory leak — purges expired entries every 5 minutes
+setInterval(
+  () => {
+    const now = Date.now()
+    for (const [key, val] of authAttempts.entries()) {
+      if (now > val.resetTime) authAttempts.delete(key)
+    }
+    for (const [key, val] of otpAttempts.entries()) {
+      if (now > val.resetTime) otpAttempts.delete(key)
+    }
+    // Clean up expired OAuth codes (60s TTL)
+    for (const [key, val] of oauthCodes.entries()) {
+      if (now - val.createdAt > 60_000) oauthCodes.delete(key)
+    }
+  },
+  5 * 60 * 1000
+).unref()
 
 const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   const ip = req.ip || req.socket.remoteAddress || 'unknown'
@@ -114,6 +145,36 @@ const authRateLimiter = (req: Request, res: Response, next: NextFunction) => {
     return res.status(429).json({
       error: 'TooManyRequests',
       message: `لقد تجاوزت الحد الأقصى لمحاولات تسجيل الدخول أو التفعيل. يرجى المحاولة بعد ${minutesLeft} دقيقة.`
+    })
+  }
+
+  next()
+}
+
+// Stricter rate limiter for OTP verification — 5 attempts per 15 minutes
+const otpRateLimiter = (req: Request, res: Response, next: NextFunction) => {
+  const ip = req.ip || req.socket.remoteAddress || 'unknown'
+  const now = Date.now()
+  const windowMs = 15 * 60 * 1000 // 15 minutes
+  const maxAttempts = 5
+
+  const attempt = otpAttempts.get(ip)
+  if (!attempt) {
+    otpAttempts.set(ip, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  if (now > attempt.resetTime) {
+    otpAttempts.set(ip, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  attempt.count++
+  if (attempt.count > maxAttempts) {
+    const minutesLeft = Math.ceil((attempt.resetTime - now) / 60000)
+    return res.status(429).json({
+      error: 'TooManyOtpAttempts',
+      message: `تم تجاوز الحد الأقصى لمحاولات التحقق. يرجى المحاولة بعد ${minutesLeft} دقيقة.`
     })
   }
 
@@ -263,6 +324,14 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     // Allow login even if trial expired - will be in read-only mode
     // trialExpired flag is sent to frontend for read-only enforcement
 
+    if (user.two_factor_enabled) {
+      res.json({
+        requiresMfa: true,
+        userId: user.id
+      })
+      return
+    }
+
     const token = generateToken({
       userId: user.id,
       companyId: user.company_id,
@@ -284,9 +353,9 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       .then((emailResult) => {
         const companyEmail = emailResult.rows[0]?.email || 'غير متوفر'
         return sendEmail({
-          to: 'slaehmap@gmail.com',
+          to: process.env.ADMIN_EMAIL || 'admin@b2blaw.local',
           subject: `🔑 تسجيل دخول جديد: ${user.full_name || username}`,
-          text: `مرحباً أستاذ صالح،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- البريد الإلكتروني للاسترداد: ${user.recovery_email || 'غير متوفر'}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+          text: `مرحباً،\n\nقام مستخدم بتسجيل الدخول إلى حسابه يدوياً:\n\n- الاسم الكامل: ${user.full_name || username}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني للمكتب: ${companyEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
         })
       })
       .catch((e) => {
@@ -320,6 +389,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 authRouter.post('/logout', authMiddleware, async (req: Request, res: Response) => {
   try {
     const auth = req.auth!
+    // Revoke the current token (H-08)
+    if (auth.jti) {
+      revokeToken(auth.jti)
+    }
     // Update last login log with logout time
     await query(
       `UPDATE user_login_logs SET logout_time = NOW()
@@ -380,34 +453,41 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
   }
 })
 
-authRouter.put('/password', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { oldPassword, newPassword } = req.body
-    if (!oldPassword || !newPassword) {
-      res.status(400).json({ error: 'كلمة المرور القديمة والجديدة مطلوبتان' })
-      return
+authRouter.put(
+  '/password',
+  authMiddleware,
+  authRateLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const { oldPassword, newPassword } = req.body
+      if (!oldPassword || !newPassword) {
+        res.status(400).json({ error: 'كلمة المرور القديمة والجديدة مطلوبتان' })
+        return
+      }
+      const result = await query('SELECT password_hash FROM users WHERE id = $1', [
+        req.auth!.userId
+      ])
+      if (result.rows.length === 0) {
+        res.status(404).json({ error: 'المستخدم غير موجود' })
+        return
+      }
+      const valid = await bcrypt.compare(oldPassword, result.rows[0].password_hash)
+      if (!valid) {
+        res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' })
+        return
+      }
+      const hash = await bcrypt.hash(newPassword, 12)
+      await query(
+        'UPDATE users SET password_hash = $1, must_change_password = FALSE, updated_at = NOW() WHERE id = $2',
+        [hash, req.auth!.userId]
+      )
+      res.json({ success: true })
+    } catch (err) {
+      console.error('[AUTH] Password change error:', err)
+      res.status(500).json({ error: 'فشل تغيير كلمة المرور' })
     }
-    const result = await query('SELECT password_hash FROM users WHERE id = $1', [req.auth!.userId])
-    if (result.rows.length === 0) {
-      res.status(404).json({ error: 'المستخدم غير موجود' })
-      return
-    }
-    const valid = await bcrypt.compare(oldPassword, result.rows[0].password_hash)
-    if (!valid) {
-      res.status(401).json({ error: 'كلمة المرور الحالية غير صحيحة' })
-      return
-    }
-    const hash = await bcrypt.hash(newPassword, 12)
-    await query(
-      'UPDATE users SET password_hash = $1, must_change_password = FALSE, updated_at = NOW() WHERE id = $2',
-      [hash, req.auth!.userId]
-    )
-    res.json({ success: true })
-  } catch (err) {
-    console.error('[AUTH] Password change error:', err)
-    res.status(500).json({ error: 'فشل تغيير كلمة المرور' })
   }
-})
+)
 
 authRouter.post('/lock', authMiddleware, (req: Request, res: Response) => {
   res.json({ success: true })
@@ -500,7 +580,12 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
 
       // 1) Check if company is soft-deleted
       if (user.is_deleted) {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الحساب محذوف')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - الحساب محذوف'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'حساب محذوف', req)
         redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
         return
@@ -508,7 +593,12 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
 
       // 2) Check if user is deactivated
       if (!user.is_active) {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الحساب معطل')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - الحساب معطل'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
         redirectToLogin('AccountSuspended', 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
         return
@@ -516,7 +606,12 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
 
       // 3) Check if user is explicitly suspended
       if (user.is_suspended) {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - المستخدم معلق')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - المستخدم معلق'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'مستخدم معلق', req)
         redirectToLogin('AccountSuspended', 'تم تعليق حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
         return
@@ -533,21 +628,42 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       }
 
       if (subscriptionStatus === 'past_due') {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك معلق')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - الاشتراك معلق'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'اشتراك معلق', req)
-        redirectToLogin('AccountSuspended', 'تم تعليق اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        redirectToLogin(
+          'AccountSuspended',
+          'تم تعليق اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+        )
         return
       }
 
       if (subscriptionStatus === 'canceled') {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك ملغي')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - الاشتراك ملغي'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'اشتراك ملغي', req)
-        redirectToLogin('AccountSuspended', 'تم إلغاء اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.')
+        redirectToLogin(
+          'AccountSuspended',
+          'تم إلغاء اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+        )
         return
       }
 
       if (subscriptionStatus === 'expired') {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة دخول Google فاشلة - الاشتراك منتهي')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة دخول Google فاشلة - الاشتراك منتهي'
+        )
         await logLoginAttempt(user.id, user.company_id, false, 'اشتراك منتهي', req)
         redirectToLogin('AccountSuspended', 'انتهت صلاحية اشتراكك. يرجى التجديد للمتابعة.')
         return
@@ -588,14 +704,17 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       await logLoginAttempt(user.id, user.company_id, true, undefined, req)
 
       sendEmail({
-        to: 'slaehmap@gmail.com',
+        to: process.env.ADMIN_EMAIL || 'admin@b2blaw.local',
         subject: `🔑 تسجيل دخول عبر Google: ${googleName}`,
-        text: `مرحباً أستاذ صالح،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
+        text: `مرحباً،\n\nقام مستخدم مسجل مسبقاً بتسجيل الدخول عبر Google:\n\n- الاسم: ${googleName}\n- البريد الإلكتروني: ${googleEmail}\n- وقت الدخول: ${new Date().toLocaleString('ar-EG', { timeZone: 'Asia/Riyadh' })}\n\nشكراً لك.`
       }).catch((e) => {
         console.error('Failed to notify admin of Google login:', e)
       })
 
-      res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
+      const tempCode = require('crypto').randomBytes(32).toString('hex')
+      oauthCodes.set(tempCode, { token, createdAt: Date.now() })
+
+      res.redirect(`${frontendUrl}/#/login?code=${tempCode}`)
       return
     }
 
@@ -613,7 +732,12 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
 
       // Block if company is soft-deleted
       if (company.is_deleted) {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - الشركة محذوفة')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة تسجيل Google فاشلة - الشركة محذوفة'
+        )
         redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
         return
       }
@@ -628,11 +752,27 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         subscriptionStatus = subCheck.rows[0].status
       }
 
-      if (subscriptionStatus === 'past_due' || subscriptionStatus === 'canceled' || subscriptionStatus === 'expired') {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', `محاولة تسجيل Google فاشلة - الاشتراك ${subscriptionStatus}`)
-        redirectToLogin('AccountSuspended', 'لا يمكن إنشاء حساب جديد. الحساب موجود مسبقاً وحالته: ' +
-          (subscriptionStatus === 'past_due' ? 'معلق' : subscriptionStatus === 'canceled' ? 'ملغي' : 'منتهي') +
-          '. يرجى التواصل مع إدارة النظام.')
+      if (
+        subscriptionStatus === 'past_due' ||
+        subscriptionStatus === 'canceled' ||
+        subscriptionStatus === 'expired'
+      ) {
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          `محاولة تسجيل Google فاشلة - الاشتراك ${subscriptionStatus}`
+        )
+        redirectToLogin(
+          'AccountSuspended',
+          'لا يمكن إنشاء حساب جديد. الحساب موجود مسبقاً وحالته: ' +
+            (subscriptionStatus === 'past_due'
+              ? 'معلق'
+              : subscriptionStatus === 'canceled'
+                ? 'ملغي'
+                : 'منتهي') +
+            '. يرجى التواصل مع إدارة النظام.'
+        )
         return
       }
 
@@ -642,15 +782,28 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         [company.id]
       )
       if (activeUsers.rows.length === 0) {
-        await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - جميع المستخدمين معطلين')
+        await logActivity(
+          googleEmail,
+          'LOGIN_FAILED',
+          'auth',
+          'محاولة تسجيل Google فاشلة - جميع المستخدمين معطلين'
+        )
         redirectToLogin('AccountSuspended', 'تم تعطيل هذا الحساب. يرجى التواصل مع إدارة النظام.')
         return
       }
 
       // Company exists, is active, has active users — but no user linked to this Google account
       // BLOCK: do NOT create a duplicate user. Tell them to log in with existing credentials.
-      await logActivity(googleEmail, 'LOGIN_FAILED', 'auth', 'محاولة تسجيل Google فاشلة - البريد مسجل مسبقاً بحساب آخر')
-      redirectToLogin('AccountSuspended', 'هذا البريد الإلكتروني مسجل مسبقاً بحساب موجود. يرجى تسجيل الدخول bằng بيانات الحساب الأصلي.')
+      await logActivity(
+        googleEmail,
+        'LOGIN_FAILED',
+        'auth',
+        'محاولة تسجيل Google فاشلة - البريد مسجل مسبقاً بحساب آخر'
+      )
+      redirectToLogin(
+        'AccountSuspended',
+        'هذا البريد الإلكتروني مسجل مسبقاً بحساب موجود. يرجى تسجيل الدخول bằng بيانات الحساب الأصلي.'
+      )
       return
     }
 
@@ -665,19 +818,34 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     )
     // Seed firm_data defaults
     await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(), companyId, 'officeName', JSON.stringify(googleName)
+      uuidv4(),
+      companyId,
+      'officeName',
+      JSON.stringify(googleName)
     ])
     await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(), companyId, 'theme', JSON.stringify('light')
+      uuidv4(),
+      companyId,
+      'theme',
+      JSON.stringify('light')
     ])
     await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)
+      uuidv4(),
+      companyId,
+      'activityLogRetentionDays',
+      JSON.stringify(365)
     ])
     await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)
+      uuidv4(),
+      companyId,
+      'taskNotificationsEnabled',
+      JSON.stringify(true)
     ])
     await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)
+      uuidv4(),
+      companyId,
+      'taskNotificationLeadDays',
+      JSON.stringify(1)
     ])
 
     // Create trial subscription
@@ -753,7 +921,10 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     })
     await logLoginAttempt(user.id, companyId, true, undefined, req)
 
-    res.redirect(`${frontendUrl}/#/login?google_token=${token}`)
+    const tempCode2 = require('crypto').randomBytes(32).toString('hex')
+    oauthCodes.set(tempCode2, { token, createdAt: Date.now() })
+
+    res.redirect(`${frontendUrl}/#/login?code=${tempCode2}`)
   } catch (err) {
     console.error('[AUTH] Google OAuth callback error:', err)
     res.redirect(`${frontendUrl}/#/login?error=google_failed`)
@@ -828,21 +999,17 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       return
     }
     if (!usernameRegex.test(username)) {
-      res
-        .status(400)
-        .json({
-          error: 'InvalidUsername',
-          message: 'اسم المستخدم يجب أن يكون باللغة الإنجليزية (من 4 إلى 20 حرف)'
-        })
+      res.status(400).json({
+        error: 'InvalidUsername',
+        message: 'اسم المستخدم يجب أن يكون باللغة الإنجليزية (من 4 إلى 20 حرف)'
+      })
       return
     }
     if (!passwordRegex.test(password)) {
-      res
-        .status(400)
-        .json({
-          error: 'WeakPassword',
-          message: 'يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص، وبحد أدنى 8 أحرف'
-        })
+      res.status(400).json({
+        error: 'WeakPassword',
+        message: 'يجب أن تحتوي كلمة المرور على حرف كبير وصغير ورقم ورمز خاص، وبحد أدنى 8 أحرف'
+      })
       return
     }
 
@@ -989,25 +1156,25 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
 
     // Notify the admin of new registration attempt (before OTP verification)
     sendEmail({
-      to: 'slaehmap@gmail.com',
+      to: process.env.ADMIN_EMAIL || 'slaehmap@gmail.com',
       subject: `⏳ محاولة تسجيل جديدة في B2B Lawyer - ${companyName}`,
-      text: `مرحباً أستاذ صالح،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n- رمز التفعيل (OTP): ${otpCode}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
+      text: `مرحباً،\n\nبدأ مستخدم جديد عملية التسجيل (لم يتم التفعيل بـ OTP بعد):\n\n- اسم المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- الهاتف: ${phone}\n\nيمكنك الاتصال بالمستخدم لمساعدته في حال واجه مشاكل في التفعيل.`
     }).catch((e) => {
       console.error('Failed to notify admin of registration attempt:', e)
     })
 
-    // If SMTP is not available, return OTP in response so the frontend can show it
+    // If SMTP is not available, return OTP in response ONLY in development
     // This enables registration when email is not configured
-    res
-      .status(201)
-      .json({ success: true, companyId, username, ...(smtpAvailable ? {} : { devOtp: otpCode }) })
+    const devOtp =
+      !smtpAvailable && process.env.NODE_ENV !== 'production' ? { devOtp: otpCode } : {}
+    res.status(201).json({ success: true, companyId, username, ...devOtp })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)
     res.status(500).json({ error: 'فشل التسجيل' })
   }
 })
 
-authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) => {
+authRouter.post('/verify', authRateLimiter, otpRateLimiter, async (req: Request, res: Response) => {
   try {
     const { username, code } = req.body
     if (!username || !code) {
@@ -1082,5 +1249,205 @@ authRouter.post('/verify', authRateLimiter, async (req: Request, res: Response) 
   } catch (err) {
     console.error('[AUTH] Verification error:', err)
     res.status(500).json({ error: 'فشل التحقق' })
+  }
+})
+
+// ============================================================
+// 12. مسارات المصادقة الثنائية (MFA)
+// ============================================================
+
+authRouter.post(
+  '/verify-mfa',
+  authRateLimiter,
+  otpRateLimiter,
+  async (req: Request, res: Response) => {
+    try {
+      const { userId, code } = req.body
+      if (!userId || !code) {
+        res.status(400).json({ error: 'يرجى إدخال رمز التحقق' })
+        return
+      }
+
+      const result = await query('SELECT * FROM users WHERE id = $1', [userId])
+      if (result.rows.length === 0) {
+        res.status(404).json({ error: 'المستخدم غير موجود' })
+        return
+      }
+
+      const user = result.rows[0]
+      if (!user.two_factor_enabled || !user.two_factor_secret) {
+        res.status(400).json({ error: 'المصادقة الثنائية غير مفعلة لهذا الحساب' })
+        return
+      }
+
+      const isValid = verifyToken(user.two_factor_secret, code)
+      if (!isValid) {
+        res.status(401).json({ error: 'رمز التحقق غير صحيح' })
+        return
+      }
+
+      // Check trial expiration & subscription
+      let trialExpired = false
+      let trialExpiresAt = null
+      const companyResult = await query(
+        'SELECT trial_expires_at, is_deleted FROM companies WHERE id = $1',
+        [user.company_id]
+      )
+      if (companyResult.rows.length > 0) {
+        const company = companyResult.rows[0]
+        if (company.is_deleted) {
+          res.status(403).json({ error: 'تم تعطيل حسابك' })
+          return
+        }
+        trialExpiresAt = company.trial_expires_at
+        trialExpired = new Date(trialExpiresAt) < new Date()
+      }
+
+      let subscriptionStatus = 'trial'
+      const subCheck = await query(
+        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [user.company_id]
+      )
+      if (subCheck.rows.length > 0) {
+        subscriptionStatus = subCheck.rows[0].status
+      }
+
+      const token = generateToken({
+        userId: user.id,
+        companyId: user.company_id,
+        username: user.username,
+        roleKey: user.role_key,
+        trialExpired,
+        subscriptionStatus
+      })
+
+      const permissions = await getUserPermissions(user.company_id, user.id, user.role_key)
+
+      res.json({
+        token,
+        user: {
+          id: user.id,
+          username: user.username,
+          fullName: user.full_name,
+          roleKey: user.role_key,
+          trialExpired,
+          subscriptionStatus
+        },
+        permissions
+      })
+    } catch (err) {
+      console.error('[MFA] Verify error:', err)
+      res.status(500).json({ error: 'فشل التحقق من رمز المصادقة الثنائية' })
+    }
+  }
+)
+
+authRouter.post('/mfa/setup', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId
+    const result = await query('SELECT username FROM users WHERE id = $1', [userId])
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'المستخدم غير موجود' })
+      return
+    }
+    const username = result.rows[0].username
+    const secret = generateSecret()
+    const qrCodeUrl = getQrCodeUrl(username, secret)
+
+    res.json({ secret, qrCodeUrl })
+  } catch (err) {
+    console.error('[MFA] Setup error:', err)
+    res.status(500).json({ error: 'فشلت تهيئة المصادقة الثنائية' })
+  }
+})
+
+authRouter.post('/mfa/enable', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId
+    const { secret, code } = req.body
+    if (!secret || !code) {
+      res.status(400).json({ error: 'البيانات غير مكتملة' })
+      return
+    }
+
+    const isValid = verifyToken(secret, code)
+    if (!isValid) {
+      res.status(400).json({ error: 'رمز التحقق غير صحيح، يرجى المحاولة مرة أخرى' })
+      return
+    }
+
+    await query(
+      'UPDATE users SET two_factor_secret = $1, two_factor_enabled = TRUE, updated_at = NOW() WHERE id = $2',
+      [secret, userId]
+    )
+
+    res.json({ success: true, message: 'تم تفعيل المصادقة الثنائية بنجاح' })
+  } catch (err) {
+    console.error('[MFA] Enable error:', err)
+    res.status(500).json({ error: 'فشل تفعيل المصادقة الثنائية' })
+  }
+})
+
+authRouter.post('/mfa/disable', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user.userId
+    const { code } = req.body
+
+    const result = await query(
+      'SELECT two_factor_secret, two_factor_enabled FROM users WHERE id = $1',
+      [userId]
+    )
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'المستخدم غير موجود' })
+      return
+    }
+    const user = result.rows[0]
+    if (!user.two_factor_enabled) {
+      res.json({ success: true, message: 'المصادقة الثنائية غير مفعلة بالفعل' })
+      return
+    }
+
+    if (!code) {
+      res.status(400).json({ error: 'يرجى إدخال رمز التحقق لإلغاء التفعيل' })
+      return
+    }
+
+    const isValid = verifyToken(user.two_factor_secret, code)
+    if (!isValid) {
+      res.status(400).json({ error: 'رمز التحقق غير صحيح، فشل إلغاء تفعيل المصادقة الثنائية' })
+      return
+    }
+
+    await query(
+      'UPDATE users SET two_factor_secret = NULL, two_factor_enabled = FALSE, updated_at = NOW() WHERE id = $2',
+      [userId]
+    )
+
+    res.json({ success: true, message: 'تم إلغاء تفعيل المصادقة الثنائية بنجاح' })
+  } catch (err) {
+    console.error('[MFA] Disable error:', err)
+    res.status(500).json({ error: 'فشل إلغاء تفعيل المصادقة الثنائية' })
+  }
+})
+
+// Exchange temporary OAuth code for JWT (C-05 fix: avoids JWT in URL)
+authRouter.post('/exchange', async (req: Request, res: Response) => {
+  try {
+    const { code } = req.body
+    if (!code) {
+      res.status(400).json({ error: 'الرمز مطلوب' })
+      return
+    }
+    const entry = oauthCodes.get(code)
+    if (!entry || Date.now() - entry.createdAt > 60_000) {
+      oauthCodes.delete(code)
+      res.status(401).json({ error: 'الرمز منتهي الصلاحية أو غير صالح' })
+      return
+    }
+    oauthCodes.delete(code)
+    res.json({ token: entry.token })
+  } catch (err) {
+    console.error('[AUTH] Exchange error:', err)
+    res.status(500).json({ error: 'فشل تبادل الرمز' })
   }
 })

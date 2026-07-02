@@ -1,15 +1,16 @@
 <template>
   <v-container fluid class="pa-6 rtl">
-    <v-row class="mb-8 align-center">
+    <!-- Header -->
+    <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
           <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
             <LucideIcon name="search" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-black text-visible-high mb-1">البحث الشامل</h1>
-            <p class="text-subtitle-1 text-visible-medium font-weight-black">
-              ابحث في الموكلين، القضايا، والمستندات
+            <h1 class="text-h5 font-weight-black text-gold mb-1">البحث الشامل والمحركات الذكية</h1>
+            <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+              ابحث في الموكلين، القضايا، المذكرات، والمستندات المؤرشفة (اضغط Ctrl+K للتركيز)
             </p>
           </div>
         </div>
@@ -18,6 +19,7 @@
 
     <v-card elevation="0" class="glass-card pa-6 mb-10 glass-card">
       <v-text-field
+        id="search-input"
         v-model="searchQuery"
         placeholder="اكتب ما تبحث عنه هنا (رقم قضية، اسم موكل، محتوى مذكرة)..."
         variant="outlined"
@@ -25,7 +27,7 @@
         clearable
         class="glass-input text-h6 glass-input"
         :loading="loading"
-        @update:model-value="performSearch"
+        @update:model-value="onSearchInput"
       >
         <template #prepend-inner>
           <LucideIcon name="search" :size="24" class="text-gold opacity-50" />
@@ -86,13 +88,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { safeArray, safeLength, valWithDefault } from '../utils/safe'
 import LucideIcon from '../components/common/LucideIcon.vue'
 
 const searchQuery = ref('')
 const results = ref<any[]>([])
 const loading = ref(false)
+
+let searchTimeout: number | undefined
+
+const onSearchInput = () => {
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+  searchTimeout = window.setTimeout(() => {
+    performSearch()
+  }, 300)
+}
 
 const performSearch = async (): Promise<void> => {
   if (!searchQuery.value) {
@@ -109,6 +122,23 @@ const performSearch = async (): Promise<void> => {
   }
 }
 
+const handleKeydown = (e: KeyboardEvent) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+    e.preventDefault()
+    const el = document.getElementById('search-input')
+    if (el) el.focus()
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeydown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeydown)
+  if (searchTimeout) clearTimeout(searchTimeout)
+})
+
 const getTypeColor = (type: string): string =>
   (({ client: 'accent', case: 'gold', document: 'success' }) as Record<string, string>)[type] ||
   'gold'
@@ -121,7 +151,11 @@ const getTypeName = (type: string): string =>
   (({ client: 'موكل', case: 'قضية', document: 'مستند' }) as Record<string, string>)[type] || ''
 
 const getRoute = (res: any): string =>
-  res.type === 'case' ? `/cases/${res.id}` : res.type === 'client' ? '/clients' : '/documents'
+  res.type === 'case'
+    ? `/cases/${res.id}`
+    : res.type === 'client'
+      ? `/clients/${res.id}`
+      : `/documents?search=${encodeURIComponent(res.title || '')}`
 </script>
 
 <style scoped>
@@ -138,29 +172,5 @@ const getRoute = (res: any): string =>
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-.bg-accent-alpha {
-  background: rgba(var(--v-theme-accent), 0.1) !important;
-}
-.bg-gold-alpha {
-  background: rgba(var(--v-theme-gold), 0.1) !important;
-}
-.bg-success-alpha {
-  background: rgba(var(--v-theme-success), 0.1) !important;
-}
-
-.text-accent {
-  color: #8a7322 !important;
-} /* Standard gold variant */
-.text-gold {
-  color: #e9c349 !important;
-}
-.text-success {
-  color: #4caf50 !important;
-}
-
-.cursor-pointer {
-  cursor: pointer;
 }
 </style>

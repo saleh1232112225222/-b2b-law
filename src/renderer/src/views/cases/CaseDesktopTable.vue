@@ -281,7 +281,9 @@ const getPriorityColor = (priority: string): string => {
   const map: Record<string, string> = {
     عالية: 'error',
     متوسط: 'warning',
+    متوسطة: 'warning',
     منخفض: 'success',
+    منخفضة: 'success',
     حرجة: 'red-darken-4'
   }
   return map[priority] || 'grey'

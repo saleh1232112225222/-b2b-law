@@ -51,6 +51,17 @@
             @update:model-value="emitField('firmEmail', $event)"
           ></v-text-field>
         </v-col>
+        <v-col cols="12" sm="6">
+          <v-text-field
+            :model-value="modelValue.vatNumber"
+            label="الرقم الضريبي للمكتب"
+            variant="outlined"
+            density="compact"
+            class="mb-3 glass-input"
+            hide-details="auto"
+            @update:model-value="emitField('vatNumber', $event)"
+          ></v-text-field>
+        </v-col>
         <v-col cols="12">
           <v-select
             :model-value="modelValue.theme"
@@ -86,6 +97,7 @@ interface AppSettings {
   firmAddress: string
   firmPhone: string
   firmEmail: string
+  vatNumber?: string
   theme: string
   activityLogRetentionDays: number
   casesRootPath: string

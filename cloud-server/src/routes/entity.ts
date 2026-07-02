@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { getCompanyId, getUserId } from '../middleware/tenant'
+import { validateEntityBody } from '../middleware/validation'
 
 interface EntityConfig {
   name: string
@@ -222,7 +223,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('create')) {
-    router.post('/', async (req: Request, res: Response) => {
+    router.post('/', validateEntityBody, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body, company_id: companyId }
@@ -269,7 +270,7 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('update')) {
-    router.put('/:id', async (req: Request, res: Response) => {
+    router.put('/:id', validateEntityBody, async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
         const body = { ...req.body }

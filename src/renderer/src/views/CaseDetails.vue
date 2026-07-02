@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6">
     <div class="d-flex justify-space-between align-center mb-4">
       <v-btn
@@ -105,6 +105,81 @@
         </v-window>
       </v-card>
     </div>
+
+    <!-- Judgment Dialog -->
+    <v-dialog v-model="showJudgmentDialog" max-width="500px" persistent>
+      <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+        <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
+          <LucideIcon name="gavel" :size="24" class="me-3" />
+          <span class="text-h6 font-weight-black">{{ editingJudgmentId ? 'تعديل الحكم' : 'تسجيل حكم جديد' }}</span>
+          <v-spacer />
+          <v-btn icon variant="text" color="ebony" @click="showJudgmentDialog = false">
+            <LucideIcon name="x" :size="24" />
+          </v-btn>
+        </div>
+
+        <v-card-text class="pa-6">
+          <v-form ref="judgmentFormRef">
+            <v-select
+              v-model="judgmentForm.type"
+              :items="['ابتدائي', 'استئناف', 'نقض', 'أخرى']"
+              label="درجة الحكم"
+              variant="outlined"
+              class="glass-input mb-4 text-white"
+              :rules="[v => !!v || 'الدرجة مطلوبة']"
+            ></v-select>
+
+            <v-text-field
+              v-model="judgmentForm.judgment_date"
+              type="date"
+              label="تاريخ الحكم ميلادي"
+              variant="outlined"
+              class="glass-input mb-4 text-white"
+              :rules="[v => !!v || 'التاريخ مطلوب']"
+            ></v-text-field>
+
+            <v-select
+              v-model="judgmentForm.favor"
+              :items="['لصالح الموكل', 'لصالح الخصم', 'جزئي']"
+              label="صيغة الحكم"
+              variant="outlined"
+              class="glass-input mb-4 text-white"
+              :rules="[v => !!v || 'الصيغة مطلوبة']"
+            ></v-select>
+
+            <v-text-field
+              v-model="judgmentForm.objection_deadline"
+              type="date"
+              label="موعد الاعتراض (الاستئناف)"
+              variant="outlined"
+              class="glass-input mb-4 text-white"
+            ></v-text-field>
+
+            <v-textarea
+              v-model="judgmentForm.notes"
+              label="ملاحظات وتفاصيل الحكم"
+              variant="outlined"
+              class="glass-input mb-4 text-white"
+              rows="3"
+            ></v-textarea>
+          </v-form>
+        </v-card-text>
+
+        <v-card-actions class="pa-6 pt-0">
+          <v-btn variant="outlined" class="px-6 rounded-lg text-white" @click="showJudgmentDialog = false">إلغاء</v-btn>
+          <v-spacer />
+          <v-btn
+            color="gold"
+            variant="flat"
+            class="px-6 font-weight-black premium-btn-gold-gradient"
+            :loading="savingJudgment"
+            @click="saveJudgment"
+          >
+            حفظ الحكم
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -213,11 +288,73 @@ const onSelectJourneyEvent = (event: any): void => {
 const openAddSession = (): void => {
   router.push('/sessions?case_id=' + caseId.value)
 }
+// Judgment dialog state and functions
+const showJudgmentDialog = ref(false)
+const editingJudgmentId = ref<string | null>(null)
+const savingJudgment = ref(false)
+const judgmentFormRef = ref<any>(null)
+const judgmentForm = ref({
+  type: '',
+  judgment_date: '',
+  favor: '',
+  objection_deadline: '',
+  notes: ''
+})
+
 const openAddJudgment = (): void => {
-  router.push('/judgments?case_id=' + caseId.value)
+  editingJudgmentId.value = null
+  judgmentForm.value = {
+    type: 'ابتدائي',
+    judgment_date: new Date().toLocaleDateString('en-CA'),
+    favor: 'لصالح الموكل',
+    objection_deadline: '',
+    notes: ''
+  }
+  showJudgmentDialog.value = true
 }
+
 const openJudgmentAmendment = (id: string): void => {
-  router.push('/judgments?amend=' + id)
+  const j = linkedJudgments.value.find((x: any) => x.id === id)
+  if (j) {
+    editingJudgmentId.value = id
+    judgmentForm.value = {
+      type: j.type || '',
+      judgment_date: j.judgment_date || '',
+      favor: j.favor || '',
+      objection_deadline: j.objection_deadline || '',
+      notes: j.notes || ''
+    }
+    showJudgmentDialog.value = true
+  }
+}
+
+const saveJudgment = async () => {
+  if (judgmentFormRef.value) {
+    const valid = await judgmentFormRef.value.validate()
+    if (!valid.valid) return
+  }
+  
+  savingJudgment.value = true
+  try {
+    const payload = {
+      ...judgmentForm.value,
+      case_id: caseId.value
+    }
+    if (editingJudgmentId.value) {
+      await (window as any).api.judgments.update(editingJudgmentId.value, payload)
+    } else {
+      await (window as any).api.judgments.create(payload)
+    }
+    
+    // Refresh judgments
+    const res = await window.api.judgments.getByCaseId(caseId.value)
+    linkedJudgments.value = safeArray(res)
+    showJudgmentDialog.value = false
+  } catch (err) {
+    console.error('Failed to save judgment:', err)
+  } finally {
+    savingJudgment.value = false
+  }
 }
 const uploadDocument = (): void => {
   router.push('/documents?case_id=' + caseId.value + '&upload=1')
@@ -236,7 +373,7 @@ const generateProfessionalReport = async (): Promise<void> => {
   generatingReport.value = true
   try {
     await window.api.reports.generateCaseReport(caseId.value)
-    window.open('/reports/case?case_id=' + caseId.value, '_blank')
+    window.open('/#/reports/case?case_id=' + caseId.value, '_blank')
   } catch {
   } finally {
     generatingReport.value = false

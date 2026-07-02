@@ -1048,6 +1048,8 @@ body,
     color: #000 !important;
     height: auto !important;
     overflow: visible !important;
+    font-family: 'Cairo', 'Tajawal', Arial, sans-serif !important;
+    direction: rtl !important;
   }
 
   .app-layout,
@@ -1066,13 +1068,25 @@ body,
   .top-nav,
   .header-actions,
   .v-btn:not(.print-visible),
-  .no-print {
+  .no-print,
+  .v-fab,
+  .v-overlay,
+  .v-snackbar,
+  .v-dialog,
+  .premium-lift,
+  .v-data-table__header,
+  nav,
+  aside,
+  footer:not(.print-footer),
+  .v-progress-linear,
+  .v-tooltip {
     display: none !important;
   }
 
   /* Expand content */
   .page-container,
-  .main-viewport {
+  .main-viewport,
+  .v-container {
     padding: 0 !important;
     margin: 0 !important;
     width: 100% !important;
@@ -1106,11 +1120,14 @@ body,
     border: 1px solid #ddd !important;
     color: #000 !important;
     background: transparent !important;
+    padding: 6px 10px !important;
+    font-size: 12px !important;
   }
 
   th {
     background: #f0f0f0 !important;
     font-weight: bold !important;
+    font-size: 12px !important;
   }
 
   /* Prevent row breaking */
@@ -1126,6 +1143,65 @@ body,
     -webkit-text-fill-color: initial !important;
     color: #000 !important;
     font-weight: bold !important;
+  }
+
+  /* Professional Print Header for Reports */
+  .print-header {
+    display: block !important;
+    text-align: center !important;
+    border-bottom: 2px solid #000 !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 20px !important;
+  }
+
+  .print-header .firm-name {
+    font-size: 20px !important;
+    font-weight: 900 !important;
+    color: #000 !important;
+  }
+
+  .print-header .report-title {
+    font-size: 15px !important;
+    font-weight: 700 !important;
+    color: #333 !important;
+    margin-top: 4px !important;
+  }
+
+  .print-header .report-date {
+    font-size: 11px !important;
+    color: #666 !important;
+    margin-top: 4px !important;
+  }
+
+  /* Chip / Badge for print */
+  .v-chip {
+    border: 1px solid #ccc !important;
+    background: transparent !important;
+    color: #000 !important;
+    border-radius: 4px !important;
+  }
+
+  /* Page breaks */
+  .page-break-before {
+    break-before: page !important;
+  }
+
+  .page-break-after {
+    break-after: page !important;
+  }
+
+  .no-break {
+    break-inside: avoid !important;
+  }
+
+  /* Report section headings */
+  .report-section-title {
+    font-size: 14px !important;
+    font-weight: 900 !important;
+    border-bottom: 1px solid #ccc !important;
+    padding-bottom: 4px !important;
+    margin: 16px 0 8px !important;
+    color: #000 !important;
   }
 }
 

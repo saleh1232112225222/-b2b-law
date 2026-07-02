@@ -55,6 +55,21 @@ export async function runExtraMigrations() {
     console.warn('[MIGRATE_EXTRA] is_suspended migration warning:', err.message)
   }
 
+  // suspended_at column for subscriptions to distinguish suspension from cancellation
+  try {
+    await query(`
+      ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS suspended_at TIMESTAMPTZ
+    `)
+    await query(`
+      ALTER TABLE subscriptions ADD COLUMN IF NOT EXISTS suspend_reason TEXT
+    `)
+    console.log(
+      '[MIGRATE_EXTRA] suspended_at and suspend_reason columns ensured for subscriptions table'
+    )
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] subscriptions suspension columns migration warning:', err.message)
+  }
+
   // Legal Services Tables
   // Ensure Legal Service Reference Tables
   await query(`
@@ -286,6 +301,23 @@ export async function runExtraMigrations() {
       `CREATE INDEX IF NOT EXISTS idx_client_accounts_client ON client_accounts(client_id)`
     )
     await query(`CREATE INDEX IF NOT EXISTS idx_client_accounts_status ON client_accounts(status)`)
+    // CHECK constraints for status fields
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'payment_schedules_status_check') THEN
+          ALTER TABLE payment_schedules ADD CONSTRAINT payment_schedules_status_check
+          CHECK (status IN ('pending','paid','overdue','cancelled'));
+        END IF;
+      END $$;
+    `)
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'client_accounts_status_check') THEN
+          ALTER TABLE client_accounts ADD CONSTRAINT client_accounts_status_check
+          CHECK (status IN ('active','settled','overdue'));
+        END IF;
+      END $$;
+    `)
     // New columns on legal_engagements
     await query(
       `ALTER TABLE legal_engagements ADD COLUMN IF NOT EXISTS installment_count INTEGER DEFAULT 1`
@@ -313,8 +345,9 @@ export async function runExtraMigrations() {
     await query(
       `ALTER TABLE finances ADD COLUMN IF NOT EXISTS payment_schedules_count INTEGER DEFAULT 0`
     )
+    await query(`ALTER TABLE finances ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'`)
     await query(
-      `ALTER TABLE finances ADD COLUMN IF NOT EXISTS finance_status TEXT DEFAULT 'pending'`
+      `ALTER TABLE finances ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW()`
     )
     console.log('[MIGRATE_EXTRA] Office accounts tables and columns ensured')
   } catch (err: any) {
@@ -540,7 +573,7 @@ export async function runExtraMigrations() {
       CREATE TABLE IF NOT EXISTS partners (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         company_id UUID NOT NULL,
-        employee_id UUID,
+        employee_id UUID REFERENCES employees(id) ON DELETE SET NULL,
         name TEXT NOT NULL,
         share_percentage NUMERIC(5,2) NOT NULL DEFAULT 0,
         role TEXT,
@@ -553,7 +586,7 @@ export async function runExtraMigrations() {
       CREATE TABLE IF NOT EXISTS partner_contributions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         company_id UUID NOT NULL,
-        partner_id UUID NOT NULL,
+        partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
         engagement_id UUID,
         case_id UUID,
         contribution_type TEXT NOT NULL,
@@ -582,7 +615,7 @@ export async function runExtraMigrations() {
       CREATE TABLE IF NOT EXISTS profit_distributions (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         company_id UUID NOT NULL,
-        partner_id UUID NOT NULL,
+        partner_id UUID NOT NULL REFERENCES partners(id) ON DELETE CASCADE,
         month INTEGER NOT NULL,
         year INTEGER NOT NULL,
         total_revenue NUMERIC(15,2) NOT NULL DEFAULT 0,
@@ -597,14 +630,83 @@ export async function runExtraMigrations() {
       )
     `)
     // Indexes
-    await query(`CREATE INDEX IF NOT EXISTS idx_office_expenses_company ON office_expenses(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_office_expenses_date ON office_expenses(expense_date)`)
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_expenses_company ON office_expenses(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_expenses_date ON office_expenses(expense_date)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_expenses_category ON office_expenses(category)`
+    )
     await query(`CREATE INDEX IF NOT EXISTS idx_partners_company ON partners(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_partner_contributions_company ON partner_contributions(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_office_budgets_company ON office_budgets(company_id)`)
-    await query(`CREATE INDEX IF NOT EXISTS idx_profit_distributions_company ON profit_distributions(company_id)`)
-    console.log('[MIGRATE_EXTRA] Office management tables created')
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_partner_contributions_company ON partner_contributions(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_partner_contributions_partner ON partner_contributions(partner_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_budgets_company ON office_budgets(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_budgets_period ON office_budgets(month, year)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_profit_distributions_company ON profit_distributions(company_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_profit_distributions_period ON profit_distributions(month, year)`
+    )
+    console.log('[MIGRATE_EXTRA] Office management tables created with FKs and indexes')
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] Office management migration warning:', err.message)
+  }
+
+  // Fix missing FKs on partner_contributions and profit_distributions (for tables created without FKs in earlier versions)
+  try {
+    // partner_contributions.partner_id FK
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'partner_contributions_partner_id_fkey') THEN
+          ALTER TABLE partner_contributions ADD CONSTRAINT partner_contributions_partner_id_fkey
+          FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE;
+        END IF;
+      END $$;
+    `)
+    // profit_distributions.partner_id FK
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'profit_distributions_partner_id_fkey') THEN
+          ALTER TABLE profit_distributions ADD CONSTRAINT profit_distributions_partner_id_fkey
+          FOREIGN KEY (partner_id) REFERENCES partners(id) ON DELETE CASCADE;
+        END IF;
+      END $$;
+    `)
+    // partners.employee_id FK
+    await query(`
+      DO $$ BEGIN
+        IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'partners_employee_id_fkey') THEN
+          ALTER TABLE partners ADD CONSTRAINT partners_employee_id_fkey
+          FOREIGN KEY (employee_id) REFERENCES employees(id) ON DELETE SET NULL;
+        END IF;
+      END $$;
+    `)
+    // Add missing indexes if they don't exist
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_expenses_category ON office_expenses(category)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_partner_contributions_partner ON partner_contributions(partner_id)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_budgets_period ON office_budgets(month, year)`
+    )
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_profit_distributions_period ON profit_distributions(month, year)`
+    )
+    console.log('[MIGRATE_EXTRA] Office management FKs and indexes ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] Office management FK fix warning:', err.message)
   }
 }

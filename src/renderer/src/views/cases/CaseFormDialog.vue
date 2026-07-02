@@ -26,7 +26,7 @@
           icon
           variant="tonal"
           color="error"
-          class="rounded-lg premium-btn-gold-gradient"
+          class="rounded-lg"
           @click="$emit('cancel')"
         >
           <LucideIcon name="x" :size="24" />
@@ -34,19 +34,6 @@
         <v-toolbar-title class="font-weight-black text-h5 ms-4 text-visible-high tracking-tight">
           {{ isEditing ? 'تعديل ملف القضية' : 'تسجيل ملف قضية جديد' }}
         </v-toolbar-title>
-        <v-spacer />
-        <v-btn
-          data-no-drag
-          color="accent"
-          variant="flat"
-          size="large"
-          class="font-weight-black rounded-lg px-10 premium-lift text-primary-dark premium-btn-gold-gradient"
-          height="50"
-          :loading="saving"
-          @click="$emit('save')"
-        >
-          <LucideIcon name="save" :size="20" class="me-2" /> حفظ البيانات
-        </v-btn>
       </v-toolbar>
 
       <v-card-text class="pa-8 bg-transparent">
@@ -367,9 +354,9 @@
       <v-divider />
       <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
         <v-btn
-          variant="flat"
+          variant="outlined"
           size="large"
-          class="px-8 font-weight-black premium-button-highlight premium-btn-gold-gradient"
+          class="px-8 font-weight-black rounded-lg text-white btn-secondary"
           @click="$emit('cancel')"
           >إلغاء</v-btn
         >
@@ -546,7 +533,7 @@ const onPartiesUpdate = (updated: any[]): void => {
   border-radius: 12px !important;
 }
 .modal-footer-solid {
-  background: #ffffff !important;
+  background: rgba(15, 23, 42, 0.95) !important;
   border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 </style>
