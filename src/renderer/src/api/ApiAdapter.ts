@@ -34,6 +34,10 @@ export function setCloudBaseUrl(url: string) {
           return Promise.reject(error)
         }
         localStorage.removeItem('b2b_cloud_token')
+        localStorage.removeItem('web_isLoggedIn')
+        localStorage.removeItem('web_currentUser')
+        localStorage.removeItem('web_currentUserSession')
+        window.dispatchEvent(new Event('auth-changed'))
         const onAuthPage =
           window.location.pathname === '/login' ||
           window.location.pathname === '/register' ||

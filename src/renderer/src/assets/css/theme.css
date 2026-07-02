@@ -416,16 +416,3 @@
 .mobile-layout {
   overflow-y: hidden !important;
 }
-.mobile-app-shell {
-  padding-top: env(safe-area-inset-top);
-  overflow-y: auto !important;
-  height: calc(100vh - 56px - 64px) !important;
-}
-.v-main.mobile-app-shell {
-  overflow-y: auto !important;
-  max-height: calc(100vh - 56px - 64px) !important;
-}
-.main-body-wrapper {
-  min-height: 100%;
-  padding-bottom: 16px;
-}

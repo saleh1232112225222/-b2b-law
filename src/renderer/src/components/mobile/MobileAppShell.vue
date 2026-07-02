@@ -6,6 +6,7 @@
         :is-dark="isDark"
         @toggle-drawer="drawerOpen = !drawerOpen"
         @toggle-theme="emit('toggle-theme')"
+        @open-settings="router.push('/settings')"
       />
 
       <MobileDrawer
@@ -46,7 +47,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useFabAction } from '../../composables/useFabAction'
 import '../../assets/mobile.css'
 import MobileHeader from './MobileHeader.vue'
@@ -66,6 +67,7 @@ const emit = defineEmits<{
 }>()
 
 const route = useRoute()
+const router = useRouter()
 const drawerOpen = ref(false)
 const { fabAction: currentFabAction } = useFabAction()
 

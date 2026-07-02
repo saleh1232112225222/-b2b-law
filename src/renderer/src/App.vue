@@ -443,7 +443,9 @@ onMounted(async () => {
   watch(
     isLoginPage,
     (newVal) => {
-      if (!newVal) licensingStore.refreshStatus()
+      if (!newVal) {
+        setTimeout(() => licensingStore.refreshStatus(), 2000)
+      }
     },
     { immediate: true }
   )

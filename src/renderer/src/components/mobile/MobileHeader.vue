@@ -23,6 +23,10 @@
           color="#1F1B13"
         />
       </v-btn>
+
+      <v-btn icon variant="text" class="mobile-action-btn text-ebony" @click="emit('open-settings')">
+        <v-icon icon="mdi-cog" :size="22" color="#1F1B13" />
+      </v-btn>
     </div>
   </v-app-bar>
 </template>
@@ -36,5 +40,6 @@ defineProps<{
 const emit = defineEmits<{
   'toggle-drawer': []
   'toggle-theme': []
+  'open-settings': []
 }>()
 </script>
