@@ -181,14 +181,16 @@ jobs:
           NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
 
       - name: Deploy backend to Render
-        if: secrets.RENDER_DEPLOY_HOOK_URL != ''
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        if: ${{ env.RENDER_DEPLOY_HOOK_URL != '' }}
         run: |
-          curl -sf -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" || echo "Render deploy hook not configured"
+          curl -sf -X POST "$RENDER_DEPLOY_HOOK_URL"
 
   notify:
     name: Notify
     if: always()
-    needs: [verify, build, docker, deploy]
+    needs: [verify, e2e, build]
     runs-on: ubuntu-latest
     steps:
       - name: Summary
@@ -199,5 +201,3 @@ jobs:
           echo "| Code Quality | ${{ needs.verify.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| E2E Tests | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Docker | ${{ needs.docker.result }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
