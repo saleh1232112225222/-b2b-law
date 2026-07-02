@@ -79,7 +79,7 @@
           <v-card-title
             class="pa-2 px-3 d-flex align-center justify-start shrink-0 glass-panel-light"
           >
-            <span class="text-caption font-weight-bold text-gold opacity-70">
+            <span class="text-caption font-weight-bold detail-date-label">
               {{ gregorianIsoToHijriIso(selectedDate) }} &nbsp; | &nbsp; {{ selectedDate }}
             </span>
           </v-card-title>
@@ -87,7 +87,7 @@
           <div class="overflow-y-auto flex-grow-1 p-2">
             <div
               v-if="selectedImportantDates.length === 0"
-              class="pa-4 text-center text-grey text-body-2 mt-4"
+              class="pa-4 text-center detail-empty-text text-body-2 mt-4"
             >
               لا توجد بيانات
             </div>
@@ -97,12 +97,12 @@
                 :key="it.type + it.date + it.title"
                 class="px-3 py-2 border-b text-right"
               >
-                <v-list-item-title class="font-weight-bold text-body-2 text-white mb-1">{{
+                <v-list-item-title class="font-weight-bold text-body-2 detail-title mb-1">{{
                   it.title
                 }}</v-list-item-title>
                 <v-list-item-subtitle
                   v-if="it.subtitle"
-                  class="text-caption text-gold opacity-50"
+                  class="text-caption detail-subtitle"
                   style="white-space: normal"
                 >
                   {{ it.subtitle }}
@@ -167,21 +167,21 @@ const filteredCells = computed(() => {
 
 .calendar-cell-mini {
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(31, 27, 19, 0.4);
   min-height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.15rem !important;
-  border: 1px solid #d0c6af;
+  border: 1px solid rgba(233, 195, 73, 0.3);
   transition: all 0.2s ease;
-  color: #1f1b13 !important;
+  color: #ffffff !important;
   font-weight: 500;
   cursor: pointer;
 }
 
 .calendar-cell-mini:hover {
-  background: rgba(233, 195, 73, 0.12) !important;
+  background: rgba(233, 195, 73, 0.2) !important;
   border-color: #e9c349 !important;
   transform: scale(1.05);
 }
@@ -200,15 +200,15 @@ const filteredCells = computed(() => {
 }
 
 .calendar-day--muted {
-  color: #a09888 !important;
-  background: rgba(200, 190, 170, 0.15) !important;
+  color: rgba(255, 255, 255, 0.5) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
 }
 
 .calendar-day--selected {
-  background: rgba(233, 195, 73, 0.15) !important;
-  color: #735c00 !important;
+  background: rgba(233, 195, 73, 0.3) !important;
+  color: #e9c349 !important;
   font-weight: 700 !important;
-  border: 2px solid #dc3545 !important;
+  border: 2px solid #e9c349 !important;
 }
 
 .calendar-head {
@@ -216,17 +216,33 @@ const filteredCells = computed(() => {
   align-items: center;
   justify-content: center;
   font-size: 0.75rem !important;
-  color: #735c00 !important;
+  color: rgba(233, 195, 73, 0.9) !important;
   padding: 8px 0;
   text-align: center;
 }
 
 .border {
-  border: 1px solid #d0c6af !important;
+  border: 1px solid rgba(233, 195, 73, 0.3) !important;
 }
 
 .border-b {
-  border-bottom: 1px solid #d0c6af !important;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
+}
+
+.detail-date-label {
+  color: #735c00 !important;
+}
+
+.detail-title {
+  color: #1f1b13 !important;
+}
+
+.detail-subtitle {
+  color: #4d4635 !important;
+}
+
+.detail-empty-text {
+  color: #7f7663 !important;
 }
 
 @media (max-width: 768px) {
