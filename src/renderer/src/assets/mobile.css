@@ -116,6 +116,7 @@ html {
   padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top)) !important;
   overflow-y: auto !important;
   height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height) - env(safe-area-inset-bottom)) !important;
+  background: var(--color-background, #f9fafb) !important;
 }
 
 .v-main.mobile-app-shell {
