@@ -113,15 +113,15 @@ html {
 }
 
 .mobile-app-shell {
-  padding-top: env(safe-area-inset-top);
+  padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top)) !important;
   overflow-y: auto !important;
-  height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)) !important;
+  height: calc(100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height) - env(safe-area-inset-bottom)) !important;
 }
 
 .v-main.mobile-app-shell {
   overflow-y: auto !important;
   max-height: calc(
-    100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height)
+    100vh - var(--mobile-header-height) - var(--mobile-bottom-nav-height) - env(safe-area-inset-bottom)
   ) !important;
 }
 
@@ -184,7 +184,7 @@ html {
     bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 16px);
   }
   .mobile-app-shell {
-    padding-top: env(safe-area-inset-top);
+    padding-top: calc(var(--mobile-header-height) + env(safe-area-inset-top));
   }
 }
 

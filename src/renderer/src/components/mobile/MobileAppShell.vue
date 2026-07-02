@@ -18,7 +18,7 @@
         @toggle-theme="emit('toggle-theme')"
       />
 
-      <v-main class="mobile-app-shell" :class="{ 'pt-0': true }">
+      <v-main class="mobile-app-shell">
         <div class="main-body-wrapper pa-3">
           <router-view v-slot="{ Component }">
             <transition name="slide-x-reverse" mode="out-in">
