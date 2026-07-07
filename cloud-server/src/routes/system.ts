@@ -189,7 +189,11 @@ systemRouter.post(
       }
 
       res.json({
-        exportedAt: new Date().toISOString(),
+        meta: {
+          schemaVersion: '1.0',
+          createdAt: new Date().toISOString(),
+          appVersion: '1.0.0'
+        },
         companyId,
         tables: snapshot
       })

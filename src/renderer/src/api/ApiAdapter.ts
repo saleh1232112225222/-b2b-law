@@ -1672,7 +1672,7 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('system:exportManualSnapshot')
         : cloudRequest({ method: 'POST', url: '/system/export-snapshot' }).then(async (r) => {
-            const fileName = `b2b-snapshot-${new Date().toISOString().slice(0, 10)}.json`
+            const fileName = `manual-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
             
             // Check if modern browser File System Access API is supported
             if ('showSaveFilePicker' in window) {
