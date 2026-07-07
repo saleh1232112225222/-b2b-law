@@ -1679,7 +1679,7 @@ const api = {
             a.download = `b2b-snapshot-${new Date().toISOString().slice(0, 10)}.json`
             a.click()
             URL.revokeObjectURL(url)
-            return true
+            return { success: true }
           }),
     injectManualSnapshot: () =>
       mode === 'desktop'

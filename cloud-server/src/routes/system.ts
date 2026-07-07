@@ -151,16 +151,43 @@ systemRouter.post(
         "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
         []
       )
+
+      // Query column metadata to find which tables have company_id
+      const columnsResult = await query(
+        `SELECT table_name, column_name 
+         FROM information_schema.columns 
+         WHERE table_schema = 'public'`,
+        []
+      )
+      const tableColumns: Record<string, Set<string>> = {}
+      for (const colRow of columnsResult.rows) {
+        const t = colRow.table_name
+        const c = colRow.column_name
+        if (!tableColumns[t]) tableColumns[t] = new Set()
+        tableColumns[t].add(c)
+      }
+
       const snapshot: Record<string, any[]> = {}
       for (const row of tablesResult.rows) {
         const table = row.table_name as string
+        const hasCompanyId = tableColumns[table]?.has('company_id') ?? false
+
         try {
-          const result = await query(`SELECT * FROM ${table} WHERE company_id = $1`, [companyId])
+          let result;
+          if (table === 'companies') {
+            result = await query('SELECT * FROM companies WHERE id = $1', [companyId])
+          } else if (hasCompanyId) {
+            result = await query(`SELECT * FROM ${table} WHERE company_id = $1`, [companyId])
+          } else {
+            result = await query(`SELECT * FROM ${table}`)
+          }
           snapshot[table] = result.rows
-        } catch {
+        } catch (err: any) {
+          console.warn(`[ExportSnapshot] Failed to export table ${table}:`, err.message)
           snapshot[table] = []
         }
       }
+
       res.json({
         exportedAt: new Date().toISOString(),
         companyId,
