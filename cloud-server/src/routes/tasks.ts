@@ -101,7 +101,7 @@ tasksRouter.get('/', requirePermission('view_tasks'), async (req: Request, res: 
     }
 
     const dataResult = await query(
-      `SELECT * FROM tasks_v2 ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+      `SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id ${whereClause} ORDER BY tasks_v2.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
       [...params, limit, offset]
     )
 
@@ -198,7 +198,7 @@ tasksRouter.get('/:id', requirePermission('view_tasks'), async (req: Request, re
     const companyId = getCompanyId(req)
     const { id } = req.params
 
-    const result = await query('SELECT * FROM tasks_v2 WHERE id = $1 AND company_id = $2', [
+    const result = await query('SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id WHERE tasks_v2.id = $1 AND tasks_v2.company_id = $2', [
       id,
       companyId
     ])
@@ -331,7 +331,7 @@ tasksRouter.get(
       const companyId = getCompanyId(req)
       const { caseId } = req.params
       const result = await query(
-        'SELECT * FROM tasks_v2 WHERE case_id = $1 AND company_id = $2 AND is_archived = FALSE ORDER BY created_at DESC',
+        'SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id WHERE tasks_v2.case_id = $1 AND tasks_v2.company_id = $2 AND tasks_v2.is_archived = FALSE ORDER BY tasks_v2.created_at DESC',
         [caseId, companyId]
       )
       res.json({ data: result.rows })
@@ -350,7 +350,7 @@ tasksRouter.get(
     try {
       const companyId = getCompanyId(req)
       const result = await query(
-        "SELECT * FROM tasks_v2 WHERE company_id = $1 AND status = 'pending' AND is_archived = FALSE ORDER BY priority DESC, due_date ASC NULLS LAST",
+        "SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id WHERE tasks_v2.company_id = $1 AND tasks_v2.status = 'pending' AND tasks_v2.is_archived = FALSE ORDER BY tasks_v2.priority DESC, tasks_v2.due_date ASC NULLS LAST",
         [companyId]
       )
       res.json({ data: result.rows })

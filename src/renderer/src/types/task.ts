@@ -14,6 +14,7 @@ export interface Task {
   priority: string
   context_label?: string
   case_number?: string
+  client_name?: string
   created_at?: string
   updated_at?: string
   is_archived?: number

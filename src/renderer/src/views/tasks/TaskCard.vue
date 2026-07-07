@@ -30,17 +30,40 @@
             {{ task.description || 'لا يوجد وصف تشغيلي متاح' }}
           </div>
 
-          <v-chip
-            v-if="task.context_label"
-            size="x-small"
-            color="primary"
-            variant="tonal"
-            class="mt-4 font-weight-black rounded-lg bg-primary-alpha"
-            block
-          >
-            <LucideIcon name="link-2" :size="12" class="me-1" />
-            {{ task.context_label }}
-          </v-chip>
+      <v-chip
+        v-if="task.context_label"
+        size="x-small"
+        color="primary"
+        variant="tonal"
+        class="mt-4 font-weight-black rounded-lg bg-primary-alpha"
+        block
+      >
+        <LucideIcon name="link-2" :size="12" class="me-1" />
+        {{ task.context_label }}
+      </v-chip>
+
+      <div v-if="task.case_number || task.client_name" class="mt-3 d-flex flex-wrap gap-2">
+        <v-chip
+          v-if="task.case_number"
+          size="small"
+          color="primary"
+          variant="tonal"
+          class="font-weight-bold rounded-lg"
+          @click.stop="emit('view-case', task.case_id)"
+          style="cursor: pointer"
+        >
+          قضية: {{ task.case_number }}
+        </v-chip>
+        <v-chip
+          v-if="task.client_name"
+          size="small"
+          color="success"
+          variant="tonal"
+          class="font-weight-bold rounded-lg"
+        >
+          موكل: {{ task.client_name }}
+        </v-chip>
+      </div>
 
           <v-chip
             size="x-small"
@@ -139,7 +162,7 @@ const props = defineProps({
   canReopen: { type: Boolean, default: false }
 })
 
-const emit = defineEmits(['edit', 'complete', 'cancel', 'close', 'archive', 'reopen'])
+const emit = defineEmits(['edit', 'complete', 'cancel', 'close', 'archive', 'reopen', 'view-case'])
 
 const getLinkColor = (type: string | undefined): string => {
   const map: Record<string, string> = { case: 'primary', client: 'success', none: 'grey' }

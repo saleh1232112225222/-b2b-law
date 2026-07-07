@@ -111,7 +111,7 @@
                     </div>
                   </div>
 
-                  <TaskCard
+                    <TaskCard
                     v-for="task in safeArray(getTasksByPriority(priority))"
                     v-else
                     :key="task.id"
@@ -126,6 +126,7 @@
                     @close="openActionDialog('close', $event)"
                     @archive="archiveTask($event)"
                     @reopen="openActionDialog('reopen', $event)"
+                    @view-case="viewCase"
                   />
 
                   <div v-if="store.hasMore(priority)" class="d-flex justify-center pt-2">
@@ -891,6 +892,10 @@ const getLinkName = (type: string | undefined): string => {
 }
 
 const pageLoading = ref(false)
+
+const viewCase = (caseId: string): void => {
+  if (caseId) router.push('/cases/' + caseId)
+}
 
 const openAddDialog = (): void => {
   isEditing.value = false
