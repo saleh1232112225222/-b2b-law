@@ -1671,12 +1671,36 @@ const api = {
     exportManualSnapshot: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('system:exportManualSnapshot')
-        : cloudRequest({ method: 'POST', url: '/system/export-snapshot' }).then((r) => {
+        : cloudRequest({ method: 'POST', url: '/system/export-snapshot' }).then(async (r) => {
+            const fileName = `b2b-snapshot-${new Date().toISOString().slice(0, 10)}.json`
+            
+            // Check if modern browser File System Access API is supported
+            if ('showSaveFilePicker' in window) {
+              try {
+                const handle = await (window as any).showSaveFilePicker({
+                  suggestedName: fileName,
+                  types: [{
+                    description: 'JSON Backup Files',
+                    accept: { 'application/json': ['.json'] }
+                  }]
+                })
+                const writable = await handle.createWritable()
+                await writable.write(JSON.stringify(r, null, 2))
+                await writable.close()
+                return { success: true }
+              } catch (err: any) {
+                if (err.name === 'AbortError') {
+                  return { success: false, message: 'تم الإلغاء' }
+                }
+                console.warn('[ExportSnapshot] showSaveFilePicker failed, falling back to standard download:', err)
+              }
+            }
+
             const blob = new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' })
             const url = URL.createObjectURL(blob)
             const a = document.createElement('a')
             a.href = url
-            a.download = `b2b-snapshot-${new Date().toISOString().slice(0, 10)}.json`
+            a.download = fileName
             a.click()
             URL.revokeObjectURL(url)
             return { success: true }
