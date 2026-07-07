@@ -70,12 +70,17 @@ async function checkInactiveUsers(): Promise<string[]> {
     const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString()
     const res = await query(
       `SELECT u.full_name, u.recovery_email, c.name AS company_name,
-              GREATEST(u.last_login_at, u.created_at) AS last_active
+              COALESCE(
+                (SELECT MAX(login_time) FROM user_login_logs WHERE user_id = u.id AND is_successful = TRUE),
+                u.created_at
+              ) AS last_active
        FROM users u
        JOIN companies c ON c.id = u.company_id
        WHERE u.is_active = TRUE
-         AND (u.last_login_at IS NULL OR u.last_login_at < $1)
-         AND u.created_at < $1
+         AND COALESCE(
+           (SELECT MAX(login_time) FROM user_login_logs WHERE user_id = u.id AND is_successful = TRUE),
+           u.created_at
+         ) < $1
        ORDER BY last_active`,
       [cutoff]
     )

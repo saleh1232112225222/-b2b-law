@@ -269,54 +269,47 @@ systemRouter.post(
         if (existingIds[table]) return existingIds[table]
         const set = new Set<string>()
         try {
-          const hasCompanyCol = await client.query(
-            `
-            SELECT column_name
-            FROM information_schema.columns
-            WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'company_id'
-          `,
+          // Query column names in public schema for this table
+          const colsRes = await client.query(
+            `SELECT column_name 
+             FROM information_schema.columns 
+             WHERE table_schema = 'public' AND table_name = $1`,
             [table]
           )
+          const cols = new Set(colsRes.rows.map((r: any) => r.column_name))
 
-          let rows: any[] = []
-          if (hasCompanyCol.rows.length > 0) {
-            const res = await client.query(`SELECT id FROM ${table} WHERE company_id = $1`, [
-              companyId
-            ])
-            rows = res.rows
-          } else {
-            const idColRes = await client.query(
-              `
-              SELECT column_name
-              FROM information_schema.columns
-              WHERE table_schema = 'public' AND table_name = $1 AND column_name = 'id'
-            `,
-              [table]
-            )
-
-            if (idColRes.rows.length > 0) {
-              const res = await client.query(`SELECT id FROM ${table}`)
-              rows = res.rows
-            } else {
+          let idCol = 'id'
+          if (!cols.has('id')) {
+            if (cols.has('key')) idCol = 'key'
+            else if (cols.has('code')) idCol = 'code'
+            else {
+              // Find the first column of the primary key constraint
               const pkRes = await client.query(
-                `
-                SELECT kcu.column_name
-                FROM information_schema.table_constraints tc
-                JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name
-                WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_name = $1 AND tc.table_schema = 'public'
-              `,
+                `SELECT kcu.column_name 
+                 FROM information_schema.table_constraints tc 
+                 JOIN information_schema.key_column_usage kcu ON tc.constraint_name = kcu.constraint_name 
+                 WHERE tc.constraint_type = 'PRIMARY KEY' AND tc.table_name = $1 AND tc.table_schema = 'public'`,
                 [table]
               )
               if (pkRes.rows.length > 0) {
-                const pkCol = pkRes.rows[0].column_name
-                const res = await client.query(`SELECT ${pkCol} AS id FROM ${table}`)
-                rows = res.rows
+                idCol = pkRes.rows[0].column_name
+              } else {
+                idCol = colsRes.rows[0]?.column_name || ''
               }
             }
           }
-          for (const r of rows) {
-            if (r.id !== undefined && r.id !== null) {
-              set.add(String(r.id))
+
+          if (idCol && cols.has(idCol)) {
+            let res;
+            if (cols.has('company_id')) {
+              res = await client.query(`SELECT "${idCol}" AS id FROM "${table}" WHERE company_id = $1`, [companyId])
+            } else {
+              res = await client.query(`SELECT "${idCol}" AS id FROM "${table}"`)
+            }
+            for (const r of res.rows) {
+              if (r.id !== undefined && r.id !== null) {
+                set.add(String(r.id))
+              }
             }
           }
         } catch (err) {
