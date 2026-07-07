@@ -219,7 +219,7 @@
         @click="router.push('/profile')"
       >
         <div class="text-right me-4 hidden-sm-and-down">
-          <div class="text-subtitle-2 font-weight-black text-white leading-none">
+          <div class="text-subtitle-2 font-weight-black text-high-emphasis leading-none">
             {{ currentUser?.username || 'المحامي العام' }}
           </div>
           <div class="text-tiny text-gold font-weight-black mt-1 uppercase tracking-tighter">

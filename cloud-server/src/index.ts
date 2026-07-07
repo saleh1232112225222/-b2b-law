@@ -604,6 +604,20 @@ async function seedSuperAdmin() {
       )
       console.log('[SEED] Super Admin user created in owner company')
     }
+
+    // 3. Ensure a subscription exists for the owner company
+    const subCheck = await dbQuery(
+      `SELECT id FROM subscriptions WHERE company_id = '00000000-0000-0000-0000-000000000000'`,
+      []
+    )
+    if (subCheck.rows.length === 0) {
+      await dbQuery(
+        `INSERT INTO subscriptions (id, company_id, status, trial_start, trial_end, created_at)
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'lifetime', NOW(), '2099-12-31 23:59:59+03', NOW())`,
+        []
+      )
+      console.log('[SEED] Lifetime subscription created for owner company')
+    }
   } catch (err) {
     console.error('[SEED] Failed to seed super admin:', err)
   }

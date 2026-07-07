@@ -280,12 +280,16 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
     // Check subscription status
     let subscriptionStatus = 'trial'
-    const subCheck = await query(
-      `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [user.company_id]
-    )
-    if (subCheck.rows.length > 0) {
-      subscriptionStatus = subCheck.rows[0].status
+    if (user.company_id === '00000000-0000-0000-0000-000000000000') {
+      subscriptionStatus = 'lifetime'
+    } else {
+      const subCheck = await query(
+        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [user.company_id]
+      )
+      if (subCheck.rows.length > 0) {
+        subscriptionStatus = subCheck.rows[0].status
+      }
     }
 
     // Block login if subscription is suspended (past_due)
@@ -423,12 +427,16 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
       trialExpired = new Date(trialExpiresAt) < new Date()
     }
     // Check real subscription
-    const subCheck = await query(
-      `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-      [req.auth!.companyId]
-    )
-    if (subCheck.rows.length > 0) {
-      subscriptionStatus = subCheck.rows[0].status
+    if (req.auth!.companyId === '00000000-0000-0000-0000-000000000000') {
+      subscriptionStatus = 'lifetime'
+    } else {
+      const subCheck = await query(
+        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
+        [req.auth!.companyId]
+      )
+      if (subCheck.rows.length > 0) {
+        subscriptionStatus = subCheck.rows[0].status
+      }
     }
     const permissions = await getUserPermissions(
       req.auth!.companyId,

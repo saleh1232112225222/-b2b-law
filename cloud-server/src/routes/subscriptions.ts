@@ -22,6 +22,18 @@ subscriptionRouter.get('/plans', async (_req: Request, res: Response) => {
 subscriptionRouter.get('/status', async (req: Request, res: Response) => {
   try {
     const auth = req.auth as AuthPayload
+    if (auth.companyId === '00000000-0000-0000-0000-000000000000') {
+      res.json({
+        status: 'lifetime',
+        daysLeft: 99999,
+        isExpired: false,
+        planName: 'مالك النظام',
+        planNameAr: 'مالك النظام',
+        isActive: true
+      })
+      return
+    }
+
     const result = await query(
       `SELECT s.*, p.name as plan_name, p.name_ar as plan_name_ar, p.price, p.interval as plan_interval
        FROM subscriptions s

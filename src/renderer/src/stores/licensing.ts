@@ -77,11 +77,11 @@ export const useLicensingStore = defineStore('licensing', () => {
                 : data.isExpired
                   ? 'بياناتك محفوظة — فعّل الاشتراك للاستمرار'
                   : `فترة تجريبية - ${data.daysLeft} يوم متبقي`,
-              isActivated: data.status === 'active'
+              isActivated: data.status === 'active' || data.status === 'lifetime'
             }
 
             // Show expired dialog if trial ended
-            if (data.isExpired && data.status !== 'active') {
+            if (data.isExpired && data.status !== 'active' && data.status !== 'lifetime') {
               showExpiredDialog.value = true
             }
           } else {
