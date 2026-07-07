@@ -189,7 +189,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       return
     }
 
-    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE u.username = $1`
+    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE u.username = $1 OR u.recovery_email = $1`
     const params: any[] = [username]
 
     if (companyId) {
