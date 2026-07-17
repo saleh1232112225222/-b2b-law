@@ -1,0 +1,90 @@
+{
+  "project": "B2B-LAW Mobile QA Testing",
+  "last_session": "2026-06-27T12:00:00Z",
+  "status": {
+    "phase1_basics_login": "completed",
+    "phase2_clients": "completed",
+    "phase3_cases": "completed",
+    "phase4_sessions": "completed",
+    "phase5_tasks_appointments": "partial",
+    "phase6_finance": "not_started",
+    "phase7_search_reports": "not_started",
+    "phase8_documents_vault": "not_started",
+    "phase9_ux": "completed",
+    "phase10_edge_cases": "completed",
+    "phase11_fab": "completed",
+    "phase12_performance": "completed",
+    "phase13_error_handling": "not_started"
+  },
+  "issues_found": [
+    {
+      "id": 1,
+      "title": "XSS غير محمي في حقل البحث",
+      "severity": "مرتفعة",
+      "priority": "مرتفعة",
+      "file": "MobileClients.vue",
+      "actual": "يقبل <script>alert('xss')</script> كما هو",
+      "expected": "ترميز أو رفض أكواد HTML"
+    },
+    {
+      "id": 2,
+      "title": "خطأ في autocomplete اختيار القضية في الجلسات",
+      "severity": "مرتفعة",
+      "priority": "مرتفعة",
+      "file": "SessionFormDialog.vue:358",
+      "actual": "Cannot read properties of undefined (reading 'toLowerCase')",
+      "expected": "فتح القائمة واختيار القضية بدون أخطاء",
+      "fix": "تم إصلاح الدالة arabicFilter - إضافة تحقق من null"
+    },
+    {
+      "id": 3,
+      "title": "API /api/cases/all يرجع 500",
+      "severity": "حرجة",
+      "priority": "مرتفعة",
+      "file": "server (ليس frontend)",
+      "actual": "500 Internal Server Error",
+      "expected": "قائمة القضايا",
+      "notes": "قد يكون بسبب القضية الجديدة التي أنشأناها"
+    },
+    {
+      "id": 4,
+      "title": "ملاحظات بصرية عامة",
+      "severity": "متوسطة",
+      "priority": "متوسطة",
+      "details": [
+        "شاشة الموكل غير متناسقة مع باقي التصميم",
+        "بعض الخطوط صغيرة جداً (القضايا والملفات)",
+        "النصوص تختفي عند تصغير الشاشة للجوال"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "إضافة مهمة في الجوال لا تفتح الديالوج",
+      "severity": "متوسطة",
+      "priority": "متوسطة",
+      "file": "MobileTasks.vue/Tasks.vue",
+      "actual": "الزر لا يفعل شيء",
+      "expected": "فتح نافذة إضافة مهمة"
+    }
+  ],
+  "test_results": {
+    "phase1_login": "✅ نجاح - 5 أحجام شاشة",
+    "phase2_clients": "✅ نجاح - إنشاء وتعديل موكل",
+    "phase3_cases": "✅ نجاح - إنشاء قضية 1447/00123",
+    "phase4_sessions": "✅ نجاح - إنشاء جلسة للقضية (مع إصلاح bug)",
+    "phase5_tasks": "⚠️ جزئي - الإضافة لا تعمل في وضع الجوال",
+    "phase9_ux": "✅ تم - مع ملاحظات بصرية",
+    "phase10_edge": "✅ تم - XSS مكتشف",
+    "phase11_fab": "✅ تم",
+    "phase12_performance": "✅ تم"
+  },
+  "next_actions": [
+    "المرحلة 5: إصلاح إضافة مهمة + اختبار المهام",
+    "المرحلة 6: المالية والأتعاب",
+    "المرحلة 7: تقارير وبحث",
+    "المرحلة 8: المستندات والملفات",
+    "المرحلة 13: معالجة الأخطاء",
+    "إصلاح API 500 error (باكند)",
+    "إصلاح المشاكل البصرية"
+  ]
+}
