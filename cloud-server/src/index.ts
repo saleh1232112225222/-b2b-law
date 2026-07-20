@@ -609,16 +609,40 @@ async function seedSuperAdmin() {
 
     const ADMIN_HASH =
       process.env.ADMIN_BOOTSTRAP_HASH ||
-      '$2a$12$phlOfNeLBHtvuP0rt.sTl.uVGOLP2LAEENAvE64HEyCklPyV4gXjm'
-    const ADMIN_EMAIL = process.env.ADMIN_BOOTSTRAP_EMAIL || 'admin@b2blaw.local'
+      '$2a$12$FcHV1Iy9RIa5O0Q/PoVrB.49T1FHjrDYqMUrdMviSG9lUCP.10cxm'
+    const ADMIN_EMAIL = 'slaehmap@gmail.com'
 
     if (adminCheck.rows.length === 0) {
       await dbQuery(
-        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', $1, 'admin', TRUE, TRUE, $2, NOW())`,
-        [ADMIN_HASH, ADMIN_EMAIL]
+        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, security_question, security_answer_hash, created_at)
+         VALUES (gen_random_uuid(), '00000000-0000-0000-0000-000000000000', 'admin', 'مدير النظام العام', $1, 'admin', TRUE, FALSE, $2, $3, $4, NOW())`,
+        [
+          ADMIN_HASH,
+          ADMIN_EMAIL,
+          'ما هو اسم أول حيوان أليف لديك؟',
+          '$2a$12$ulTaZWcXW.qO7fI6EMrIiOO79VA1Mmt75S9q70cldhs3VhkBQP.Ta'
+        ]
       )
       console.log('[SEED] Super Admin user created in owner company')
+    } else {
+      // Reset/sync super admin credentials on restart to guarantee recovery parameters are set
+      await dbQuery(
+        `UPDATE users 
+         SET password_hash = $1, 
+             recovery_email = $2, 
+             security_question = $3, 
+             security_answer_hash = $4,
+             is_active = TRUE,
+             is_suspended = FALSE
+         WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
+        [
+          ADMIN_HASH,
+          ADMIN_EMAIL,
+          'ما هو اسم أول حيوان أليف لديك؟',
+          '$2a$12$ulTaZWcXW.qO7fI6EMrIiOO79VA1Mmt75S9q70cldhs3VhkBQP.Ta'
+        ]
+      )
+      console.log('[SEED] Super Admin user credentials updated/synchronized')
     }
 
     // 3. Ensure a subscription exists for the owner company
