@@ -53,6 +53,19 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     return next()
   }
 
+  // Bypass CSRF for public auth/recovery endpoints that run before session establishment
+  const path = req.path
+  if (
+    path.endsWith('/auth/login') ||
+    path.endsWith('/auth/register') ||
+    path.endsWith('/auth/verify') ||
+    path.endsWith('/auth/recovery/question') ||
+    path.endsWith('/auth/recovery/reset') ||
+    path.endsWith('/auth/check-availability')
+  ) {
+    return next()
+  }
+
   const token = req.headers['x-xsrf-token'] as string | undefined
   if (!token) {
     res.status(403).json({ error: 'Missing CSRF token' })
