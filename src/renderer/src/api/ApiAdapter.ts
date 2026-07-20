@@ -12,7 +12,8 @@ export function setApiMode(m: ApiMode) {
 
 function getXsrfToken(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
-  return match ? decodeURIComponent(match[1]) : null
+  if (match) return decodeURIComponent(match[1])
+  return localStorage.getItem('csrfToken')
 }
 
 export function setCloudBaseUrl(url: string) {
