@@ -393,6 +393,80 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
   }
 })
 
+authRouter.post('/recovery/question', authRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { username, email } = req.body
+    if (!username || !email) {
+      res.status(400).json({ error: 'يرجى إدخال اسم المستخدم والبريد الإلكتروني' })
+      return
+    }
+
+    const result = await query(
+      'SELECT security_question FROM users WHERE username = $1 AND recovery_email = $2 AND is_active = TRUE',
+      [username, email]
+    )
+
+    if (result.rows.length === 0) {
+      res.status(400).json({ error: 'لم يتم العثور على بيانات مطابقة' })
+      return
+    }
+
+    const question = result.rows[0].security_question
+    if (!question) {
+      res.status(400).json({ error: 'لم يتم إعداد سؤال الأمان لهذا الحساب' })
+      return
+    }
+
+    res.send(question)
+  } catch (err) {
+    console.error('[AUTH] getRecoveryQuestion error:', err)
+    res.status(500).json({ error: 'فشلت العملية' })
+  }
+})
+
+authRouter.post('/recovery/reset', authRateLimiter, async (req: Request, res: Response) => {
+  try {
+    const { username, answer, newPassword } = req.body
+    if (!username || !answer || !newPassword) {
+      res.status(400).json({ error: 'جميع الحقول مطلوبة' })
+      return
+    }
+
+    const result = await query(
+      'SELECT id, security_answer_hash FROM users WHERE username = $1 AND is_active = TRUE',
+      [username]
+    )
+
+    if (result.rows.length === 0) {
+      res.status(400).json({ error: 'المستخدم غير موجود' })
+      return
+    }
+
+    const user = result.rows[0]
+    if (!user.security_answer_hash) {
+      res.status(400).json({ error: 'لم يتم إعداد سؤال الأمان لهذا الحساب' })
+      return
+    }
+
+    const valid = await bcrypt.compare(answer.trim(), user.security_answer_hash)
+    if (!valid) {
+      res.status(400).json({ error: 'الإجابة غير صحيحة' })
+      return
+    }
+
+    const newPasswordHash = await bcrypt.hash(newPassword, 12)
+    await query(
+      'UPDATE users SET password_hash = $1, must_change_password = FALSE, updated_at = NOW() WHERE id = $2',
+      [newPasswordHash, user.id]
+    )
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('[AUTH] verifyAndReset error:', err)
+    res.status(500).json({ error: 'فشلت عملية إعادة تعيين كلمة المرور' })
+  }
+})
+
 authRouter.post('/logout', authMiddleware, async (req: Request, res: Response) => {
   try {
     const auth = req.auth!
