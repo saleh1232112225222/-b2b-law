@@ -206,6 +206,26 @@ casesRouter.get('/search', requirePermission('view_cases'), async (req: Request,
   }
 })
 
+// 10. Get All Cases (non-paginated)
+casesRouter.get('/all', requirePermission('view_cases'), async (req: Request, res: Response) => {
+  try {
+    const companyId = getCompanyId(req)
+    const result = await query(
+      `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
+       FROM cases c
+       LEFT JOIN clients cl ON c.client_id = cl.id
+       LEFT JOIN users u ON c.responsible_user_id = u.id
+       WHERE c.company_id = $1 AND c.is_archived = FALSE
+       ORDER BY c.created_at DESC`,
+      [companyId]
+    )
+    res.json(result.rows)
+  } catch (err) {
+    console.error('[Cases] GetAll error:', err)
+    res.status(500).json({ error: 'فشل جلب جميع القضايا' })
+  }
+})
+
 // 9. Get Case by ID (with parties)
 casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
@@ -240,26 +260,6 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
   } catch (err) {
     console.error('[Cases] GetById error:', err)
     res.status(500).json({ error: 'فشل جلب القضية' })
-  }
-})
-
-// 10. Get All Cases (non-paginated)
-casesRouter.get('/all', requirePermission('view_cases'), async (req: Request, res: Response) => {
-  try {
-    const companyId = getCompanyId(req)
-    const result = await query(
-      `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
-       FROM cases c
-       LEFT JOIN clients cl ON c.client_id = cl.id
-       LEFT JOIN users u ON c.responsible_user_id = u.id
-       WHERE c.company_id = $1 AND c.is_archived = FALSE
-       ORDER BY c.created_at DESC`,
-      [companyId]
-    )
-    res.json(result.rows)
-  } catch (err) {
-    console.error('[Cases] GetAll error:', err)
-    res.status(500).json({ error: 'فشل جلب جميع القضايا' })
   }
 })
 

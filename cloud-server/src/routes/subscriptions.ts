@@ -22,7 +22,7 @@ subscriptionRouter.get('/plans', async (_req: Request, res: Response) => {
 subscriptionRouter.get('/status', async (req: Request, res: Response) => {
   try {
     const auth = req.auth as AuthPayload
-    if (auth.companyId === '00000000-0000-0000-0000-000000000000') {
+    if (auth.companyId === (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
       res.json({
         status: 'lifetime',
         daysLeft: 99999,

@@ -41,7 +41,7 @@ const pool = new Pool({
   min: 2,
   idleTimeoutMillis: 10000,
   connectionTimeoutMillis: 8000,
-  ssl: process.env.DATABASE_URL?.includes('render.com') ? { rejectUnauthorized: false } : false
+  ssl: process.env.DATABASE_URL?.includes('render.com') ? { rejectUnauthorized: true } : false
 })
 
 pool.on('error', (err) => {

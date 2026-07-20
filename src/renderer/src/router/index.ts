@@ -10,7 +10,7 @@ const routes = [
     component: () => import('../views/ForcePasswordChange.vue'),
     meta: { requiresAuth: true }
   },
-  { path: '/dev-console', name: 'DevConsole', component: () => import('../views/DevConsole.vue') },
+  { path: '/dev-console', name: 'DevConsole', component: () => import('../views/DevConsole.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true } },
   {
     path: '/lock',
     name: 'LockScreen',
@@ -341,11 +341,9 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
-  if (to.name === 'DevConsole') return true
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
-  const isTestBypass = localStorage.getItem('testBypass') === 'true'
 
-  if (to.meta.requiresAuth && !isLoggedIn && !isTestBypass) {
+  if (to.meta.requiresAuth && !isLoggedIn) {
     return '/login'
   }
 
@@ -376,6 +374,13 @@ router.beforeEach(async (to) => {
     }
   }
 
+  // SuperAdmin Routes Guard
+  if ((to.meta as any).requiresSuperAdmin) {
+    if (!session || !isSuperAdmin(session)) {
+      return '/forbidden'
+    }
+  }
+
   // Admin Routes Guard
   if (to.path.startsWith('/admin')) {
     if (!session || !isSuperAdmin(session)) {
@@ -392,7 +397,7 @@ router.beforeEach(async (to) => {
         : []
   ) as string[]
 
-  if (to.meta.requiresAuth && requiredPermissions.length > 0 && !isTestBypass) {
+  if (to.meta.requiresAuth && requiredPermissions.length > 0) {
     if (!session) {
       try {
         session = await (window as any)?.api?.auth?.getSession?.()

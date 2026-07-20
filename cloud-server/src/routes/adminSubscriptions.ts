@@ -6,6 +6,54 @@ import bcrypt from 'bcryptjs'
 
 export const adminSubscriptionRouter = Router()
 
+/**
+ * Rate limiter for report sending — 5 per hour per admin user
+ */
+const reportSendAttempts = new Map<string, { count: number; resetTime: number }>()
+
+const reportSendRateLimiter = (req: Request, res: Response, next: Function) => {
+  const auth = req.auth as AuthPayload
+  const key = auth.userId
+  const now = Date.now()
+  const windowMs = 60 * 60 * 1000 // 1 hour
+  const maxAttempts = 5
+
+  const attempt = reportSendAttempts.get(key)
+  if (!attempt) {
+    reportSendAttempts.set(key, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  if (now > attempt.resetTime) {
+    reportSendAttempts.set(key, { count: 1, resetTime: now + windowMs })
+    return next()
+  }
+
+  attempt.count++
+  if (attempt.count > maxAttempts) {
+    const minutesLeft = Math.ceil((attempt.resetTime - now) / 60000)
+    return res.status(429).json({
+      error: 'TooManyReportRequests',
+      message: `لقد تجاوزت الحد الأقصى لطلبات التقرير. يرجى المحاولة بعد ${minutesLeft} دقيقة.`
+    })
+  }
+
+  next()
+}
+
+/**
+ * Helper to escape HTML entities to prevent XSS in email templates
+ */
+function escapeHtml(str: string | null | undefined): string {
+  if (!str) return ''
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
 adminSubscriptionRouter.use(authMiddleware)
 
 // Check if soft-delete columns exist on companies table
@@ -44,7 +92,7 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
 
   try {
     // Only allow admin of the main company (00000000-0000-0000-0000-000000000000)
-    if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
+    if (auth.companyId !== (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
       return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
     }
 
@@ -995,12 +1043,12 @@ async function generateUsersReportHTML(): Promise<string> {
     tableRows += `
       <tr style="border-bottom: 1px solid #ddd;">
         <td style="padding: 12px; text-align: right;">${i + 1}</td>
-        <td style="padding: 12px; text-align: right; font-weight: bold;">${row.company_name}</td>
-        <td style="padding: 12px; text-align: right;"><a href="mailto:${row.company_email}">${row.company_email}</a></td>
-        <td style="padding: 12px; text-align: right;">${row.company_phone || 'غير متوفر'}</td>
-        <td style="padding: 12px; text-align: right;">${method}</td>
+        <td style="padding: 12px; text-align: right; font-weight: bold;">${escapeHtml(row.company_name)}</td>
+        <td style="padding: 12px; text-align: right;"><a href="mailto:${escapeHtml(row.company_email)}">${escapeHtml(row.company_email)}</a></td>
+        <td style="padding: 12px; text-align: right;">${escapeHtml(row.company_phone || 'غير متوفر')}</td>
+        <td style="padding: 12px; text-align: right;">${escapeHtml(method)}</td>
         <td style="padding: 12px; text-align: right;">${status}</td>
-        <td style="padding: 12px; text-align: right; font-size: 13px;">${date}</td>
+        <td style="padding: 12px; text-align: right; font-size: 13px;">${escapeHtml(date)}</td>
       </tr>
     `
   })
@@ -1047,7 +1095,7 @@ export async function sendUsersReportEmail(targetEmail: string, htmlContent: str
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
       user: process.env.SMTP_USER || 'slaehmap@gmail.com',
-      pass: process.env.SMTP_PASS || 'kkod vuiv zvgu izux'
+      pass: process.env.SMTP_PASS
     }
   })
 
@@ -1185,6 +1233,7 @@ adminSubscriptionRouter.get(
 adminSubscriptionRouter.post(
   '/report/send',
   requireAdminRole,
+  reportSendRateLimiter,
   async (req: Request, res: Response) => {
     try {
       const { email, scheduleDate } = req.body
@@ -1226,8 +1275,17 @@ adminSubscriptionRouter.post('/create-direct', requireAdminRole, async (req: Req
       return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
     }
 
-    if (!password) {
-      return res.status(400).json({ error: 'كلمة المرور مطلوبة' })
+    if (!password || password.length < 8) {
+      return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
+    }
+    if (!/[A-Z]/.test(password)) {
+      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' })
+    }
+    if (!/[a-z]/.test(password)) {
+      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' })
+    }
+    if (!/[0-9]/.test(password)) {
+      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' })
     }
 
     const companyId = uuidv4()

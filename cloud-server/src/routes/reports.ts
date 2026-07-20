@@ -176,26 +176,48 @@ reportsRouter.get(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const { from, to, caseId } = req.query
+      const { from, to, caseId, page = '1', pageSize = '25' } = req.query
+      const limit = parseInt(pageSize as string)
+      const offset = (parseInt(page as string) - 1) * limit
+
+      let countSql = 'SELECT COUNT(*) FROM sessions s WHERE s.company_id = $1'
       let sql =
         'SELECT s.*, c.case_number FROM sessions s LEFT JOIN cases c ON c.id = s.case_id WHERE s.company_id = $1'
       const params: any[] = [companyId]
       let idx = 2
       if (from) {
-        sql += ` AND s.date >= $${idx++}`
+        countSql += ` AND s.date >= $${idx}`
+        sql += ` AND s.date >= $${idx}`
         params.push(from)
+        idx++
       }
       if (to) {
-        sql += ` AND s.date <= $${idx++}`
+        countSql += ` AND s.date <= $${idx}`
+        sql += ` AND s.date <= $${idx}`
         params.push(to)
+        idx++
       }
       if (caseId) {
-        sql += ` AND s.case_id = $${idx++}`
+        countSql += ` AND s.case_id = $${idx}`
+        sql += ` AND s.case_id = $${idx}`
         params.push(caseId)
+        idx++
       }
-      sql += ' ORDER BY s.date DESC'
-      const result = await query(sql, params)
-      res.json(result.rows)
+
+      sql += ` ORDER BY s.date DESC, s.time DESC LIMIT $${idx} OFFSET $${idx + 1}`
+
+      const countRes = await query(countSql, params)
+      const totalRows = parseInt(countRes.rows[0].count)
+
+      const result = await query(sql, [...params, limit, offset])
+      res.json({
+        rows: result.rows,
+        pageInfo: {
+          page: parseInt(page as string),
+          pageSize: limit,
+          totalRows
+        }
+      })
     } catch (err) {
       console.error('[REPORTS] Sessions report error:', err)
       res.status(500).json({ error: 'فشلت العملية' })
@@ -209,22 +231,77 @@ reportsRouter.get(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const invoices = await query(
-        'SELECT COALESCE(SUM(total), 0) as total, COUNT(*) as count FROM invoices WHERE company_id = $1',
-        [companyId]
-      )
-      const receivables = await query(
-        'SELECT COALESCE(SUM(amount_due - amount_paid), 0) as outstanding FROM receivables WHERE company_id = $1 AND status != $2',
-        [companyId, 'paid']
-      )
-      const vouchers = await query(
-        'SELECT type, COALESCE(SUM(amount), 0) as total FROM vouchers WHERE company_id = $1 GROUP BY type',
-        [companyId]
-      )
+      const { from, to, type, caseId, page = '1', pageSize = '25' } = req.query
+      const limit = parseInt(pageSize as string)
+      const offset = (parseInt(page as string) - 1) * limit
+
+      let whereSql = ' WHERE f.company_id = $1'
+      const params: any[] = [companyId]
+      let idx = 2
+
+      if (from) {
+        whereSql += ` AND f.date >= $${idx}`
+        params.push(from)
+        idx++
+      }
+      if (to) {
+        whereSql += ` AND f.date <= $${idx}`
+        params.push(to)
+        idx++
+      }
+      if (type) {
+        whereSql += ` AND f.type = $${idx}`
+        params.push(type)
+        idx++
+      }
+      if (caseId) {
+        whereSql += ` AND f.case_id = $${idx}`
+        params.push(caseId)
+        idx++
+      }
+
+      // Calculate totals based on the filtered criteria (without limit/offset)
+      const totalsSql = `
+        SELECT 
+          COALESCE(SUM(CASE WHEN f.type = 'income' THEN f.amount ELSE 0 END), 0) as total_in,
+          COALESCE(SUM(CASE WHEN f.type = 'expense' THEN f.amount ELSE 0 END), 0) as total_out
+        FROM finances f
+        ${whereSql}
+      `
+      const totalsRes = await query(totalsSql, params)
+      const totalIn = parseFloat(totalsRes.rows[0].total_in)
+      const totalOut = parseFloat(totalsRes.rows[0].total_out)
+      const balance = totalIn - totalOut
+
+      // Count total rows
+      const countSql = `SELECT COUNT(*) FROM finances f ${whereSql}`
+      const countRes = await query(countSql, params)
+      const totalRows = parseInt(countRes.rows[0].count)
+
+      // Get detailed paginated rows
+      const dataSql = `
+        SELECT f.*, c.case_number, cl.name as client_name
+        FROM finances f
+        LEFT JOIN cases c ON f.case_id = c.id
+        LEFT JOIN clients cl ON f.client_id = cl.id
+        ${whereSql}
+        ORDER BY f.date DESC, f.created_at DESC
+        LIMIT $${idx} OFFSET $${idx + 1}
+      `
+      const dataRes = await query(dataSql, [...params, limit, offset])
+
       res.json({
-        invoices: invoices.rows[0],
-        outstanding: receivables.rows[0]?.outstanding || 0,
-        vouchers: vouchers.rows
+        totals: {
+          totalIn,
+          totalOut,
+          balance
+        },
+        rows: dataRes.rows,
+        pageInfo: {
+          page: parseInt(page as string),
+          pageSize: limit,
+          totalRows
+        }
       })
     } catch (err) {
       console.error('[REPORTS] Financial summary error:', err)
@@ -591,17 +668,133 @@ reportsRouter.get(
 )
 
 reportsRouter.get(
+  '/operations',
+  requirePermission('view_cases'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+
+      // 1. Cases stats
+      const totalCasesRes = await query('SELECT COUNT(*) FROM cases WHERE company_id = $1', [companyId])
+      const wonRes = await query("SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'موكل'", [companyId])
+      const lostRes = await query("SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'خصم'", [companyId])
+
+      const totalCases = parseInt(totalCasesRes.rows[0].count) || 0
+      const won = parseInt(wonRes.rows[0].count) || 0
+      const lost = parseInt(lostRes.rows[0].count) || 0
+      const winRate = (won + lost) > 0 ? Math.round((won / (won + lost)) * 100) : 0
+
+      // 2. Tasks stats
+      const completedTasksRes = await query("SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status IN ('completed', 'closed')", [companyId])
+      const pendingTasksRes = await query("SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status NOT IN ('completed', 'closed', 'cancelled')", [companyId])
+
+      const completed = parseInt(completedTasksRes.rows[0].count) || 0
+      const pending = parseInt(pendingTasksRes.rows[0].count) || 0
+      const completionRate = (completed + pending) > 0 ? Math.round((completed / (completed + pending)) * 100) : 0
+
+      // 3. Finances stats
+      const incomeRes = await query("SELECT COALESCE(SUM(amount), 0) as total FROM finances WHERE company_id = $1 AND type = 'income'", [companyId])
+      const engagementFinRes = await query("SELECT COALESCE(SUM(financial_compensation), 0) as revenue, COALESCE(SUM(paid_amount), 0) as paid FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL", [companyId])
+
+      const income = parseFloat(incomeRes.rows[0].total) || 0
+      const revenue = parseFloat(engagementFinRes.rows[0].revenue) || 0
+      const paid = parseFloat(engagementFinRes.rows[0].paid) || 0
+      const collectionRate = revenue > 0 ? Math.round((paid / revenue) * 100) : 0
+
+      // 4. Enforcement stats
+      const enforcementTotalRes = await query('SELECT COUNT(*) FROM enforcement_files WHERE company_id = $1', [companyId])
+      const enforcementCollectedRes = await query('SELECT COALESCE(SUM(collected_amount), 0) as total FROM enforcement_files WHERE company_id = $1', [companyId])
+
+      const enforcementTotal = parseInt(enforcementTotalRes.rows[0].count) || 0
+      const enforcementCollected = parseFloat(enforcementCollectedRes.rows[0].total) || 0
+
+      // 5. Employees list
+      const employeesRes = await query(`
+        SELECT 
+          emp.id,
+          emp.name,
+          COALESCE((SELECT COUNT(*) FROM cases c JOIN users u ON c.responsible_user_id = u.id WHERE u.employee_id = emp.id AND c.company_id = emp.company_id), 0) as cases_count,
+          COALESCE((SELECT COUNT(*) FROM sessions s JOIN users u ON s.responsible_user_id = u.id WHERE u.employee_id = emp.id AND s.company_id = emp.company_id), 0) as sessions_count,
+          COALESCE((SELECT COUNT(*) FROM tasks_v2 t JOIN users u ON t.responsible_user_id = u.id WHERE u.employee_id = emp.id AND t.company_id = emp.company_id), 0) as tasks_count
+        FROM employees emp
+        WHERE emp.company_id = $1 AND emp.status = 'active'
+      `, [companyId])
+
+      const employeesList = employeesRes.rows.map((row: any) => {
+        const casesCount = parseInt(row.cases_count) || 0
+        const sessionsCount = parseInt(row.sessions_count) || 0
+        const tasksCount = parseInt(row.tasks_count) || 0
+        const memosCount = 0
+
+        const casesScore = casesCount * 2
+        const sessionsScore = sessionsCount * 1.5
+        const tasksScore = tasksCount * 0.8
+        const rawScore = (casesScore + sessionsScore + tasksScore) / 5
+        const score = Math.min(10, Math.max(1, Math.round(rawScore * 10) / 10 || 1))
+
+        let level = 'منخفض'
+        if (score >= 8) level = 'عالي الأداء'
+        else if (score >= 5) level = 'متوسط'
+
+        return {
+          name: row.name,
+          casesCount,
+          sessionsCount,
+          tasksCount,
+          memosCount,
+          score,
+          level
+        }
+      })
+
+      res.json({
+        cases: {
+          winRate,
+          won,
+          lost
+        },
+        tasks: {
+          completionRate,
+          completed,
+          pending
+        },
+        finances: {
+          collectionRate,
+          income
+        },
+        enforcement: {
+          total: enforcementTotal,
+          collected: enforcementCollected
+        },
+        employees: employeesList
+      })
+    } catch (err) {
+      console.error('[REPORTS] operations error:', err)
+      res.status(500).json({ error: 'فشل جلب تقرير الأداء والعمليات' })
+    }
+  }
+)
+
+reportsRouter.get(
   '/users-permissions',
   requirePermission('manage_users'),
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
       const users = await query(
-        'SELECT id, username, full_name, role_key, is_active FROM users WHERE company_id = $1',
+        'SELECT id, username, full_name, role_key, is_active, must_change_password FROM users WHERE company_id = $1',
         [companyId]
       )
-      res.json(users.rows)
+      const permissions = await query(
+        'SELECT permission_key, permission_name, module_key FROM permissions WHERE company_id = $1',
+        [companyId]
+      )
+      res.json({
+        users: users.rows,
+        permissions: permissions.rows
+      })
     } catch (err) {
+      console.error('[REPORTS] users-permissions error:', err)
       res.status(500).json({ error: 'فشلت العملية' })
     }
   }

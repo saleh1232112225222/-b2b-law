@@ -1,0 +1,1635 @@
+{
+  "timestamp": "2026-07-17T21:46:42.671Z",
+  "database_url_sanitized": "postgresql://***@dpg-d96m5vlckfvc73diuqg0-a.singapore-postgres.render.com/b2b_law_db_nqse",
+  "summary": {
+    "total_expected": 79,
+    "total_actual": 89,
+    "missing": 0,
+    "extra": 10,
+    "issues": 5
+  },
+  "expected_tables": 79,
+  "actual_tables": 89,
+  "missing_tables": [],
+  "extra_tables": [
+    "_license_meta",
+    "assignment_logs",
+    "case_actions",
+    "enf_attachments",
+    "enf_decisions",
+    "enf_direct_details",
+    "enf_financial_details",
+    "enf_personal_details",
+    "enf_request_parties",
+    "expense_categories"
+  ],
+  "table_details": [
+    {
+      "table": "companies",
+      "expected_columns": 9,
+      "actual_columns": 12,
+      "missing_columns": [],
+      "extra_columns": [
+        "is_deleted",
+        "deleted_at",
+        "deleted_by"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "companies_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "agencies",
+      "expected_columns": 11,
+      "actual_columns": 10,
+      "missing_columns": [
+        "created_by",
+        "updated_by"
+      ],
+      "extra_columns": [
+        "court"
+      ],
+      "indexes": {
+        "expected": 3,
+        "actual": 2,
+        "actual_list": [
+          "agencies_pkey",
+          "idx_agencies_company"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": true
+    },
+    {
+      "table": "clients",
+      "expected_columns": 16,
+      "actual_columns": 17,
+      "missing_columns": [],
+      "extra_columns": [
+        "direct_notes"
+      ],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "clients_pkey",
+          "idx_clients_company"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "defendants",
+      "expected_columns": 19,
+      "actual_columns": 19,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "defendants_pkey",
+          "idx_defendants_company"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "employees",
+      "expected_columns": 19,
+      "actual_columns": 19,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "employees_pkey",
+          "idx_employees_company"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "users",
+      "expected_columns": 15,
+      "actual_columns": 19,
+      "missing_columns": [],
+      "extra_columns": [
+        "google_user_id",
+        "two_factor_secret",
+        "two_factor_enabled",
+        "is_suspended"
+      ],
+      "indexes": {
+        "expected": 1,
+        "actual": 5,
+        "actual_list": [
+          "idx_users_company",
+          "idx_users_google_user_id",
+          "idx_users_recovery_email",
+          "users_company_id_username_unique",
+          "users_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "cases",
+      "expected_columns": 40,
+      "actual_columns": 40,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 3,
+        "actual_list": [
+          "cases_company_id_case_number_unique",
+          "cases_pkey",
+          "idx_cases_company"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "case_parties",
+      "expected_columns": 17,
+      "actual_columns": 17,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "case_parties_pkey"
+        ]
+      },
+      "foreign_keys": 4,
+      "has_issues": false
+    },
+    {
+      "table": "sessions",
+      "expected_columns": 20,
+      "actual_columns": 20,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 2,
+        "actual_list": [
+          "idx_sessions_company",
+          "sessions_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "session_outcomes",
+      "expected_columns": 8,
+      "actual_columns": 8,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "session_outcomes_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "legal_service_categories",
+      "expected_columns": 4,
+      "actual_columns": 4,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "legal_service_categories_key_key",
+          "legal_service_categories_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "legal_service_types",
+      "expected_columns": 5,
+      "actual_columns": 5,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "legal_service_types_key_key",
+          "legal_service_types_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "legal_service_statuses",
+      "expected_columns": 5,
+      "actual_columns": 5,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "legal_service_statuses_pkey",
+          "legal_service_statuses_status_key_key"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "legal_service_priorities",
+      "expected_columns": 5,
+      "actual_columns": 5,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "legal_service_priorities_pkey",
+          "legal_service_priorities_priority_key_key"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "legal_engagements",
+      "expected_columns": 39,
+      "actual_columns": 39,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "legal_engagements_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "consultation_service_details",
+      "expected_columns": 3,
+      "actual_columns": 7,
+      "missing_columns": [
+        "consultation_medium",
+        "legal_opinion_summary"
+      ],
+      "extra_columns": [
+        "consultation_type",
+        "meeting_location",
+        "meeting_time",
+        "duration_minutes",
+        "summary"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "consultation_service_details_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": true
+    },
+    {
+      "table": "litigation_service_details",
+      "expected_columns": 3,
+      "actual_columns": 7,
+      "missing_columns": [
+        "court_level",
+        "opponent_details"
+      ],
+      "extra_columns": [
+        "case_id",
+        "court_name",
+        "hearing_date",
+        "claim_summary",
+        "opponent_info"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "litigation_service_details_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": true
+    },
+    {
+      "table": "contract_service_details",
+      "expected_columns": 3,
+      "actual_columns": 6,
+      "missing_columns": [
+        "contract_scope",
+        "drafting_language"
+      ],
+      "extra_columns": [
+        "contract_type",
+        "parties",
+        "value",
+        "review_notes"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_service_details_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": true
+    },
+    {
+      "table": "legal_service_attachments",
+      "expected_columns": 6,
+      "actual_columns": 8,
+      "missing_columns": [
+        "uploaded_at"
+      ],
+      "extra_columns": [
+        "file_type",
+        "file_size"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "legal_service_attachments_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": true
+    },
+    {
+      "table": "legal_service_notes",
+      "expected_columns": 5,
+      "actual_columns": 5,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "legal_service_notes_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "legal_service_timeline",
+      "expected_columns": 7,
+      "actual_columns": 7,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "legal_service_timeline_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "tasks_v2",
+      "expected_columns": 35,
+      "actual_columns": 35,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 3,
+        "actual": 2,
+        "actual_list": [
+          "idx_tasks_v2_company",
+          "tasks_v2_pkey"
+        ]
+      },
+      "foreign_keys": 4,
+      "has_issues": false
+    },
+    {
+      "table": "task_audit_log",
+      "expected_columns": 9,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [
+        "ip_address"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "task_audit_log_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "task_notifications",
+      "expected_columns": 6,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "task_notifications_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "accounts",
+      "expected_columns": 12,
+      "actual_columns": 12,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 2,
+        "actual_list": [
+          "accounts_pkey",
+          "idx_accounts_company"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "finances",
+      "expected_columns": 22,
+      "actual_columns": 27,
+      "missing_columns": [],
+      "extra_columns": [
+        "paid_amount",
+        "remaining_amount",
+        "payment_method",
+        "status"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "finances_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "invoices",
+      "expected_columns": 15,
+      "actual_columns": 15,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 3,
+        "actual_list": [
+          "idx_invoices_company",
+          "invoices_company_id_invoice_number_unique",
+          "invoices_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "invoice_items",
+      "expected_columns": 6,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "invoice_items_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "vouchers",
+      "expected_columns": 17,
+      "actual_columns": 17,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 3,
+        "actual_list": [
+          "idx_vouchers_company",
+          "vouchers_company_id_voucher_number_unique",
+          "vouchers_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "receivables",
+      "expected_columns": 16,
+      "actual_columns": 16,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "idx_receivables_company",
+          "receivables_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "credit_notes",
+      "expected_columns": 10,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "credit_notes_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "documents_v2",
+      "expected_columns": 17,
+      "actual_columns": 17,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 1,
+        "actual_list": [
+          "documents_v2_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "file_assets",
+      "expected_columns": 16,
+      "actual_columns": 16,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 1,
+        "actual_list": [
+          "file_assets_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "contracts",
+      "expected_columns": 29,
+      "actual_columns": 29,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "contracts_pkey",
+          "idx_contracts_company"
+        ]
+      },
+      "foreign_keys": 4,
+      "has_issues": false
+    },
+    {
+      "table": "enforcement_requests",
+      "expected_columns": 20,
+      "actual_columns": 21,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "enforcement_requests_company_id_request_no_unique",
+          "enforcement_requests_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "permissions",
+      "expected_columns": 4,
+      "actual_columns": 4,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 0,
+        "actual_list": []
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "role_permissions",
+      "expected_columns": 4,
+      "actual_columns": 4,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "role_permissions_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "user_permissions",
+      "expected_columns": 5,
+      "actual_columns": 5,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "user_permissions_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "settings",
+      "expected_columns": 4,
+      "actual_columns": 4,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 0,
+        "actual_list": []
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "firm_data",
+      "expected_columns": 6,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 1,
+        "actual_list": [
+          "firm_data_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "activity_logs",
+      "expected_columns": 11,
+      "actual_columns": 11,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 1,
+        "actual_list": [
+          "activity_logs_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "scheduled_reports",
+      "expected_columns": 6,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "scheduled_reports_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "payment_schedules",
+      "expected_columns": 15,
+      "actual_columns": 15,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 3,
+        "actual": 4,
+        "actual_list": [
+          "idx_payment_schedules_due_date",
+          "idx_payment_schedules_engagement",
+          "idx_payment_schedules_status",
+          "payment_schedules_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "payment_history",
+      "expected_columns": 10,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "idx_payment_history_engagement",
+          "payment_history_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "client_accounts",
+      "expected_columns": 11,
+      "actual_columns": 11,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 4,
+        "actual_list": [
+          "client_accounts_company_id_client_id_key",
+          "client_accounts_pkey",
+          "idx_client_accounts_client",
+          "idx_client_accounts_status"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "partners",
+      "expected_columns": 9,
+      "actual_columns": 9,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "idx_partners_company",
+          "partners_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "partner_contributions",
+      "expected_columns": 10,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 3,
+        "actual_list": [
+          "idx_partner_contributions_company",
+          "idx_partner_contributions_partner",
+          "partner_contributions_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "office_expenses",
+      "expected_columns": 12,
+      "actual_columns": 12,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 3,
+        "actual": 4,
+        "actual_list": [
+          "idx_office_expenses_category",
+          "idx_office_expenses_company",
+          "idx_office_expenses_date",
+          "office_expenses_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "office_budgets",
+      "expected_columns": 10,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 4,
+        "actual_list": [
+          "idx_office_budgets_company",
+          "idx_office_budgets_period",
+          "office_budgets_company_id_month_year_category_key",
+          "office_budgets_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "profit_distributions",
+      "expected_columns": 13,
+      "actual_columns": 13,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 4,
+        "actual_list": [
+          "idx_profit_distributions_company",
+          "idx_profit_distributions_period",
+          "profit_distributions_company_id_partner_id_month_year_key",
+          "profit_distributions_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "time_logs",
+      "expected_columns": 13,
+      "actual_columns": 13,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 2,
+        "actual": 1,
+        "actual_list": [
+          "time_logs_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "notifications",
+      "expected_columns": 9,
+      "actual_columns": 9,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 2,
+        "actual_list": [
+          "idx_notifications_company",
+          "notifications_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "permission_audit_logs",
+      "expected_columns": 8,
+      "actual_columns": 8,
+      "missing_columns": [],
+      "extra_columns": [],
+      "indexes": {
+        "expected": 1,
+        "actual": 1,
+        "actual_list": [
+          "permission_audit_logs_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "contract_amendments",
+      "expected_columns": 0,
+      "actual_columns": 7,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_id",
+        "reason",
+        "content",
+        "created_by"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_amendments_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "contract_links",
+      "expected_columns": 0,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_id",
+        "entity_type",
+        "entity_id"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_links_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "contract_participants",
+      "expected_columns": 0,
+      "actual_columns": 9,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_id",
+        "party_id",
+        "role_key",
+        "role_label",
+        "side_key",
+        "sort_order"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_participants_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "contract_parties",
+      "expected_columns": 0,
+      "actual_columns": 11,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "party_type_key",
+        "user_id",
+        "client_id",
+        "defendant_id",
+        "display_name",
+        "metadata_json",
+        "is_active"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_parties_pkey"
+        ]
+      },
+      "foreign_keys": 4,
+      "has_issues": false
+    },
+    {
+      "table": "contract_party_types",
+      "expected_columns": 0,
+      "actual_columns": 3,
+      "missing_columns": [],
+      "extra_columns": [
+        "party_type_key",
+        "party_type_name",
+        "sort_order"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_party_types_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "contract_schedules",
+      "expected_columns": 0,
+      "actual_columns": 14,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_id",
+        "schedule_type",
+        "title",
+        "amount",
+        "due_date",
+        "milestone_key",
+        "status",
+        "linked_receivable_id",
+        "linked_invoice_id",
+        "linked_claim_id"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_schedules_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "contract_signatures",
+      "expected_columns": 0,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_id",
+        "participant_id",
+        "party_id",
+        "signature_status",
+        "signature_payload_json",
+        "signed_at"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_signatures_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "contract_templates",
+      "expected_columns": 0,
+      "actual_columns": 8,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "contract_type",
+        "name",
+        "body",
+        "is_active"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "contract_templates_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "enforcement_actions",
+      "expected_columns": 0,
+      "actual_columns": 8,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "enforcement_id",
+        "action_type",
+        "action_date",
+        "notes",
+        "created_by"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "enforcement_actions_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "enforcement_files",
+      "expected_columns": 0,
+      "actual_columns": 18,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "execution_file_no",
+        "instrument_no",
+        "instrument_type",
+        "instrument_source",
+        "linked_judgment_id",
+        "court_name",
+        "court_circuit",
+        "claim_amount",
+        "collected_amount",
+        "status",
+        "opened_at",
+        "last_action_at",
+        "owner_user_id",
+        "notes"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "enforcement_files_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "enforcement_parties",
+      "expected_columns": 0,
+      "actual_columns": 8,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "enforcement_id",
+        "linked_entity_type",
+        "linked_entity_id",
+        "display_name",
+        "role"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "enforcement_parties_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "collections_claims",
+      "expected_columns": 0,
+      "actual_columns": 12,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "linked_entity_type",
+        "linked_entity_id",
+        "title",
+        "amount",
+        "paid_amount",
+        "status",
+        "due_date",
+        "notes"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "collections_claims_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "collections_payments",
+      "expected_columns": 0,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "claim_id",
+        "amount",
+        "paid_at",
+        "method",
+        "reference_no",
+        "notes",
+        "created_by"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "collections_payments_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "communications",
+      "expected_columns": 0,
+      "actual_columns": 11,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "client_id",
+        "case_id",
+        "expert_id",
+        "type",
+        "subject",
+        "date",
+        "notes"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "communications_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "evidence",
+      "expected_columns": 0,
+      "actual_columns": 20,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "case_id",
+        "title",
+        "description",
+        "evidence_date",
+        "status",
+        "is_archived",
+        "archived_at",
+        "archived_by",
+        "archive_reason",
+        "memo_type",
+        "memo_label",
+        "najiz_number",
+        "najiz_date",
+        "memo_status",
+        "opponent_name",
+        "memo_text"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "evidence_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "experts",
+      "expected_columns": 0,
+      "actual_columns": 10,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "case_id",
+        "name",
+        "specialty",
+        "phone",
+        "email",
+        "notes"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "experts_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "judgment_amendments",
+      "expected_columns": 0,
+      "actual_columns": 7,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "judgment_id",
+        "reason",
+        "content",
+        "created_by"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "judgment_amendments_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "judgments",
+      "expected_columns": 0,
+      "actual_columns": 16,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "case_id",
+        "type",
+        "judgment_date",
+        "judgment_date_hijri",
+        "favor",
+        "objection_deadline",
+        "notes",
+        "judgment_number",
+        "judgment_type",
+        "is_executable",
+        "objection_period_days",
+        "is_objection_handled"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "judgments_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "memoranda",
+      "expected_columns": 0,
+      "actual_columns": 14,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "case_id",
+        "memo_title",
+        "memo_summary",
+        "memo_date",
+        "memo_type",
+        "memo_label",
+        "najiz_number",
+        "najiz_date",
+        "memo_status",
+        "is_archived"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "memoranda_pkey"
+        ]
+      },
+      "foreign_keys": 1,
+      "has_issues": false
+    },
+    {
+      "table": "user_case_access",
+      "expected_columns": 0,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "user_id",
+        "case_id",
+        "access_level"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "user_case_access_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "user_client_access",
+      "expected_columns": 0,
+      "actual_columns": 6,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "user_id",
+        "client_id",
+        "access_level"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "user_client_access_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "plans",
+      "expected_columns": 0,
+      "actual_columns": 14,
+      "missing_columns": [],
+      "extra_columns": [
+        "name",
+        "name_ar",
+        "description",
+        "description_ar",
+        "interval",
+        "price",
+        "currency",
+        "features",
+        "features_ar",
+        "is_active",
+        "sort_order"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 1,
+        "actual_list": [
+          "plans_pkey"
+        ]
+      },
+      "foreign_keys": 0,
+      "has_issues": false
+    },
+    {
+      "table": "subscriptions",
+      "expected_columns": 0,
+      "actual_columns": 13,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "plan_id",
+        "status",
+        "trial_start",
+        "trial_end",
+        "current_period_start",
+        "current_period_end",
+        "canceled_at",
+        "suspended_at",
+        "suspend_reason"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 3,
+        "actual_list": [
+          "idx_subscriptions_company",
+          "idx_subscriptions_status",
+          "subscriptions_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "payments",
+      "expected_columns": 0,
+      "actual_columns": 14,
+      "missing_columns": [],
+      "extra_columns": [
+        "company_id",
+        "subscription_id",
+        "plan_id",
+        "amount",
+        "currency",
+        "status",
+        "payment_method",
+        "payment_provider",
+        "provider_payment_id",
+        "invoice_url",
+        "paid_at"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 3,
+        "actual_list": [
+          "idx_payments_company",
+          "idx_payments_subscription",
+          "payments_pkey"
+        ]
+      },
+      "foreign_keys": 3,
+      "has_issues": false
+    },
+    {
+      "table": "user_login_logs",
+      "expected_columns": 0,
+      "actual_columns": 12,
+      "missing_columns": [],
+      "extra_columns": [
+        "user_id",
+        "company_id",
+        "login_time",
+        "logout_time",
+        "ip_address",
+        "user_agent",
+        "device_info",
+        "browser_info",
+        "is_successful",
+        "failure_reason"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 4,
+        "actual_list": [
+          "idx_login_logs_company_id",
+          "idx_login_logs_created_at",
+          "idx_login_logs_user_id",
+          "user_login_logs_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    },
+    {
+      "table": "user_activity_logs",
+      "expected_columns": 0,
+      "actual_columns": 9,
+      "missing_columns": [],
+      "extra_columns": [
+        "user_id",
+        "company_id",
+        "activity_type",
+        "activity_description",
+        "entity_type",
+        "entity_id",
+        "ip_address"
+      ],
+      "indexes": {
+        "expected": 0,
+        "actual": 5,
+        "actual_list": [
+          "idx_activity_logs_company_id",
+          "idx_activity_logs_created_at",
+          "idx_activity_logs_type",
+          "idx_activity_logs_user_id",
+          "user_activity_logs_pkey"
+        ]
+      },
+      "foreign_keys": 2,
+      "has_issues": false
+    }
+  ]
+}

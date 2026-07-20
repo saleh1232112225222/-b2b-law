@@ -31,6 +31,9 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import { sanitizeInput } from './middleware/validation'
+import { requestId } from './middleware/requestId'
+import { csrfProtection, generateCsrfToken } from './middleware/csrf'
+import { logger } from './utils/logger'
 import { healthCheck, query } from './db/connection'
 import { authRouter } from './routes/auth'
 import { debugRouter } from './routes/debug'
@@ -96,7 +99,7 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-XSRF-TOKEN']
   })
 )
 app.use(express.json({ limit: '10mb' }))
@@ -115,6 +118,13 @@ app.use(
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
   })
 )
+
+// Assign a request ID to every inbound request (echoes back via X-Request-ID header)
+app.use(requestId)
+
+// CSRF protection — skips safe methods; validates X-XSRF-TOKEN header on mutations
+app.use(csrfProtection)
+
 // Catch JSON parse errors so they don't bubble to the generic handler
 app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
@@ -130,7 +140,13 @@ app.use((req, res, next) => {
   res.on('finish', () => {
     const duration = Date.now() - start
     if (res.statusCode >= 400 || duration > 2000) {
-      console.log(`[REQUEST] ${req.method} ${req.originalUrl} - ${res.statusCode} (${duration}ms)`)
+      logger.warn('Slow or error response', {
+        method: req.method,
+        url: req.originalUrl,
+        status: res.statusCode,
+        durationMs: duration,
+        requestId: (req as any).requestId
+      })
     }
   })
   next()

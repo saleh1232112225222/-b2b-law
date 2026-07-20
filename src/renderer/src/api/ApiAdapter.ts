@@ -10,6 +10,11 @@ export function setApiMode(m: ApiMode) {
   mode = m
 }
 
+function getXsrfToken(): string | null {
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  return match ? decodeURIComponent(match[1]) : null
+}
+
 export function setCloudBaseUrl(url: string) {
   cloudClient = axios.create({
     baseURL: url,
@@ -20,6 +25,13 @@ export function setCloudBaseUrl(url: string) {
     const token = localStorage.getItem('b2b_cloud_token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
+    }
+    const method = (config.method || 'get').toLowerCase()
+    if (['post', 'put', 'patch', 'delete'].includes(method)) {
+      const xsrfToken = getXsrfToken()
+      if (xsrfToken) {
+        config.headers['X-XSRF-TOKEN'] = xsrfToken
+      }
     }
     return config
   })
@@ -34,6 +46,7 @@ export function setCloudBaseUrl(url: string) {
           return Promise.reject(error)
         }
         localStorage.removeItem('b2b_cloud_token')
+        localStorage.removeItem('csrfToken')
       }
       return Promise.reject(error)
     }
@@ -151,6 +164,58 @@ function mockOperationsSummary(): any {
   }
 }
 
+function mockOperationsReportData(): any {
+  return {
+    cases: {
+      winRate: 75,
+      won: 6,
+      lost: 2
+    },
+    tasks: {
+      completionRate: 85,
+      completed: 17,
+      pending: 3
+    },
+    finances: {
+      collectionRate: 90,
+      income: 250000
+    },
+    enforcement: {
+      total: 5,
+      collected: 120000
+    },
+    employees: [
+      {
+        name: 'أحمد المحامي',
+        casesCount: 8,
+        sessionsCount: 12,
+        tasksCount: 15,
+        memosCount: 5,
+        score: 9.2,
+        level: 'عالي الأداء'
+      },
+      {
+        name: 'سارة المستشارة',
+        casesCount: 5,
+        sessionsCount: 9,
+        tasksCount: 10,
+        memosCount: 4,
+        score: 7.8,
+        level: 'متوسط'
+      },
+      {
+        name: 'خالد المتدرب',
+        casesCount: 2,
+        sessionsCount: 4,
+        tasksCount: 5,
+        memosCount: 1,
+        score: 4.5,
+        level: 'منخفض'
+      }
+    ]
+  }
+}
+
 function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   if (!cloudClient) throw new Error('Cloud base URL not configured')
   // Only use mock when there's no real JWT token (Google login provides a real token)
@@ -200,6 +265,7 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/auth/recovery/question')) return 'ما هو اسم أول حيوان أليف لديك؟'
   if (url.startsWith('/auth/recovery/reset')) return { success: true }
   if (url.startsWith('/analytics/dashboard')) return mockDashboardData()
+  if (url.startsWith('/reports/operations')) return mockOperationsReportData()
   if (url.startsWith('/operations-summary') || url.startsWith('/reports/operations-summary'))
     return mockOperationsSummary()
   if (url.startsWith('/briefing/summary')) return mockOperationsSummary()
@@ -290,11 +356,11 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/archive')) return { data: [] }
   if (url.startsWith('/search')) return { data: [] }
   // Mock report endpoints
-  if (url.startsWith('/reports/users-permissions')) return { data: [] }
+  if (url.startsWith('/reports/users-permissions')) return { users: [], permissions: [] }
   if (url.startsWith('/reports/user-activity')) return { data: [] }
-  if (url.startsWith('/reports/sessions')) return { data: [] }
+  if (url.startsWith('/reports/sessions')) return { rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
   if (url.startsWith('/reports/case')) return { data: {} }
-  if (url.startsWith('/reports/financial-summary')) return { data: {} }
+  if (url.startsWith('/reports/financial-summary')) return { totals: { totalIn: 0, totalOut: 0, balance: 0 }, rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
   if (url.startsWith('/reports/activity')) return { data: [] }
   if (url.startsWith('/reports/evidence')) return { data: [] }
   if (url.startsWith('/reports/memoranda')) return { data: [] }
@@ -454,14 +520,28 @@ const api = {
             if (r.token) {
               localStorage.setItem('b2b_cloud_token', r.token)
             }
+            if (r.csrfToken) {
+              localStorage.setItem('csrfToken', r.csrfToken)
+            }
             return { ...(r.user || r), isLocked: false }
           }),
     logout: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:logout')
-        : cloudRequest({ method: 'POST', url: '/auth/logout' }),
+        : cloudRequest({ method: 'POST', url: '/auth/logout' }).then((r) => {
+            localStorage.removeItem('csrfToken')
+            return r
+          }),
     exchangeOAuthCode: (code: string) =>
-      cloudRequest<any>({ method: 'POST', url: '/auth/exchange', data: { code } }),
+      cloudRequest<any>({ method: 'POST', url: '/auth/exchange', data: { code } }).then((r) => {
+        if (r.token) {
+          localStorage.setItem('b2b_cloud_token', r.token)
+        }
+        if (r.csrfToken) {
+          localStorage.setItem('csrfToken', r.csrfToken)
+        }
+        return r
+      }),
     getSession: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('auth:getSession')
@@ -542,6 +622,9 @@ const api = {
           }).then((r) => {
             if (r.token) {
               localStorage.setItem('b2b_cloud_token', r.token)
+            }
+            if (r.csrfToken) {
+              localStorage.setItem('csrfToken', r.csrfToken)
             }
             return { ...(r.user || r), permissions: r.permissions || [] }
           }),
@@ -1585,7 +1668,7 @@ const api = {
     getDashboard: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('analytics:getDashboard')
-        : cloudRequest({ method: 'GET', url: '/analytics/dashboard' })
+        : cloudRequest({ method: 'GET', url: '/reports/operations' })
   },
   vault: {
     getRoot: () => {

@@ -24,12 +24,6 @@ export async function sendOTP(email: string, phone: string, code: string): Promi
   const t = getTransporter()
   const from = process.env.SMTP_FROM || process.env.SMTP_USER || ''
 
-  console.log('\n================================================================================')
-  console.log(`[OTP] Sending verification code...`)
-  console.log(` - Target Email: ${email}`)
-  console.log(` - Target Phone: ${phone}`)
-  console.log(` - Verification OTP Code: ${code}`)
-
   if (t) {
     try {
       await t.sendMail({
@@ -62,8 +56,7 @@ export async function sendOTP(email: string, phone: string, code: string): Promi
     }
   }
 
-  console.log(`[OTP] ⚠ Email not sent — using console fallback. Code: ${code}`)
-  console.log('================================================================================\n')
+  console.log(`[OTP] ⚠ Email not sent — SMTP not configured or failed for ${email}`)
 }
 
 export async function sendEmail(options: {

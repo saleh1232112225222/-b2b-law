@@ -14,7 +14,7 @@ const requireAdminRole = (req: Request, res: Response, next: Function) => {
   next()
 }
 
-systemRouter.get('/system/diagnostic', async (req: Request, res: Response) => {
+systemRouter.get('/system/diagnostic', requireAdminRole, async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
     const username = req.auth?.username || 'unknown'
@@ -143,7 +143,7 @@ systemRouter.get(
 
 systemRouter.post(
   '/system/export-snapshot',
-
+  requireAdminRole,
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)

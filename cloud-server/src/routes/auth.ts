@@ -2,10 +2,11 @@ import { Router, Request, Response, NextFunction } from 'express'
 import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
-import { query } from '../db/connection'
+import { query, getClient } from '../db/connection'
 import { generateToken, authMiddleware, revokeToken } from '../middleware/auth'
 import { getUserPermissions } from '../middleware/permission'
 import { generateSecret, getQrCodeUrl, verifyToken } from '../utils/totp'
+import { generateCsrfToken, revokeCsrfToken } from '../middleware/csrf'
 import {
   sendOTP,
   sendEmail,
@@ -24,7 +25,7 @@ async function logActivity(
   companyId?: string
 ): Promise<void> {
   try {
-    const cid = companyId || '00000000-0000-0000-0000-000000000000'
+    const cid = companyId || (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')
     await query(
       `INSERT INTO activity_logs (id, company_id, action_key, module_key, details, actor, metadata_json, timestamp)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW())`,
@@ -280,7 +281,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
     // Check subscription status
     let subscriptionStatus = 'trial'
-    if (user.company_id === '00000000-0000-0000-0000-000000000000') {
+    if (user.company_id === (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
       subscriptionStatus = 'lifetime'
     } else {
       const subCheck = await query(
@@ -367,9 +368,11 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       })
 
     const permissions = await getUserPermissions(user.company_id, user.id, user.role_key)
+    const csrfToken = generateCsrfToken(req, res)
 
     res.json({
       token,
+      csrfToken,
       user: {
         id: user.id,
         username: user.username,
@@ -396,6 +399,11 @@ authRouter.post('/logout', authMiddleware, async (req: Request, res: Response) =
     // Revoke the current token (H-08)
     if (auth.jti) {
       revokeToken(auth.jti)
+    }
+    // Revoke CSRF token
+    const xsrfToken = req.cookies['XSRF-TOKEN']
+    if (xsrfToken) {
+      revokeCsrfToken(xsrfToken)
     }
     // Update last login log with logout time
     await query(
@@ -1084,64 +1092,60 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     // Generate 6-digit random code (OTP)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString()
 
-    // 4. Create company in database (needs OTP verification)
-    await query(
-      'INSERT INTO companies (id, name, email, phone, is_verified, verification_code, trial_expires_at) VALUES ($1, $2, $3, $4, FALSE, $5, $6)',
-      [companyId, companyName, email, phone, otpCode, trialExpiresAt]
-    )
-
-    // 5. Create default admin user
+    // 4-7. Create company, user, firm_data, and subscription in a single transaction
     const userId = uuidv4()
     const passwordHash = await bcrypt.hash(password, 12)
-    await query(
-      `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
-       VALUES ($1, $2, $3, $4, $5, $6, TRUE, FALSE, $7, NOW())`,
-      [userId, companyId, username, 'مدير النظام', passwordHash, 'admin', email]
-    )
 
-    // 6. Seed basic firm_data settings so the app has configuration values
-    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(),
-      companyId,
-      'officeName',
-      JSON.stringify(companyName)
-    ])
-    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(),
-      companyId,
-      'theme',
-      JSON.stringify('light')
-    ])
-    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(),
-      companyId,
-      'activityLogRetentionDays',
-      JSON.stringify(365)
-    ])
-    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(),
-      companyId,
-      'taskNotificationsEnabled',
-      JSON.stringify(true)
-    ])
-    await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-      uuidv4(),
-      companyId,
-      'taskNotificationLeadDays',
-      JSON.stringify(1)
-    ])
-
-    // 7. Create trial subscription record
+    const client = await getClient()
     try {
-      const planResult = await query('SELECT id FROM plans LIMIT 1')
+      await client.query('BEGIN')
+
+      // 4. Create company in database (needs OTP verification)
+      await client.query(
+        'INSERT INTO companies (id, name, email, phone, is_verified, verification_code, trial_expires_at) VALUES ($1, $2, $3, $4, FALSE, $5, $6)',
+        [companyId, companyName, email, phone, otpCode, trialExpiresAt]
+      )
+
+      // 5. Create default admin user
+      await client.query(
+        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, TRUE, FALSE, $7, NOW())`,
+        [userId, companyId, username, 'مدير النظام', passwordHash, 'admin', email]
+      )
+
+      // 6. Seed basic firm_data settings so the app has configuration values
+      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+        uuidv4(), companyId, 'officeName', JSON.stringify(companyName)
+      ])
+      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+        uuidv4(), companyId, 'theme', JSON.stringify('light')
+      ])
+      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+        uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)
+      ])
+      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+        uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)
+      ])
+      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+        uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)
+      ])
+
+      // 7. Create trial subscription record
+      const planResult = await client.query('SELECT id FROM plans LIMIT 1')
       const planId = planResult.rows.length > 0 ? planResult.rows[0].id : null
-      await query(
+      await client.query(
         `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
          VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
         [uuidv4(), companyId, planId, trialExpiresAt]
       )
-    } catch (subErr) {
-      console.error('[REGISTER] Failed to create trial subscription:', subErr)
+
+      await client.query('COMMIT')
+    } catch (txErr) {
+      await client.query('ROLLBACK')
+      console.error('[REGISTER] Transaction failed, rolled back:', txErr)
+      throw txErr
+    } finally {
+      client.release()
     }
 
     // 8. Send OTP code (fire-and-forget — don't block registration)
@@ -1330,9 +1334,11 @@ authRouter.post(
       })
 
       const permissions = await getUserPermissions(user.company_id, user.id, user.role_key)
+      const csrfToken = generateCsrfToken(req, res)
 
       res.json({
         token,
+        csrfToken,
         user: {
           id: user.id,
           username: user.username,
@@ -1453,7 +1459,8 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
       return
     }
     oauthCodes.delete(code)
-    res.json({ token: entry.token })
+    const csrfToken = generateCsrfToken(req, res)
+    res.json({ token: entry.token, csrfToken })
   } catch (err) {
     console.error('[AUTH] Exchange error:', err)
     res.status(500).json({ error: 'فشل تبادل الرمز' })

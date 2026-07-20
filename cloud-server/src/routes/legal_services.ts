@@ -11,7 +11,7 @@ router.get('/categories', async (req: any, res) => {
     const result = await query('SELECT * FROM legal_service_categories ORDER BY name_ar')
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -20,7 +20,7 @@ router.get('/types', async (req: any, res) => {
     const result = await query('SELECT * FROM legal_service_types ORDER BY name_ar')
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -29,7 +29,7 @@ router.get('/statuses', async (req: any, res) => {
     const result = await query('SELECT * FROM legal_service_statuses')
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -38,7 +38,7 @@ router.get('/priorities', async (req: any, res) => {
     const result = await query('SELECT * FROM legal_service_priorities')
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -68,7 +68,7 @@ router.get('/engagements/count', async (req: any, res) => {
     const result = await query(sql, params)
     res.json(parseInt(result.rows[0].total))
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -123,7 +123,7 @@ router.get('/engagements', async (req: any, res) => {
     const result = await query(sql, params)
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -273,7 +273,7 @@ router.post('/engagements', async (req: any, res) => {
     res.json({ id: newId })
   } catch (err: any) {
     console.error('[legal_services] POST /engagements error:', err.message, err.stack)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -434,7 +434,7 @@ router.put('/engagements/:id', async (req: any, res) => {
     res.json({ success: true })
   } catch (err: any) {
     console.error('[legal_services] PUT /engagements/:id error:', err.message, err.stack)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -454,7 +454,7 @@ router.delete('/engagements/:id', async (req: any, res) => {
 
     res.json({ success: true })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -491,7 +491,7 @@ router.get('/engagements/:id', async (req: any, res) => {
     }
     res.json(result.rows[0])
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -511,7 +511,7 @@ router.get('/engagements/:id/finance', async (req: any, res) => {
     )
     res.json(result.rows[0] || null)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -531,7 +531,7 @@ router.get('/engagements/:id/notes', async (req: any, res) => {
     )
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -562,7 +562,7 @@ router.post('/engagements/:id/notes', async (req: any, res) => {
 
     res.json(noteResult.rows[0])
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -582,7 +582,7 @@ router.get('/engagements/:id/attachments', async (req: any, res) => {
     )
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -613,7 +613,7 @@ router.post('/engagements/:id/attachments', async (req: any, res) => {
 
     res.json(attachmentResult.rows[0])
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -633,7 +633,7 @@ router.get('/engagements/:id/timeline', async (req: any, res) => {
     )
     res.json(result.rows)
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -756,7 +756,7 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
 
     res.json({ success: true, invoiceId })
   } catch (err: any) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 
@@ -810,7 +810,7 @@ router.get('/client/:clientId/summary', async (req: any, res) => {
     })
   } catch (err: any) {
     console.error('[legal_services] GET /client/:clientId/summary error:', err.message)
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
   }
 })
 

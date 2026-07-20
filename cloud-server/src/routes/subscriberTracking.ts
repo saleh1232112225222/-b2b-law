@@ -5,42 +5,14 @@ import { authMiddleware, AuthPayload } from '../middleware/auth'
 export const subscriberTrackingRouter = Router()
 subscriberTrackingRouter.use(authMiddleware)
 
-// Debug: check if tracking tables exist and have data
-subscriberTrackingRouter.get('/debug/check-tables', async (req: Request, res: Response) => {
-  const auth = req.auth as AuthPayload
-  if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
-    return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
-  }
-  try {
-    const loginLogs = await query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_login_logs')`)
-    const activityLogs = await query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'user_activity_logs')`)
-    const loginCount = await query(`SELECT COUNT(*) as count FROM user_login_logs`)
-    const activityCount = await query(`SELECT COUNT(*) as count FROM user_activity_logs`)
-    const sampleLogs = await query(`SELECT * FROM user_login_logs ORDER BY created_at DESC LIMIT 5`)
-    const sampleActivity = await query(`SELECT * FROM user_activity_logs ORDER BY created_at DESC LIMIT 5`)
-    res.json({
-      tables: {
-        user_login_logs: loginLogs.rows[0]?.exists,
-        user_activity_logs: activityLogs.rows[0]?.exists,
-      },
-      counts: {
-        login_logs: parseInt(loginCount.rows[0]?.count || '0'),
-        activity_logs: parseInt(activityCount.rows[0]?.count || '0'),
-      },
-      sampleLogs: sampleLogs.rows,
-      sampleActivity: sampleActivity.rows,
-    })
-  } catch (e: any) {
-    res.status(500).json({ error: e?.message || e })
-  }
-})
+// REMOVED: Debug endpoint was exposing raw login logs and internal table structure
 
 /**
  * Middleware to require admin role of the main company
  */
 const requireAdminRole = async (req: Request, res: Response, next: Function) => {
   const auth = req.auth as AuthPayload
-  if (auth.companyId !== '00000000-0000-0000-0000-000000000000') {
+  if (auth.companyId !== (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
     return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }
   const userResult = await query('SELECT role_key FROM users WHERE id = $1 AND company_id = $2', [
