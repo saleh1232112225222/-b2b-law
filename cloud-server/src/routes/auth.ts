@@ -1249,10 +1249,9 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       console.error('Failed to notify admin of registration attempt:', e)
     })
 
-    // If SMTP is not available, return OTP in response ONLY in development
-    // This enables registration when email is not configured
+    // Return OTP in response in development mode to allow verification without real email
     const devOtp =
-      !smtpAvailable && process.env.NODE_ENV !== 'production' ? { devOtp: otpCode } : {}
+      process.env.NODE_ENV !== 'production' ? { devOtp: otpCode } : {}
     res.status(201).json({ success: true, companyId, username, ...devOtp })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)

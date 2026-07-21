@@ -443,7 +443,7 @@ const handleVerify = async () => {
   success.value = false
 
   try {
-    if (isMockMode.value || devOtp.value) {
+    if (isMockMode.value) {
       if (otpCode.value !== (devOtp.value || '123456')) {
         throw new Error('InvalidCode')
       }

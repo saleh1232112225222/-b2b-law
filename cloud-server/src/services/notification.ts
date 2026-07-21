@@ -4,14 +4,20 @@ let transporter: nodemailer.Transporter | null = null
 
 export function getTransporter(): nodemailer.Transporter | null {
   if (transporter) return transporter
+  const user = process.env.SMTP_USER
+  const pass = process.env.SMTP_PASS
+  if (!user || !pass) {
+    console.warn('[SMTP] Email SMTP user/pass not configured. Transporter disabled.')
+    return null
+  }
   const host = process.env.SMTP_HOST || 'smtp.gmail.com'
   transporter = nodemailer.createTransport({
     host,
     port: parseInt(process.env.SMTP_PORT || '587', 10),
     secure: process.env.SMTP_SECURE === 'true',
     auth: {
-      user: process.env.SMTP_USER || '',
-      pass: process.env.SMTP_PASS || ''
+      user,
+      pass
     },
     connectionTimeout: 10000,
     greetingTimeout: 10000,

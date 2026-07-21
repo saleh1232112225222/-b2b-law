@@ -287,10 +287,12 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
       )
     }
 
-    await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
-      periodEnd,
-      companyId
-    ])
+    await query(
+      `UPDATE companies 
+       SET is_verified = TRUE, verification_code = NULL, trial_expires_at = $1, updated_at = NOW() 
+       WHERE id = $2`,
+      [periodEnd, companyId]
+    )
 
     // Reactivate all users in this company when subscription is activated
     await query(
@@ -363,10 +365,12 @@ adminSubscriptionRouter.post('/extend', requireAdminRole, async (req: Request, r
       [newEndDate, subscription.id]
     )
 
-    await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
-      newEndDate,
-      companyId
-    ])
+    await query(
+      `UPDATE companies 
+       SET is_verified = TRUE, verification_code = NULL, trial_expires_at = $1, updated_at = NOW() 
+       WHERE id = $2`,
+      [newEndDate, companyId]
+    )
 
     // Reactivate all users when subscription is extended
     await query(
@@ -828,6 +832,14 @@ adminSubscriptionRouter.post(
           [subId, companyId, planId || null, newEndDate]
         )
       }
+
+      // Also update company trial expiration and verification status
+      await query(
+        `UPDATE companies 
+         SET is_verified = TRUE, verification_code = NULL, trial_expires_at = $1, updated_at = NOW() 
+         WHERE id = $2`,
+        [newEndDate, companyId]
+      )
 
       // Reactivate all users when subscription is activated
       await query(
