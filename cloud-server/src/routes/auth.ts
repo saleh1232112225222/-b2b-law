@@ -190,12 +190,21 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       return
     }
 
-    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE u.username = $1 OR u.recovery_email = $1`
-    const params: any[] = [username]
+    const searchUsername = username.trim()
+    const emailSearch = username.includes('@') ? username.trim().toLowerCase() : ''
+
+    const params: any[] = [searchUsername]
+    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE (u.username = $1`
+    
+    if (emailSearch) {
+      params.push(emailSearch)
+      userQuery += ` OR u.recovery_email = $2`
+    }
+    userQuery += `)`
 
     if (companyId) {
-      userQuery += ` AND u.company_id = $2`
       params.push(companyId)
+      userQuery += ` AND u.company_id = $${params.length}`
     }
 
     // Order by most recently created first — ensures admin login picks the latest seed
