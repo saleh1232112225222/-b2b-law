@@ -53,6 +53,12 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     return next()
   }
 
+  // Bypass CSRF for requests authenticated via JWT Bearer token (CSRF-safe)
+  const authHeader = req.headers.authorization
+  if (authHeader && authHeader.toLowerCase().startsWith('bearer ')) {
+    return next()
+  }
+
   // Bypass CSRF for public auth/recovery endpoints that run before session establishment
   const path = req.path
   if (

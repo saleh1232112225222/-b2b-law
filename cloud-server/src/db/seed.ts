@@ -35,8 +35,8 @@ async function seed() {
   const periodEnd = new Date(now)
   periodEnd.setFullYear(periodEnd.getFullYear() + 100)
   await query(
-    `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end)
-     VALUES ($1, $2, $3, 'lifetime', $4, $5)`,
+    `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end, trial_start, trial_end)
+     VALUES ($1, $2, $3, 'lifetime', $4, $5, $4, $5)`,
     [subId, companyId, planId, now, periodEnd]
   )
 

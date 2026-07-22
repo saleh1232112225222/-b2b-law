@@ -273,7 +273,6 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
         `UPDATE subscriptions 
          SET plan_id = $1, status = 'active',
              current_period_start = $2, current_period_end = $3,
-             trial_start = NULL, trial_end = NULL,
              canceled_at = NULL, suspended_at = NULL, suspend_reason = NULL, updated_at = NOW()
          WHERE id = $4`,
         [planId, now, periodEnd, existingSub.rows[0].id]
@@ -281,8 +280,8 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
     } else {
       await query(
         `INSERT INTO subscriptions (id, company_id, plan_id, status, 
-          current_period_start, current_period_end)
-         VALUES ($1, $2, $3, 'active', $4, $5)`,
+          current_period_start, current_period_end, trial_start, trial_end)
+         VALUES ($1, $2, $3, 'active', $4, $5, $4, $5)`,
         [uuidv4(), companyId, planId, now, periodEnd]
       )
     }
@@ -1351,8 +1350,8 @@ adminSubscriptionRouter.post('/create-direct', requireAdminRole, async (req: Req
         }
 
         await query(
-          `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end)
-           VALUES ($1, $2, $3, 'active', $4, $5)`,
+          `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end, trial_start, trial_end)
+           VALUES ($1, $2, $3, 'active', $4, $5, $4, $5)`,
           [uuidv4(), companyId, planId, now, periodEnd]
         )
 
