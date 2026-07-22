@@ -198,11 +198,20 @@ const API_BASE =
 
 async function apiRequest(method, path, body = null) {
   const token = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token')
+  let xsrfToken = null
+  const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
+  if (match) {
+    xsrfToken = decodeURIComponent(match[1])
+  } else {
+    xsrfToken = localStorage.getItem('csrfToken')
+  }
+
   const opts = {
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {})
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(xsrfToken ? { 'X-XSRF-TOKEN': xsrfToken } : {})
     }
   }
   if (body) opts.body = JSON.stringify(body)
