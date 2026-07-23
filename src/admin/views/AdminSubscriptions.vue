@@ -134,7 +134,7 @@
                 {{ getStatusText(company.effectiveStatus) }}
               </span>
             </td>
-            <td>{{ company.planName || '-' }}</td>
+            <td>{{ translatePlanName(company.planName) }}</td>
             <td>{{ company.daysRemaining }}</td>
             <td>{{ formatDate(company.expiryDate) }}</td>
             <td class="actions">
@@ -361,14 +361,14 @@
                 <v-select
                   v-model="newSubscriber.planId"
                   :items="availablePlans"
-                  item-title="name"
+                  item-title="displayName"
                   item-value="id"
                   label="خطة الاشتراك"
                   variant="outlined"
                   color="gold"
                 >
                   <template #item="{ props, item }">
-                    <v-list-item v-bind="props" :subtitle="`${item.raw.price} ريال`"></v-list-item>
+                    <v-list-item v-bind="props"></v-list-item>
                   </template>
                 </v-select>
               </v-col>
@@ -424,7 +424,7 @@
               <select v-model="activateData.planId" required>
                 <option value="">اختر الخطة...</option>
                 <option v-for="plan in availablePlans" :key="plan.id" :value="plan.id">
-                  {{ plan.name }} - {{ plan.price }} ريال ({{ plan.interval }})
+                  {{ plan.displayName }}
                 </option>
               </select>
             </div>
@@ -671,7 +671,24 @@ async function fetchData() {
 async function fetchPlans() {
   try {
     const response = await apiRequest('GET', '/api/subscriptions/plans')
-    availablePlans.value = response.data?.data || response.data || []
+    const plans = response.data?.data || response.data || []
+    availablePlans.value = plans.map(plan => {
+      let displayName = plan.name
+      const lower = (plan.name || '').toLowerCase()
+      if (lower.includes('monthly') || plan.interval === 'month' || lower === 'شهري') {
+        displayName = 'خطة شهرية'
+      } else if (lower.includes('yearly') || plan.interval === 'year' || lower === 'سنوي') {
+        displayName = 'خطة سنوية'
+      } else if (lower.includes('lifetime') || plan.interval === 'lifetime' || lower === 'مدى الحياة') {
+        displayName = 'خطة مفتوحة'
+      } else if (plan.name_ar) {
+        displayName = plan.name_ar
+      }
+      return {
+        ...plan,
+        displayName
+      }
+    })
   } catch (error) {
     console.error('Failed to fetch plans:', error)
   }
@@ -741,6 +758,15 @@ function getStatusText(status) {
 function formatDate(date) {
   if (!date) return '-'
   return new Date(date).toLocaleDateString('ar-SA')
+}
+
+function translatePlanName(name) {
+  if (!name) return '-'
+  const lower = name.toLowerCase()
+  if (lower.includes('monthly') || lower === 'month' || lower === 'شهري') return 'خطة شهرية'
+  if (lower.includes('yearly') || lower === 'year' || lower === 'سنوي') return 'خطة سنوية'
+  if (lower.includes('lifetime') || lower === 'lifetime' || lower === 'مدى الحياة') return 'خطة مفتوحة'
+  return name
 }
 
 async function createSubscriber() {
