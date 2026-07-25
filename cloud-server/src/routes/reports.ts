@@ -481,84 +481,173 @@ async function generateReportHtmlString(companyId: string, type: string, params:
     }
   }
 
-  if (type === 'financial') {
-    title = 'التقرير المالي وحسابات المكتب'
-    const result = await query(
-      `SELECT date, amount_in, amount_out, description, type FROM finances WHERE company_id = $1 ORDER BY date DESC`,
-      [companyId]
-    )
-    headers = ['التاريخ', 'الوارد (ريال)', 'الصادر (ريال)', 'البيان', 'النوع']
-    rows = result.rows.map(r => [
-      r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
-      r.amount_in || '0',
-      r.amount_out || '0',
-      r.description || '',
-      r.type || ''
-    ])
-    const totalIn = result.rows.reduce((sum, r) => sum + parseFloat(r.amount_in || 0), 0)
-    const totalOut = result.rows.reduce((sum, r) => sum + parseFloat(r.amount_out || 0), 0)
-    summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال`
+  try {
+    if (type === 'financial') {
+      title = 'التقرير المالي وحسابات المكتب'
+      const result = await query(
+        `SELECT date, amount_in, amount_out, description, type FROM finances WHERE company_id = $1 ORDER BY date DESC`,
+        [companyId]
+      )
+      headers = ['التاريخ', 'الوارد (ريال)', 'الصادر (ريال)', 'البيان', 'النوع']
+      rows = result.rows.map((r: any) => [
+        r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
+        r.amount_in || '0',
+        r.amount_out || '0',
+        r.description || '',
+        r.type || ''
+      ])
+      const totalIn = result.rows.reduce((sum: number, r: any) => sum + parseFloat(r.amount_in || 0), 0)
+      const totalOut = result.rows.reduce((sum: number, r: any) => sum + parseFloat(r.amount_out || 0), 0)
+      summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال`
 
-  } else if (type === 'activity_log') {
-    title = 'تقرير سجل النشاطات والعمليات'
-    const result = await query(
-      `SELECT timestamp, actor, details FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 200`,
-      [companyId]
-    )
-    headers = ['الوقت والتاريخ', 'المستخدم/المنفذ', 'تفاصيل العملية']
-    rows = result.rows.map(r => [
-      r.timestamp ? new Date(r.timestamp).toLocaleString('ar-SA') : '',
-      r.actor || 'النظام',
-      r.details || ''
-    ])
-    summary = `عدد العمليات المسجلة مؤخراً: ${result.rows.length}`
+    } else if (type === 'activity_log') {
+      title = 'تقرير سجل النشاطات والعمليات'
+      const result = await query(
+        `SELECT timestamp, actor, details FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 200`,
+        [companyId]
+      )
+      headers = ['الوقت والتاريخ', 'المستخدم/المنفذ', 'تفاصيل العملية']
+      rows = result.rows.map((r: any) => [
+        r.timestamp ? new Date(r.timestamp).toLocaleString('ar-SA') : '',
+        r.actor || 'النظام',
+        r.details || ''
+      ])
+      summary = `عدد العمليات المسجلة مؤخراً: ${result.rows.length}`
 
-  } else if (type === 'users_permissions') {
-    title = 'تقرير صلاحيات ومستخدمي النظام'
-    const result = await query(
-      `SELECT username, full_name, role_key, is_active FROM users WHERE company_id = $1`,
-      [companyId]
-    )
-    headers = ['اسم المستخدم', 'الاسم الكامل', 'الدور/الصلاحية', 'الحالة']
-    rows = result.rows.map(r => [
-      r.username || '',
-      r.full_name || '',
-      r.role_key || '',
-      r.is_active ? 'نشط' : 'معطل'
-    ])
-    summary = `إجمالي عدد مستخدمي النظام: ${result.rows.length}`
+    } else if (type === 'users_permissions') {
+      title = 'تقرير صلاحيات ومستخدمي النظام'
+      const result = await query(
+        `SELECT username, full_name, role_key, is_active FROM users WHERE company_id = $1`,
+        [companyId]
+      )
+      headers = ['اسم المستخدم', 'الاسم الكامل', 'الدور/الصلاحية', 'الحالة']
+      rows = result.rows.map((r: any) => [
+        r.username || '',
+        r.full_name || '',
+        r.role_key || '',
+        r.is_active ? 'نشط' : 'معطل'
+      ])
+      summary = `إجمالي عدد مستخدمي النظام: ${result.rows.length}`
 
-  } else if (type === 'sessions') {
-    title = 'تقرير جلسات الموكلين والمحاكم'
-    const result = await query(
-      `SELECT date, time, type, status, notes FROM sessions WHERE company_id = $1 ORDER BY date DESC`,
-      [companyId]
-    )
-    headers = ['تاريخ الجلسة', 'الوقت', 'نوع الجلسة', 'الحالة', 'ملاحظات']
-    rows = result.rows.map(r => [
-      r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
-      r.time || '',
-      r.type || '',
-      r.status || '',
-      r.notes || ''
-    ])
-    summary = `إجمالي عدد الجلسات المسجلة: ${result.rows.length}`
+    } else if (type === 'sessions') {
+      title = 'تقرير جلسات الموكلين والمحاكم'
+      const result = await query(
+        `SELECT s.date, s.time, s.status, s.notes, c.case_number, COALESCE(cl.name, '') as client_name
+         FROM sessions s
+         LEFT JOIN cases c ON s.case_id = c.id
+         LEFT JOIN clients cl ON c.client_id = cl.id
+         WHERE s.company_id = $1
+         ORDER BY s.date DESC`,
+        [companyId]
+      )
+      headers = ['تاريخ الجلسة', 'الوقت', 'رقم القضية', 'الموكل', 'الحالة', 'ملاحظات']
+      rows = result.rows.map((r: any) => [
+        r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
+        r.time || '',
+        r.case_number || '-',
+        r.client_name || '-',
+        r.status || '-',
+        r.notes || '-'
+      ])
+      summary = `إجمالي عدد الجلسات المسجلة: ${result.rows.length}`
 
-  } else {
-    title = 'تقرير القضايا والملفات القانونية'
-    const result = await query(
-      `SELECT case_number, client_name, court_name, status, subject FROM cases WHERE company_id = $1 ORDER BY created_at DESC`,
-      [companyId]
-    )
-    headers = ['رقم القضية', 'الموكل', 'المحكمة', 'الحالة', 'الموضوع']
-    rows = result.rows.map(r => [
-      r.case_number || '',
-      r.client_name || '',
-      r.court_name || '',
-      r.status || '',
-      r.subject || ''
-    ])
-    summary = `إجمالي عدد القضايا في النظام: ${result.rows.length}`
+    } else if (type === 'evidence') {
+      title = 'تقرير الأدلة والقرائن'
+      const result = await query(
+        `SELECT e.title, e.type, e.status, c.case_number
+         FROM evidence e
+         LEFT JOIN cases c ON e.case_id = c.id
+         WHERE e.company_id = $1 ORDER BY e.created_at DESC`,
+        [companyId]
+      )
+      headers = ['عنوان الدليل', 'النوع', 'الحالة', 'رقم القضية']
+      rows = result.rows.map((r: any) => [
+        r.title || '',
+        r.type || '',
+        r.status || '',
+        r.case_number || '-'
+      ])
+      summary = `إجمالي الأدلة المسجلة: ${result.rows.length}`
+
+    } else if (type === 'documents') {
+      title = 'تقرير المستندات والوثائق'
+      const result = await query(
+        `SELECT d.title, d.category, c.case_number
+         FROM documents d
+         LEFT JOIN cases c ON d.case_id = c.id
+         WHERE d.company_id = $1 ORDER BY d.created_at DESC`,
+        [companyId]
+      )
+      headers = ['اسم المستند', 'التصنيف', 'رقم القضية']
+      rows = result.rows.map((r: any) => [
+        r.title || '',
+        r.category || '',
+        r.case_number || '-'
+      ])
+      summary = `إجمالي المستندات: ${result.rows.length}`
+
+    } else if (type === 'court-cases' || type === 'court_cases' || type === 'cases') {
+      title = 'تقرير قضايا المحكمة والملفات القانونية'
+      let sql = `SELECT c.id, c.case_number, COALESCE(cl.name, '') as client_name, c.court, c.circuit, c.status, c.subject
+                 FROM cases c
+                 LEFT JOIN clients cl ON c.client_id = cl.id
+                 WHERE c.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+
+      if (params?.court && String(params.court).trim()) {
+        sql += ` AND (c.court ILIKE $${pIdx} OR c.circuit ILIKE $${pIdx})`
+        queryParams.push(`%${String(params.court).trim()}%`)
+        pIdx++
+      }
+      if (params?.from && String(params.from).trim()) {
+        sql += ` AND c.registration_date >= $${pIdx++}`
+        queryParams.push(String(params.from).trim())
+      }
+      if (params?.to && String(params.to).trim()) {
+        sql += ` AND c.registration_date <= $${pIdx++}`
+        queryParams.push(String(params.to).trim())
+      }
+
+      sql += ` ORDER BY c.created_at DESC`
+      const result = await query(sql, queryParams)
+
+      headers = ['رقم القضية', 'الموكل', 'المحكمة / الدائرة', 'الحالة', 'الموضوع', 'ملاحظات التقرير']
+      rows = result.rows.map((r: any) => [
+        r.case_number || '',
+        r.client_name || '',
+        `${r.court || ''} ${r.circuit ? ' / ' + r.circuit : ''}`,
+        r.status || '',
+        r.subject || '',
+        params?.notes && params.notes[r.id] ? params.notes[r.id] : '-'
+      ])
+      summary = `إجمالي عدد القضايا في التقرير: ${result.rows.length}`
+
+    } else {
+      title = 'تقرير بيانات النظام'
+      const result = await query(
+        `SELECT c.case_number, COALESCE(cl.name, '') as client_name, c.court, c.status, c.subject
+         FROM cases c
+         LEFT JOIN clients cl ON c.client_id = cl.id
+         WHERE c.company_id = $1
+         ORDER BY c.created_at DESC`,
+        [companyId]
+      )
+      headers = ['رقم القضية', 'الموكل', 'المحكمة', 'الحالة', 'الموضوع']
+      rows = result.rows.map((r: any) => [
+        r.case_number || '',
+        r.client_name || '',
+        r.court || '',
+        r.status || '',
+        r.subject || ''
+      ])
+      summary = `إجمالي البيانات: ${result.rows.length}`
+    }
+  } catch (err: any) {
+    console.error(`[REPORTS] Error building report ${type}:`, err?.message || err)
+    title = 'تقرير بيانات النظام'
+    headers = ['الحالة', 'الرسالة']
+    rows = [['فشل استخراج بيانات التقرير', err?.message || '']]
   }
 
   const tableHeaders = headers.map(h => `<th style="border: 1px solid #e2e8f0; padding: 12px; background-color: #f1f5f9; color: #1e293b; font-weight: bold; text-align: right;">${h}</th>`).join('')
@@ -594,16 +683,16 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         <h1>${title}</h1>
         <p>برنامج B2B LAWYER PRO - تقرير تم إنشاؤه في ${new Date().toLocaleDateString('ar-SA')}</p>
       </div>
-      \${summary ? \`<div class="summary">\${summary}</div>\` : ''}
+      ${summary ? `<div class="summary">${summary}</div>` : ''}
       <table>
         <thead>
-          <tr>\${tableHeaders}</tr>
+          <tr>${tableHeaders}</tr>
         </thead>
         <tbody>
-          \${tableRows}
+          ${tableRows}
         </tbody>
       </table>
-      \${isPdf ? '<script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>' : ''}
+      ${isPdf ? '<script>window.onload = () => { setTimeout(() => { window.print(); }, 500); }</script>' : ''}
     </body>
     </html>
   `

@@ -107,9 +107,9 @@
             class="rounded-xl px-6 font-weight-black premium-hover premium-btn-gold-gradient"
             :loading="loading"
             :disabled="loading || reportCases.length === 0"
-            @click="exportPdf"
+            @click="showExportDialog = true"
           >
-            <LucideIcon name="file-text" :size="20" class="me-2 text-gold" /> تصدير PDF
+            <LucideIcon name="hard-drive-download" :size="20" class="me-2 text-gold" /> تصدير وحفظ التقرير
           </v-btn>
         </v-col>
       </v-row>
@@ -298,6 +298,20 @@
 
     <!-- Print Signature Section -->
     <PrintSignaturePage />
+
+    <ExportReportDialog
+      v-model="showExportDialog"
+      report-title="تقرير قضايا المحكمة"
+      default-filename="تقرير_قضايا_المحكمة"
+      report-type="court-cases"
+      :rows-data="reportCases"
+      :export-params="{
+        court: selectedCourt || undefined,
+        from: fromDate || undefined,
+        to: toDate || undefined,
+        notes: notes
+      }"
+    />
   </v-container>
 </template>
 
@@ -309,7 +323,9 @@ import { convertToHijri } from '../utils/hijri'
 import PrintReportFrame from '../components/common/PrintReportFrame.vue'
 import PrintSignaturePage from '../components/common/PrintSignaturePage.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import ExportReportDialog from '../components/common/ExportReportDialog.vue'
 
+const showExportDialog = ref(false)
 const selectedCourt = ref<string | null>(null)
 const fromDate = ref('')
 const toDate = ref('')

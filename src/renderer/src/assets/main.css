@@ -282,12 +282,142 @@
   color: var(--primary) !important;
 }
 
+.text-high-contrast {
+  color: var(--text-primary) !important;
+}
+
+.text-medium-contrast {
+  color: var(--text-secondary) !important;
+}
+
+.text-ebony {
+  color: #0b1329 !important;
+}
+
 [data-theme='dark'] .text-gold {
   color: var(--gold) !important;
 }
 
 .text-white-50 {
   color: var(--text-secondary) !important;
+}
+
+/* Light mode contrast fixes: ensure text inside glass cards/tables contrast properly with background */
+[data-theme='light'] .glass-card .text-white,
+[data-theme='light'] .premium-table .text-white,
+[data-theme='light'] .glass-table .text-white {
+  color: var(--text-primary) !important;
+}
+
+[data-theme='light'] .premium-table td,
+[data-theme='light'] .glass-table td {
+  color: #1f1b13 !important;
+}
+
+[data-theme='dark'] .premium-table td,
+[data-theme='dark'] .glass-table td {
+  color: #f1f5f9 !important;
+}
+
+/* ===== Ultra Premium High-Contrast Table & Badge Styling ===== */
+.premium-table,
+.glass-table {
+  width: 100%;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.premium-table thead th,
+.glass-table thead th {
+  background: var(--gold-alpha-soft, rgba(233, 195, 73, 0.08)) !important;
+  color: var(--gold) !important;
+  font-weight: 900 !important;
+  font-size: 0.9rem !important;
+  letter-spacing: 0.02em;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid var(--border) !important;
+  text-transform: uppercase;
+}
+
+[data-theme='light'] .premium-table thead th,
+[data-theme='light'] .glass-table thead th {
+  background: rgba(115, 92, 0, 0.07) !important;
+  color: #594500 !important;
+  border-bottom-color: rgba(115, 92, 0, 0.25) !important;
+}
+
+.premium-table tbody tr,
+.glass-table tbody tr {
+  transition: all 0.2s ease-in-out;
+  border-bottom: 1px solid var(--divider) !important;
+}
+
+.premium-table tbody tr:hover,
+.glass-table tbody tr:hover,
+.premium-hover-row:hover {
+  background-color: var(--surface-hover, rgba(233, 195, 73, 0.08)) !important;
+}
+
+[data-theme='light'] .premium-table tbody tr:hover,
+[data-theme='light'] .glass-table tbody tr:hover,
+[data-theme='light'] .premium-hover-row:hover {
+  background-color: rgba(115, 92, 0, 0.05) !important;
+}
+
+.premium-table td,
+.glass-table td {
+  padding: 14px 16px !important;
+  font-size: 0.95rem;
+  vertical-align: middle;
+}
+
+/* Status Badges */
+.status-badge-next {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #bfdbfe !important;
+}
+
+[data-theme='dark'] .status-badge-next {
+  background-color: rgba(59, 130, 246, 0.22) !important;
+  color: #93c5fd !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+.status-badge-finished {
+  background-color: #d1fae5 !important;
+  color: #065f46 !important;
+  border: 1px solid #a7f3d0 !important;
+}
+
+[data-theme='dark'] .status-badge-finished {
+  background-color: rgba(16, 185, 129, 0.22) !important;
+  color: #6ee7b7 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.status-badge-delayed {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
+}
+
+[data-theme='dark'] .status-badge-delayed {
+  background-color: rgba(245, 158, 11, 0.22) !important;
+  color: #fcd34d !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.status-badge-canceled {
+  background-color: #fee2e2 !important;
+  color: #991b1b !important;
+  border: 1px solid #fca5a5 !important;
+}
+
+[data-theme='dark'] .status-badge-canceled {
+  background-color: rgba(239, 68, 68, 0.22) !important;
+  color: #fca5a5 !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
 }
 
 .premium-lift {

@@ -1484,7 +1484,7 @@ const api = {
               const url = URL.createObjectURL(blob)
               const a = document.createElement('a')
               a.href = url
-              a.download = `${payload.type || 'report'}-report.html`
+              a.download = payload.filename || `${payload.type || 'report'}-report.html`
               a.click()
               URL.revokeObjectURL(url)
             }

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6 pb-12 rtl">
     <PrintReportFrame title="بيان الجلسات المنعقدة" />
 
@@ -107,27 +107,18 @@
           color="white"
           height="48"
           class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
+          @click="showExportDialog = true"
+        >
+          <LucideIcon name="hard-drive-download" :size="20" class="me-2 text-gold" /> تصدير وحفظ التقرير
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          color="white"
+          height="48"
+          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="printPage"
         >
-          <LucideIcon name="printer" :size="20" class="me-2 text-gold" /> طباعة
-        </v-btn>
-        <v-btn
-          variant="tonal"
-          color="white"
-          height="48"
-          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
-          @click="exportPdf"
-        >
-          <LucideIcon name="file-text" :size="20" class="me-2 text-gold" /> تصدير PDF
-        </v-btn>
-        <v-btn
-          variant="tonal"
-          color="white"
-          height="48"
-          class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
-          @click="exportCsv"
-        >
-          <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير CSV
+          <LucideIcon name="printer" :size="20" class="me-2 text-gold" /> طباعة مباشرة
         </v-btn>
       </div>
 
@@ -159,7 +150,7 @@
         <div class="glass-panel-light pa-2 rounded-lg me-3 border border-gold border-opacity-10">
           <LucideIcon name="bar-chart-3" :size="20" class="text-gold" />
         </div>
-        <span class="text-h6 font-weight-black text-white">كثافة الجلسات الشهرية</span>
+        <span class="text-h6 font-weight-black text-high-contrast">كثافة الجلسات الشهرية</span>
       </div>
 
       <v-card
@@ -180,7 +171,7 @@
         <div class="glass-panel-light pa-2 rounded-lg me-3 border border-gold border-opacity-10">
           <LucideIcon name="list" :size="20" class="text-gold" />
         </div>
-        <span class="text-h6 font-weight-black text-white">بيان الجلسات التفصيلي</span>
+        <span class="text-h6 font-weight-black text-high-contrast">بيان الجلسات التفصيلي</span>
       </div>
 
       <v-card
@@ -210,38 +201,75 @@
             </template>
             <template v-else>
               <tr v-if="safeLength(rows) === 0">
-                <td colspan="8" class="text-center py-12 text-gold opacity-20">
+                <td colspan="8" class="text-center py-12 text-gold opacity-50 font-weight-black">
                   لا توجد جلسات مجدولة ضمن المعايير المختارة
                 </td>
               </tr>
               <tr v-for="r in safeArray(rows)" :key="(r as any).id" class="premium-hover-row">
-                <td class="text-accent font-weight-black">
-                  {{ arabicOrdinal((r as any).session_ordinal) }}
-                </td>
-                <td class="text-caption font-mono text-white">
-                  {{ (r as any).date || '-' }}<span class="mx-1 text-gold opacity-30">|</span
-                  >{{ (r as any).date_hijri || '-' }}
-                </td>
-                <td class="text-caption font-mono text-white opacity-80">
-                  {{ (r as any).time || '-' }}
-                </td>
-                <td class="font-weight-black text-white">{{ (r as any).case_number || '-' }}</td>
-                <td class="text-caption text-white opacity-80">
-                  {{ (r as any).client_name || '-' }}
-                </td>
-                <td class="text-caption text-white opacity-80">
-                  {{ (r as any).opponent_name || '-' }}
-                </td>
-                <td class="text-caption text-gold opacity-60">
-                  {{ (r as any).court_name || '-' }} /
-                  {{ (r as any).court_room_label || (r as any).court_room || '-' }}
-                </td>
                 <td>
                   <v-chip
                     size="x-small"
-                    :color="getStatusColor((r as any).status)"
+                    color="gold"
+                    variant="tonal"
+                    class="font-weight-black px-3"
+                  >
+                    الجلسة {{ arabicOrdinal((r as any).session_ordinal) }}
+                  </v-chip>
+                </td>
+                <td>
+                  <div class="d-flex flex-column py-1">
+                    <span class="font-mono font-weight-black text-high-contrast text-body-2 mb-1">
+                      {{ (r as any).date ? String((r as any).date).split('T')[0] : '-' }} م
+                    </span>
+                    <span class="font-mono text-gold text-caption font-weight-bold">
+                      {{ (r as any).date_hijri || '-' }} هـ
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <div class="d-flex align-center">
+                    <LucideIcon name="clock" :size="15" class="me-2 text-gold" />
+                    <span class="font-mono font-weight-black text-high-contrast text-body-2">
+                      {{ (r as any).time || '-' }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <v-chip
+                    size="small"
                     variant="flat"
-                    class="font-weight-black text-ebony"
+                    color="accent"
+                    class="font-mono font-weight-black text-ebony px-3 rounded-lg"
+                  >
+                    {{ (r as any).case_number || '-' }}
+                  </v-chip>
+                </td>
+                <td>
+                  <span class="font-weight-black text-high-contrast text-body-2">
+                    {{ (r as any).client_name || '-' }}
+                  </span>
+                </td>
+                <td>
+                  <span class="font-weight-bold text-medium-contrast text-caption">
+                    {{ (r as any).opponent_name || '-' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="text-caption text-gold font-weight-black">
+                    <span>{{ (r as any).court_name || '-' }}</span>
+                    <span
+                      v-if="(r as any).court_room || (r as any).court_room_label"
+                      class="ms-1 text-high-contrast"
+                    >
+                      / {{ (r as any).court_room_label || (r as any).court_room }}
+                    </span>
+                  </div>
+                </td>
+                <td>
+                  <v-chip
+                    size="small"
+                    :class="getStatusBadgeClass((r as any).status)"
+                    class="font-weight-black px-3 rounded-md"
                   >
                     {{ (r as any).status || 'غير محدد' }}
                   </v-chip>
@@ -285,6 +313,20 @@
     </v-card>
 
     <PrintSignaturePage />
+
+    <ExportReportDialog
+      v-model="showExportDialog"
+      report-title="تقرير الجلسات المنعقدة"
+      default-filename="تقرير_الجلسات"
+      report-type="sessions"
+      :rows-data="rows"
+      :export-params="{
+        caseId: caseId || undefined,
+        from: from || undefined,
+        to: to || undefined,
+        q: q || undefined
+      }"
+    />
   </v-container>
 </template>
 
@@ -295,7 +337,9 @@ import { safeArray, safeLength } from '../utils/safe'
 import PrintReportFrame from '../components/common/PrintReportFrame.vue'
 import PrintSignaturePage from '../components/common/PrintSignaturePage.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import ExportReportDialog from '../components/common/ExportReportDialog.vue'
 
+const showExportDialog = ref(false)
 const from = ref('')
 const to = ref('')
 const q = ref('')
@@ -420,6 +464,15 @@ const getStatusColor = (status: string | undefined): string => {
   if (status.includes('مؤجلة')) return 'warning'
   if (status.includes('ملغاة')) return 'error'
   return 'gold'
+}
+
+const getStatusBadgeClass = (status: string | undefined): string => {
+  if (!status) return 'status-badge-next'
+  if (status.includes('منتهية')) return 'status-badge-finished'
+  if (status.includes('قادمة')) return 'status-badge-next'
+  if (status.includes('مؤجلة')) return 'status-badge-delayed'
+  if (status.includes('ملغاة')) return 'status-badge-canceled'
+  return 'status-badge-next'
 }
 
 const loadCases = async (): Promise<void> => {

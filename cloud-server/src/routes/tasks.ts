@@ -71,31 +71,31 @@ tasksRouter.get('/', requirePermission('view_tasks'), async (req: Request, res: 
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string)
     const limit = parseInt(pageSize as string)
 
-    let whereClause = 'WHERE company_id = $1'
+    let whereClause = 'WHERE tasks_v2.company_id = $1'
     const params: any[] = [companyId]
     let paramIndex = 2
 
     if (status && status !== 'all') {
-      whereClause += ` AND status = $${paramIndex++}`
+      whereClause += ` AND tasks_v2.status = $${paramIndex++}`
       params.push(status)
     }
     if (priority) {
-      whereClause += ` AND priority = $${paramIndex++}`
+      whereClause += ` AND tasks_v2.priority = $${paramIndex++}`
       params.push(priority)
     }
     if (responsible_user_id) {
-      whereClause += ` AND responsible_user_id = $${paramIndex++}`
+      whereClause += ` AND tasks_v2.responsible_user_id = $${paramIndex++}`
       params.push(responsible_user_id)
     }
     if (is_archived !== undefined) {
-      whereClause += ` AND is_archived = $${paramIndex++}`
+      whereClause += ` AND tasks_v2.is_archived = $${paramIndex++}`
       const isArchivedStr = String(is_archived)
       params.push(isArchivedStr === '1' || isArchivedStr === 'true')
     } else {
-      whereClause += ` AND is_archived = FALSE`
+      whereClause += ` AND tasks_v2.is_archived = FALSE`
     }
     if (q) {
-      whereClause += ` AND (title ILIKE $${paramIndex} OR description ILIKE $${paramIndex})`
+      whereClause += ` AND (tasks_v2.title ILIKE $${paramIndex} OR tasks_v2.description ILIKE $${paramIndex})`
       params.push(`%${q}%`)
       paramIndex++
     }
