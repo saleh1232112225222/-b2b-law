@@ -153,7 +153,7 @@ integrationsRouter.post('/sync', async (req: Request, res: Response) => {
 
     // Count upcoming sessions to sync
     const sessionsRes = await query(
-      `SELECT COUNT(*)::int AS count FROM sessions WHERE company_id = $1 AND session_date >= NOW()`,
+      `SELECT COUNT(*)::int AS count FROM sessions WHERE company_id = $1`,
       [companyId]
     )
 

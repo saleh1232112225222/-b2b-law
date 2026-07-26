@@ -40,7 +40,7 @@ dashboardRouter.get('/stats', async (req: Request, res: Response) => {
        FROM sessions
        WHERE company_id = $1
          AND (responsible_user_id = $2 OR $2 IS NULL)
-         AND session_date >= NOW()`,
+         AND COALESCE(date, session_date, NOW()) >= NOW()`,
       [companyId, userId || null]
     )
 
@@ -85,14 +85,14 @@ dashboardRouter.get('/alerts', async (req: Request, res: Response) => {
 
     // Alert 1: Session in < 24h with missing documents or agency
     const urgentSessionsRes = await query(
-      `SELECT s.id, s.session_title, s.session_date, s.case_number, c.name AS client_name
+      `SELECT s.id, s.session_title, COALESCE(s.date, s.session_date) AS session_date, s.case_number, c.name AS client_name
        FROM sessions s
        LEFT JOIN clients c ON s.client_id = c.id
        WHERE s.company_id = $1
          AND (s.responsible_user_id = $2 OR $2 IS NULL)
-         AND s.session_date >= NOW()
-         AND s.session_date <= NOW() + INTERVAL '24 hours'
-       ORDER BY s.session_date ASC
+         AND COALESCE(s.date, s.session_date, NOW()) >= NOW()
+         AND COALESCE(s.date, s.session_date, NOW()) <= NOW() + INTERVAL '24 hours'
+       ORDER BY COALESCE(s.date, s.session_date) ASC
        LIMIT 1`,
       [companyId, userId || null]
     )
@@ -194,7 +194,7 @@ dashboardRouter.get('/sessions/upcoming', async (req: Request, res: Response) =>
       `SELECT
          s.id,
          s.session_title,
-         s.session_date,
+         COALESCE(s.date, s.session_date) AS session_date,
          s.status,
          s.court_name,
          s.case_number,
@@ -204,8 +204,8 @@ dashboardRouter.get('/sessions/upcoming', async (req: Request, res: Response) =>
        LEFT JOIN clients c ON s.client_id = c.id
        WHERE s.company_id = $1
          AND (s.responsible_user_id = $2 OR $2 IS NULL)
-         AND s.session_date >= NOW()
-       ORDER BY s.session_date ASC
+         AND COALESCE(s.date, s.session_date, NOW()) >= NOW()
+       ORDER BY COALESCE(s.date, s.session_date) ASC
        LIMIT 5`,
       [companyId, userId || null]
     )
