@@ -58,6 +58,24 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     }
   }
 
+  async function startOAuthFlow(serviceId: string) {
+    try {
+      const data = await apiFetch<{ authUrl: string; redirectUri: string }>(
+        `/api/integrations/oauth/authorize/${serviceId}`
+      )
+      if (data.authUrl) {
+        // Redirect browser to Microsoft / Google OAuth consent screen
+        window.location.href = data.authUrl
+        return true
+      }
+      return false
+    } catch (err: any) {
+      console.error(`[IntegrationsStore] Error starting OAuth flow for ${serviceId}:`, err)
+      error.value = err.message || 'فشل بدء عملية التفويض عبر OAuth'
+      return false
+    }
+  }
+
   async function connectService(serviceId: string, config?: Record<string, any>) {
     loading.value = true
     try {
@@ -128,6 +146,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     syncing,
     error,
     fetchStatus,
+    startOAuthFlow,
     connectService,
     disconnectService,
     pingService,
