@@ -15,7 +15,7 @@ export interface IntegrationService {
 
 async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
   const token = localStorage.getItem('b2b_cloud_token')
-  const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080'
+  const baseUrl = import.meta.env.VITE_API_URL !== undefined ? import.meta.env.VITE_API_URL : ''
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...(options.headers as Record<string, string>)
