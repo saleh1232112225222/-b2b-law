@@ -81,7 +81,7 @@
             </v-col>
 
             <v-col cols="12" md="6">
-              <label class="mb-2 font-weight-black text-gold">مسؤول الجلسة</label>
+              <label class="mb-2 font-weight-black text-gold">مسؤول الجلسة*</label>
               <v-select
                 v-model="editItem.responsible_user_id"
                 :items="assignableUsers"
@@ -89,7 +89,8 @@
                 item-value="id"
                 variant="outlined"
                 class="premium-input-solid glass-input"
-                clearable
+                :rules="[(v: any) => !!v || 'مسؤول الجلسة مطلوب']"
+                required
                 :loading="assignableUsersLoading"
               >
                 <template #prepend-inner>
@@ -238,6 +239,7 @@
 <script setup lang="ts">
 import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { usePermissions } from '../../composables/usePermissions'
 import LucideIcon from '../../components/common/LucideIcon.vue'
 import DualDatePicker from '../../components/DualDatePicker.vue'
 import { SESSION_TYPES, SESSION_STATUSES } from '../../utils/legalConstants'
@@ -251,6 +253,8 @@ const props = defineProps<{
   isEditing: boolean
   editingItem: Partial<Session> | null
 }>()
+
+const { session } = usePermissions()
 
 const emit = defineEmits<{
   'update:show': [value: boolean]
@@ -272,11 +276,30 @@ const defaultItem: Partial<Session> = {
   court_room: '',
   status: 'قادمة',
   notes: '',
-  result: '',
-  meeting_link: ''
+  meeting_link: '',
+  result: ''
 }
 
 const editItem = ref<Partial<Session>>({ ...defaultItem })
+
+watch(
+  () => props.show,
+  (val) => {
+    if (val) {
+      if (props.isEditing && props.editingItem) {
+        editItem.value = { ...props.editingItem }
+      } else {
+        editItem.value = { ...defaultItem }
+        if (!editItem.value.responsible_user_id && session.value?.userId) {
+          editItem.value.responsible_user_id = session.value.userId
+        }
+      }
+      caseBlockStatus.value = { is_blocked: false, reason: '' }
+      loadAssignableUsers()
+    }
+  }
+)
+
 const caseBlockStatus = ref({ is_blocked: false, reason: '' })
 
 const assignableUsers = ref<

@@ -57,7 +57,7 @@
               </v-text-field>
             </v-col>
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">مسؤول القضية</label>
+              <label class="mb-2 font-weight-black text-gold">مسؤول القضية*</label>
               <v-select
                 v-model="item.responsible_user_id"
                 :items="assignableUsers"
@@ -65,7 +65,8 @@
                 item-value="id"
                 variant="outlined"
                 class="glass-input premium-select"
-                clearable
+                :rules="[(v: any) => !!v || 'مسؤول القضية مطلوب']"
+                required
                 :loading="assignableLoading"
               >
                 <template #prepend-inner
@@ -377,8 +378,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useDisplay } from 'vuetify'
+import { usePermissions } from '../../composables/usePermissions'
 import { COURT_TYPES, CASE_STATUSES, PRIORITIES, CASE_PHASES } from '../../utils/legalConstants'
 import { safeArray } from '../../utils/safe'
 import dropdowns from '../../../../../caseDropdowns.json'
@@ -401,6 +403,20 @@ const props = defineProps<{
   defendants: any[]
   assignableUsers: any[]
 }>()
+
+const { session } = usePermissions()
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open && !props.isEditing) {
+      if (item.value && !item.value.responsible_user_id && session.value?.userId) {
+        item.value.responsible_user_id = session.value.userId
+      }
+    }
+  },
+  { immediate: true }
+)
 
 const localFormValid = ref(false)
 

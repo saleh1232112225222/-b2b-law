@@ -143,12 +143,15 @@ import { useMobileLayout } from '../composables/useMobileLayout'
 import { setFabAction, clearFabAction } from '../composables/useFabAction'
 import MobileCases from '../components/mobile/MobileCases.vue'
 
+import { usePermissions } from '../composables/usePermissions'
+
 const store = useCasesStore()
 const clientsStore = useClientsStore()
 const defendantsStore = useDefendantsStore()
 const route = useRoute()
 const router = useRouter()
 const { isMobile } = useMobileLayout()
+const { session } = usePermissions()
 
 const pageLoading = ref(false)
 const showDialog = ref(false)
@@ -363,7 +366,12 @@ const loadCaseSessions = async (): Promise<void> => {
 
 const openAddDialog = (): void => {
   isEditing.value = false
-  editItem.value = { ...defaultItem, parties: [{ party_type: 'client', name: '', client_id: '' }] }
+  const currentUserId = session.value?.userId || ''
+  editItem.value = {
+    ...defaultItem,
+    responsible_user_id: currentUserId,
+    parties: [{ party_type: 'client', name: '', client_id: '' }]
+  }
   caseSessions.value = []
   caseNumberError.value = ''
   loadAssignableUsers()

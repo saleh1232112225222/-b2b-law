@@ -89,11 +89,12 @@
           :items="lawyers"
           item-title="name"
           item-value="id"
-          label="المحامي المسؤول"
+          label="المحامي المسؤول*"
           variant="outlined"
           density="comfortable"
           :prepend-inner-icon="ICONS.ENTITY.EXPERT"
-          clearable
+          :rules="[(v: any) => !!v || 'المحامي المسؤول مطلوب']"
+          required
           :return-object="false"
         ></v-autocomplete>
       </v-col>

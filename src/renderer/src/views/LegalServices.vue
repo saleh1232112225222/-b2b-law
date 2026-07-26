@@ -1014,7 +1014,7 @@ import { useMobileLayout } from '../composables/useMobileLayout'
 import MobileLegalServices from '../components/mobile/MobileLegalServices.vue'
 
 const store = useLegalStore()
-const { can } = usePermissions()
+const { can, session } = usePermissions()
 const { isMobile } = useMobileLayout()
 
 // Feature Flag Check
@@ -1176,7 +1176,8 @@ const editItem = ref<Partial<LegalEngagement>>({ ...defaultItem })
 
 const openCreate = () => {
   isEditing.value = false
-  editItem.value = { ...defaultItem }
+  const currentUserId = session.value?.userId || null
+  editItem.value = { ...defaultItem, responsible_lawyer_id: currentUserId }
   showDialog.value = true
 }
 

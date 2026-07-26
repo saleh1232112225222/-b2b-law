@@ -295,7 +295,7 @@
               </v-col>
 
               <v-col cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">مسؤول المهمة</label>
+                <label class="mb-2 font-weight-black text-gold">مسؤول المهمة*</label>
                 <v-select
                   v-model="editItem.responsible_user_id"
                   :items="assignableUsers"
@@ -303,7 +303,8 @@
                   item-value="id"
                   variant="outlined"
                   class="premium-select glass-input"
-                  clearable
+                  :rules="[(v: any) => !!v || 'مسؤول المهمة مطلوب']"
+                  required
                   :loading="assignableUsersLoading"
                 >
                   <template #prepend-inner>
@@ -556,9 +557,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useTasksStore } from '../stores/tasks'
 import { useCasesStore } from '../stores/cases'
 import { useClientsStore } from '../stores/clients'
-import { Task } from '../types/task'
 import { safeArray, safeLength, isValidDate } from '../utils/safe'
 import { useSearch } from '../composables/useSearch'
+import { Task } from '../types/task'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import TaskActionDialog from './tasks/TaskActionDialog.vue'
@@ -577,6 +578,7 @@ const clientsStore = useClientsStore()
 const route = useRoute()
 const router = useRouter()
 const { isMobile } = useMobileLayout()
+const { session } = usePermissions()
 const clientOptions = computed(() => safeArray(clientsStore.clients))
 
 const mobileTasks = computed(() => {
@@ -899,7 +901,12 @@ const viewCase = (caseId: string): void => {
 
 const openAddDialog = (): void => {
   isEditing.value = false
-  editItem.value = { ...defaultItem, status: pickDefaultStatusByLinkType(defaultItem.link_type) }
+  const currentUserId = session.value?.userId || ''
+  editItem.value = {
+    ...defaultItem,
+    responsible_user_id: currentUserId,
+    status: pickDefaultStatusByLinkType(defaultItem.link_type)
+  }
   showDialog.value = true
   ensureLinkOptionsLoaded(String(editItem.value.link_type || ''))
 }
