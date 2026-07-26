@@ -1,9 +1,9 @@
 <template>
   <v-dialog
     :model-value="modelValue"
-    @update:model-value="$emit('update:modelValue', $event)"
     max-width="700"
     persistent
+    @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card class="rounded-xl">
       <v-card-title class="text-h6 font-weight-black d-flex align-center">

@@ -10,7 +10,12 @@ const routes = [
     component: () => import('../views/ForcePasswordChange.vue'),
     meta: { requiresAuth: true }
   },
-  { path: '/dev-console', name: 'DevConsole', component: () => import('../views/DevConsole.vue'), meta: { requiresAuth: true, requiresSuperAdmin: true } },
+  {
+    path: '/dev-console',
+    name: 'DevConsole',
+    component: () => import('../views/DevConsole.vue'),
+    meta: { requiresAuth: true, requiresSuperAdmin: true }
+  },
   {
     path: '/lock',
     name: 'LockScreen',

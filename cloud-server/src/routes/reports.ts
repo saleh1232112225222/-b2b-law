@@ -374,7 +374,13 @@ reportsRouter.post(
       res.send(html)
     } catch (err: any) {
       console.error('[REPORTS] export pdf error:', err)
-      res.status(500).json({ error: 'فشل تصدير التقرير', details: err?.message || String(err), stack: err?.stack })
+      res
+        .status(500)
+        .json({
+          error: 'فشل تصدير التقرير',
+          details: err?.message || String(err),
+          stack: err?.stack
+        })
     }
   }
 )
@@ -392,12 +398,23 @@ reportsRouter.post(
       res.send(html)
     } catch (err: any) {
       console.error('[REPORTS] export html error:', err)
-      res.status(500).json({ error: 'فشل تصدير التقرير', details: err?.message || String(err), stack: err?.stack })
+      res
+        .status(500)
+        .json({
+          error: 'فشل تصدير التقرير',
+          details: err?.message || String(err),
+          stack: err?.stack
+        })
     }
   }
 )
 
-async function generateReportHtmlString(companyId: string, type: string, params: any, isPdf: boolean): Promise<string> {
+async function generateReportHtmlString(
+  companyId: string,
+  type: string,
+  params: any,
+  isPdf: boolean
+): Promise<string> {
   let title = 'تقرير النظام'
   let headers: string[] = []
   let rows: any[][] = []
@@ -405,15 +422,19 @@ async function generateReportHtmlString(companyId: string, type: string, params:
 
   if (type === 'contract') {
     const contractId = params.contractId
-    const cRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [contractId, companyId])
+    const cRes = await query(`SELECT * FROM contracts WHERE id = $1 AND company_id = $2`, [
+      contractId,
+      companyId
+    ])
     if (cRes.rows.length > 0) {
       const c = cRes.rows[0]
       title = c.title || 'عقد قانوني'
       summary = `مرجع العقد: ${c.contract_no || '—'} | تاريخ العقد: ${c.contract_date ? new Date(c.contract_date).toLocaleDateString('ar-SA') : '—'}`
-      
+
       const textContent = c.text_content || 'نص العقد غير متوفر'
-      
-      const pRes = await query(`
+
+      const pRes = await query(
+        `
         SELECT cp.id, cp.role_key, cp.role_label, cs.signature_status, cs.signature_payload_json, cl.name as client_name, u.full_name as user_name
         FROM contract_participants cp
         LEFT JOIN contract_signatures cs ON cs.participant_id = cp.id
@@ -421,27 +442,31 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         LEFT JOIN clients cl ON p.client_id = cl.id
         LEFT JOIN users u ON p.user_id = u.id
         WHERE cp.contract_id = $1 AND cp.company_id = $2
-      `, [contractId, companyId])
-      
-      const sigsHtml = pRes.rows.map(p => {
-        let imgTag = ''
-        if (p.signature_payload_json) {
-          try {
-            const pay = JSON.parse(p.signature_payload_json)
-            if (pay.image) {
-              imgTag = `<img src="${pay.image}" style="max-height: 60px; max-width: 150px; display: block; margin-top: 5px; border: 1px dashed #ccc;" />`
-            }
-          } catch {}
-        }
-        const name = p.client_name || p.user_name || 'الطرف الآخر'
-        return `
+      `,
+        [contractId, companyId]
+      )
+
+      const sigsHtml = pRes.rows
+        .map((p) => {
+          let imgTag = ''
+          if (p.signature_payload_json) {
+            try {
+              const pay = JSON.parse(p.signature_payload_json)
+              if (pay.image) {
+                imgTag = `<img src="${pay.image}" style="max-height: 60px; max-width: 150px; display: block; margin-top: 5px; border: 1px dashed #ccc;" />`
+              }
+            } catch {}
+          }
+          const name = p.client_name || p.user_name || 'الطرف الآخر'
+          return `
           <div style="width: 45%; margin-bottom: 20px; float: right; box-sizing: border-box; padding: 10px;">
             <strong>الاسم:</strong> ${name}<br/>
             <strong>الصفة:</strong> ${p.role_label || p.role_key}<br/>
             <strong>التوقيع:</strong> ${imgTag ? imgTag : '<span style="color:#e9a049;">(لم يوقع بعد)</span>'}
           </div>
         `
-      }).join('')
+        })
+        .join('')
 
       return `
         <!DOCTYPE html>
@@ -496,10 +521,15 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         r.description || '',
         r.type || ''
       ])
-      const totalIn = result.rows.reduce((sum: number, r: any) => sum + parseFloat(r.amount_in || 0), 0)
-      const totalOut = result.rows.reduce((sum: number, r: any) => sum + parseFloat(r.amount_out || 0), 0)
+      const totalIn = result.rows.reduce(
+        (sum: number, r: any) => sum + parseFloat(r.amount_in || 0),
+        0
+      )
+      const totalOut = result.rows.reduce(
+        (sum: number, r: any) => sum + parseFloat(r.amount_out || 0),
+        0
+      )
       summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال`
-
     } else if (type === 'activity_log') {
       title = 'تقرير سجل النشاطات والعمليات'
       const result = await query(
@@ -513,7 +543,6 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         r.details || ''
       ])
       summary = `عدد العمليات المسجلة مؤخراً: ${result.rows.length}`
-
     } else if (type === 'users_permissions') {
       title = 'تقرير صلاحيات ومستخدمي النظام'
       const result = await query(
@@ -528,7 +557,6 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         r.is_active ? 'نشط' : 'معطل'
       ])
       summary = `إجمالي عدد مستخدمي النظام: ${result.rows.length}`
-
     } else if (type === 'sessions') {
       title = 'تقرير جلسات الموكلين والمحاكم'
       const result = await query(
@@ -550,7 +578,6 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         r.notes || '-'
       ])
       summary = `إجمالي عدد الجلسات المسجلة: ${result.rows.length}`
-
     } else if (type === 'evidence') {
       title = 'تقرير الأدلة والقرائن'
       const result = await query(
@@ -568,7 +595,6 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         r.case_number || '-'
       ])
       summary = `إجمالي الأدلة المسجلة: ${result.rows.length}`
-
     } else if (type === 'documents') {
       title = 'تقرير المستندات والوثائق'
       const result = await query(
@@ -579,13 +605,8 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         [companyId]
       )
       headers = ['اسم المستند', 'التصنيف', 'رقم القضية']
-      rows = result.rows.map((r: any) => [
-        r.title || '',
-        r.category || '',
-        r.case_number || '-'
-      ])
+      rows = result.rows.map((r: any) => [r.title || '', r.category || '', r.case_number || '-'])
       summary = `إجمالي المستندات: ${result.rows.length}`
-
     } else if (type === 'court-cases' || type === 'court_cases' || type === 'cases') {
       title = 'تقرير قضايا المحكمة والملفات القانونية'
       let sql = `SELECT c.id, c.case_number, COALESCE(cl.name, '') as client_name, c.court, c.circuit, c.status, c.subject
@@ -612,7 +633,14 @@ async function generateReportHtmlString(companyId: string, type: string, params:
       sql += ` ORDER BY c.created_at DESC`
       const result = await query(sql, queryParams)
 
-      headers = ['رقم القضية', 'الموكل', 'المحكمة / الدائرة', 'الحالة', 'الموضوع', 'ملاحظات التقرير']
+      headers = [
+        'رقم القضية',
+        'الموكل',
+        'المحكمة / الدائرة',
+        'الحالة',
+        'الموضوع',
+        'ملاحظات التقرير'
+      ]
       rows = result.rows.map((r: any) => [
         r.case_number || '',
         r.client_name || '',
@@ -622,7 +650,6 @@ async function generateReportHtmlString(companyId: string, type: string, params:
         params?.notes && params.notes[r.id] ? params.notes[r.id] : '-'
       ])
       summary = `إجمالي عدد القضايا في التقرير: ${result.rows.length}`
-
     } else {
       title = 'تقرير بيانات النظام'
       const result = await query(
@@ -650,11 +677,23 @@ async function generateReportHtmlString(companyId: string, type: string, params:
     rows = [['فشل استخراج بيانات التقرير', err?.message || '']]
   }
 
-  const tableHeaders = headers.map(h => `<th style="border: 1px solid #e2e8f0; padding: 12px; background-color: #f1f5f9; color: #1e293b; font-weight: bold; text-align: right;">${h}</th>`).join('')
-  const tableRows = rows.map(row => {
-    const cells = row.map(cell => `<td style="border: 1px solid #e2e8f0; padding: 12px; text-align: right;">${cell !== null && cell !== undefined ? cell : ''}</td>`).join('')
-    return `<tr>${cells}</tr>`
-  }).join('')
+  const tableHeaders = headers
+    .map(
+      (h) =>
+        `<th style="border: 1px solid #e2e8f0; padding: 12px; background-color: #f1f5f9; color: #1e293b; font-weight: bold; text-align: right;">${h}</th>`
+    )
+    .join('')
+  const tableRows = rows
+    .map((row) => {
+      const cells = row
+        .map(
+          (cell) =>
+            `<td style="border: 1px solid #e2e8f0; padding: 12px; text-align: right;">${cell !== null && cell !== undefined ? cell : ''}</td>`
+        )
+        .join('')
+      return `<tr>${cells}</tr>`
+    })
+    .join('')
 
   return `
     <!DOCTYPE html>
@@ -764,26 +803,47 @@ reportsRouter.get(
       const companyId = getCompanyId(req)
 
       // 1. Cases stats
-      const totalCasesRes = await query('SELECT COUNT(*) FROM cases WHERE company_id = $1', [companyId])
-      const wonRes = await query("SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'موكل'", [companyId])
-      const lostRes = await query("SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'خصم'", [companyId])
+      const totalCasesRes = await query('SELECT COUNT(*) FROM cases WHERE company_id = $1', [
+        companyId
+      ])
+      const wonRes = await query(
+        "SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'موكل'",
+        [companyId]
+      )
+      const lostRes = await query(
+        "SELECT COUNT(DISTINCT case_id) FROM judgments WHERE company_id = $1 AND favor = 'خصم'",
+        [companyId]
+      )
 
       const totalCases = parseInt(totalCasesRes.rows[0].count) || 0
       const won = parseInt(wonRes.rows[0].count) || 0
       const lost = parseInt(lostRes.rows[0].count) || 0
-      const winRate = (won + lost) > 0 ? Math.round((won / (won + lost)) * 100) : 0
+      const winRate = won + lost > 0 ? Math.round((won / (won + lost)) * 100) : 0
 
       // 2. Tasks stats
-      const completedTasksRes = await query("SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status IN ('completed', 'closed')", [companyId])
-      const pendingTasksRes = await query("SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status NOT IN ('completed', 'closed', 'cancelled')", [companyId])
+      const completedTasksRes = await query(
+        "SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status IN ('completed', 'closed')",
+        [companyId]
+      )
+      const pendingTasksRes = await query(
+        "SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1 AND status NOT IN ('completed', 'closed', 'cancelled')",
+        [companyId]
+      )
 
       const completed = parseInt(completedTasksRes.rows[0].count) || 0
       const pending = parseInt(pendingTasksRes.rows[0].count) || 0
-      const completionRate = (completed + pending) > 0 ? Math.round((completed / (completed + pending)) * 100) : 0
+      const completionRate =
+        completed + pending > 0 ? Math.round((completed / (completed + pending)) * 100) : 0
 
       // 3. Finances stats
-      const incomeRes = await query("SELECT COALESCE(SUM(amount), 0) as total FROM finances WHERE company_id = $1 AND type = 'income'", [companyId])
-      const engagementFinRes = await query("SELECT COALESCE(SUM(financial_compensation), 0) as revenue, COALESCE(SUM(paid_amount), 0) as paid FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL", [companyId])
+      const incomeRes = await query(
+        "SELECT COALESCE(SUM(amount), 0) as total FROM finances WHERE company_id = $1 AND type = 'income'",
+        [companyId]
+      )
+      const engagementFinRes = await query(
+        'SELECT COALESCE(SUM(financial_compensation), 0) as revenue, COALESCE(SUM(paid_amount), 0) as paid FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL',
+        [companyId]
+      )
 
       const income = parseFloat(incomeRes.rows[0].total) || 0
       const revenue = parseFloat(engagementFinRes.rows[0].revenue) || 0
@@ -791,14 +851,21 @@ reportsRouter.get(
       const collectionRate = revenue > 0 ? Math.round((paid / revenue) * 100) : 0
 
       // 4. Enforcement stats
-      const enforcementTotalRes = await query('SELECT COUNT(*) FROM enforcement_files WHERE company_id = $1', [companyId])
-      const enforcementCollectedRes = await query('SELECT COALESCE(SUM(collected_amount), 0) as total FROM enforcement_files WHERE company_id = $1', [companyId])
+      const enforcementTotalRes = await query(
+        'SELECT COUNT(*) FROM enforcement_files WHERE company_id = $1',
+        [companyId]
+      )
+      const enforcementCollectedRes = await query(
+        'SELECT COALESCE(SUM(collected_amount), 0) as total FROM enforcement_files WHERE company_id = $1',
+        [companyId]
+      )
 
       const enforcementTotal = parseInt(enforcementTotalRes.rows[0].count) || 0
       const enforcementCollected = parseFloat(enforcementCollectedRes.rows[0].total) || 0
 
       // 5. Employees list
-      const employeesRes = await query(`
+      const employeesRes = await query(
+        `
         SELECT 
           emp.id,
           emp.name,
@@ -807,7 +874,9 @@ reportsRouter.get(
           COALESCE((SELECT COUNT(*) FROM tasks_v2 t JOIN users u ON t.responsible_user_id = u.id WHERE u.employee_id = emp.id AND t.company_id = emp.company_id), 0) as tasks_count
         FROM employees emp
         WHERE emp.company_id = $1 AND emp.status = 'active'
-      `, [companyId])
+      `,
+        [companyId]
+      )
 
       const employeesList = employeesRes.rows.map((row: any) => {
         const casesCount = parseInt(row.cases_count) || 0
@@ -1268,9 +1337,18 @@ reportsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const {
-        clientId, caseId, lawyerId, fromDate, toDate, groupBy,
-        category_id, status_id, priority_id, q,
-        page = '1', pageSize = '500'
+        clientId,
+        caseId,
+        lawyerId,
+        fromDate,
+        toDate,
+        groupBy,
+        category_id,
+        status_id,
+        priority_id,
+        q,
+        page = '1',
+        pageSize = '500'
       } = req.query
 
       const limit = parseInt(pageSize as string)
@@ -1491,7 +1569,8 @@ reportsRouter.get(
     try {
       const companyId = getCompanyId(req)
 
-      const totalResult = await query(`
+      const totalResult = await query(
+        `
         SELECT
           COUNT(*) as total_services,
           COALESCE(SUM(financial_compensation), 0) as total_compensation,
@@ -1502,9 +1581,12 @@ reportsRouter.get(
           COUNT(*) FILTER (WHERE status_id = 'status_pending') as pending_count
         FROM legal_engagements
         WHERE company_id = $1 AND deleted_at IS NULL
-      `, [companyId])
+      `,
+        [companyId]
+      )
 
-      const monthlyResult = await query(`
+      const monthlyResult = await query(
+        `
         SELECT
           TO_CHAR(start_date, 'YYYY-MM') as month,
           COUNT(*) as count,
@@ -1514,7 +1596,9 @@ reportsRouter.get(
         GROUP BY TO_CHAR(start_date, 'YYYY-MM')
         ORDER BY month DESC
         LIMIT 12
-      `, [companyId])
+      `,
+        [companyId]
+      )
 
       res.json({
         totals: totalResult.rows[0],
@@ -1533,7 +1617,8 @@ reportsRouter.post(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const { format, clientId, caseId, lawyerId, fromDate, toDate, category_id, status_id } = req.body
+      const { format, clientId, caseId, lawyerId, fromDate, toDate, category_id, status_id } =
+        req.body
 
       let sql = `
         SELECT e.engagement_number, e.description, e.purpose,
@@ -1562,33 +1647,89 @@ reportsRouter.post(
       const params: any[] = [companyId]
       let paramIndex = 2
 
-      if (clientId) { sql += ` AND e.client_id = $${paramIndex++}`; params.push(clientId) }
-      if (caseId) { sql += ` AND e.case_id = $${paramIndex++}`; params.push(caseId) }
-      if (lawyerId) { sql += ` AND e.responsible_lawyer_id = $${paramIndex++}`; params.push(lawyerId) }
-      if (fromDate) { sql += ` AND e.start_date >= $${paramIndex++}`; params.push(fromDate) }
-      if (toDate) { sql += ` AND e.start_date <= $${paramIndex++}`; params.push(toDate) }
-      if (category_id && category_id !== 'الكل') { sql += ` AND e.category_id = $${paramIndex++}`; params.push(category_id) }
-      if (status_id && status_id !== 'الكل') { sql += ` AND e.status_id = $${paramIndex++}`; params.push(status_id) }
+      if (clientId) {
+        sql += ` AND e.client_id = $${paramIndex++}`
+        params.push(clientId)
+      }
+      if (caseId) {
+        sql += ` AND e.case_id = $${paramIndex++}`
+        params.push(caseId)
+      }
+      if (lawyerId) {
+        sql += ` AND e.responsible_lawyer_id = $${paramIndex++}`
+        params.push(lawyerId)
+      }
+      if (fromDate) {
+        sql += ` AND e.start_date >= $${paramIndex++}`
+        params.push(fromDate)
+      }
+      if (toDate) {
+        sql += ` AND e.start_date <= $${paramIndex++}`
+        params.push(toDate)
+      }
+      if (category_id && category_id !== 'الكل') {
+        sql += ` AND e.category_id = $${paramIndex++}`
+        params.push(category_id)
+      }
+      if (status_id && status_id !== 'الكل') {
+        sql += ` AND e.status_id = $${paramIndex++}`
+        params.push(status_id)
+      }
 
       sql += ' ORDER BY e.created_at DESC'
 
       const result = await query(sql, params)
 
       if (format === 'csv') {
-        const headers = ['رقم الخدمة', 'الوصف', 'الغرض', 'التصنيف', 'نوع الخدمة', 'الحالة', 'الأولوية',
-          'العميل', 'المسؤول', 'رقم القضية', 'رقم الفاتورة', 'المقابل المالي', 'الضريبة', 'المدفوع', 'المتبقي',
-          'تاريخ البداية', 'تاريخ الانتهاء المتوقع', 'تاريخ الإنجاز', 'طريقة الدفع']
+        const headers = [
+          'رقم الخدمة',
+          'الوصف',
+          'الغرض',
+          'التصنيف',
+          'نوع الخدمة',
+          'الحالة',
+          'الأولوية',
+          'العميل',
+          'المسؤول',
+          'رقم القضية',
+          'رقم الفاتورة',
+          'المقابل المالي',
+          'الضريبة',
+          'المدفوع',
+          'المتبقي',
+          'تاريخ البداية',
+          'تاريخ الانتهاء المتوقع',
+          'تاريخ الإنجاز',
+          'طريقة الدفع'
+        ]
 
         const csvRows = [
           headers.join(','),
-          ...result.rows.map((r: any) => [
-            r.engagement_number, r.description || '', r.purpose || '',
-            r.category_name || '', r.service_type_name || '', r.status_name || '', r.priority_name || '',
-            r.client_name || '', r.responsible_name || '', r.linked_case_number || '',
-            r.invoice_number || '',
-            r.financial_compensation || 0, r.tax || 0, r.paid_amount || 0, r.remaining_amount || 0,
-            r.start_date || '', r.expected_end_date || '', r.completion_date || '', r.payment_method || ''
-          ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','))
+          ...result.rows.map((r: any) =>
+            [
+              r.engagement_number,
+              r.description || '',
+              r.purpose || '',
+              r.category_name || '',
+              r.service_type_name || '',
+              r.status_name || '',
+              r.priority_name || '',
+              r.client_name || '',
+              r.responsible_name || '',
+              r.linked_case_number || '',
+              r.invoice_number || '',
+              r.financial_compensation || 0,
+              r.tax || 0,
+              r.paid_amount || 0,
+              r.remaining_amount || 0,
+              r.start_date || '',
+              r.expected_end_date || '',
+              r.completion_date || '',
+              r.payment_method || ''
+            ]
+              .map((v) => `"${String(v).replace(/"/g, '""')}"`)
+              .join(',')
+          )
         ]
 
         const csv = '\uFEFF' + csvRows.join('\n')

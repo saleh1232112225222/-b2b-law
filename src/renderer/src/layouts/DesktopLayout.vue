@@ -282,9 +282,7 @@
         <div>
           <strong> بياناتك محفوظة — فعّل الاشتراك للاستمرار </strong>
           <span class="ms-2">— يمكنك التصفح الآن، والاشتراك يمنحك صلاحيات كاملة. </span>
-          <router-link
-            to="/subscription"
-            class="text-decoration-underline font-weight-bold"
+          <router-link to="/subscription" class="text-decoration-underline font-weight-bold"
             >تفعيل الاشتراك</router-link
           >
         </div>
@@ -519,7 +517,12 @@ const categorizedMenu = computed(() => {
         { title: 'الأرشيف', icon: 'archive', to: '/archive' }
       ]
     },
-    { title: 'الخدمات القانونية', icon: 'scale', to: '/legal-services', perm: 'view_legal_services' },
+    {
+      title: 'الخدمات القانونية',
+      icon: 'scale',
+      to: '/legal-services',
+      perm: 'view_legal_services'
+    },
     {
       title: 'الإدارة والمالية',
       icon: 'bar-chart-3',

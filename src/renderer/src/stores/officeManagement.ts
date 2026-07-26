@@ -126,11 +126,25 @@ export const useOfficeManagementStore = defineStore('officeManagement', () => {
   }
 
   return {
-    dashboard, expenses, partners, contributions, budgets, distributions, loading,
-    fetchDashboard, fetchExpenses, addExpense, deleteExpense,
-    fetchPartners, addPartner, updatePartner,
-    fetchContributions, addContribution,
-    fetchBudgets, updateBudget,
-    fetchDistributions, distributeProfits
+    dashboard,
+    expenses,
+    partners,
+    contributions,
+    budgets,
+    distributions,
+    loading,
+    fetchDashboard,
+    fetchExpenses,
+    addExpense,
+    deleteExpense,
+    fetchPartners,
+    addPartner,
+    updatePartner,
+    fetchContributions,
+    addContribution,
+    fetchBudgets,
+    updateBudget,
+    fetchDistributions,
+    distributeProfits
   }
 })

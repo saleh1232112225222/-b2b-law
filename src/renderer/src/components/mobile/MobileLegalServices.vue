@@ -1,6 +1,10 @@
 <template>
   <div class="mobile-legal-services w-100 h-100 d-flex flex-column rtl">
-    <MobileHeader title="الخدمات القانونية" @toggle-drawer="emit('toggle-drawer')" :isDark="true" />
+    <MobileHeader
+      title="الخدمات القانونية"
+      :is-dark="true"
+      @toggle-drawer="emit('toggle-drawer')"
+    />
 
     <!-- Search & Filter -->
     <div class="pa-4 pb-0">
@@ -100,7 +104,7 @@
                   formatCurrency(eng.financial_compensation || 0)
                 }}</span>
               </div>
-              <div class="text-caption" v-if="(eng.remaining_amount ?? 0) > 0">
+              <div v-if="(eng.remaining_amount ?? 0) > 0" class="text-caption">
                 <span class="text-white opacity-70">متبقي: </span>
                 <span class="font-weight-black text-error">{{
                   formatCurrency(eng.remaining_amount ?? 0)

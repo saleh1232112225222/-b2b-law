@@ -240,9 +240,7 @@
                   <LucideIcon name="file-text" :size="22" class="text-gold" />
                 </div>
                 <div>
-                  <div class="text-tiny text-visible-low font-weight-bold mb-0">
-                    رقم الوكالة
-                  </div>
+                  <div class="text-tiny text-visible-low font-weight-bold mb-0">رقم الوكالة</div>
                   <div class="text-h6 font-weight-black text-visible-high ltr-text ls-1">
                     {{ item.agency_number }}
                   </div>
@@ -278,9 +276,7 @@
             <v-row dense class="mb-5">
               <v-col cols="6">
                 <div class="poa-date-item pa-2 rounded-lg">
-                  <div class="text-tiny text-visible-low font-weight-bold mb-1">
-                    تاريخ الاعتماد
-                  </div>
+                  <div class="text-tiny text-visible-low font-weight-bold mb-1">تاريخ الاعتماد</div>
                   <div class="text-caption font-weight-black text-visible-high mb-1">
                     {{ formatDate(String(item.date)) }} مـ
                   </div>
@@ -291,9 +287,7 @@
               </v-col>
               <v-col cols="6">
                 <div class="poa-date-item pa-2 rounded-lg">
-                  <div class="text-tiny text-visible-low font-weight-bold mb-1">
-                    تاريخ الانتهاء
-                  </div>
+                  <div class="text-tiny text-visible-low font-weight-bold mb-1">تاريخ الانتهاء</div>
                   <div class="text-caption font-weight-black text-visible-high mb-1">
                     {{ item.expiry_date ? formatDate(String(item.expiry_date)) : '—' }} مـ
                   </div>

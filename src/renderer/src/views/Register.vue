@@ -6,7 +6,13 @@
       <div class="background-overlay"></div>
     </div>
 
-    <v-row no-gutters class="z-10 py-8 py-md-12" style="min-height: 100vh" align="center" justify="center">
+    <v-row
+      no-gutters
+      class="z-10 py-8 py-md-12"
+      style="min-height: 100vh"
+      align="center"
+      justify="center"
+    >
       <v-col cols="12" sm="9" md="6" lg="5" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Card -->
         <v-card class="premium-glass-card pa-10 w-100 rtl glass-card" elevation="0">
@@ -141,7 +147,6 @@
               <label class="input-label">اسم المستخدم (للدخول)</label>
               <v-text-field
                 v-model="username"
-                @update:model-value="debouncedCheckAvailability('username', username)"
                 placeholder="اسم المستخدم بالأحرف الإنجليزية"
                 variant="outlined"
                 class="premium-input glass-input"
@@ -155,6 +160,7 @@
                     'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)'
                 ]"
                 required
+                @update:model-value="debouncedCheckAvailability('username', username)"
               >
                 <template #prepend-inner>
                   <LucideIcon name="user" :size="18" class="text-gold-muted me-2" />
@@ -167,7 +173,6 @@
               <label class="input-label">البريد الإلكتروني</label>
               <v-text-field
                 v-model="email"
-                @update:model-value="debouncedCheckAvailability('email', email)"
                 placeholder="example@email.com"
                 variant="outlined"
                 class="premium-input glass-input"
@@ -181,6 +186,7 @@
                     'البريد الإلكتروني غير صحيح'
                 ]"
                 required
+                @update:model-value="debouncedCheckAvailability('email', email)"
               >
                 <template #prepend-inner>
                   <LucideIcon name="mail" :size="18" class="text-gold-muted me-2" />
@@ -193,7 +199,6 @@
               <label class="input-label">رقم الجوال (لالتفعيل عبر رسالة نصية)</label>
               <v-text-field
                 v-model="phone"
-                @update:model-value="debouncedCheckAvailability('phone', phone)"
                 placeholder="05xxxxxxxx"
                 variant="outlined"
                 class="premium-input glass-input"
@@ -207,6 +212,7 @@
                     'يجب إدخال رقم جوال سعودي صحيح من 10 أرقام (مثال: 0512345678)'
                 ]"
                 required
+                @update:model-value="debouncedCheckAvailability('phone', phone)"
               >
                 <template #prepend-inner>
                   <LucideIcon name="phone" :size="18" class="text-gold-muted me-2" />

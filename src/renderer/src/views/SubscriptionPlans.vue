@@ -1,16 +1,21 @@
 <template>
   <v-container fluid class="pa-6 subscription-page rtl d-flex align-center justify-center">
-    <v-card class="pa-8 text-center rounded-2xl glass-card border-gold-alpha" max-width="600" width="100%">
+    <v-card
+      class="pa-8 text-center rounded-2xl glass-card border-gold-alpha"
+      max-width="600"
+      width="100%"
+    >
       <div class="mb-6">
         <LucideIcon name="alert-triangle" :size="80" class="text-gold mx-auto" />
       </div>
       <h1 class="text-h4 font-weight-black text-pure-black mb-4">الاشتراك معلق</h1>
       <p class="text-body-1 text-grey-darken-1 mb-8 leading-relaxed">
-        عذراً، تم إيقاف صفحة الاشتراك والدفع مؤقتاً. يرجى مراجعة الدعم الفني لمعرفة المزيد من التفاصيل حول حالة اشتراكك وتفعيله.
+        عذراً، تم إيقاف صفحة الاشتراك والدفع مؤقتاً. يرجى مراجعة الدعم الفني لمعرفة المزيد من
+        التفاصيل حول حالة اشتراكك وتفعيله.
       </p>
-      
+
       <v-divider class="mb-8"></v-divider>
-      
+
       <h2 class="text-h6 font-weight-black mb-6">للتواصل مع الدعم الفني المباشر</h2>
       <div class="d-flex justify-center gap-4 flex-wrap">
         <v-btn
@@ -112,7 +117,7 @@ const selectPlan = (plan: any) => {
 
 const processPayment = async () => {
   if (!selectedPlan.value || !paymentFormRef.value) return
-  
+
   const { valid } = await paymentFormRef.value.validate()
   if (!valid) return
 
@@ -135,7 +140,7 @@ const processPayment = async () => {
       cardExpiry.value = ''
       cardCvc.value = ''
       paymentFormRef.value?.resetValidation()
-      
+
       await licensingStore.refreshStatus()
       await fetchData()
     }

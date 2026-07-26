@@ -92,7 +92,10 @@ const requireAdminRole = async (req: Request, res: Response, next: Function) => 
 
   try {
     // Only allow admin of the main company (00000000-0000-0000-0000-000000000000)
-    if (auth.companyId !== (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
+    if (
+      auth.companyId !==
+      (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')
+    ) {
       return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
     }
 
@@ -125,9 +128,7 @@ adminSubscriptionRouter.get('/', requireAdminRole, async (_req: Request, res: Re
   try {
     const hasSoftDelete = await ensureSoftDeleteColumns()
 
-    const deletedFilter = hasSoftDelete
-      ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)`
-      : ''
+    const deletedFilter = hasSoftDelete ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)` : ''
 
     const result = await query(
       `SELECT 
@@ -563,10 +564,9 @@ adminSubscriptionRouter.post(
     try {
       const { companyId } = req.params
 
-      const companyCheck = await query(
-        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
-        [companyId]
-      )
+      const companyCheck = await query('SELECT id, name, is_deleted FROM companies WHERE id = $1', [
+        companyId
+      ])
       if (companyCheck.rows.length === 0) {
         return res.status(404).json({ error: 'المشترك غير موجود' })
       }
@@ -611,10 +611,9 @@ adminSubscriptionRouter.delete(
     try {
       const { companyId } = req.params
 
-      const companyCheck = await query(
-        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
-        [companyId]
-      )
+      const companyCheck = await query('SELECT id, name, is_deleted FROM companies WHERE id = $1', [
+        companyId
+      ])
       if (companyCheck.rows.length === 0) {
         return res.status(404).json({ error: 'المشترك غير موجود' })
       }
@@ -720,7 +719,9 @@ adminSubscriptionRouter.delete(
       }
 
       if (!hasSoftDelete) {
-        return res.status(500).json({ error: 'لم تُجهز أعمدة الحذف الناعم بعد. يرجى إعادة تشغيل الخادم.' })
+        return res
+          .status(500)
+          .json({ error: 'لم تُجهز أعمدة الحذف الناعم بعد. يرجى إعادة تشغيل الخادم.' })
       }
 
       await query(
@@ -1022,9 +1023,7 @@ adminSubscriptionRouter.get(
  */
 async function generateUsersReportHTML(): Promise<string> {
   const hasSoftDelete = await ensureSoftDeleteColumns()
-  const deletedFilter = hasSoftDelete
-    ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)`
-    : ''
+  const deletedFilter = hasSoftDelete ? `AND (c.is_deleted IS NULL OR c.is_deleted = FALSE)` : ''
 
   const res = await query(`
     SELECT 
@@ -1274,119 +1273,149 @@ adminSubscriptionRouter.post(
  * POST /api/admin/subscriptions/create-direct
  * Create a subscriber directly without email verification (for direct sales)
  */
-adminSubscriptionRouter.post('/create-direct', requireAdminRole, async (req: Request, res: Response) => {
-  try {
-    const { username, password, fullName, email, phone, planId, durationMonths, durationYears, lifetime } = req.body
+adminSubscriptionRouter.post(
+  '/create-direct',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const {
+        username,
+        password,
+        fullName,
+        email,
+        phone,
+        planId,
+        durationMonths,
+        durationYears,
+        lifetime
+      } = req.body
 
-    if (!username || !password) {
-      return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' })
-    }
+      if (!username || !password) {
+        return res.status(400).json({ error: 'اسم المستخدم وكلمة المرور مطلوبان' })
+      }
 
-    if (!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
-      return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
-    }
+      if (!/^[a-zA-Z0-9_]{4,20}$/.test(username)) {
+        return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
+      }
 
-    if (!password || password.length < 8) {
-      return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
-    }
-    if (!/[A-Z]/.test(password)) {
-      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' })
-    }
-    if (!/[a-z]/.test(password)) {
-      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' })
-    }
-    if (!/[0-9]/.test(password)) {
-      return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' })
-    }
+      if (!password || password.length < 8) {
+        return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
+      }
+      if (!/[A-Z]/.test(password)) {
+        return res
+          .status(400)
+          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' })
+      }
+      if (!/[a-z]/.test(password)) {
+        return res
+          .status(400)
+          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' })
+      }
+      if (!/[0-9]/.test(password)) {
+        return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' })
+      }
 
-    const companyId = uuidv4()
-    const passwordHash = await bcrypt.hash(password, 12)
-    const trialExpiresAt = new Date()
-    trialExpiresAt.setFullYear(trialExpiresAt.getFullYear() + 10)
+      const companyId = uuidv4()
+      const passwordHash = await bcrypt.hash(password, 12)
+      const trialExpiresAt = new Date()
+      trialExpiresAt.setFullYear(trialExpiresAt.getFullYear() + 10)
 
-    // 1. Create company (auto-verified)
-    await query(
-      'INSERT INTO companies (id, name, email, phone, is_verified, trial_expires_at) VALUES ($1, $2, $3, $4, TRUE, $5)',
-      [companyId, fullName || username, email || null, phone || null, trialExpiresAt]
-    )
+      // 1. Create company (auto-verified)
+      await query(
+        'INSERT INTO companies (id, name, email, phone, is_verified, trial_expires_at) VALUES ($1, $2, $3, $4, TRUE, $5)',
+        [companyId, fullName || username, email || null, phone || null, trialExpiresAt]
+      )
 
-    // 2. Create user (must_change_password=TRUE, created_by_admin)
-    await query(
-      `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_by)
+      // 2. Create user (must_change_password=TRUE, created_by_admin)
+      await query(
+        `INSERT INTO users (id, company_id, username, full_name, password_hash, role_key, is_active, must_change_password, recovery_email, created_by)
        VALUES ($1, $2, $3, $4, $5, 'admin', TRUE, TRUE, $6, $7)`,
-      [uuidv4(), companyId, username, fullName || username, passwordHash, email || null, req.auth!.userId]
-    )
+        [
+          uuidv4(),
+          companyId,
+          username,
+          fullName || username,
+          passwordHash,
+          email || null,
+          req.auth!.userId
+        ]
+      )
 
-    // 3. Seed firm_data defaults
-    const firmDefaults: [string, any][] = [
-      ['officeName', fullName || username],
-      ['theme', 'light'],
-      ['activityLogRetentionDays', 365],
-      ['taskNotificationsEnabled', true],
-      ['taskNotificationLeadDays', 1]
-    ]
-    for (const [key, value] of firmDefaults) {
-      await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, key, JSON.stringify(value)
-      ])
-    }
-
-    // 4. Create subscription
-    if (planId) {
-      const planResult = await query('SELECT id, interval FROM plans WHERE id = $1', [planId])
-      if (planResult.rows.length > 0) {
-        const now = new Date()
-        let periodEnd = new Date(now)
-        if (lifetime) {
-          periodEnd.setFullYear(2099, 11, 31)
-        } else if (durationYears && durationYears > 0) {
-          periodEnd.setFullYear(periodEnd.getFullYear() + Math.min(Number(durationYears), 100))
-        } else if (durationMonths && durationMonths > 0) {
-          periodEnd.setMonth(periodEnd.getMonth() + Math.min(Number(durationMonths), 1200))
-        } else {
-          const interval = planResult.rows[0].interval
-          if (interval === 'year') periodEnd.setFullYear(periodEnd.getFullYear() + 1)
-          else periodEnd.setMonth(periodEnd.getMonth() + 1)
-        }
-
-        await query(
-          `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end, trial_start, trial_end)
-           VALUES ($1, $2, $3, 'active', $4, $5, $4, $5)`,
-          [uuidv4(), companyId, planId, now, periodEnd]
-        )
-
-        await query('UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2', [
-          periodEnd, companyId
+      // 3. Seed firm_data defaults
+      const firmDefaults: [string, any][] = [
+        ['officeName', fullName || username],
+        ['theme', 'light'],
+        ['activityLogRetentionDays', 365],
+        ['taskNotificationsEnabled', true],
+        ['taskNotificationLeadDays', 1]
+      ]
+      for (const [key, value] of firmDefaults) {
+        await query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
+          uuidv4(),
+          companyId,
+          key,
+          JSON.stringify(value)
         ])
       }
-    } else {
-      // Create trial subscription
-      const planResult = await query('SELECT id FROM plans LIMIT 1')
-      const fallbackPlanId = planResult.rows.length > 0 ? planResult.rows[0].id : null
-      const trialEnd = new Date()
-      trialEnd.setDate(trialEnd.getDate() + 30)
-      await query(
-        `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
-         VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
-        [uuidv4(), companyId, fallbackPlanId, trialEnd]
-      )
-    }
 
-    res.json({
-      success: true,
-      message: 'تم إنشاء المشترك بنجاح',
-      companyId,
-      username,
-      mustChangePassword: true
-    })
-  } catch (err: any) {
-    console.error('[ADMIN] Failed to create direct subscriber:', err)
-    if (err.code === '23505') {
-      return res.status(400).json({ error: 'اسم المستخدم أو البريد الإلكتروني مسجل مسبقاً' })
+      // 4. Create subscription
+      if (planId) {
+        const planResult = await query('SELECT id, interval FROM plans WHERE id = $1', [planId])
+        if (planResult.rows.length > 0) {
+          const now = new Date()
+          let periodEnd = new Date(now)
+          if (lifetime) {
+            periodEnd.setFullYear(2099, 11, 31)
+          } else if (durationYears && durationYears > 0) {
+            periodEnd.setFullYear(periodEnd.getFullYear() + Math.min(Number(durationYears), 100))
+          } else if (durationMonths && durationMonths > 0) {
+            periodEnd.setMonth(periodEnd.getMonth() + Math.min(Number(durationMonths), 1200))
+          } else {
+            const interval = planResult.rows[0].interval
+            if (interval === 'year') periodEnd.setFullYear(periodEnd.getFullYear() + 1)
+            else periodEnd.setMonth(periodEnd.getMonth() + 1)
+          }
+
+          await query(
+            `INSERT INTO subscriptions (id, company_id, plan_id, status, current_period_start, current_period_end, trial_start, trial_end)
+           VALUES ($1, $2, $3, 'active', $4, $5, $4, $5)`,
+            [uuidv4(), companyId, planId, now, periodEnd]
+          )
+
+          await query(
+            'UPDATE companies SET trial_expires_at = $1, updated_at = NOW() WHERE id = $2',
+            [periodEnd, companyId]
+          )
+        }
+      } else {
+        // Create trial subscription
+        const planResult = await query('SELECT id FROM plans LIMIT 1')
+        const fallbackPlanId = planResult.rows.length > 0 ? planResult.rows[0].id : null
+        const trialEnd = new Date()
+        trialEnd.setDate(trialEnd.getDate() + 30)
+        await query(
+          `INSERT INTO subscriptions (id, company_id, plan_id, status, trial_start, trial_end, current_period_start, current_period_end)
+         VALUES ($1, $2, $3, 'trial', NOW(), $4, NOW(), $4)`,
+          [uuidv4(), companyId, fallbackPlanId, trialEnd]
+        )
+      }
+
+      res.json({
+        success: true,
+        message: 'تم إنشاء المشترك بنجاح',
+        companyId,
+        username,
+        mustChangePassword: true
+      })
+    } catch (err: any) {
+      console.error('[ADMIN] Failed to create direct subscriber:', err)
+      if (err.code === '23505') {
+        return res.status(400).json({ error: 'اسم المستخدم أو البريد الإلكتروني مسجل مسبقاً' })
+      }
+      res.status(500).json({ error: 'فشل إنشاء المشترك' })
     }
-    res.status(500).json({ error: 'فشل إنشاء المشترك' })
   }
-})
+)
 
 // Background worker to process scheduled reports every minute
 setInterval(async () => {

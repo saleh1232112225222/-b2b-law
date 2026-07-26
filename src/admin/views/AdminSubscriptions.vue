@@ -367,7 +367,7 @@
                   variant="outlined"
                   color="gold"
                 >
-                  <template #item="{ props, item }">
+                  <template #item="{ props }">
                     <v-list-item v-bind="props"></v-list-item>
                   </template>
                 </v-select>
@@ -672,14 +672,18 @@ async function fetchPlans() {
   try {
     const response = await apiRequest('GET', '/api/subscriptions/plans')
     const plans = response.data?.data || response.data || []
-    availablePlans.value = plans.map(plan => {
+    availablePlans.value = plans.map((plan) => {
       let displayName = plan.name
       const lower = (plan.name || '').toLowerCase()
       if (lower.includes('monthly') || plan.interval === 'month' || lower === 'شهري') {
         displayName = 'خطة شهرية'
       } else if (lower.includes('yearly') || plan.interval === 'year' || lower === 'سنوي') {
         displayName = 'خطة سنوية'
-      } else if (lower.includes('lifetime') || plan.interval === 'lifetime' || lower === 'مدى الحياة') {
+      } else if (
+        lower.includes('lifetime') ||
+        plan.interval === 'lifetime' ||
+        lower === 'مدى الحياة'
+      ) {
         displayName = 'خطة مفتوحة'
       } else if (plan.name_ar) {
         displayName = plan.name_ar
@@ -765,7 +769,8 @@ function translatePlanName(name) {
   const lower = name.toLowerCase()
   if (lower.includes('monthly') || lower === 'month' || lower === 'شهري') return 'خطة شهرية'
   if (lower.includes('yearly') || lower === 'year' || lower === 'سنوي') return 'خطة سنوية'
-  if (lower.includes('lifetime') || lower === 'lifetime' || lower === 'مدى الحياة') return 'خطة مفتوحة'
+  if (lower.includes('lifetime') || lower === 'lifetime' || lower === 'مدى الحياة')
+    return 'خطة مفتوحة'
   return name
 }
 

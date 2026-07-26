@@ -16,9 +16,7 @@
       :loading="store.loading"
       title-field="name"
       subtitle-field="phone"
-      :info-fields="[
-        { key: 'type', label: 'النوع' }
-      ]"
+      :info-fields="[{ key: 'type', label: 'النوع' }]"
       icon-field="icon"
       default-icon="mdi-account"
       empty-text="لا يوجد موكلين"

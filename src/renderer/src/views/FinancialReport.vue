@@ -272,27 +272,51 @@
 
       <v-row dense class="mb-8">
         <v-col cols="12" sm="6" md="3">
-          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card">
-            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">إجمالي الخدمات</div>
-            <div class="text-h5 font-weight-black text-white">{{ legalServicesStats.total_services || 0 }}</div>
+          <v-card
+            elevation="0"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-gold border-opacity-10 glass-card"
+          >
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">
+              إجمالي الخدمات
+            </div>
+            <div class="text-h5 font-weight-black text-white">
+              {{ legalServicesStats.total_services || 0 }}
+            </div>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-success border-opacity-10 glass-card">
-            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المقابل المالي</div>
-            <div class="text-h5 font-weight-black text-success">{{ formatCurrency(legalServicesStats.total_revenue || 0) }}</div>
+          <v-card
+            elevation="0"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-success border-opacity-10 glass-card"
+          >
+            <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">
+              المقابل المالي
+            </div>
+            <div class="text-h5 font-weight-black text-success">
+              {{ formatCurrency(legalServicesStats.total_revenue || 0) }}
+            </div>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-accent border-opacity-10 glass-card">
+          <v-card
+            elevation="0"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-accent border-opacity-10 glass-card"
+          >
             <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المحصل</div>
-            <div class="text-h5 font-weight-black text-accent">{{ formatCurrency(legalServicesStats.total_paid || 0) }}</div>
+            <div class="text-h5 font-weight-black text-accent">
+              {{ formatCurrency(legalServicesStats.total_paid || 0) }}
+            </div>
           </v-card>
         </v-col>
         <v-col cols="12" sm="6" md="3">
-          <v-card elevation="0" class="glass-panel-light pa-6 rounded-xl text-center border border-error border-opacity-10 glass-card">
+          <v-card
+            elevation="0"
+            class="glass-panel-light pa-6 rounded-xl text-center border border-error border-opacity-10 glass-card"
+          >
             <div class="text-subtitle-2 font-weight-black text-gold opacity-60 mb-1">المتبقي</div>
-            <div class="text-h5 font-weight-black text-error">{{ formatCurrency(legalServicesStats.total_remaining || 0) }}</div>
+            <div class="text-h5 font-weight-black text-error">
+              {{ formatCurrency(legalServicesStats.total_remaining || 0) }}
+            </div>
           </v-card>
         </v-col>
       </v-row>

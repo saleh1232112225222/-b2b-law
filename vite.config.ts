@@ -6,7 +6,10 @@ import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig(({ mode }) => {
   // التحقق من وضع البناء للجوال
-  const isCapacitorBuild = mode === 'capacitor' || process.env.VITE_BUILD_TARGET === 'capacitor' || process.env.BUILD_FOR_CAPACITOR === 'true'
+  const isCapacitorBuild =
+    mode === 'capacitor' ||
+    process.env.VITE_BUILD_TARGET === 'capacitor' ||
+    process.env.BUILD_FOR_CAPACITOR === 'true'
 
   return {
     root: resolve('src/renderer'),
@@ -38,8 +41,8 @@ export default defineConfig(({ mode }) => {
       __IS_WEB__: 'true',
       __API_BASE_URL__: JSON.stringify(
         isCapacitorBuild
-          ? (process.env.VITE_API_PRODUCTION_URL || 'https://b2b-law-g2qr.onrender.com/api')
-          : (process.env.VITE_API_BASE_URL || 'https://b2b-law-g2qr.onrender.com/api')
+          ? process.env.VITE_API_PRODUCTION_URL || 'https://b2b-law-g2qr.onrender.com/api'
+          : process.env.VITE_API_BASE_URL || 'https://b2b-law-g2qr.onrender.com/api'
       )
     },
     plugins: [

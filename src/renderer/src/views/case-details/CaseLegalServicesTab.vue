@@ -25,9 +25,17 @@
               <LucideIcon name="briefcase" :size="18" class="text-accent" />
             </div>
           </template>
-          <v-list-item-title class="font-weight-black text-visible-high text-body-2 d-flex align-center ga-2">
+          <v-list-item-title
+            class="font-weight-black text-visible-high text-body-2 d-flex align-center ga-2"
+          >
             <span>{{ s.engagement_number }}</span>
-            <v-chip size="x-small" :color="getStatusColor(s.status_name)" variant="flat" class="font-weight-bold">{{ s.status_name }}</v-chip>
+            <v-chip
+              size="x-small"
+              :color="getStatusColor(s.status_name)"
+              variant="flat"
+              class="font-weight-bold"
+              >{{ s.status_name }}</v-chip
+            >
           </v-list-item-title>
           <v-list-item-subtitle class="text-primary mt-1">
             <div>{{ s.description || s.purpose || '—' }}</div>
@@ -35,8 +43,12 @@
               <span v-if="s.client_name">العميل: {{ s.client_name }}</span>
               <span v-if="s.responsible_name">المحامي: {{ s.responsible_name }}</span>
               <span v-if="s.category_name">التصنيف: {{ s.category_name }}</span>
-              <span v-if="s.financial_compensation">المقابل: {{ Number(s.financial_compensation).toLocaleString() }} ر.س</span>
-              <span v-if="s.paid_amount > 0" class="text-success">مدفوع: {{ Number(s.paid_amount).toLocaleString() }} ر.س</span>
+              <span v-if="s.financial_compensation"
+                >المقابل: {{ Number(s.financial_compensation).toLocaleString() }} ر.س</span
+              >
+              <span v-if="s.paid_amount > 0" class="text-success"
+                >مدفوع: {{ Number(s.paid_amount).toLocaleString() }} ر.س</span
+              >
             </div>
           </v-list-item-subtitle>
           <template #append>
@@ -49,7 +61,10 @@
             />
           </template>
         </v-list-item>
-        <div v-if="services.length === 0" class="pa-10 text-center text-primary italic font-weight-bold">
+        <div
+          v-if="services.length === 0"
+          class="pa-10 text-center text-primary italic font-weight-bold"
+        >
           <LucideIcon name="briefcase" :size="32" class="mb-2 opacity-50 d-block mx-auto" />
           <div>لا توجد خدمات قانونية مرتبطة بهذه القضية</div>
           <v-btn
@@ -79,9 +94,9 @@ const loading = ref(true)
 const getStatusColor = (status: string): string => {
   const map: Record<string, string> = {
     'قيد التنفيذ': 'info',
-    'معلق': 'warning',
-    'مكتمل': 'success',
-    'ملغي': 'error'
+    معلق: 'warning',
+    مكتمل: 'success',
+    ملغي: 'error'
   }
   return map[status || ''] || 'grey'
 }

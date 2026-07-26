@@ -71,11 +71,15 @@
           </v-chip>
 
           <v-divider class="my-6 border-gold opacity-20" />
-          
+
           <div class="d-flex align-center justify-space-between mb-4">
             <div class="text-h6 font-weight-black text-gold">نص العقد الكامل</div>
             <v-btn
-              v-if="selected.contract.status !== 'approved' && selected.contract.status !== 'archived' && !isEditingText"
+              v-if="
+                selected.contract.status !== 'approved' &&
+                selected.contract.status !== 'archived' &&
+                !isEditingText
+              "
               size="small"
               variant="tonal"
               color="accent"
@@ -95,8 +99,17 @@
               hide-details
             ></v-textarea>
             <div class="d-flex gap-2 justify-end mb-6">
-              <v-btn color="grey" variant="flat" size="small" @click="isEditingText = false">إلغاء</v-btn>
-              <v-btn color="success" variant="flat" size="small" :loading="savingText" @click="saveContractText">حفظ التغييرات</v-btn>
+              <v-btn color="grey" variant="flat" size="small" @click="isEditingText = false"
+                >إلغاء</v-btn
+              >
+              <v-btn
+                color="success"
+                variant="flat"
+                size="small"
+                :loading="savingText"
+                @click="saveContractText"
+                >حفظ التغييرات</v-btn
+              >
             </div>
           </div>
           <div
@@ -212,7 +225,7 @@
                       density="compact"
                       variant="outlined"
                       class="glass-input-compact glass-input"
-                      style="max-width: 130px;"
+                      style="max-width: 130px"
                       hide-details
                       @update:model-value="saveSignatureStatus(p.id)"
                     />
@@ -227,7 +240,10 @@
                       رسم توقيع
                     </v-btn>
                     <div v-if="getSignatureImage(p.id)" class="pa-1 bg-white rounded border">
-                      <img :src="getSignatureImage(p.id)" style="max-height: 32px; display: block;" />
+                      <img
+                        :src="getSignatureImage(p.id)"
+                        style="max-height: 32px; display: block"
+                      />
                     </div>
                   </div>
                 </td>
@@ -303,7 +319,9 @@
 
     <!-- Signature Draw Dialog -->
     <v-dialog v-model="showSignatureCanvasDialog" max-width="500" persistent>
-      <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+      <v-card
+        class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card"
+      >
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="edit-3" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">رسم التوقيع اليدوي</span>
@@ -315,8 +333,11 @@
 
         <v-card-text class="pa-6 d-flex flex-column align-center">
           <p class="text-body-2 mb-4 text-right w-100">ارسم توقيعك داخل الإطار أدناه:</p>
-          
-          <div class="border rounded-lg bg-white overflow-hidden" style="width: 100%; max-width: 400px; height: 200px; touch-action: none;">
+
+          <div
+            class="border rounded-lg bg-white overflow-hidden"
+            style="width: 100%; max-width: 400px; height: 200px; touch-action: none"
+          >
             <canvas
               ref="canvasRef"
               width="400"
@@ -337,7 +358,9 @@
         </v-card-text>
 
         <v-card-actions class="pa-6 pt-0">
-          <v-btn variant="text" color="gold" @click="showSignatureCanvasDialog = false">إلغاء</v-btn>
+          <v-btn variant="text" color="gold" @click="showSignatureCanvasDialog = false"
+            >إلغاء</v-btn
+          >
           <v-spacer />
           <v-btn
             color="gold"
@@ -471,9 +494,11 @@ const openSignatureCanvas = (participantId: string) => {
 const saveSignatureDrawing = async () => {
   if (!canvasRef.value || !activeParticipantId.value) return
   const dataUrl = canvasRef.value.toDataURL()
-  const sig = (selected.signatures || []).find((s: any) => s.participant_id === activeParticipantId.value)
+  const sig = (selected.signatures || []).find(
+    (s: any) => s.participant_id === activeParticipantId.value
+  )
   if (!sig) return
-  
+
   try {
     await (window as any).api.contracts.signatures.update(selected.contract.id, sig.id, {
       signature_status: 'signed',
@@ -493,9 +518,10 @@ const getSignatureImage = (participantId: string) => {
   const sig = (selected.signatures || []).find((s: any) => s.participant_id === participantId)
   if (sig && sig.signature_payload_json) {
     try {
-      const payload = typeof sig.signature_payload_json === 'string'
-        ? JSON.parse(sig.signature_payload_json)
-        : sig.signature_payload_json
+      const payload =
+        typeof sig.signature_payload_json === 'string'
+          ? JSON.parse(sig.signature_payload_json)
+          : sig.signature_payload_json
       return payload.image || ''
     } catch {
       return ''

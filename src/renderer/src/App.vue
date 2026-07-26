@@ -176,24 +176,17 @@
           <v-avatar color="white" size="72" class="mb-4 shadow-lg">
             <v-icon icon="mdi-party-popper" :size="38" color="amber-darken-3" />
           </v-avatar>
-          <h2 class="text-h5 font-weight-black text-ebony mb-1">
-            شكراً لاستخدام B2B-LAW
-          </h2>
+          <h2 class="text-h5 font-weight-black text-ebony mb-1">شكراً لاستخدام B2B-LAW</h2>
           <div class="text-body-2 text-ebony opacity-80">
             تجربتك المجانية انتهت، لكن رحلتك معنا تبدأ الآن!
           </div>
         </div>
 
         <v-card-text class="pa-6">
-          <v-alert
-            type="info"
-            variant="tonal"
-            color="primary"
-            class="mb-5 rounded-xl"
-            prominent
-          >
+          <v-alert type="info" variant="tonal" color="primary" class="mb-5 rounded-xl" prominent>
             <div class="text-body-2">
-              بياناتك <strong>محفوظة ومؤمنة</strong> — استأنف العمل فوراً بالاشتراك في الخطة المناسبة.
+              بياناتك <strong>محفوظة ومؤمنة</strong> — استأنف العمل فوراً بالاشتراك في الخطة
+              المناسبة.
             </div>
           </v-alert>
 

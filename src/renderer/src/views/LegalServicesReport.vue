@@ -8,7 +8,9 @@
             <LucideIcon name="scale" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير الخدمات والارتباطات القانونية</h1>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">
+              تقرير الخدمات والارتباطات القانونية
+            </h1>
             <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
               تحليل شامل ومؤشرات للارتباطات التعاقدية والخدمات القانونية المقدمة لعملائنا
             </p>
@@ -16,16 +18,28 @@
         </div>
       </v-col>
       <v-col cols="auto" class="d-flex gap-3 flex-wrap">
-        <v-btn variant="outlined" color="gold" class="rounded-lg px-6 font-weight-black premium-hover h-56"
-          @click="$router.push('/reports')">
+        <v-btn
+          variant="outlined"
+          color="gold"
+          class="rounded-lg px-6 font-weight-black premium-hover h-56"
+          @click="$router.push('/reports')"
+        >
           <LucideIcon name="arrow-right" :size="18" class="me-2" /> رجوع للمركز
         </v-btn>
-        <v-btn color="accent" variant="flat" class="rounded-lg px-6 font-weight-black premium-lift h-56 text-ebony"
-          @click="exportCSV">
+        <v-btn
+          color="accent"
+          variant="flat"
+          class="rounded-lg px-6 font-weight-black premium-lift h-56 text-ebony"
+          @click="exportCSV"
+        >
           <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير CSV
         </v-btn>
-        <v-btn color="accent" variant="flat" class="rounded-lg px-6 font-weight-black premium-lift h-56 text-ebony"
-          @click="printReport">
+        <v-btn
+          color="accent"
+          variant="flat"
+          class="rounded-lg px-6 font-weight-black premium-lift h-56 text-ebony"
+          @click="printReport"
+        >
           <LucideIcon name="printer" :size="18" class="me-2" /> طباعة التقرير
         </v-btn>
       </v-col>
@@ -35,48 +49,137 @@
     <v-card elevation="0" class="glass-card pa-6 border-gold-alpha mb-6">
       <v-row dense>
         <v-col cols="12" md="3">
-          <v-autocomplete v-model="filters.client_id" :items="clients" item-title="name" item-value="id" label="العميل"
-            variant="outlined" density="comfortable" hide-details clearable />
+          <v-autocomplete
+            v-model="filters.client_id"
+            :items="clients"
+            item-title="name"
+            item-value="id"
+            label="العميل"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="3">
-          <v-autocomplete v-model="filters.lawyer_id" :items="lawyers" item-title="name" item-value="id"
-            label="المحامي المسؤول" variant="outlined" density="comfortable" hide-details clearable />
+          <v-autocomplete
+            v-model="filters.lawyer_id"
+            :items="lawyers"
+            item-title="name"
+            item-value="id"
+            label="المحامي المسؤول"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="3">
-          <v-autocomplete v-model="filters.case_id" :items="cases" item-title="case_number" item-value="id"
-            label="القضية" variant="outlined" density="comfortable" hide-details clearable />
+          <v-autocomplete
+            v-model="filters.case_id"
+            :items="cases"
+            item-title="case_number"
+            item-value="id"
+            label="القضية"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="3">
-          <v-select v-model="filters.category_id" :items="store.categories" item-title="name_ar" item-value="id"
-            label="التصنيف" variant="outlined" density="comfortable" hide-details clearable />
+          <v-select
+            v-model="filters.category_id"
+            :items="store.categories"
+            item-title="name_ar"
+            item-value="id"
+            label="التصنيف"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.status_id" :items="store.statuses" item-title="status_name_ar" item-value="id"
-            label="الحالة" variant="outlined" density="comfortable" hide-details clearable />
+          <v-select
+            v-model="filters.status_id"
+            :items="store.statuses"
+            item-title="status_name_ar"
+            item-value="id"
+            label="الحالة"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.priority_id" :items="store.priorities" item-title="priority_name_ar" item-value="id"
-            label="الأولوية" variant="outlined" density="comfortable" hide-details clearable />
+          <v-select
+            v-model="filters.priority_id"
+            :items="store.priorities"
+            item-title="priority_name_ar"
+            item-value="id"
+            label="الأولوية"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-text-field v-model="filters.from_date" label="من تاريخ" type="date" variant="outlined" density="comfortable"
-            hide-details />
+          <v-text-field
+            v-model="filters.from_date"
+            label="من تاريخ"
+            type="date"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-text-field v-model="filters.to_date" label="إلى تاريخ" type="date" variant="outlined" density="comfortable"
-            hide-details />
+          <v-text-field
+            v-model="filters.to_date"
+            label="إلى تاريخ"
+            type="date"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-text-field v-model="filters.q" label="بحث سريع..." variant="outlined" density="comfortable" hide-details
-            clearable prepend-inner-icon="mdi-magnify" />
+          <v-text-field
+            v-model="filters.q"
+            label="بحث سريع..."
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+            prepend-inner-icon="mdi-magnify"
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-select v-model="filters.groupBy" :items="groupOptions" item-title="text" item-value="value" label="تجميع حسب"
-            variant="outlined" density="comfortable" hide-details clearable />
+          <v-select
+            v-model="filters.groupBy"
+            :items="groupOptions"
+            item-title="text"
+            item-value="value"
+            label="تجميع حسب"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+          />
         </v-col>
         <v-col cols="12" md="2">
-          <v-btn color="accent" variant="tonal" block height="48" class="rounded-lg font-weight-black"
-            :loading="loading" @click="loadData">
+          <v-btn
+            color="accent"
+            variant="tonal"
+            block
+            height="48"
+            class="rounded-lg font-weight-black"
+            :loading="loading"
+            @click="loadData"
+          >
             تصفية البيانات
           </v-btn>
         </v-col>
@@ -86,25 +189,41 @@
     <!-- KPIs -->
     <v-row class="mb-6" dense>
       <v-col cols="6" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100">
-          <div class="text-caption font-weight-black text-ebony opacity-60 mb-2">إجمالي الخدمات</div>
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100"
+        >
+          <div class="text-caption font-weight-black text-ebony opacity-60 mb-2">
+            إجمالي الخدمات
+          </div>
           <div class="text-h5 font-weight-black text-ebony">{{ summary.totalServices }}</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100">
-          <div class="text-caption font-weight-black text-ebony opacity-60 mb-2">المقابل المالي الكلي</div>
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100"
+        >
+          <div class="text-caption font-weight-black text-ebony opacity-60 mb-2">
+            المقابل المالي الكلي
+          </div>
           <div class="text-h5 font-weight-black text-accent">{{ fmt(summary.totalRevenue) }}</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100">
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border-gold-alpha premium-hover h-100"
+        >
           <div class="text-caption font-weight-black text-ebony opacity-60 mb-2">المحصل فعلياً</div>
           <div class="text-h5 font-weight-black text-success">{{ fmt(summary.totalPaid) }}</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="6" md="3">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold premium-hover h-100 border-2">
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border-gold premium-hover h-100 border-2"
+        >
           <div class="text-caption font-weight-black text-gold mb-2">المستحقات المتبقية</div>
           <div class="text-h5 font-weight-black text-gold">{{ fmt(summary.totalRemaining) }}</div>
         </v-card>
@@ -112,11 +231,13 @@
     </v-row>
 
     <!-- Charts Section -->
-    <v-row class="mb-6" dense v-if="hasChartData">
+    <v-row v-if="hasChartData" class="mb-6" dense>
       <v-col cols="12" md="4">
         <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold-alpha h-100">
-          <div class="text-subtitle-2 font-weight-black text-gold mb-4">توزيع الخدمات حسب الحالة</div>
-          <div style="height: 220px;">
+          <div class="text-subtitle-2 font-weight-black text-gold mb-4">
+            توزيع الخدمات حسب الحالة
+          </div>
+          <div style="height: 220px">
             <PieChart :labels="statusLabels" :data="statusValues" :colors="statusColors" />
           </div>
         </v-card>
@@ -129,14 +250,20 @@
       </v-col>
       <v-col cols="12" md="4">
         <v-card elevation="0" class="glass-card pa-5 rounded-xl border-gold-alpha h-100">
-          <div class="text-subtitle-2 font-weight-black text-gold mb-4">المقابل المالي حسب التصنيف</div>
+          <div class="text-subtitle-2 font-weight-black text-gold mb-4">
+            المقابل المالي حسب التصنيف
+          </div>
           <SimpleBarChart :data="categoryChartData" :height="220" />
         </v-card>
       </v-col>
     </v-row>
 
     <!-- Client Financial Summary (auto-computed from data) -->
-    <v-card v-if="clientFinancialSummary.length > 0" elevation="0" class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden">
+    <v-card
+      v-if="clientFinancialSummary.length > 0"
+      elevation="0"
+      class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden"
+    >
       <div class="pa-5 border-b border-gold-alpha">
         <div class="text-subtitle-2 font-weight-black text-gold">الملخص المالي حسب العميل</div>
       </div>
@@ -159,7 +286,14 @@
             <td class="font-weight-black text-success">{{ fmt(c.total_paid) }}</td>
             <td class="font-weight-black text-gold">{{ fmt(c.total_remaining) }}</td>
             <td>
-              <v-progress-linear :model-value="c.collection_rate" color="success" height="8" rounded class="mt-1" style="max-width: 100px;" />
+              <v-progress-linear
+                :model-value="c.collection_rate"
+                color="success"
+                height="8"
+                rounded
+                class="mt-1"
+                style="max-width: 100px"
+              />
               <div class="text-caption text-grey mt-1">{{ c.collection_rate.toFixed(0) }}%</div>
             </td>
           </tr>
@@ -168,7 +302,11 @@
     </v-card>
 
     <!-- Grouped Data -->
-    <v-card v-if="groups && groups.length" elevation="0" class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden">
+    <v-card
+      v-if="groups && groups.length"
+      elevation="0"
+      class="glass-card rounded-xl border-gold-alpha mb-6 overflow-hidden"
+    >
       <v-table density="comfortable" class="glass-table">
         <thead>
           <tr>
@@ -222,12 +360,18 @@
             </td>
             <td class="opacity-70">{{ item.responsible_name || '-' }}</td>
             <td class="opacity-70">{{ item.linked_case_number || '-' }}</td>
-            <td class="text-accent font-weight-black">{{ fmt(item.financial_compensation || 0) }}</td>
+            <td class="text-accent font-weight-black">
+              {{ fmt(item.financial_compensation || 0) }}
+            </td>
             <td class="text-success font-weight-black">{{ fmt(item.paid_amount || 0) }}</td>
             <td class="text-gold font-weight-black">{{ fmt(item.remaining_amount || 0) }}</td>
             <td>
-              <v-chip size="small" variant="flat" :color="item.status_color || 'primary'"
-                class="text-ebony font-weight-black">
+              <v-chip
+                size="small"
+                variant="flat"
+                :color="item.status_color || 'primary'"
+                class="text-ebony font-weight-black"
+              >
                 {{ item.status_name }}
               </v-chip>
             </td>
@@ -238,15 +382,27 @@
       <!-- Pagination -->
       <v-divider class="border-gold opacity-10" />
       <div class="d-flex align-center justify-space-between pa-4 bg-transparent flex-wrap ga-2">
-        <span class="text-caption text-gold opacity-60">إجمالي السجلات: {{ summary.totalServices }}</span>
+        <span class="text-caption text-gold opacity-60"
+          >إجمالي السجلات: {{ summary.totalServices }}</span
+        >
         <div class="d-flex align-center ga-4">
-          <v-btn size="small" variant="tonal" color="accent" :disabled="page <= 1" @click="prevPage">
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="accent"
+            :disabled="page <= 1"
+            @click="prevPage"
+          >
             السابق
           </v-btn>
-          <span class="text-caption font-weight-black">
-            صفحة {{ page }} من {{ totalPages }}
-          </span>
-          <v-btn size="small" variant="tonal" color="accent" :disabled="page >= totalPages" @click="nextPage">
+          <span class="text-caption font-weight-black"> صفحة {{ page }} من {{ totalPages }} </span>
+          <v-btn
+            size="small"
+            variant="tonal"
+            color="accent"
+            :disabled="page >= totalPages"
+            @click="nextPage"
+          >
             التالي
           </v-btn>
         </div>
@@ -315,8 +471,8 @@ const distributions = reactive({
   byLawyer: [] as any[]
 })
 
-const hasChartData = computed(() =>
-  distributions.byStatus.length > 0 || distributions.byCategory.length > 0
+const hasChartData = computed(
+  () => distributions.byStatus.length > 0 || distributions.byCategory.length > 0
 )
 
 // Auto-compute client financial summary from items
@@ -342,9 +498,10 @@ const clientFinancialSummary = computed(() => {
   }
   const result = Array.from(map.values())
   for (const entry of result) {
-    entry.collection_rate = entry.total_compensation > 0
-      ? Math.round((entry.total_paid / entry.total_compensation) * 100)
-      : 0
+    entry.collection_rate =
+      entry.total_compensation > 0
+        ? Math.round((entry.total_paid / entry.total_compensation) * 100)
+        : 0
   }
   return result.sort((a, b) => b.total_compensation - a.total_compensation)
 })
@@ -475,10 +632,23 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.rtl { direction: rtl; }
-.gap-3 { gap: 12px; }
-.font-mono { font-family: 'Consolas', 'Monaco', monospace; }
-.glass-table { background: transparent !important; }
-:deep(.glass-table th) { background: rgba(212, 175, 55, 0.05) !important; border-bottom: 1px solid rgba(212, 175, 55, 0.1) !important; }
-:deep(.glass-table td) { border-bottom: 1px solid rgba(212, 175, 55, 0.05) !important; }
+.rtl {
+  direction: rtl;
+}
+.gap-3 {
+  gap: 12px;
+}
+.font-mono {
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+.glass-table {
+  background: transparent !important;
+}
+:deep(.glass-table th) {
+  background: rgba(212, 175, 55, 0.05) !important;
+  border-bottom: 1px solid rgba(212, 175, 55, 0.1) !important;
+}
+:deep(.glass-table td) {
+  border-bottom: 1px solid rgba(212, 175, 55, 0.05) !important;
+}
 </style>

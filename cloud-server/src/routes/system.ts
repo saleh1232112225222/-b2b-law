@@ -28,10 +28,9 @@ systemRouter.get('/system/diagnostic', requireAdminRole, async (req: Request, re
     for (const row of tablesResult.rows) {
       const table = row.table_name as string
       try {
-        const result = await query(
-          `SELECT COUNT(*) as count FROM ${table} WHERE company_id = $1`,
-          [companyId]
-        )
+        const result = await query(`SELECT COUNT(*) as count FROM ${table} WHERE company_id = $1`, [
+          companyId
+        ])
         inventory.push({ name: table, count: parseInt(result.rows[0].count) })
       } catch {
         inventory.push({ name: table, count: -1 })
@@ -173,7 +172,7 @@ systemRouter.post(
         const hasCompanyId = tableColumns[table]?.has('company_id') ?? false
 
         try {
-          let result;
+          let result
           if (table === 'companies') {
             result = await query('SELECT * FROM companies WHERE id = $1', [companyId])
           } else if (hasCompanyId) {
@@ -304,9 +303,12 @@ systemRouter.post(
           }
 
           if (idCol && cols.has(idCol)) {
-            let res;
+            let res
             if (cols.has('company_id')) {
-              res = await client.query(`SELECT "${idCol}" AS id FROM "${table}" WHERE company_id = $1`, [companyId])
+              res = await client.query(
+                `SELECT "${idCol}" AS id FROM "${table}" WHERE company_id = $1`,
+                [companyId]
+              )
             } else {
               res = await client.query(`SELECT "${idCol}" AS id FROM "${table}"`)
             }

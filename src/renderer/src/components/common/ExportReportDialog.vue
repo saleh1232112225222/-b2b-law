@@ -137,7 +137,9 @@
         </v-alert>
 
         <!-- Device / Mobile Info Alert -->
-        <div class="pa-3 rounded-xl glass-panel-light border border-gold-alpha mb-6 d-flex align-center">
+        <div
+          class="pa-3 rounded-xl glass-panel-light border border-gold-alpha mb-6 d-flex align-center"
+        >
           <LucideIcon name="info" :size="18" class="text-gold me-3 flex-shrink-0" />
           <div class="text-caption text-medium-contrast">
             <span v-if="isMobile">سيتم فتح خيارات حفظ أو مشاركة الملف مباشرة على جوالك.</span>
@@ -203,7 +205,10 @@ const exportError = ref('')
 
 const isMobile = computed(() => {
   if (typeof window === 'undefined') return false
-  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+  return (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+    window.innerWidth < 768
+  )
 })
 
 const extensionLabel = computed(() => {
@@ -217,7 +222,9 @@ watch(
   (val) => {
     if (val) {
       const today = new Date().toISOString().slice(0, 10)
-      filename.value = props.defaultFilename ? `${props.defaultFilename}_${today}` : `تقرير_${today}`
+      filename.value = props.defaultFilename
+        ? `${props.defaultFilename}_${today}`
+        : `تقرير_${today}`
       format.value = 'pdf'
       exportError.value = ''
     }
@@ -252,7 +259,6 @@ const handleConfirmExport = async () => {
       const res = await (window as any).api.reports.exportCsv(finalFilename, rows)
       const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
       downloadBlob(blob, finalFilename)
-
     } else if (format.value === 'pdf') {
       // ApiAdapter already handles blob download for cloud mode
       await (window as any).api.reports.exportPdf({
@@ -260,7 +266,6 @@ const handleConfirmExport = async () => {
         filename: finalFilename,
         params: props.exportParams || {}
       })
-
     } else if (format.value === 'html') {
       // ApiAdapter already handles blob download for cloud mode
       await (window as any).api.reports.exportHtml({
@@ -281,7 +286,8 @@ const handleConfirmExport = async () => {
 
 const downloadBlob = async (blob: Blob, name: string) => {
   const ext = name.endsWith('.csv') ? '.csv' : name.endsWith('.pdf') ? '.pdf' : '.html'
-  const mime = ext === '.csv' ? 'text/csv;charset=utf-8;' : ext === '.pdf' ? 'application/pdf' : 'text/html'
+  const mime =
+    ext === '.csv' ? 'text/csv;charset=utf-8;' : ext === '.pdf' ? 'application/pdf' : 'text/html'
 
   if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
     try {

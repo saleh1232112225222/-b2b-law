@@ -151,8 +151,8 @@
                   {{ formatMoney(svc.paid_amount || 0) }}
                 </div>
                 <div
-                  class="text-caption text-error font-weight-bold"
                   v-if="(svc.remaining_amount || 0) > 0"
+                  class="text-caption text-error font-weight-bold"
                 >
                   متبقي: {{ formatMoney(svc.remaining_amount || 0) }}
                 </div>
@@ -225,8 +225,8 @@
                   {{ formatMoney(cl.total_paid || 0) }}
                 </div>
                 <div
-                  class="text-caption text-error font-weight-bold"
                   v-if="(cl.total_remaining || 0) > 0"
+                  class="text-caption text-error font-weight-bold"
                 >
                   متبقي: {{ formatMoney(cl.total_remaining || 0) }}
                 </div>
@@ -311,8 +311,8 @@
                     {{ formatMoney(svc.paid_amount || 0) }}
                   </div>
                   <div
-                    class="text-caption text-error font-weight-bold"
                     v-if="(svc.remaining_amount || 0) > 0"
+                    class="text-caption text-error font-weight-bold"
                   >
                     متبقي: {{ formatMoney(svc.remaining_amount || 0) }}
                   </div>

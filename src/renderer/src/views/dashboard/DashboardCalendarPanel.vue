@@ -141,19 +141,19 @@ const calendarView = ref<'month' | 'week' | 'day'>('month')
 
 const filteredCells = computed(() => {
   if (calendarView.value === 'month') return props.calendarCells
-  
-  const selectedIndex = props.calendarCells.findIndex(cell => cell.iso === props.selectedDate)
+
+  const selectedIndex = props.calendarCells.findIndex((cell) => cell.iso === props.selectedDate)
   if (selectedIndex === -1) return props.calendarCells
-  
+
   if (calendarView.value === 'week') {
     const weekRow = Math.floor(selectedIndex / 7)
     return props.calendarCells.slice(weekRow * 7, (weekRow + 1) * 7)
   }
-  
+
   if (calendarView.value === 'day') {
     return [props.calendarCells[selectedIndex]]
   }
-  
+
   return props.calendarCells
 })
 </script>

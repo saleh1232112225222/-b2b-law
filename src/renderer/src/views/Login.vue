@@ -6,7 +6,13 @@
       <div class="background-overlay"></div>
     </div>
 
-    <v-row no-gutters class="z-10 py-8 py-md-12" style="min-height: 100vh" align="center" justify="center">
+    <v-row
+      no-gutters
+      class="z-10 py-8 py-md-12"
+      style="min-height: 100vh"
+      align="center"
+      justify="center"
+    >
       <v-col cols="12" sm="9" md="6" lg="4" class="d-flex flex-column align-center px-4">
         <!-- Glassmorphism Login Card -->
         <v-card class="premium-glass-card pa-10 w-100 rtl glass-card" elevation="0">
@@ -26,7 +32,12 @@
             <h2 class="welcome-back">مرحباً بعودتك</h2>
           </div>
 
-          <v-form v-if="!mfaRequired" v-model="formValid" class="login-form" @submit.prevent="handleLogin">
+          <v-form
+            v-if="!mfaRequired"
+            v-model="formValid"
+            class="login-form"
+            @submit.prevent="handleLogin"
+          >
             <!-- Username/Email Field -->
             <div class="input-group mb-6">
               <label class="input-label">اسم المستخدم</label>

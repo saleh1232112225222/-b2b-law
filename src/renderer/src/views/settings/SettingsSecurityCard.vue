@@ -2,7 +2,9 @@
   <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
     <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="shield-check" :size="20" class="text-primary me-3" />
-      <span class="text-subtitle-1 font-weight-black text-primary">الأمان والمصادقة الثنائية (MFA)</span>
+      <span class="text-subtitle-1 font-weight-black text-primary"
+        >الأمان والمصادقة الثنائية (MFA)</span
+      >
     </div>
     <v-card-text class="pa-4">
       <div class="d-flex align-center justify-space-between mb-4">
@@ -12,11 +14,7 @@
             حماية حسابك برمز تحقق إضافي من تطبيق المصادقة (Google Authenticator) عند تسجيل الدخول
           </div>
         </div>
-        <v-chip
-          :color="isEnabled ? 'success' : 'grey'"
-          size="small"
-          class="font-weight-black"
-        >
+        <v-chip :color="isEnabled ? 'success' : 'grey'" size="small" class="font-weight-black">
           {{ isEnabled ? 'نشط' : 'غير نشط' }}
         </v-chip>
       </div>
@@ -47,7 +45,9 @@
 
       <!-- Setup Dialog -->
       <v-dialog v-model="setupDialog" max-width="500" persistent>
-        <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+        <v-card
+          class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card"
+        >
           <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
             <LucideIcon name="shield-check" :size="24" class="me-3" />
             <span class="text-h6 font-weight-black">إعداد المصادقة الثنائية</span>
@@ -59,21 +59,28 @@
 
           <v-card-text class="pa-6 rtl">
             <p class="text-body-2 mb-4">
-              1. قم بمسح رمز الاستجابة السريعة (QR Code) أدناه باستخدام تطبيق المصادقة الخاص بك (Google Authenticator أو Microsoft Authenticator):
+              1. قم بمسح رمز الاستجابة السريعة (QR Code) أدناه باستخدام تطبيق المصادقة الخاص بك
+              (Google Authenticator أو Microsoft Authenticator):
             </p>
 
-            <div class="d-flex justify-center mb-6 pa-2 bg-white rounded-lg mx-auto" style="width: 216px; height: 216px;">
+            <div
+              class="d-flex justify-center mb-6 pa-2 bg-white rounded-lg mx-auto"
+              style="width: 216px; height: 216px"
+            >
               <v-img :src="qrCodeUrl" width="200" height="200" />
             </div>
 
-            <p class="text-body-2 mb-2 text-center font-weight-bold">أو أدخل المفتاح السري يدويًا:</p>
-            <div class="pa-3 text-center rounded bg-grey-darken-4 text-mono text-gold mb-6 select-all font-weight-bold" style="letter-spacing: 1.5px;">
+            <p class="text-body-2 mb-2 text-center font-weight-bold">
+              أو أدخل المفتاح السري يدويًا:
+            </p>
+            <div
+              class="pa-3 text-center rounded bg-grey-darken-4 text-mono text-gold mb-6 select-all font-weight-bold"
+              style="letter-spacing: 1.5px"
+            >
               {{ secret }}
             </div>
 
-            <p class="text-body-2 mb-4">
-              2. أدخل الرمز المكون من 6 أرقام لتأكيد التفعيل:
-            </p>
+            <p class="text-body-2 mb-4">2. أدخل الرمز المكون من 6 أرقام لتأكيد التفعيل:</p>
 
             <v-text-field
               v-model="verificationCode"
@@ -109,7 +116,9 @@
 
       <!-- Disable Dialog -->
       <v-dialog v-model="showDisableDialog" max-width="450" persistent>
-        <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+        <v-card
+          class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card"
+        >
           <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
             <LucideIcon name="unlock" :size="24" class="me-3" />
             <span class="text-h6 font-weight-black">إلغاء المصادقة الثنائية</span>
@@ -209,7 +218,8 @@ const confirmMfaEnable = async () => {
     isEnabled.value = true
     verificationCode.value = ''
   } catch (err: any) {
-    errorMsg.value = err?.response?.data?.error || err.message || 'فشل التفعيل، تأكد من الرمز المدخل'
+    errorMsg.value =
+      err?.response?.data?.error || err.message || 'فشل التفعيل، تأكد من الرمز المدخل'
   } finally {
     loading.value = false
   }

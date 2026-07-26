@@ -295,9 +295,7 @@
 
             <v-row dense>
               <v-col cols="6">
-                <span class="text-caption text-visible-low d-block mb-1"
-                  >البريد الإلكتروني</span
-                >
+                <span class="text-caption text-visible-low d-block mb-1">البريد الإلكتروني</span>
                 <span
                   class="text-caption font-weight-black text-visible-high text-truncate d-block"
                   style="max-width: 150px"

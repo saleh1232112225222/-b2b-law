@@ -5,11 +5,11 @@ import { useAppStore } from './app'
 
 export const useLegalStore = defineStore('legal', () => {
   const appStore = useAppStore()
-  
+
   const services = ref<LegalEngagement[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  
+
   const total = ref(0)
   const page = ref(1)
   const pageSize = ref(25)
@@ -50,7 +50,13 @@ export const useLegalStore = defineStore('legal', () => {
   }
 
   const fetchServices = async (
-    params: { page?: number; pageSize?: number; q?: string; category_id?: string; status_id?: string } = {}
+    params: {
+      page?: number
+      pageSize?: number
+      q?: string
+      category_id?: string
+      status_id?: string
+    } = {}
   ): Promise<void> => {
     loading.value = true
     error.value = null
@@ -135,7 +141,9 @@ export const useLegalStore = defineStore('legal', () => {
     }
   }
 
-  const fetchClientSummary = async (clientId: string): Promise<{ summary: any; services: any[] }> => {
+  const fetchClientSummary = async (
+    clientId: string
+  ): Promise<{ summary: any; services: any[] }> => {
     try {
       const result = await window.api.legalServices.getClientSummary(clientId)
       return result || { summary: {}, services: [] }

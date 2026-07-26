@@ -166,10 +166,7 @@ timeTrackingRouter.delete('/:id', async (req: Request, res: Response) => {
     const companyId = getCompanyId(req)
     const { id } = req.params
 
-    await query(
-      `DELETE FROM time_logs WHERE id = $1 AND company_id = $2`,
-      [id, companyId]
-    )
+    await query(`DELETE FROM time_logs WHERE id = $1 AND company_id = $2`, [id, companyId])
 
     res.json({ success: true, message: 'تم حذف سجل الوقت بنجاح' })
   } catch (err) {

@@ -109,7 +109,8 @@
           class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
           @click="showExportDialog = true"
         >
-          <LucideIcon name="hard-drive-download" :size="20" class="me-2 text-gold" /> تصدير وحفظ التقرير
+          <LucideIcon name="hard-drive-download" :size="20" class="me-2 text-gold" /> تصدير وحفظ
+          التقرير
         </v-btn>
         <v-btn
           variant="tonal"

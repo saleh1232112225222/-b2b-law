@@ -108,10 +108,14 @@
 
     <!-- Judgment Dialog -->
     <v-dialog v-model="showJudgmentDialog" max-width="500px" persistent>
-      <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+      <v-card
+        class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card"
+      >
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="gavel" :size="24" class="me-3" />
-          <span class="text-h6 font-weight-black">{{ editingJudgmentId ? 'تعديل الحكم' : 'تسجيل حكم جديد' }}</span>
+          <span class="text-h6 font-weight-black">{{
+            editingJudgmentId ? 'تعديل الحكم' : 'تسجيل حكم جديد'
+          }}</span>
           <v-spacer />
           <v-btn icon variant="text" color="ebony" @click="showJudgmentDialog = false">
             <LucideIcon name="x" :size="24" />
@@ -126,7 +130,7 @@
               label="درجة الحكم"
               variant="outlined"
               class="glass-input mb-4 text-white"
-              :rules="[v => !!v || 'الدرجة مطلوبة']"
+              :rules="[(v) => !!v || 'الدرجة مطلوبة']"
             ></v-select>
 
             <v-text-field
@@ -135,7 +139,7 @@
               label="تاريخ الحكم ميلادي"
               variant="outlined"
               class="glass-input mb-4 text-white"
-              :rules="[v => !!v || 'التاريخ مطلوب']"
+              :rules="[(v) => !!v || 'التاريخ مطلوب']"
             ></v-text-field>
 
             <v-select
@@ -144,7 +148,7 @@
               label="صيغة الحكم"
               variant="outlined"
               class="glass-input mb-4 text-white"
-              :rules="[v => !!v || 'الصيغة مطلوبة']"
+              :rules="[(v) => !!v || 'الصيغة مطلوبة']"
             ></v-select>
 
             <v-text-field
@@ -166,7 +170,12 @@
         </v-card-text>
 
         <v-card-actions class="pa-6 pt-0">
-          <v-btn variant="outlined" class="px-6 rounded-lg text-white" @click="showJudgmentDialog = false">إلغاء</v-btn>
+          <v-btn
+            variant="outlined"
+            class="px-6 rounded-lg text-white"
+            @click="showJudgmentDialog = false"
+            >إلغاء</v-btn
+          >
           <v-spacer />
           <v-btn
             color="gold"
@@ -333,7 +342,7 @@ const saveJudgment = async () => {
     const valid = await judgmentFormRef.value.validate()
     if (!valid.valid) return
   }
-  
+
   savingJudgment.value = true
   try {
     const payload = {
@@ -345,7 +354,7 @@ const saveJudgment = async () => {
     } else {
       await (window as any).api.judgments.create(payload)
     }
-    
+
     // Refresh judgments
     const res = await window.api.judgments.getByCaseId(caseId.value)
     linkedJudgments.value = safeArray(res)

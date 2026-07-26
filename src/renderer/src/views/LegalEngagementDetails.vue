@@ -97,13 +97,13 @@
                   {{ engagement.priority_name }}
                 </v-chip>
               </v-col>
-              <v-col cols="12" v-if="engagement.case_number">
+              <v-col v-if="engagement.case_number" cols="12">
                 <div class="text-caption text-gold mb-1">القضية المرتبطة</div>
                 <div class="text-body-1 font-weight-bold text-accent">
                   {{ engagement.case_number }}
                 </div>
               </v-col>
-              <v-col cols="12" v-if="engagement.description">
+              <v-col v-if="engagement.description" cols="12">
                 <div class="text-caption text-gold mb-1">الوصف</div>
                 <div class="text-body-2 text-white opacity-80" style="white-space: pre-wrap">
                   {{ engagement.description }}

@@ -11,28 +11,46 @@
             <h3 class="text-subtitle-1 font-weight-black text-gold">الأداء المالي للمكتب</h3>
           </div>
           <v-divider class="mb-4 border-gold opacity-10"></v-divider>
-          
+
           <div class="mb-4">
             <div class="d-flex justify-space-between text-body-2 mb-1">
               <span>إجمالي المقبوضات (التحصيل):</span>
-              <span class="font-weight-black text-success">{{ formatCurrency(financials.income) }} ريال</span>
+              <span class="font-weight-black text-success"
+                >{{ formatCurrency(financials.income) }} ريال</span
+              >
             </div>
-            <v-progress-linear :model-value="incomePercent" color="success" height="6" rounded></v-progress-linear>
+            <v-progress-linear
+              :model-value="incomePercent"
+              color="success"
+              height="6"
+              rounded
+            ></v-progress-linear>
           </div>
 
           <div class="mb-4">
             <div class="d-flex justify-space-between text-body-2 mb-1">
               <span>إجمالي المصروفات:</span>
-              <span class="font-weight-black text-error">{{ formatCurrency(financials.expense) }} ريال</span>
+              <span class="font-weight-black text-error"
+                >{{ formatCurrency(financials.expense) }} ريال</span
+              >
             </div>
-            <v-progress-linear :model-value="expensePercent" color="error" height="6" rounded></v-progress-linear>
+            <v-progress-linear
+              :model-value="expensePercent"
+              color="error"
+              height="6"
+              rounded
+            ></v-progress-linear>
           </div>
 
           <v-divider class="my-4 border-dashed border-gold opacity-10"></v-divider>
-          
+
           <div class="d-flex justify-space-between align-center">
             <span class="text-subtitle-2 font-weight-black">صافي الأرباح/الرصيد:</span>
-            <v-chip color="accent" class="font-weight-black text-subtitle-1 px-4 premium-btn-gold-gradient" size="large">
+            <v-chip
+              color="accent"
+              class="font-weight-black text-subtitle-1 px-4 premium-btn-gold-gradient"
+              size="large"
+            >
               {{ formatCurrency(financials.balance) }} ريال
             </v-chip>
           </div>
@@ -49,7 +67,7 @@
             <h3 class="text-subtitle-1 font-weight-black text-gold">أداء العمليات والفريق</h3>
           </div>
           <v-divider class="mb-4 border-gold opacity-10"></v-divider>
-          
+
           <v-row dense class="align-center">
             <v-col cols="6">
               <div class="text-center py-2">
@@ -72,7 +90,12 @@
               <span>معدل إنجاز المهام الكلي:</span>
               <span class="font-weight-black text-accent">{{ completionRate }}%</span>
             </div>
-            <v-progress-linear :model-value="completionRate" color="accent" height="8" rounded></v-progress-linear>
+            <v-progress-linear
+              :model-value="completionRate"
+              color="accent"
+              height="8"
+              rounded
+            ></v-progress-linear>
           </div>
         </v-card>
       </v-col>
@@ -125,12 +148,12 @@ onMounted(async () => {
         balance: Number(fin.balance || 0)
       }
     }
-    
+
     // Fetch task counts
     const tCount = await (window as any).api.tasks.count({ status: 'all' })
     const cCount = await (window as any).api.tasks.count({ status: 'completed' })
     const pCount = await (window as any).api.tasks.count({ status: 'in_progress' })
-    
+
     tasks.value = {
       total: tCount || 0,
       completed: cCount || 0,

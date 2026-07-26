@@ -182,7 +182,9 @@ export const scheduledReports = pgTable('scheduled_reports', {
 export const timeLogs = pgTable('time_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
   caseId: uuid('case_id').references(() => cases.id, { onDelete: 'set null' }),
   taskId: uuid('task_id').references(() => tasksV2.id, { onDelete: 'set null' }),
   description: text('description').notNull(),
@@ -198,7 +200,9 @@ export const timeLogs = pgTable('time_logs', {
 export const notifications = pgTable('notifications', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
-  userId: uuid('user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  userId: uuid('user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
   title: text('title').notNull(),
   message: text('message').notNull(),
   type: text('type').notNull(), // 'session', 'task', 'payment', 'system'
@@ -211,10 +215,11 @@ export const permissionAuditLogs = pgTable('permission_audit_logs', {
   id: uuid('id').defaultRandom().primaryKey(),
   companyId: uuid('company_id').notNull(),
   actorUserId: uuid('actor_user_id').references(() => users.id, { onDelete: 'set null' }),
-  targetUserId: uuid('target_user_id').references(() => users.id, { onDelete: 'cascade' }).notNull(),
+  targetUserId: uuid('target_user_id')
+    .references(() => users.id, { onDelete: 'cascade' })
+    .notNull(),
   actionType: text('action_type').notNull(), // 'role_change', 'permission_grant', 'permission_revoke'
   details: text('details').notNull(),
   ipAddress: text('ip_address'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow()
 })
-

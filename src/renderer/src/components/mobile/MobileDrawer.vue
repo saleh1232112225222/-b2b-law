@@ -13,7 +13,9 @@
             :src="`https://ui-avatars.com/api/?name=${encodeURIComponent(username || 'User')}&background=0F2A55&color=E9C349&bold=true`"
           />
         </v-avatar>
-        <div class="text-subtitle-1 font-weight-black text-visible-high">{{ username || 'المستخدم' }}</div>
+        <div class="text-subtitle-1 font-weight-black text-visible-high">
+          {{ username || 'المستخدم' }}
+        </div>
         <div class="text-caption text-accent opacity-70">{{ role || '—' }}</div>
       </div>
 

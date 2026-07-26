@@ -2,7 +2,9 @@
   <div class="pa-2">
     <v-card v-if="loading" elevation="0" class="glass-panel-light pa-8 text-center">
       <v-progress-circular indeterminate color="accent" size="56" width="4"></v-progress-circular>
-      <div class="mt-6 text-body-1 text-gold opacity-60 font-weight-black">جاري تحميل بيانات الموكل...</div>
+      <div class="mt-6 text-body-1 text-gold opacity-60 font-weight-black">
+        جاري تحميل بيانات الموكل...
+      </div>
     </v-card>
 
     <template v-else-if="client">
@@ -18,7 +20,12 @@
               </div>
               <div>
                 <h1 class="text-h5 font-weight-black text-gold mb-1">{{ client.name }}</h1>
-                <v-chip :color="getClientTypeColor(client.type)" variant="flat" size="small" class="font-weight-black rounded-lg px-3">
+                <v-chip
+                  :color="getClientTypeColor(client.type)"
+                  variant="flat"
+                  size="small"
+                  class="font-weight-black rounded-lg px-3"
+                >
                   {{ client.type || 'فرد' }}
                 </v-chip>
               </div>
@@ -34,13 +41,26 @@
       <!-- Action Buttons -->
       <v-row dense class="mb-4 ga-2">
         <v-col cols="6">
-          <v-btn color="accent" variant="elevated" block class="rounded-xl py-3 font-weight-black" @click="openEditDialog">
+          <v-btn
+            color="accent"
+            variant="elevated"
+            block
+            class="rounded-xl py-3 font-weight-black"
+            @click="openEditDialog"
+          >
             <LucideIcon name="pencil" :size="18" class="me-2" /> تعديل الملف
           </v-btn>
         </v-col>
         <v-col cols="6">
-          <v-btn variant="outlined" block class="rounded-xl py-3 font-weight-black border-gold text-gold" @click="goToCases">
-            <LucideIcon name="gavel" :size="18" class="me-2" /> القضايا ({{ safeLength(linkedCases) }})
+          <v-btn
+            variant="outlined"
+            block
+            class="rounded-xl py-3 font-weight-black border-gold text-gold"
+            @click="goToCases"
+          >
+            <LucideIcon name="gavel" :size="18" class="me-2" /> القضايا ({{
+              safeLength(linkedCases)
+            }})
           </v-btn>
         </v-col>
       </v-row>
@@ -53,15 +73,33 @@
           </v-tab>
           <v-tab value="cases" class="font-weight-black text-gold py-4">
             <LucideIcon name="gavel" :size="18" class="me-2" /> القضايا
-            <v-badge v-if="safeLength(linkedCases) > 0" :content="safeLength(linkedCases)" color="accent" class="ms-2" inline></v-badge>
+            <v-badge
+              v-if="safeLength(linkedCases) > 0"
+              :content="safeLength(linkedCases)"
+              color="accent"
+              class="ms-2"
+              inline
+            ></v-badge>
           </v-tab>
           <v-tab value="agencies" class="font-weight-black text-gold py-4">
             <LucideIcon name="file-text" :size="18" class="me-2" /> الوكالات
-            <v-badge v-if="safeLength(linkedAgencies) > 0" :content="safeLength(linkedAgencies)" color="accent" class="ms-2" inline></v-badge>
+            <v-badge
+              v-if="safeLength(linkedAgencies) > 0"
+              :content="safeLength(linkedAgencies)"
+              color="accent"
+              class="ms-2"
+              inline
+            ></v-badge>
           </v-tab>
           <v-tab value="legal-services" class="font-weight-black text-gold py-4">
             <LucideIcon name="scale" :size="18" class="me-2" /> الخدمات
-            <v-badge v-if="legalServicesSummary.total_services > 0" :content="legalServicesSummary.total_services" color="accent" class="ms-2" inline></v-badge>
+            <v-badge
+              v-if="legalServicesSummary.total_services > 0"
+              :content="legalServicesSummary.total_services"
+              color="accent"
+              class="ms-2"
+              inline
+            ></v-badge>
           </v-tab>
         </v-tabs>
 
@@ -75,8 +113,12 @@
                     <LucideIcon name="phone" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1">رقم الجوال</v-list-item-title>
-                <v-list-item-subtitle class="text-h6 font-weight-black text-white ltr-text">{{ client.phone || '---' }}</v-list-item-subtitle>
+                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1"
+                  >رقم الجوال</v-list-item-title
+                >
+                <v-list-item-subtitle class="text-h6 font-weight-black text-white ltr-text">{{
+                  client.phone || '---'
+                }}</v-list-item-subtitle>
               </v-list-item>
 
               <v-list-item class="px-0 mb-4">
@@ -85,8 +127,12 @@
                     <LucideIcon name="mail" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1">البريد الإلكتروني</v-list-item-title>
-                <v-list-item-subtitle class="text-h6 font-weight-black text-white">{{ client.email || '---' }}</v-list-item-subtitle>
+                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1"
+                  >البريد الإلكتروني</v-list-item-title
+                >
+                <v-list-item-subtitle class="text-h6 font-weight-black text-white">{{
+                  client.email || '---'
+                }}</v-list-item-subtitle>
               </v-list-item>
 
               <v-list-item class="px-0 mb-4">
@@ -95,8 +141,12 @@
                     <LucideIcon name="map-pin" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1">المدينة والعنوان</v-list-item-title>
-                <v-list-item-subtitle class="text-h6 font-weight-black text-white">{{ client.city }} - {{ client.address || '---' }}</v-list-item-subtitle>
+                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1"
+                  >المدينة والعنوان</v-list-item-title
+                >
+                <v-list-item-subtitle class="text-h6 font-weight-black text-white"
+                  >{{ client.city }} - {{ client.address || '---' }}</v-list-item-subtitle
+                >
               </v-list-item>
 
               <v-divider class="my-4 border-gold opacity-10"></v-divider>
@@ -107,8 +157,12 @@
                     <LucideIcon name="message-circle" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1">ملاحظات</v-list-item-title>
-                <v-list-item-subtitle class="text-body-1 text-white opacity-70 leading-relaxed">{{ client.notes || 'لا توجد ملاحظات' }}</v-list-item-subtitle>
+                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1"
+                  >ملاحظات</v-list-item-title
+                >
+                <v-list-item-subtitle class="text-body-1 text-white opacity-70 leading-relaxed">{{
+                  client.notes || 'لا توجد ملاحظات'
+                }}</v-list-item-subtitle>
               </v-list-item>
 
               <v-divider class="my-4 border-gold opacity-10"></v-divider>
@@ -119,31 +173,50 @@
                     <LucideIcon name="calendar" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1">تاريخ الانضمام</v-list-item-title>
-                <v-list-item-subtitle class="text-h6 font-weight-black text-white">{{ formatDate(client.created_at) }}</v-list-item-subtitle>
+                <v-list-item-title class="text-caption text-gold opacity-50 font-weight-black mb-1"
+                  >تاريخ الانضمام</v-list-item-title
+                >
+                <v-list-item-subtitle class="text-h6 font-weight-black text-white">{{
+                  formatDate(client.created_at)
+                }}</v-list-item-subtitle>
               </v-list-item>
             </v-list>
           </v-window-item>
 
           <!-- Cases Tab -->
           <v-window-item value="cases">
-            <v-list class="pa-0" v-if="safeLength(linkedCases) === 0">
+            <v-list v-if="safeLength(linkedCases) === 0" class="pa-0">
               <v-list-item class="text-center py-12">
                 <v-icon size="48" class="text-gold opacity-30 mb-2">mdi-gavel</v-icon>
                 <div class="text-gold opacity-50 font-weight-black">لا توجد قضايا مرتبطة</div>
               </v-list-item>
             </v-list>
-            <v-list class="pa-0" v-else>
-              <v-list-item v-for="c in linkedCases" :key="c.id" class="px-0 mb-3" @click="openCase(c)">
+            <v-list v-else class="pa-0">
+              <v-list-item
+                v-for="c in linkedCases"
+                :key="c.id"
+                class="px-0 mb-3"
+                @click="openCase(c)"
+              >
                 <template #prepend>
                   <div class="glass-panel-light pa-3 rounded-lg me-3 bg-accent-alpha">
                     <LucideIcon name="gavel" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-h6 font-weight-black text-white">{{ c.case_number }}</v-list-item-title>
-                <v-list-item-subtitle class="text-body-1 text-gold opacity-70">{{ c.subject }}</v-list-item-subtitle>
+                <v-list-item-title class="text-h6 font-weight-black text-white">{{
+                  c.case_number
+                }}</v-list-item-title>
+                <v-list-item-subtitle class="text-body-1 text-gold opacity-70">{{
+                  c.subject
+                }}</v-list-item-subtitle>
                 <template #append>
-                  <v-chip :color="getStatusColor(c.status)" variant="flat" size="x-small" class="font-weight-black">{{ c.status }}</v-chip>
+                  <v-chip
+                    :color="getStatusColor(c.status)"
+                    variant="flat"
+                    size="x-small"
+                    class="font-weight-black"
+                    >{{ c.status }}</v-chip
+                  >
                 </template>
               </v-list-item>
             </v-list>
@@ -151,23 +224,29 @@
 
           <!-- Agencies Tab -->
           <v-window-item value="agencies">
-            <v-list class="pa-0" v-if="safeLength(linkedAgencies) === 0">
+            <v-list v-if="safeLength(linkedAgencies) === 0" class="pa-0">
               <v-list-item class="text-center py-12">
                 <v-icon size="48" class="text-gold opacity-30 mb-2">mdi-file-text</v-icon>
                 <div class="text-gold opacity-50 font-weight-black">لا توجد وكالات مسجلة</div>
               </v-list-item>
             </v-list>
-            <v-list class="pa-0" v-else>
+            <v-list v-else class="pa-0">
               <v-list-item v-for="a in linkedAgencies" :key="a.id" class="px-0 mb-3">
                 <template #prepend>
                   <div class="glass-panel-light pa-3 rounded-lg me-3 bg-accent-alpha">
                     <LucideIcon name="file-text" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-h6 font-weight-black text-white">{{ a.agency_number }}</v-list-item-title>
-                <v-list-item-subtitle class="text-body-1 text-gold opacity-70">{{ a.court }} - {{ formatDate(a.date) }}</v-list-item-subtitle>
+                <v-list-item-title class="text-h6 font-weight-black text-white">{{
+                  a.agency_number
+                }}</v-list-item-title>
+                <v-list-item-subtitle class="text-body-1 text-gold opacity-70"
+                  >{{ a.court }} - {{ formatDate(a.date) }}</v-list-item-subtitle
+                >
                 <template #append>
-                  <v-chip color="accent" variant="flat" size="x-small" class="font-weight-black">{{ formatDate(a.expiry_date) }}</v-chip>
+                  <v-chip color="accent" variant="flat" size="x-small" class="font-weight-black">{{
+                    formatDate(a.expiry_date)
+                  }}</v-chip>
                 </template>
               </v-list-item>
             </v-list>
@@ -178,38 +257,68 @@
             <!-- Financial Summary -->
             <v-row dense class="mb-4">
               <v-col cols="6">
-                <v-card elevation="0" class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center">
+                <v-card
+                  elevation="0"
+                  class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center"
+                >
                   <div class="text-caption font-weight-black text-gold opacity-60 mb-1">المحصل</div>
-                  <div class="text-h6 font-weight-black text-success">{{ formatCurrency(legalServicesSummary.total_paid || 0) }}</div>
+                  <div class="text-h6 font-weight-black text-success">
+                    {{ formatCurrency(legalServicesSummary.total_paid || 0) }}
+                  </div>
                 </v-card>
               </v-col>
               <v-col cols="6">
-                <v-card elevation="0" class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center">
-                  <div class="text-caption font-weight-black text-gold opacity-60 mb-1">المتبقي</div>
-                  <div class="text-h6 font-weight-black text-error">{{ formatCurrency(legalServicesSummary.total_remaining || 0) }}</div>
+                <v-card
+                  elevation="0"
+                  class="pa-4 rounded-xl border-gold-alpha bg-grey-lighten-5 text-center"
+                >
+                  <div class="text-caption font-weight-black text-gold opacity-60 mb-1">
+                    المتبقي
+                  </div>
+                  <div class="text-h6 font-weight-black text-error">
+                    {{ formatCurrency(legalServicesSummary.total_remaining || 0) }}
+                  </div>
                 </v-card>
               </v-col>
             </v-row>
 
-            <v-list class="pa-0" v-if="legalServicesList.length === 0">
+            <v-list v-if="legalServicesList.length === 0" class="pa-0">
               <v-list-item class="text-center py-12">
                 <LucideIcon name="scale" :size="48" class="text-gold opacity-30 mb-2" />
-                <div class="text-gold opacity-50 font-weight-black">لا توجد خدمات قانونية مسجلة</div>
+                <div class="text-gold opacity-50 font-weight-black">
+                  لا توجد خدمات قانونية مسجلة
+                </div>
               </v-list-item>
             </v-list>
-            <v-list class="pa-0" v-else>
-              <v-list-item v-for="svc in legalServicesList" :key="svc.id" class="px-0 mb-3" @click="$router.push('/legal-engagements/' + svc.id)">
+            <v-list v-else class="pa-0">
+              <v-list-item
+                v-for="svc in legalServicesList"
+                :key="svc.id"
+                class="px-0 mb-3"
+                @click="$router.push('/legal-engagements/' + svc.id)"
+              >
                 <template #prepend>
                   <div class="glass-panel-light pa-3 rounded-lg me-3 bg-accent-alpha">
                     <LucideIcon name="scale" :size="24" class="text-accent" />
                   </div>
                 </template>
-                <v-list-item-title class="text-h6 font-weight-black text-white">{{ svc.service_type_name }}</v-list-item-title>
-                <v-list-item-subtitle class="text-caption text-gold opacity-70">{{ svc.category_name }} - {{ svc.engagement_number }}</v-list-item-subtitle>
+                <v-list-item-title class="text-h6 font-weight-black text-white">{{
+                  svc.service_type_name
+                }}</v-list-item-title>
+                <v-list-item-subtitle class="text-caption text-gold opacity-70"
+                  >{{ svc.category_name }} - {{ svc.engagement_number }}</v-list-item-subtitle
+                >
                 <template #append>
                   <div class="text-end">
-                    <div class="text-caption text-success font-weight-black">{{ formatCurrency(svc.paid_amount || 0) }}</div>
-                    <div class="text-caption text-error font-weight-black" v-if="(svc.remaining_amount || 0) > 0">متبقي: {{ formatCurrency(svc.remaining_amount || 0) }}</div>
+                    <div class="text-caption text-success font-weight-black">
+                      {{ formatCurrency(svc.paid_amount || 0) }}
+                    </div>
+                    <div
+                      v-if="(svc.remaining_amount || 0) > 0"
+                      class="text-caption text-error font-weight-black"
+                    >
+                      متبقي: {{ formatCurrency(svc.remaining_amount || 0) }}
+                    </div>
                   </div>
                 </template>
               </v-list-item>
@@ -332,6 +441,10 @@ const formatDate = (date?: string) => {
 }
 
 const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', maximumFractionDigits: 0 }).format(val)
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency',
+    currency: 'SAR',
+    maximumFractionDigits: 0
+  }).format(val)
 }
 </script>

@@ -111,7 +111,7 @@
                     </div>
                   </div>
 
-                    <TaskCard
+                  <TaskCard
                     v-for="task in safeArray(getTasksByPriority(priority))"
                     v-else
                     :key="task.id"

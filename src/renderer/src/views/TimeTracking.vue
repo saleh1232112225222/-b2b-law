@@ -30,15 +30,20 @@
     <!-- Active Timer Panel -->
     <v-row dense class="mb-6">
       <v-col cols="12">
-        <v-card elevation="0" class="glass-card border border-gold border-opacity-20 relative overflow-hidden">
+        <v-card
+          elevation="0"
+          class="glass-card border border-gold border-opacity-20 relative overflow-hidden"
+        >
           <div class="corner-glow top-left"></div>
           <div class="corner-glow bottom-right"></div>
 
           <v-card-text class="pa-6">
             <v-row dense align="center">
               <v-col cols="12" md="7">
-                <div class="text-subtitle-1 font-weight-black text-gold mb-3">مؤقت تسجيل الوقت الحالي</div>
-                
+                <div class="text-subtitle-1 font-weight-black text-gold mb-3">
+                  مؤقت تسجيل الوقت الحالي
+                </div>
+
                 <v-row dense>
                   <v-col cols="12" sm="6">
                     <v-autocomplete
@@ -86,7 +91,11 @@
                 ></v-text-field>
               </v-col>
 
-              <v-col cols="12" md="5" class="d-flex flex-column align-center justify-center py-4 border-r-md">
+              <v-col
+                cols="12"
+                md="5"
+                class="d-flex flex-column align-center justify-center py-4 border-r-md"
+              >
                 <!-- Clock Display -->
                 <div class="timer-display mb-4 font-weight-bold text-h3 text-gold text-mono">
                   {{ formattedElapsedTime }}
@@ -123,13 +132,24 @@
     <v-row dense>
       <v-col cols="12">
         <v-card elevation="0" class="glass-card border border-gold border-opacity-20">
-          <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10 justify-space-between flex-wrap gap-2">
+          <div
+            class="pa-4 d-flex align-center border-b border-gold border-opacity-10 justify-space-between flex-wrap gap-2"
+          >
             <div class="d-flex align-center">
               <LucideIcon name="history" :size="20" class="text-gold me-3" />
-              <span class="text-subtitle-1 font-weight-black text-primary">سجل أوقات العمل السابقة</span>
+              <span class="text-subtitle-1 font-weight-black text-primary"
+                >سجل أوقات العمل السابقة</span
+              >
             </div>
             <div class="d-flex align-center gap-2">
-              <v-btn icon density="comfortable" variant="text" color="primary" @click="fetchLogs" :loading="loadingLogs">
+              <v-btn
+                icon
+                density="comfortable"
+                variant="text"
+                color="primary"
+                :loading="loadingLogs"
+                @click="fetchLogs"
+              >
                 <LucideIcon name="refresh-cw" :size="16" />
               </v-btn>
             </div>
@@ -151,14 +171,22 @@
               {{ item.endTime ? formatDate(item.endTime) : 'قيد التشغيل' }}
             </template>
             <template #item.durationMinutes="{ item }">
-              <span class="font-weight-bold text-gold">{{ formatMinutes(item.durationMinutes) }}</span>
+              <span class="font-weight-bold text-gold">{{
+                formatMinutes(item.durationMinutes)
+              }}</span>
             </template>
             <template #item.caseNumber="{ item }">
-              <span v-if="item.caseNumber" class="text-caption text-primary">قضية رقم: {{ item.caseNumber }}</span>
+              <span v-if="item.caseNumber" class="text-caption text-primary"
+                >قضية رقم: {{ item.caseNumber }}</span
+              >
               <span v-else class="text-caption text-grey">—</span>
             </template>
             <template #item.isBilled="{ item }">
-              <v-chip :color="item.isBilled ? 'success' : 'warning'" size="x-small" class="font-weight-black">
+              <v-chip
+                :color="item.isBilled ? 'success' : 'warning'"
+                size="x-small"
+                class="font-weight-black"
+              >
                 {{ item.isBilled ? 'تمت الفوترة' : 'مستحق للفوترة' }}
               </v-chip>
             </template>
@@ -181,7 +209,9 @@
 
     <!-- Manual Log Dialog -->
     <v-dialog v-model="showManualDialog" max-width="600" persistent>
-      <v-card class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card">
+      <v-card
+        class="premium-glass-card border-gold border-2 rounded-2xl overflow-hidden glass-card"
+      >
         <div class="pa-6 bg-gold-gradient text-ebony d-flex align-center">
           <LucideIcon name="clock-alert" :size="24" class="me-3" />
           <span class="text-h6 font-weight-black">تسجيل وقت عمل يدوي سابق</span>
@@ -219,7 +249,7 @@
                 hide-details
               ></v-autocomplete>
             </v-col>
-            
+
             <v-col cols="12">
               <v-text-field
                 v-model="manualForm.description"
@@ -361,7 +391,7 @@ const fetchCasesAndTasks = async () => {
   try {
     const casesData = await (window as any).api.cases.getAll()
     cases.value = casesData || []
-    
+
     // Fetch active tasks
     const tasksData = await (window as any).api.tasks.list({ status: 'in_progress' })
     tasks.value = tasksData || []

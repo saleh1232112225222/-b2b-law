@@ -290,8 +290,8 @@
                     variant="text"
                     color="accent"
                     class="rounded-lg font-weight-black"
-                    @click="loadLegalFinanceData"
                     :loading="legalFinanceLoading"
+                    @click="loadLegalFinanceData"
                   >
                     <LucideIcon name="refresh-cw" :size="18" class="me-2" /> تحديث
                   </v-btn>

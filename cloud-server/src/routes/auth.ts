@@ -25,7 +25,8 @@ async function logActivity(
   companyId?: string
 ): Promise<void> {
   try {
-    const cid = companyId || (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')
+    const cid =
+      companyId || process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000'
     await query(
       `INSERT INTO activity_logs (id, company_id, action_key, module_key, details, actor, metadata_json, timestamp)
        VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6::jsonb, NOW())`,
@@ -195,7 +196,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
     const params: any[] = [searchUsername]
     let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE (u.username = $1`
-    
+
     if (emailSearch) {
       params.push(emailSearch)
       userQuery += ` OR u.recovery_email = $2`
@@ -290,7 +291,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
     // Check subscription status
     let subscriptionStatus = 'trial'
-    if (user.company_id === (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
+    if (
+      user.company_id ===
+      (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')
+    ) {
       subscriptionStatus = 'lifetime'
     } else {
       const subCheck = await query(
@@ -1197,21 +1201,26 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
       )
 
       // 6. Seed basic firm_data settings so the app has configuration values
-      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'officeName', JSON.stringify(companyName)
-      ])
-      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'theme', JSON.stringify('light')
-      ])
-      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)
-      ])
-      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)
-      ])
-      await client.query('INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)', [
-        uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)
-      ])
+      await client.query(
+        'INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), companyId, 'officeName', JSON.stringify(companyName)]
+      )
+      await client.query(
+        'INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), companyId, 'theme', JSON.stringify('light')]
+      )
+      await client.query(
+        'INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), companyId, 'activityLogRetentionDays', JSON.stringify(365)]
+      )
+      await client.query(
+        'INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), companyId, 'taskNotificationsEnabled', JSON.stringify(true)]
+      )
+      await client.query(
+        'INSERT INTO firm_data (id, company_id, key, value) VALUES ($1, $2, $3, $4)',
+        [uuidv4(), companyId, 'taskNotificationLeadDays', JSON.stringify(1)]
+      )
 
       // 7. Create trial subscription record
       const planResult = await client.query('SELECT id FROM plans LIMIT 1')
@@ -1259,8 +1268,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
     })
 
     // Return OTP in response in development mode to allow verification without real email
-    const devOtp =
-      process.env.NODE_ENV !== 'production' ? { devOtp: otpCode } : {}
+    const devOtp = process.env.NODE_ENV !== 'production' ? { devOtp: otpCode } : {}
     res.status(201).json({ success: true, companyId, username, ...devOtp })
   } catch (err) {
     console.error('[AUTH] Registration error:', err)

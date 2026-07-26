@@ -4,18 +4,27 @@
       <!-- Top Decorative Accent -->
       <div class="decorative-accent" :style="{ backgroundColor: `var(--${color})` }"></div>
 
-      <v-card-title class="d-flex flex-column align-center" :class="isMobile ? 'pa-5 pb-2' : 'pa-8'">
+      <v-card-title
+        class="d-flex flex-column align-center"
+        :class="isMobile ? 'pa-5 pb-2' : 'pa-8'"
+      >
         <div
           class="icon-wrapper rounded-xl mb-4"
           :class="isMobile ? 'pa-3' : 'pa-4'"
           :style="{ backgroundColor: `var(--${color}-alpha)` }"
         >
-          <LucideIcon :name="icon" :size="isMobile ? 32 : 40" :style="{ color: `var(--${color})` }" />
+          <LucideIcon
+            :name="icon"
+            :size="isMobile ? 32 : 40"
+            :style="{ color: `var(--${color})` }"
+          />
         </div>
-        <h3 class="font-weight-black text-center" :class="isMobile ? 'text-h6' : 'text-h5'">{{ title }}</h3>
+        <h3 class="font-weight-black text-center" :class="isMobile ? 'text-h6' : 'text-h5'">
+          {{ title }}
+        </h3>
       </v-card-title>
 
-      <v-card-text 
+      <v-card-text
         class="text-center py-0 text-secondary font-weight-medium"
         :class="isMobile ? 'px-5 text-body-2 mb-2' : 'px-10 text-body-1'"
       >

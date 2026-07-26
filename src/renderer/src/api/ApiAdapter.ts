@@ -359,9 +359,15 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   // Mock report endpoints
   if (url.startsWith('/reports/users-permissions')) return { users: [], permissions: [] }
   if (url.startsWith('/reports/user-activity')) return { data: [] }
-  if (url.startsWith('/reports/sessions')) return { rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
+  if (url.startsWith('/reports/sessions'))
+    return { rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
   if (url.startsWith('/reports/case')) return { data: {} }
-  if (url.startsWith('/reports/financial-summary')) return { totals: { totalIn: 0, totalOut: 0, balance: 0 }, rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
+  if (url.startsWith('/reports/financial-summary'))
+    return {
+      totals: { totalIn: 0, totalOut: 0, balance: 0 },
+      rows: [],
+      pageInfo: { page: 1, pageSize: 25, totalRows: 0 }
+    }
   if (url.startsWith('/reports/activity')) return { data: [] }
   if (url.startsWith('/reports/evidence')) return { data: [] }
   if (url.startsWith('/reports/memoranda')) return { data: [] }
@@ -1490,7 +1496,9 @@ const api = {
                 try {
                   const handle = await (window as any).showSaveFilePicker({
                     suggestedName: filename,
-                    types: [{ description: isPdf ? 'ملف PDF' : 'ملف HTML', accept: { [mime]: [ext] } }]
+                    types: [
+                      { description: isPdf ? 'ملف PDF' : 'ملف HTML', accept: { [mime]: [ext] } }
+                    ]
                   })
                   const writable = await handle.createWritable()
                   await writable.write(blob)
@@ -1803,16 +1811,18 @@ const api = {
         ? window.ipcRenderer?.invoke('system:exportManualSnapshot')
         : cloudRequest({ method: 'POST', url: '/system/export-snapshot' }).then(async (r) => {
             const fileName = `manual-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
-            
+
             // Check if modern browser File System Access API is supported
             if ('showSaveFilePicker' in window) {
               try {
                 const handle = await (window as any).showSaveFilePicker({
                   suggestedName: fileName,
-                  types: [{
-                    description: 'JSON Backup Files',
-                    accept: { 'application/json': ['.json'] }
-                  }]
+                  types: [
+                    {
+                      description: 'JSON Backup Files',
+                      accept: { 'application/json': ['.json'] }
+                    }
+                  ]
                 })
                 const writable = await handle.createWritable()
                 await writable.write(JSON.stringify(r, null, 2))
@@ -1822,7 +1832,10 @@ const api = {
                 if (err.name === 'AbortError') {
                   return { success: false, message: 'تم الإلغاء' }
                 }
-                console.warn('[ExportSnapshot] showSaveFilePicker failed, falling back to standard download:', err)
+                console.warn(
+                  '[ExportSnapshot] showSaveFilePicker failed, falling back to standard download:',
+                  err
+                )
               }
             }
 

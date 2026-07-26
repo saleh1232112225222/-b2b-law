@@ -425,7 +425,8 @@
         <LucideIcon name="alert-triangle" :size="64" class="text-gold mx-auto mb-4" />
         <h2 class="text-h5 font-weight-black mb-4">الاشتراك معلق</h2>
         <p class="text-body-1 text-grey-darken-1 mb-6">
-          عذراً، تم إيقاف صفحة الاشتراك والدفع مؤقتاً. يرجى مراجعة الدعم الفني لمعرفة المزيد من التفاصيل حول حالة اشتراكك وتفعيله.
+          عذراً، تم إيقاف صفحة الاشتراك والدفع مؤقتاً. يرجى مراجعة الدعم الفني لمعرفة المزيد من
+          التفاصيل حول حالة اشتراكك وتفعيله.
         </p>
         <v-divider class="mb-6 opacity-10" />
         <h3 class="text-subtitle-1 font-weight-black mb-4">للتواصل مع الدعم الفني المباشر</h3>

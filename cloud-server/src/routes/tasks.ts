@@ -198,10 +198,10 @@ tasksRouter.get('/:id', requirePermission('view_tasks'), async (req: Request, re
     const companyId = getCompanyId(req)
     const { id } = req.params
 
-    const result = await query('SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id WHERE tasks_v2.id = $1 AND tasks_v2.company_id = $2', [
-      id,
-      companyId
-    ])
+    const result = await query(
+      'SELECT tasks_v2.*, cases.case_number, clients.name as client_name FROM tasks_v2 LEFT JOIN cases ON tasks_v2.case_id = cases.id LEFT JOIN clients ON tasks_v2.client_id = clients.id WHERE tasks_v2.id = $1 AND tasks_v2.company_id = $2',
+      [id, companyId]
+    )
     if (result.rows.length === 0) {
       res.status(404).json({ error: 'المهمة غير موجودة' })
       return

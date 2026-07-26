@@ -11,9 +11,7 @@ const REQUEST_ID_HEADER = 'X-Request-ID'
  */
 export function requestId(req: Request, res: Response, next: NextFunction): void {
   const incoming = req.headers[REQUEST_ID_HEADER.toLowerCase()] as string | undefined
-  const id = incoming && incoming.trim().length > 0
-    ? incoming.trim()
-    : crypto.randomUUID()
+  const id = incoming && incoming.trim().length > 0 ? incoming.trim() : crypto.randomUUID()
 
   // Make available to downstream middleware / routes
   ;(req as any).requestId = id

@@ -2,7 +2,10 @@
   <v-row dense class="mb-8 align-center" :class="{ 'flex-column text-center gap-4': isMobile }">
     <v-col :cols="isMobile ? '12' : undefined">
       <div class="d-flex align-center" :class="{ 'flex-column': isMobile }">
-        <div class="glass-panel-light pa-4 rounded-xl border-gold opacity-20" :class="isMobile ? 'mb-3' : 'me-5'">
+        <div
+          class="glass-panel-light pa-4 rounded-xl border-gold opacity-20"
+          :class="isMobile ? 'mb-3' : 'me-5'"
+        >
           <LucideIcon name="file-text" :size="36" class="text-accent" />
         </div>
         <div>

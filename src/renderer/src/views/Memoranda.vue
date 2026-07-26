@@ -252,282 +252,278 @@
       </v-card>
     </template>
 
-      <!-- Preview Dialog -->
-      <v-dialog v-model="showPreviewDialog" width="95%" max-width="1100" scrollable>
-        <v-card class="glass-card overflow-hidden glass-card">
-          <div class="glass-panel d-flex align-center py-5 px-8 border-b">
-            <div class="glass-panel-light pa-2 rounded-lg me-4">
-              <LucideIcon name="eye" :size="24" class="text-accent" />
-            </div>
-            <span class="text-h5 font-weight-black text-gold">معاينة المسودة (قالب رسمي)</span>
-            <v-spacer></v-spacer>
-            <v-btn
-              variant="tonal"
-              color="gold"
-              class="font-weight-black me-4 rounded-lg premium-btn-gold-gradient"
-              @click="printSingle(previewItem)"
-            >
-              <LucideIcon name="printer" :size="18" class="me-2" /> طباعة
-            </v-btn>
-            <v-btn
-              class="premium-btn-gold-gradient"
-              variant="text"
-              color="gold"
-              icon
-              @click="showPreviewDialog = false"
-            >
-              <LucideIcon name="x" :size="24" />
-            </v-btn>
+    <!-- Preview Dialog -->
+    <v-dialog v-model="showPreviewDialog" width="95%" max-width="1100" scrollable>
+      <v-card class="glass-card overflow-hidden glass-card">
+        <div class="glass-panel d-flex align-center py-5 px-8 border-b">
+          <div class="glass-panel-light pa-2 rounded-lg me-4">
+            <LucideIcon name="eye" :size="24" class="text-accent" />
           </div>
-
-          <v-card-text class="pa-0 bg-white" style="height: 80vh">
-            <div
-              v-if="previewLoading"
-              class="d-flex flex-column align-center justify-center h-100 bg-primary-dark"
-            >
-              <v-progress-circular
-                indeterminate
-                color="accent"
-                size="64"
-                width="6"
-                class="mb-4"
-              ></v-progress-circular>
-              <div class="text-h6 font-weight-black text-gold opacity-60">
-                جاري بناء القالب الموحد...
-              </div>
-            </div>
-            <iframe
-              v-else
-              :srcdoc="previewHtml"
-              style="width: 100%; height: 100%; border: none"
-            ></iframe>
-          </v-card-text>
-        </v-card>
-      </v-dialog>
-
-      <!-- Add/Edit Dialog -->
-      <v-dialog v-model="showDialog" width="98%" max-width="1400" persistent scrollable>
-        <v-card class="glass-card overflow-hidden glass-card">
-          <div class="glass-panel d-flex align-center py-5 px-8 border-b">
-            <div class="glass-panel-light pa-2 rounded-lg me-4">
-              <LucideIcon :name="isEditing ? 'edit-3' : 'plus'" :size="24" class="text-accent" />
-            </div>
-            <span class="text-h5 font-weight-black text-gold">
-              {{ isEditing ? 'تعديل المذكرة القضائية' : 'تحرير مذكرة قانونية جديدة' }}
-            </span>
-            <v-spacer></v-spacer>
-            <v-btn
-              class="premium-btn-gold-gradient"
-              variant="text"
-              color="gold"
-              icon
-              @click="showDialog = false"
-            >
-              <LucideIcon name="x" :size="24" />
-            </v-btn>
-          </div>
-
-          <v-card-text class="pa-8 bg-primary-dark modal-scrollable">
-            <v-form ref="formRef" lazy-validation>
-              <v-row>
-                <!-- Info Section -->
-                <v-col cols="12" md="4">
-                  <v-card
-                    elevation="0"
-                    class="glass-panel-light pa-6 rounded-xl border-gold opacity-10 mb-6 glass-card"
-                  >
-                    <div
-                      class="text-subtitle-1 font-weight-black text-gold mb-6 d-flex align-center"
-                    >
-                      <LucideIcon name="link" :size="18" class="me-3 text-accent" /> ارتباط القضية
-                    </div>
-
-                    <label class="mb-2 font-weight-black text-gold">رقم القضية*</label>
-                    <v-autocomplete
-                      v-model="editItem.case_id"
-                      :items="safeArray(casesStore.cases)"
-                      item-title="case_number"
-                      item-value="id"
-                      placeholder="ابحث برقم القضية أو اسم الموكل..."
-                      variant="outlined"
-                      class="glass-input mb-4 glass-input"
-                      density="comfortable"
-                      :rules="[(v) => !!v || 'القضية مطلوبة لربط المذكرة']"
-                      clearable
-                      @update:model-value="onCaseChange"
-                    >
-                      <template #item="{ props, item }">
-                        <v-list-item v-bind="props" class="py-3">
-                          <template #prepend>
-                            <LucideIcon name="briefcase" :size="18" class="text-accent me-4" />
-                          </template>
-                          <v-list-item-title class="font-weight-black text-white">{{
-                            (item.raw as any).case_number
-                          }}</v-list-item-title>
-                          <v-list-item-subtitle class="text-gold opacity-50 font-weight-black mt-1"
-                            >الموكل: {{ (item.raw as any).client_name }}</v-list-item-subtitle
-                          >
-                        </v-list-item>
-                      </template>
-                    </v-autocomplete>
-
-                    <label class="mb-2 font-weight-black text-gold">الموكل</label>
-                    <v-text-field
-                      v-model="displayData.client_name"
-                      variant="outlined"
-                      readonly
-                      class="glass-input opacity-60 mb-4 glass-input"
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="user" :size="20" class="text-gold opacity-50" />
-                      </template>
-                    </v-text-field>
-
-                    <label class="mb-2 font-weight-black text-gold">الخصم</label>
-                    <v-text-field
-                      v-if="displayData.opponent_name || showOpponentField"
-                      v-model="editItem.opponent_name"
-                      variant="outlined"
-                      :readonly="!showOpponentField"
-                      class="glass-input mb-2 glass-input"
-                    >
-                      <template #prepend-inner>
-                        <LucideIcon name="user-x" :size="20" class="text-gold opacity-50" />
-                      </template>
-                    </v-text-field>
-                  </v-card>
-
-                  <v-card
-                    elevation="0"
-                    class="glass-panel-light pa-6 rounded-xl border-gold opacity-10 glass-card"
-                  >
-                    <div
-                      class="text-subtitle-1 font-weight-black text-gold mb-6 d-flex align-center"
-                    >
-                      <LucideIcon name="tag" :size="18" class="me-3 text-accent" /> بيانات القيد
-                      والتصنيف
-                    </div>
-
-                    <label class="mb-2 font-weight-black text-gold">عنوان المذكرة*</label>
-                    <v-text-field
-                      v-model="editItem.memo_title"
-                      placeholder="مثال: مذكرة جوابية على دعوى..."
-                      variant="outlined"
-                      class="glass-input mb-4 glass-input"
-                      :rules="[(v) => !!v || 'عنوان المذكرة مطلوب']"
-                    ></v-text-field>
-
-                    <label class="mb-2 font-weight-black text-gold">نوع المذكرة</label>
-                    <v-select
-                      v-model="editItem.memo_type"
-                      :items="memoTypes"
-                      variant="outlined"
-                      class="glass-input mb-4 glass-input"
-                    ></v-select>
-
-                    <label class="mb-2 font-weight-black text-gold">تاريخ المذكرة</label>
-                    <DualDatePicker v-model="editItem.memo_date" class="mb-4" />
-
-                    <label class="mb-2 font-weight-black text-gold">حالة المذكرة</label>
-                    <v-select
-                      v-model="editItem.memo_status"
-                      :items="['مسودة', 'تحت التحرير', 'مقدمة', 'معتمدة']"
-                      variant="outlined"
-                      class="glass-input"
-                    ></v-select>
-                  </v-card>
-                </v-col>
-
-                <!-- Editor Section -->
-                <v-col cols="12" md="8">
-                  <v-card
-                    elevation="0"
-                    class="glass-card d-flex flex-column h-100 overflow-hidden min-h-600 glass-card"
-                  >
-                    <div
-                      class="glass-panel px-6 py-4 border-b d-flex align-center justify-space-between"
-                    >
-                      <div class="d-flex align-center">
-                        <LucideIcon name="file-edit" :size="18" class="text-accent me-3" />
-                        <span class="text-body-1 font-weight-black text-gold opacity-80"
-                          >تحرير نص المذكرة</span
-                        >
-                      </div>
-                      <div class="d-flex ga-2">
-                        <v-btn
-                          variant="tonal"
-                          color="gold"
-                          size="small"
-                          class="font-weight-black rounded-lg premium-btn-gold-gradient"
-                          @click="copyToClipboard"
-                        >
-                          <LucideIcon name="copy" :size="16" class="me-2" /> نسخ النص
-                        </v-btn>
-                      </div>
-                    </div>
-                    <v-textarea
-                      v-model="editItem.memo_text"
-                      variant="plain"
-                      placeholder="ابدأ كتابة نص المذكرة القانونية هنا..."
-                      auto-grow
-                      rows="25"
-                      class="memo-editor pa-8 text-white leading-loose font-serif text-h6 glass-input"
-                      hide-details
-                    ></v-textarea>
-                  </v-card>
-                </v-col>
-              </v-row>
-            </v-form>
-          </v-card-text>
-
-          <v-divider class="border-gold opacity-10"></v-divider>
-          <v-card-actions class="pa-8 glass-panel">
-            <v-btn
-              variant="text"
-              color="gold"
-              class="px-8 font-weight-black opacity-50 premium-btn-gold-gradient"
-              @click="showDialog = false"
-              >إلغاء</v-btn
-            >
-            <v-spacer></v-spacer>
-            <v-btn
-              color="accent"
-              variant="flat"
-              size="large"
-              class="px-12 font-weight-black rounded-lg premium-lift h-100 premium-btn-gold-gradient"
-              :loading="saving"
-              @click="handleSave"
-            >
-              <LucideIcon name="save" :size="20" class="me-3" />
-              {{ isEditing ? 'حفظ التغييرات' : 'اعتماد وحفظ المذكرة' }}
-            </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <v-snackbar v-model="snackbar.show" :color="snackbar.color" rounded="lg" elevation="24">
-        <div class="d-flex align-center">
-          <LucideIcon
-            :name="snackbar.color === 'success' ? 'check-circle' : 'alert-circle'"
-            :size="18"
-            class="me-3"
-          />
-          <span class="font-weight-black">{{ snackbar.text }}</span>
+          <span class="text-h5 font-weight-black text-gold">معاينة المسودة (قالب رسمي)</span>
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="tonal"
+            color="gold"
+            class="font-weight-black me-4 rounded-lg premium-btn-gold-gradient"
+            @click="printSingle(previewItem)"
+          >
+            <LucideIcon name="printer" :size="18" class="me-2" /> طباعة
+          </v-btn>
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            color="gold"
+            icon
+            @click="showPreviewDialog = false"
+          >
+            <LucideIcon name="x" :size="24" />
+          </v-btn>
         </div>
-      </v-snackbar>
 
-      <ConfirmDialog
-        v-model="confirmDialog.show"
-        :title="confirmDialog.title"
-        :message="confirmDialog.message"
-        :color="confirmDialog.color"
-        :confirm-button-color="confirmDialog.confirmButtonColor"
-        :icon="confirmDialog.icon"
-        :confirm-text="confirmDialog.confirmText"
-        :cancel-text="confirmDialog.cancelText"
-        :loading="confirmDialog.loading"
-        @confirm="confirmDialog.action"
-      />
+        <v-card-text class="pa-0 bg-white" style="height: 80vh">
+          <div
+            v-if="previewLoading"
+            class="d-flex flex-column align-center justify-center h-100 bg-primary-dark"
+          >
+            <v-progress-circular
+              indeterminate
+              color="accent"
+              size="64"
+              width="6"
+              class="mb-4"
+            ></v-progress-circular>
+            <div class="text-h6 font-weight-black text-gold opacity-60">
+              جاري بناء القالب الموحد...
+            </div>
+          </div>
+          <iframe
+            v-else
+            :srcdoc="previewHtml"
+            style="width: 100%; height: 100%; border: none"
+          ></iframe>
+        </v-card-text>
+      </v-card>
+    </v-dialog>
+
+    <!-- Add/Edit Dialog -->
+    <v-dialog v-model="showDialog" width="98%" max-width="1400" persistent scrollable>
+      <v-card class="glass-card overflow-hidden glass-card">
+        <div class="glass-panel d-flex align-center py-5 px-8 border-b">
+          <div class="glass-panel-light pa-2 rounded-lg me-4">
+            <LucideIcon :name="isEditing ? 'edit-3' : 'plus'" :size="24" class="text-accent" />
+          </div>
+          <span class="text-h5 font-weight-black text-gold">
+            {{ isEditing ? 'تعديل المذكرة القضائية' : 'تحرير مذكرة قانونية جديدة' }}
+          </span>
+          <v-spacer></v-spacer>
+          <v-btn
+            class="premium-btn-gold-gradient"
+            variant="text"
+            color="gold"
+            icon
+            @click="showDialog = false"
+          >
+            <LucideIcon name="x" :size="24" />
+          </v-btn>
+        </div>
+
+        <v-card-text class="pa-8 bg-primary-dark modal-scrollable">
+          <v-form ref="formRef" lazy-validation>
+            <v-row>
+              <!-- Info Section -->
+              <v-col cols="12" md="4">
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-6 rounded-xl border-gold opacity-10 mb-6 glass-card"
+                >
+                  <div class="text-subtitle-1 font-weight-black text-gold mb-6 d-flex align-center">
+                    <LucideIcon name="link" :size="18" class="me-3 text-accent" /> ارتباط القضية
+                  </div>
+
+                  <label class="mb-2 font-weight-black text-gold">رقم القضية*</label>
+                  <v-autocomplete
+                    v-model="editItem.case_id"
+                    :items="safeArray(casesStore.cases)"
+                    item-title="case_number"
+                    item-value="id"
+                    placeholder="ابحث برقم القضية أو اسم الموكل..."
+                    variant="outlined"
+                    class="glass-input mb-4 glass-input"
+                    density="comfortable"
+                    :rules="[(v) => !!v || 'القضية مطلوبة لربط المذكرة']"
+                    clearable
+                    @update:model-value="onCaseChange"
+                  >
+                    <template #item="{ props, item }">
+                      <v-list-item v-bind="props" class="py-3">
+                        <template #prepend>
+                          <LucideIcon name="briefcase" :size="18" class="text-accent me-4" />
+                        </template>
+                        <v-list-item-title class="font-weight-black text-white">{{
+                          (item.raw as any).case_number
+                        }}</v-list-item-title>
+                        <v-list-item-subtitle class="text-gold opacity-50 font-weight-black mt-1"
+                          >الموكل: {{ (item.raw as any).client_name }}</v-list-item-subtitle
+                        >
+                      </v-list-item>
+                    </template>
+                  </v-autocomplete>
+
+                  <label class="mb-2 font-weight-black text-gold">الموكل</label>
+                  <v-text-field
+                    v-model="displayData.client_name"
+                    variant="outlined"
+                    readonly
+                    class="glass-input opacity-60 mb-4 glass-input"
+                  >
+                    <template #prepend-inner>
+                      <LucideIcon name="user" :size="20" class="text-gold opacity-50" />
+                    </template>
+                  </v-text-field>
+
+                  <label class="mb-2 font-weight-black text-gold">الخصم</label>
+                  <v-text-field
+                    v-if="displayData.opponent_name || showOpponentField"
+                    v-model="editItem.opponent_name"
+                    variant="outlined"
+                    :readonly="!showOpponentField"
+                    class="glass-input mb-2 glass-input"
+                  >
+                    <template #prepend-inner>
+                      <LucideIcon name="user-x" :size="20" class="text-gold opacity-50" />
+                    </template>
+                  </v-text-field>
+                </v-card>
+
+                <v-card
+                  elevation="0"
+                  class="glass-panel-light pa-6 rounded-xl border-gold opacity-10 glass-card"
+                >
+                  <div class="text-subtitle-1 font-weight-black text-gold mb-6 d-flex align-center">
+                    <LucideIcon name="tag" :size="18" class="me-3 text-accent" /> بيانات القيد
+                    والتصنيف
+                  </div>
+
+                  <label class="mb-2 font-weight-black text-gold">عنوان المذكرة*</label>
+                  <v-text-field
+                    v-model="editItem.memo_title"
+                    placeholder="مثال: مذكرة جوابية على دعوى..."
+                    variant="outlined"
+                    class="glass-input mb-4 glass-input"
+                    :rules="[(v) => !!v || 'عنوان المذكرة مطلوب']"
+                  ></v-text-field>
+
+                  <label class="mb-2 font-weight-black text-gold">نوع المذكرة</label>
+                  <v-select
+                    v-model="editItem.memo_type"
+                    :items="memoTypes"
+                    variant="outlined"
+                    class="glass-input mb-4 glass-input"
+                  ></v-select>
+
+                  <label class="mb-2 font-weight-black text-gold">تاريخ المذكرة</label>
+                  <DualDatePicker v-model="editItem.memo_date" class="mb-4" />
+
+                  <label class="mb-2 font-weight-black text-gold">حالة المذكرة</label>
+                  <v-select
+                    v-model="editItem.memo_status"
+                    :items="['مسودة', 'تحت التحرير', 'مقدمة', 'معتمدة']"
+                    variant="outlined"
+                    class="glass-input"
+                  ></v-select>
+                </v-card>
+              </v-col>
+
+              <!-- Editor Section -->
+              <v-col cols="12" md="8">
+                <v-card
+                  elevation="0"
+                  class="glass-card d-flex flex-column h-100 overflow-hidden min-h-600 glass-card"
+                >
+                  <div
+                    class="glass-panel px-6 py-4 border-b d-flex align-center justify-space-between"
+                  >
+                    <div class="d-flex align-center">
+                      <LucideIcon name="file-edit" :size="18" class="text-accent me-3" />
+                      <span class="text-body-1 font-weight-black text-gold opacity-80"
+                        >تحرير نص المذكرة</span
+                      >
+                    </div>
+                    <div class="d-flex ga-2">
+                      <v-btn
+                        variant="tonal"
+                        color="gold"
+                        size="small"
+                        class="font-weight-black rounded-lg premium-btn-gold-gradient"
+                        @click="copyToClipboard"
+                      >
+                        <LucideIcon name="copy" :size="16" class="me-2" /> نسخ النص
+                      </v-btn>
+                    </div>
+                  </div>
+                  <v-textarea
+                    v-model="editItem.memo_text"
+                    variant="plain"
+                    placeholder="ابدأ كتابة نص المذكرة القانونية هنا..."
+                    auto-grow
+                    rows="25"
+                    class="memo-editor pa-8 text-white leading-loose font-serif text-h6 glass-input"
+                    hide-details
+                  ></v-textarea>
+                </v-card>
+              </v-col>
+            </v-row>
+          </v-form>
+        </v-card-text>
+
+        <v-divider class="border-gold opacity-10"></v-divider>
+        <v-card-actions class="pa-8 glass-panel">
+          <v-btn
+            variant="text"
+            color="gold"
+            class="px-8 font-weight-black opacity-50 premium-btn-gold-gradient"
+            @click="showDialog = false"
+            >إلغاء</v-btn
+          >
+          <v-spacer></v-spacer>
+          <v-btn
+            color="accent"
+            variant="flat"
+            size="large"
+            class="px-12 font-weight-black rounded-lg premium-lift h-100 premium-btn-gold-gradient"
+            :loading="saving"
+            @click="handleSave"
+          >
+            <LucideIcon name="save" :size="20" class="me-3" />
+            {{ isEditing ? 'حفظ التغييرات' : 'اعتماد وحفظ المذكرة' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <v-snackbar v-model="snackbar.show" :color="snackbar.color" rounded="lg" elevation="24">
+      <div class="d-flex align-center">
+        <LucideIcon
+          :name="snackbar.color === 'success' ? 'check-circle' : 'alert-circle'"
+          :size="18"
+          class="me-3"
+        />
+        <span class="font-weight-black">{{ snackbar.text }}</span>
+      </div>
+    </v-snackbar>
+
+    <ConfirmDialog
+      v-model="confirmDialog.show"
+      :title="confirmDialog.title"
+      :message="confirmDialog.message"
+      :color="confirmDialog.color"
+      :confirm-button-color="confirmDialog.confirmButtonColor"
+      :icon="confirmDialog.icon"
+      :confirm-text="confirmDialog.confirmText"
+      :cancel-text="confirmDialog.cancelText"
+      :loading="confirmDialog.loading"
+      @confirm="confirmDialog.action"
+    />
   </v-container>
 </template>
 

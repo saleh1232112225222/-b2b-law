@@ -132,11 +132,7 @@
 
       <!-- Dates: Start, Expected End, Completion -->
       <v-col cols="12" md="4">
-        <DualDatePicker
-          v-model="modelValue.start_date"
-          label="تاريخ بدء الخدمة"
-          icon="calendar"
-        />
+        <DualDatePicker v-model="modelValue.start_date" label="تاريخ بدء الخدمة" icon="calendar" />
       </v-col>
       <v-col cols="12" md="4">
         <DualDatePicker
@@ -192,7 +188,7 @@
           variant="outlined"
           density="comfortable"
           :prepend-inner-icon="ICONS.NAV.FINANCE"
-          :rules="[(v) => v !== undefined && v >= 0 || 'المبلغ مطلوب']"
+          :rules="[(v) => (v !== undefined && v >= 0) || 'المبلغ مطلوب']"
           required
         ></v-text-field>
       </v-col>
@@ -335,7 +331,7 @@ const computedRemaining = computed(() => {
   const comp = Number(props.modelValue.financial_compensation || 0)
   const tax = Number(props.modelValue.tax || 0)
   const paid = Number(props.modelValue.paid_amount || 0)
-  return (comp + tax) - paid
+  return comp + tax - paid
 })
 
 // Reset type selection on category change to prevent invalid hardcoded values
@@ -348,41 +344,47 @@ watch(internalFormValid, (newVal) => {
 })
 
 // Ensure client_id is properly set when modelValue changes (e.g., editing existing service)
-watch(() => props.modelValue?.client_id, (newVal) => {
-  if (newVal && clients.value.length > 0) {
-    const found = clients.value.find((c: any) => c.id === newVal)
-    if (!found) {
-      console.warn('[LegalServiceForm] client_id not found in clients list:', newVal)
+watch(
+  () => props.modelValue?.client_id,
+  (newVal) => {
+    if (newVal && clients.value.length > 0) {
+      const found = clients.value.find((c: any) => c.id === newVal)
+      if (!found) {
+        console.warn('[LegalServiceForm] client_id not found in clients list:', newVal)
+      }
     }
   }
-})
+)
 
 // Ensure responsible_lawyer_id is properly set
-watch(() => props.modelValue?.responsible_lawyer_id, (newVal) => {
-  if (newVal && lawyers.value.length > 0) {
-    const found = lawyers.value.find((l: any) => l.id === newVal)
-    if (!found) {
-      console.warn('[LegalServiceForm] responsible_lawyer_id not found in lawyers list:', newVal)
+watch(
+  () => props.modelValue?.responsible_lawyer_id,
+  (newVal) => {
+    if (newVal && lawyers.value.length > 0) {
+      const found = lawyers.value.find((l: any) => l.id === newVal)
+      if (!found) {
+        console.warn('[LegalServiceForm] responsible_lawyer_id not found in lawyers list:', newVal)
+      }
     }
   }
-})
+)
 
 const loadReferenceData = async () => {
   try {
     await store.fetchMetadata()
-    
+
     // Fetch clients
     const clientsData = await window.api.clients.getAll()
     clients.value = Array.isArray(clientsData) ? clientsData : []
-    
+
     // Fetch employees/lawyers
     const lawyersData = await window.api.employees.list()
     lawyers.value = Array.isArray(lawyersData) ? lawyersData : []
-    
+
     // Fetch contracts
     const contractsData = await window.api.contracts.list()
     contracts.value = Array.isArray(contractsData) ? contractsData : []
-    
+
     // Fetch cases
     const casesData = await window.api.cases.getAll()
     cases.value = Array.isArray(casesData) ? casesData : []

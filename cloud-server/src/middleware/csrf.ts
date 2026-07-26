@@ -32,7 +32,7 @@ export function generateCsrfToken(req: Request, res: Response): string {
 
   // Set a double-submit cookie — the client reads it and sends it as a header
   res.cookie('XSRF-TOKEN', token, {
-    httpOnly: false,       // JS must be able to read this
+    httpOnly: false, // JS must be able to read this
     secure: process.env.NODE_ENV === 'production',
     sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
     path: '/'

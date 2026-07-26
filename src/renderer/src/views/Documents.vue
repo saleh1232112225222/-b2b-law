@@ -1,6 +1,11 @@
 <template>
   <v-container fluid class="pa-6 rtl">
-    <MobileDocuments v-if="isMobile" :items="safeArray(filteredDocuments)" :loading="loading" @add="openUploadDialog" />
+    <MobileDocuments
+      v-if="isMobile"
+      :items="safeArray(filteredDocuments)"
+      :loading="loading"
+      @add="openUploadDialog"
+    />
     <template v-else>
       <!-- Header -->
       <v-row dense class="mb-8 align-center">
