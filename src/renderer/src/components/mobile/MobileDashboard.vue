@@ -688,13 +688,36 @@ const priorityItems = computed(() => {
 
   // Pending Tasks
   const pendingTasks = tasksStore.pendingTasks || []
-  pendingTasks.slice(0, 3).forEach((task: any) => {
+  pendingTasks.slice(0, 5).forEach((task: any) => {
+    let rawDateStr = task.due_date ? String(task.due_date).split('T')[0] : ''
+    let formattedDate = rawDateStr
+    if (rawDateStr) {
+      try {
+        const parts = rawDateStr.split('-')
+        if (parts.length === 3) {
+          const d = new Date(
+            parseInt(parts[0], 10),
+            parseInt(parts[1], 10) - 1,
+            parseInt(parts[2], 10)
+          )
+          formattedDate = d.toLocaleDateString('ar-SA', { day: 'numeric', month: 'short' })
+        }
+      } catch (e) {}
+    }
+
+    const clientName =
+      task.client_name || (task as any).client?.name || (task as any).case_client_name || ''
+    const caseName = (task as any).case_name || (task as any).case_title || 'عامة'
+    const caseNum = (task as any).case_number || (task as any).case_code || ''
+
+    let desc = `قضية ${caseName}`
+    if (clientName) desc = `العميل: ${clientName} · ${desc}`
+    if (caseNum) desc = `${desc} · رقم ${caseNum}`
+
     items.push({
       title: task.title || 'مهمة قانونية مطلوبة',
-      description: `قضية ${(task as any).case_name || 'عامة'} · رقم ${
-        (task as any).case_number || '-'
-      }`,
-      timeBadge: task.due_date ? `موعد ${task.due_date}` : 'قريباً',
+      description: desc,
+      timeBadge: formattedDate ? `موعد ${formattedDate}` : 'قريباً',
       borderClass: 'border-start-red',
       iconBgClass: 'icon-bg-red',
       iconClass: 'text-error',
@@ -1020,11 +1043,18 @@ onMounted(async () => {
 
 /* Calendar */
 .calendar-days-header {
-  grid-template-columns: repeat(7, 1fr);
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 2px !important;
+  font-size: 0.75rem;
+  text-align: center;
+  width: 100%;
 }
 .calendar-dates-grid {
-  grid-template-columns: repeat(7, 1fr);
-  gap: 4px;
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  gap: 4px !important;
+  width: 100%;
 }
 .calendar-date-cell {
   background-color: #f4f4f5;
@@ -1066,5 +1096,42 @@ onMounted(async () => {
   border: 1px solid #e5e5e5 !important;
   background-color: #ffffff !important;
   text-transform: none;
+}
+
+/* Responsive Font & Layout Scaling for Mobile Viewports */
+@media (max-width: 480px) {
+  .header-title {
+    font-size: 1rem !important;
+  }
+  .section-title {
+    font-size: 0.875rem !important;
+  }
+  .item-title {
+    font-size: 0.8rem !important;
+  }
+  .item-desc {
+    font-size: 0.725rem !important;
+    word-break: break-word;
+  }
+  .time-badge {
+    font-size: 0.65rem !important;
+    padding: 2px 4px !important;
+    white-space: nowrap;
+  }
+  .stat-number {
+    font-size: 1.3rem !important;
+  }
+  .stat-label {
+    font-size: 0.675rem !important;
+  }
+  .stat-subtext {
+    font-size: 0.625rem !important;
+  }
+  .calendar-days-header span {
+    font-size: 0.65rem !important;
+  }
+  .date-num {
+    font-size: 0.75rem !important;
+  }
 }
 </style>
