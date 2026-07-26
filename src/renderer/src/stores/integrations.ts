@@ -93,6 +93,18 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     }
   }
 
+  async function pingService(serviceId: string) {
+    try {
+      const res = await apiFetch<{ success: boolean; verified: boolean; message: string }>(
+        `/api/integrations/ping/${serviceId}`,
+        { method: 'POST' }
+      )
+      return res
+    } catch (err: any) {
+      return { success: false, verified: false, message: err.message || 'فشل اختبار الاتصال' }
+    }
+  }
+
   async function triggerSync() {
     syncing.value = true
     try {
@@ -118,6 +130,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     fetchStatus,
     connectService,
     disconnectService,
+    pingService,
     triggerSync
   }
 })

@@ -45,6 +45,18 @@
       {{ integrationsStore.error }}
     </v-alert>
 
+    <!-- Ping Success / Feedback Notification -->
+    <v-alert
+      v-if="pingFeedback"
+      :type="pingFeedback.success ? 'success' : 'error'"
+      variant="tonal"
+      closable
+      class="mb-4 rounded-lg text-caption font-weight-bold"
+      @click:close="pingFeedback = null"
+    >
+      {{ pingFeedback.message }}
+    </v-alert>
+
     <!-- Connectors Grid -->
     <v-row dense>
       <v-col
@@ -90,7 +102,7 @@
                   class="status-dot me-1"
                   :class="item.status === 'connected' ? 'dot-active' : 'dot-inactive'"
                 ></span>
-                {{ item.status === 'connected' ? 'متصل ومفعل' : 'غير متصل' }}
+                {{ item.status === 'connected' ? 'متصل ومفعل' : 'غير متصل (افتراضي)' }}
               </v-chip>
             </div>
 
@@ -112,17 +124,30 @@
             </span>
 
             <div class="d-flex align-center gap-2">
-              <v-btn
-                v-if="item.status === 'connected'"
-                color="error"
-                variant="text"
-                size="small"
-                class="rounded-lg font-weight-bold"
-                :loading="actionLoading === item.id"
-                @click="confirmDisconnect(item)"
-              >
-                إلغاء الربط
-              </v-btn>
+              <template v-if="item.status === 'connected'">
+                <v-btn
+                  color="success"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="pingingId === item.id"
+                  @click="testConnection(item)"
+                >
+                  <LucideIcon name="activity" :size="14" class="me-1" />
+                  فحص الاتصال
+                </v-btn>
+
+                <v-btn
+                  color="error"
+                  variant="text"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="actionLoading === item.id"
+                  @click="confirmDisconnect(item)"
+                >
+                  قطع الاتصال
+                </v-btn>
+              </template>
 
               <v-btn
                 v-else
@@ -226,6 +251,8 @@ import LucideIcon from '../../components/common/LucideIcon.vue'
 
 const integrationsStore = useIntegrationsStore()
 const actionLoading = ref<string | null>(null)
+const pingingId = ref<string | null>(null)
+const pingFeedback = ref<{ success: boolean; message: string } | null>(null)
 
 // OAuth Connect Modal State
 const showConnectModal = ref(false)
@@ -272,6 +299,10 @@ async function submitConnect() {
 
   if (success) {
     showConnectModal.value = false
+    pingFeedback.value = {
+      success: true,
+      message: `تم ربط وتوثيق الحساب [${accountEmail.value}] بنجاح وحفظ التفويض في قاعدة البيانات 🟢`
+    }
   } else {
     modalError.value = integrationsStore.error || 'فشل منح الصلاحية وتوثيق الحساب'
   }
@@ -281,6 +312,21 @@ async function confirmDisconnect(item: IntegrationService) {
   actionLoading.value = item.id
   await integrationsStore.disconnectService(item.id)
   actionLoading.value = null
+  pingFeedback.value = {
+    success: true,
+    message: `تم قطع الاتصال بالخدمة [${item.name}] وحذف بيانات التفويض نهائياً ⚪`
+  }
+}
+
+async function testConnection(item: IntegrationService) {
+  pingingId.value = item.id
+  pingFeedback.value = null
+  const res = await integrationsStore.pingService(item.id)
+  pingingId.value = null
+  pingFeedback.value = {
+    success: res.success,
+    message: res.message
+  }
 }
 
 async function handleSyncAll() {
