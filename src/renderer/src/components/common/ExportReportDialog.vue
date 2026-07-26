@@ -279,7 +279,30 @@ const handleConfirmExport = async () => {
   }
 }
 
-const downloadBlob = (blob: Blob, name: string) => {
+const downloadBlob = async (blob: Blob, name: string) => {
+  const ext = name.endsWith('.csv') ? '.csv' : name.endsWith('.pdf') ? '.pdf' : '.html'
+  const mime = ext === '.csv' ? 'text/csv;charset=utf-8;' : ext === '.pdf' ? 'application/pdf' : 'text/html'
+
+  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+    try {
+      const handle = await (window as any).showSaveFilePicker({
+        suggestedName: name,
+        types: [
+          {
+            description: ext === '.csv' ? 'ملف CSV (إكسل)' : 'ملف تقرير',
+            accept: { [mime]: [ext] }
+          }
+        ]
+      })
+      const writable = await handle.createWritable()
+      await writable.write(blob)
+      await writable.close()
+      return
+    } catch (err: any) {
+      if (err.name === 'AbortError') return
+    }
+  }
+
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url

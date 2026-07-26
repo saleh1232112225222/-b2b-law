@@ -1479,14 +1479,44 @@ const api = {
             url: '/reports/export/pdf',
             data: payload,
             responseType: 'blob'
-          }).then((blob) => {
+          }).then(async (blob) => {
             if (blob instanceof Blob) {
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = payload.filename || `${payload.type || 'report'}-report.html`
-              a.click()
-              URL.revokeObjectURL(url)
+              const filename = payload.filename || `${payload.type || 'report'}.html`
+              const isPdf = filename.toLowerCase().endsWith('.pdf')
+              const mime = isPdf ? 'application/pdf' : 'text/html'
+              const ext = isPdf ? '.pdf' : '.html'
+
+              if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+                try {
+                  const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{ description: isPdf ? 'ملف PDF' : 'ملف HTML', accept: { [mime]: [ext] } }]
+                  })
+                  const writable = await handle.createWritable()
+                  await writable.write(blob)
+                  await writable.close()
+                  return blob
+                } catch (err: any) {
+                  if (err.name === 'AbortError') return blob
+                }
+              }
+
+              const htmlText = await blob.text()
+              const win = window.open('', '_blank')
+              if (win) {
+                win.document.write(htmlText)
+                if (payload.filename) {
+                  win.document.title = payload.filename.replace(/\.pdf$/i, '')
+                }
+                win.document.close()
+              } else {
+                const url = URL.createObjectURL(blob)
+                const a = document.createElement('a')
+                a.href = url
+                a.download = filename
+                a.click()
+                URL.revokeObjectURL(url)
+              }
             }
             return blob
           }),
@@ -1498,12 +1528,28 @@ const api = {
             url: '/reports/export/html',
             data: payload,
             responseType: 'blob'
-          }).then((blob) => {
+          }).then(async (blob) => {
             if (blob instanceof Blob) {
+              const filename = payload.filename || `${payload.type || 'report'}.html`
+              if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
+                try {
+                  const handle = await (window as any).showSaveFilePicker({
+                    suggestedName: filename,
+                    types: [{ description: 'ملف HTML', accept: { 'text/html': ['.html'] } }]
+                  })
+                  const writable = await handle.createWritable()
+                  await writable.write(blob)
+                  await writable.close()
+                  return blob
+                } catch (err: any) {
+                  if (err.name === 'AbortError') return blob
+                }
+              }
+
               const url = URL.createObjectURL(blob)
               const a = document.createElement('a')
               a.href = url
-              a.download = `${payload.type || 'report'}-report.html`
+              a.download = filename
               a.click()
               URL.revokeObjectURL(url)
             }

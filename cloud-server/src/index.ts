@@ -213,6 +213,8 @@ async function initTrackingTables() {
 initTrackingTables()
 
 app.use('/api/auth', authRouter)
+app.use('/api/reports', reportsRouter)
+app.use('/api/system', systemRouter)
 app.use('/api/enforcement/requests', enforcementRequestsRouter)
 app.use('/api/agencies', agenciesRouter)
 app.use('/api/users', usersRouter)

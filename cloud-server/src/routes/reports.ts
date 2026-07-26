@@ -372,9 +372,9 @@ reportsRouter.post(
       res.setHeader('Content-Type', 'text/html')
       res.setHeader('Content-Disposition', `inline; filename="report.html"`)
       res.send(html)
-    } catch (err) {
+    } catch (err: any) {
       console.error('[REPORTS] export pdf error:', err)
-      res.status(500).json({ error: 'فشل تصدير التقرير' })
+      res.status(500).json({ error: 'فشل تصدير التقرير', details: err?.message || String(err), stack: err?.stack })
     }
   }
 )
@@ -390,9 +390,9 @@ reportsRouter.post(
       res.setHeader('Content-Type', 'text/html')
       res.setHeader('Content-Disposition', `attachment; filename="report.html"`)
       res.send(html)
-    } catch (err) {
+    } catch (err: any) {
       console.error('[REPORTS] export html error:', err)
-      res.status(500).json({ error: 'فشل تصدير التقرير' })
+      res.status(500).json({ error: 'فشل تصدير التقرير', details: err?.message || String(err), stack: err?.stack })
     }
   }
 )
