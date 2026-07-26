@@ -96,6 +96,11 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
     let authUrl = ''
 
     if (service === 'outlook') {
+      if (!MS_CLIENT_ID || MS_CLIENT_ID === 'b2b-law-ms-client-id') {
+        return res.status(400).json({
+          error: 'لم يتم ضبط MS_CLIENT_ID في ملف .env الخادم. يرجى إضافة Client ID الخاص بـ Microsoft Azure Console'
+        })
+      }
       const scopes = encodeURIComponent(
         'openid profile email offline_access https://graph.microsoft.com/Calendars.ReadWrite https://graph.microsoft.com/User.Read'
       )
@@ -103,6 +108,11 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
         redirectUri
       )}&response_mode=query&scope=${scopes}&state=${state}`
     } else if (service === 'google_calendar') {
+      if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('b2b-law-google-client-id')) {
+        return res.status(400).json({
+          error: 'لم يتم ضبط GOOGLE_CLIENT_ID في ملف .env الخادم. يرجى إضافة Client ID المعتمد من Google Cloud Console'
+        })
+      }
       const scopes = encodeURIComponent(
         'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email openid'
       )
