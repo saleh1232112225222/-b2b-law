@@ -91,6 +91,12 @@ integrationsRouter.post('/connect/:service', async (req: Request, res: Response)
       return res.status(400).json({ error: 'Invalid service name' })
     }
 
+    if (!config || !config.accountEmail || !config.accountEmail.includes('@')) {
+      return res.status(400).json({
+        error: 'يرجى إدخال البريد الإلكتروني الخاص بالحساب السحابي وتفويض الربط'
+      })
+    }
+
     const now = new Date()
     const result = await query(
       `INSERT INTO office_integrations (company_id, user_id, service_name, status, config_data, last_sync_at, updated_at)
