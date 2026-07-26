@@ -212,7 +212,10 @@ async function initTrackingTables() {
 }
 initTrackingTables()
 
+import { dashboardRouter } from './routes/dashboard'
+
 app.use('/api/auth', authRouter)
+app.use('/api/dashboard', dashboardRouter)
 app.use('/api/reports', reportsRouter)
 app.use('/api/system', systemRouter)
 app.use('/api/enforcement/requests', enforcementRequestsRouter)
