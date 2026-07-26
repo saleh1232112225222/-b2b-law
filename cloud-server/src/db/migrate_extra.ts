@@ -709,4 +709,28 @@ export async function runExtraMigrations() {
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] Office management FK fix warning:', err.message)
   }
+
+  // OpenConnector & External Office Integrations Table
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS office_integrations (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+        service_name TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'disconnected',
+        config_data JSONB DEFAULT '{}'::jsonb,
+        last_sync_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ DEFAULT NOW(),
+        updated_at TIMESTAMPTZ DEFAULT NOW(),
+        UNIQUE(company_id, service_name)
+      );
+    `)
+    await query(
+      `CREATE INDEX IF NOT EXISTS idx_office_integrations_company ON office_integrations(company_id)`
+    )
+    console.log('[MIGRATE_EXTRA] office_integrations table ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] office_integrations table warning:', err.message)
+  }
 }

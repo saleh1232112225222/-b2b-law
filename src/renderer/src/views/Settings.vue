@@ -84,6 +84,7 @@
         </v-card>
 
         <SettingsSecurityCard />
+        <SettingsIntegrationsCard class="mt-4" />
       </v-col>
 
       <!-- Row 2: Data & Sync -->
@@ -761,6 +762,7 @@ import SettingsWipeDialog from './settings/SettingsWipeDialog.vue'
 import SettingsOfficeCard from './settings/SettingsOfficeCard.vue'
 import SettingsLicensingCard from './settings/SettingsLicensingCard.vue'
 import SettingsSecurityCard from './settings/SettingsSecurityCard.vue'
+import SettingsIntegrationsCard from './settings/SettingsIntegrationsCard.vue'
 
 interface AppSettings {
   officeName: string
