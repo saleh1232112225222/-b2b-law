@@ -206,12 +206,25 @@
             color="primary"
             size="large"
             block
-            class="rounded-xl font-weight-black"
+            class="rounded-xl font-weight-black mb-3"
             :loading="isSubmitting"
             @click="triggerDirectOAuthRedirect(selectedService.id)"
           >
             <LucideIcon name="external-link" :size="18" class="me-2" />
-            الانتقال لصفحة تسجيل الدخول الرسمية ({{ selectedService?.id === 'outlook' ? 'Microsoft Azure' : 'Google Identity' }})
+            التفويض الرسمي عبر {{ selectedService?.id === 'outlook' ? 'Microsoft Azure' : 'Google Identity' }}
+          </v-btn>
+
+          <v-btn
+            color="secondary"
+            variant="tonal"
+            size="small"
+            block
+            class="rounded-lg font-weight-bold"
+            :loading="isSubmitting"
+            @click="triggerDemoOAuthRedirect(selectedService.id)"
+          >
+            <LucideIcon name="zap" :size="14" class="me-1" />
+            تجربة تدفق OAuth التفاعلي (OAuth Sandbox Demo Test)
           </v-btn>
         </div>
 
@@ -309,10 +322,20 @@ function handleConnectAction(item: IntegrationService) {
 async function triggerDirectOAuthRedirect(serviceId: string) {
   isSubmitting.value = true
   modalError.value = null
-  const ok = await integrationsStore.startOAuthFlow(serviceId)
+  const ok = await integrationsStore.startOAuthFlow(serviceId, false)
   isSubmitting.value = false
   if (!ok) {
     modalError.value = integrationsStore.error || 'فشل توليد رابط التفويض السحابي'
+  }
+}
+
+async function triggerDemoOAuthRedirect(serviceId: string) {
+  isSubmitting.value = true
+  modalError.value = null
+  const ok = await integrationsStore.startOAuthFlow(serviceId, true)
+  isSubmitting.value = false
+  if (!ok) {
+    modalError.value = integrationsStore.error || 'فشل تشغيل تدفق OAuth المحاكي'
   }
 }
 

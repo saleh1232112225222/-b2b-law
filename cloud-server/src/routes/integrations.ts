@@ -93,32 +93,41 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
     const redirectUri = `${protocol}://${host}/api/integrations/oauth/callback`
     const state = Buffer.from(JSON.stringify({ service, companyId, userId, timestamp: Date.now() })).toString('base64')
 
+    const isDemo = req.query.demo === 'true'
     let authUrl = ''
 
     if (service === 'outlook') {
-      if (!MS_CLIENT_ID || MS_CLIENT_ID === 'b2b-law-ms-client-id') {
+      if (!isDemo && (!MS_CLIENT_ID || MS_CLIENT_ID === 'b2b-law-ms-client-id')) {
         return res.status(400).json({
           error: 'لم يتم ضبط MS_CLIENT_ID في ملف .env الخادم. يرجى إضافة Client ID الخاص بـ Microsoft Azure Console'
         })
       }
-      const scopes = encodeURIComponent(
-        'openid profile email offline_access https://graph.microsoft.com/Calendars.ReadWrite https://graph.microsoft.com/User.Read'
-      )
-      authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${MS_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&response_mode=query&scope=${scopes}&state=${state}`
+      if (isDemo) {
+        authUrl = `${protocol}://${host}/api/integrations/oauth/callback?code=DEMO_MS_CODE_${Date.now()}&state=${state}&email=lawyer.admin@office365-demo.com`
+      } else {
+        const scopes = encodeURIComponent(
+          'openid profile email offline_access https://graph.microsoft.com/Calendars.ReadWrite https://graph.microsoft.com/User.Read'
+        )
+        authUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${MS_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&response_mode=query&scope=${scopes}&state=${state}`
+      }
     } else if (service === 'google_calendar') {
-      if (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('b2b-law-google-client-id')) {
+      if (!isDemo && (!GOOGLE_CLIENT_ID || GOOGLE_CLIENT_ID.includes('b2b-law-google-client-id'))) {
         return res.status(400).json({
           error: 'لم يتم ضبط GOOGLE_CLIENT_ID في ملف .env الخادم. يرجى إضافة Client ID المعتمد من Google Cloud Console'
         })
       }
-      const scopes = encodeURIComponent(
-        'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email openid'
-      )
-      authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
-        redirectUri
-      )}&scope=${scopes}&access_type=offline&prompt=consent&state=${state}`
+      if (isDemo) {
+        authUrl = `${protocol}://${host}/api/integrations/oauth/callback?code=DEMO_GOOGLE_CODE_${Date.now()}&state=${state}&email=lawyer.admin@gmail-demo.com`
+      } else {
+        const scopes = encodeURIComponent(
+          'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email openid'
+        )
+        authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
+          redirectUri
+        )}&scope=${scopes}&access_type=offline&prompt=consent&state=${state}`
+      }
     } else {
       return res.status(400).json({ error: 'OAuth 2.0 flow unsupported for this service' })
     }

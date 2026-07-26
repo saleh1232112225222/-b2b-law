@@ -58,13 +58,12 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     }
   }
 
-  async function startOAuthFlow(serviceId: string) {
+  async function startOAuthFlow(serviceId: string, demo = false) {
     try {
-      const data = await apiFetch<{ authUrl: string; redirectUri: string }>(
-        `/api/integrations/oauth/authorize/${serviceId}`
-      )
+      const endpoint = `/api/integrations/oauth/authorize/${serviceId}${demo ? '?demo=true' : ''}`
+      const data = await apiFetch<{ authUrl: string; redirectUri: string }>(endpoint)
       if (data.authUrl) {
-        // Redirect browser to Microsoft / Google OAuth consent screen
+        // Redirect browser to Microsoft / Google OAuth consent screen or Demo Callback
         window.location.href = data.authUrl
         return true
       }
