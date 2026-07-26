@@ -456,18 +456,26 @@ systemRouter.post(
                   snapshotRefIds[fk.referenced_table]?.has(String(val)) ?? false
                 if (!refExistsInDb && !refExistsInSnapshot) {
                   // Referenced ID doesn't exist anywhere
-                  const isNullable = colMap[fk.source_column]?.nullable ?? true
-                  if (isNullable) {
-                    const msg = `[ImportSnapshot] Nullifying FK ${table}.${fk.source_column} = ${val} because referenced row in ${fk.referenced_table} is missing`
-                    console.log(msg)
-                    importErrors.push(msg)
-                    sanitized[colIndex] = null
+                  const currentUserId = req.auth?.userId
+                  if (fk.referenced_table === 'users' && currentUserId) {
+                    console.log(
+                      `[ImportSnapshot] Re-assigning ${table}.${fk.source_column} from ${val} to current active user ${currentUserId}`
+                    )
+                    sanitized[colIndex] = currentUserId
                   } else {
-                    const msg = `[ImportSnapshot] Skipping row in ${table} because non-nullable FK ${fk.source_column} = ${val} references missing row in ${fk.referenced_table}`
-                    console.log(msg)
-                    importErrors.push(msg)
-                    skipRow = true
-                    break
+                    const isNullable = colMap[fk.source_column]?.nullable ?? true
+                    if (isNullable) {
+                      const msg = `[ImportSnapshot] Nullifying FK ${table}.${fk.source_column} = ${val} because referenced row in ${fk.referenced_table} is missing`
+                      console.log(msg)
+                      importErrors.push(msg)
+                      sanitized[colIndex] = null
+                    } else {
+                      const msg = `[ImportSnapshot] Skipping row in ${table} because non-nullable FK ${fk.source_column} = ${val} references missing row in ${fk.referenced_table}`
+                      console.log(msg)
+                      importErrors.push(msg)
+                      skipRow = true
+                      break
+                    }
                   }
                 }
               }
