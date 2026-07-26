@@ -85,13 +85,21 @@ const allowedOrigins = [
   process.env.FRONTEND_URL || 'https://b2b-law.netlify.app',
   'https://b2blaw.com',
   'http://localhost:5173',
-  'http://localhost:8080'
+  'http://localhost:8080',
+  'http://localhost',
+  'http://localhost:80',
+  'http://127.0.0.1',
+  'http://127.0.0.1:80'
 ]
 
 app.use(
   cors({
     origin: (origin, callback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
         callback(null, true)
       } else {
         callback(new Error('Not allowed by CORS'))
