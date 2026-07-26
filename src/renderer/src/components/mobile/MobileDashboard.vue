@@ -632,12 +632,12 @@ const formattedRevenue = computed(() => totalIncome.value.toLocaleString('ar-SA'
 
 const collectionPercent = computed(() => {
   if (totalIncome.value === 0) return 0
-  const collected = financeStore.stats?.collected || 0
+  const collected = (financeStore.stats as any)?.collected || 0
   return Math.round((collected / totalIncome.value) * 100) || 100
 })
 
-const collectedAmount = computed(() => financeStore.stats?.collected || totalIncome.value)
-const pendingAmount = computed(() => financeStore.stats?.pending || 0)
+const collectedAmount = computed(() => (financeStore.stats as any)?.collected || totalIncome.value)
+const pendingAmount = computed(() => (financeStore.stats as any)?.pending || 0)
 const formattedCollectedAmount = computed(() => collectedAmount.value.toLocaleString('ar-SA'))
 const formattedPendingAmount = computed(() => pendingAmount.value.toLocaleString('ar-SA'))
 const revenueGrowthPercent = computed(() => (totalIncome.value > 0 ? 12 : 0))
