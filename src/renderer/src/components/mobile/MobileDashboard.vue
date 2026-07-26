@@ -593,10 +593,21 @@ const retentionRate = computed(() => {
   return totalClientsCount.value > 0 ? 85 : 0
 })
 
-// Upcoming Sessions (100% REAL DB)
+// Upcoming Sessions (100% REAL FUTURE DB SESSIONS)
 const totalUpcomingSessionsCount = computed(() => {
   const sessions = sessionsStore.sessions || []
-  return sessions.length || sessionsStore.totalSessions || 0
+  const now = new Date()
+  return sessions.filter((s: any) => {
+    if (!s.session_date) return false
+    const d = new Date(s.session_date)
+    return (
+      d >= now &&
+      s.status !== 'منتهية' &&
+      s.status !== 'مكتملة' &&
+      s.status !== 'ملغاة' &&
+      s.status !== 'منعقدة'
+    )
+  }).length
 })
 
 const upcoming48hSessionsCount = computed(() => {
@@ -606,7 +617,14 @@ const upcoming48hSessionsCount = computed(() => {
   return sessions.filter((s: any) => {
     if (!s.session_date) return false
     const d = new Date(s.session_date)
-    return d >= now && d <= in48h
+    return (
+      d >= now &&
+      d <= in48h &&
+      s.status !== 'منتهية' &&
+      s.status !== 'مكتملة' &&
+      s.status !== 'ملغاة' &&
+      s.status !== 'منعقدة'
+    )
   }).length
 })
 
@@ -617,7 +635,14 @@ const thisWeekSessionsCount = computed(() => {
   return sessions.filter((s: any) => {
     if (!s.session_date) return false
     const d = new Date(s.session_date)
-    return d >= now && d <= endOfWeek
+    return (
+      d >= now &&
+      d <= endOfWeek &&
+      s.status !== 'منتهية' &&
+      s.status !== 'مكتملة' &&
+      s.status !== 'ملغاة' &&
+      s.status !== 'منعقدة'
+    )
   }).length
 })
 
@@ -729,11 +754,31 @@ const priorityItems = computed(() => {
   return items
 })
 
-// Display Sessions (REAL DB SESSIONS ONLY)
+// Display Sessions (REAL UPCOMING SESSIONS ONLY)
 const displaySessions = computed(() => {
   const sessions = sessionsStore.sessions || []
-  return sessions.slice(0, 3).map((s: any) => {
-    const dt = s.session_date ? new Date(s.session_date) : new Date()
+  const now = new Date()
+
+  // Filter ONLY future/upcoming sessions whose status is NOT ended ('منتهية', 'مكتملة', 'ملغاة', 'منعقدة')
+  const upcomingOnly = sessions.filter((s: any) => {
+    if (!s.session_date) return false
+    const d = new Date(s.session_date)
+    const isFuture = d >= now
+    const isNotEnded =
+      s.status !== 'منتهية' &&
+      s.status !== 'مكتملة' &&
+      s.status !== 'ملغاة' &&
+      s.status !== 'منعقدة'
+    return isFuture && isNotEnded
+  })
+
+  // Sort upcoming sessions ascending by date (earliest upcoming session first)
+  upcomingOnly.sort(
+    (a: any, b: any) => new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
+  )
+
+  return upcomingOnly.slice(0, 3).map((s: any) => {
+    const dt = new Date(s.session_date)
     const dayNum = dt.getDate()
     const monthStr = dt.toLocaleDateString('ar-SA', { month: 'long' })
     const timeStr = dt.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
