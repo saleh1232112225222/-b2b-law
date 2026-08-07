@@ -540,7 +540,7 @@ const categorizedMenu = computed(() => {
       title: 'الإعدادات والأدوات',
       icon: 'settings-2',
       children: [
-        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000'
+        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000' || session.value?.roleKey === 'admin'
           ? [{ title: 'إدارة الاشتراكات', icon: 'crown', to: '/admin/subscriptions' }]
           : []),
         { title: 'إدارة المستخدمين', icon: 'users-2', to: '/users', perm: 'manage_users' },
