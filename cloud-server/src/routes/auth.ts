@@ -534,6 +534,7 @@ authRouter.get('/session', authMiddleware, async (req: Request, res: Response) =
 
     res.json({
       id: req.auth!.userId,
+      userId: req.auth!.userId,
       username: req.auth!.username,
       roleKey: req.auth!.roleKey,
       companyId: req.auth!.companyId,

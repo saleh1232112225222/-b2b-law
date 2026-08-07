@@ -65,6 +65,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
     path.endsWith('/auth/login') ||
     path.endsWith('/auth/register') ||
     path.endsWith('/auth/verify') ||
+    path.endsWith('/auth/exchange') ||
     path.endsWith('/auth/recovery/question') ||
     path.endsWith('/auth/recovery/reset') ||
     path.endsWith('/auth/check-availability')

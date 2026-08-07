@@ -504,6 +504,24 @@ onMounted(async () => {
     return
   }
 
+  const saveSessionFromOAuth = (session: any) => {
+    const sessionToStore = {
+      userId: session.userId || session.id || 'google-user',
+      username: session.username,
+      roleKey: session.roleKey,
+      companyId: session.companyId || null,
+      permissions: session.permissions || [],
+      trialExpired: session.trialExpired || false,
+      subscriptionStatus: session.subscriptionStatus || 'trial',
+      mustChangePassword: session.mustChangePassword || false
+    }
+    localStorage.setItem(
+      'web_currentUser',
+      JSON.stringify({ username: session.username, roleKey: session.roleKey })
+    )
+    localStorage.setItem('web_currentUserSession', JSON.stringify(sessionToStore))
+  }
+
   const googleToken = route.query.google_token as string
   if (googleToken) {
     localStorage.setItem('b2b_cloud_token', googleToken)
@@ -518,11 +536,7 @@ onMounted(async () => {
     try {
       const session = await (window as any).api.auth.getSession()
       if (session) {
-        localStorage.setItem(
-          'web_currentUser',
-          JSON.stringify({ username: session.username, roleKey: session.roleKey })
-        )
-        localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+        saveSessionFromOAuth(session)
       }
     } catch (e) {
       console.error('[AUTH] Failed to fetch session after Google login:', e)
@@ -547,11 +561,7 @@ onMounted(async () => {
 
         const session = await (window as any).api.auth.getSession()
         if (session) {
-          localStorage.setItem(
-            'web_currentUser',
-            JSON.stringify({ username: session.username, roleKey: session.roleKey })
-          )
-          localStorage.setItem('web_currentUserSession', JSON.stringify(session))
+          saveSessionFromOAuth(session)
         }
 
         window.dispatchEvent(new Event('auth-changed'))
