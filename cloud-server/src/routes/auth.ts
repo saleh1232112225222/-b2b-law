@@ -105,7 +105,68 @@ function parseBrowser(ua: string): string {
 const authAttempts = new Map<string, { count: number; resetTime: number }>()
 const otpAttempts = new Map<string, { count: number; resetTime: number }>()
 const oauthCodes = new Map<string, { token: string; createdAt: number }>()
-const oauthStates = new Map<string, { createdAt: number }>()
+
+// --- Cookie-bound HMAC OAuth state helpers ---
+// Instead of an in-memory Map (lost on restart, not shared across instances),
+// we bind the OAuth state to the originating browser via an HttpOnly cookie
+// and verify integrity with HMAC-SHA256 signed by JWT_SECRET.
+const crypto = require('crypto')
+const OAUTH_STATE_SECRET = process.env.JWT_SECRET || 'oauth-dev-fallback-secret'
+
+function createOAuthState(res: Response): string {
+  const nonce = crypto.randomBytes(32).toString('hex')
+  const timestamp = Date.now().toString(36)
+  const payload = `${nonce}.${timestamp}`
+  const hmac = crypto.createHmac('sha256', OAUTH_STATE_SECRET).update(payload).digest('hex')
+  const state = `${payload}.${hmac}`
+
+  // Set nonce in an HttpOnly cookie bound to this browser
+  const isProduction = process.env.NODE_ENV === 'production'
+  res.cookie('__oauth_nonce', nonce, {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: 'lax',        // Must be 'lax' — callback is a top-level GET redirect from Google
+    path: '/api/auth',
+    maxAge: 10 * 60 * 1000  // 10 minutes
+  })
+
+  return state
+}
+
+function verifyOAuthState(req: Request, res: Response): boolean {
+  const { state } = req.query
+  if (!state || typeof state !== 'string') return false
+
+  // Parse nonce from the HttpOnly cookie
+  const cookieHeader = req.headers.cookie || ''
+  const nonceMatch = cookieHeader.match(/(?:^|;\s*)__oauth_nonce=([^;]+)/)
+  const cookieNonce = nonceMatch ? decodeURIComponent(nonceMatch[1]) : null
+  if (!cookieNonce) return false
+
+  // Split state into nonce.timestamp.hmac
+  const parts = state.split('.')
+  if (parts.length !== 3) return false
+  const [stateNonce, timestamp, receivedHmac] = parts
+
+  // 1. Verify browser binding: cookie nonce must match state nonce
+  if (stateNonce !== cookieNonce) return false
+
+  // 2. Verify freshness: state must not be older than 10 minutes
+  const createdAt = parseInt(timestamp, 36)
+  if (isNaN(createdAt) || Date.now() - createdAt > 10 * 60 * 1000) return false
+
+  // 3. Verify HMAC integrity: state was created by this server
+  const payload = `${stateNonce}.${timestamp}`
+  const expectedHmac = crypto.createHmac('sha256', OAUTH_STATE_SECRET).update(payload).digest('hex')
+  if (!crypto.timingSafeEqual(Buffer.from(receivedHmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+    return false
+  }
+
+  // Clear the nonce cookie immediately — single use
+  res.clearCookie('__oauth_nonce', { path: '/api/auth' })
+  return true
+}
+// --- End OAuth state helpers ---
 
 // Periodic cleanup to prevent memory leak — purges expired entries every 5 minutes
 setInterval(
@@ -120,10 +181,6 @@ setInterval(
     // Clean up expired OAuth codes (60s TTL)
     for (const [key, val] of oauthCodes.entries()) {
       if (now - val.createdAt > 60_000) oauthCodes.delete(key)
-    }
-    // Clean up expired OAuth states (10 min TTL)
-    for (const [key, val] of oauthStates.entries()) {
-      if (now - val.createdAt > 10 * 60 * 1000) oauthStates.delete(key)
     }
   },
   5 * 60 * 1000
@@ -623,8 +680,8 @@ authRouter.get('/google', (_req: Request, res: Response) => {
     res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
-  const state = require('crypto').randomBytes(32).toString('hex')
-  oauthStates.set(state, { createdAt: Date.now() })
+  // Create cookie-bound HMAC state — binds OAuth to this browser
+  const state = createOAuthState(res)
   const url = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['email', 'profile'],
@@ -640,19 +697,19 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
-  const { code, state } = req.query
+  const { code } = req.query
   if (!code || typeof code !== 'string') {
     res.status(400).json({ error: 'رمز التفويض مفقود' })
     return
   }
 
-  // Validate state parameter to protect against OAuth CSRF
-  if (!state || typeof state !== 'string' || !oauthStates.has(state)) {
-    if (state && typeof state === 'string') oauthStates.delete(state)
-    res.status(400).json({ error: 'معلمة الأمان state غير صالحة أو مفقودة' })
+  // Validate state: cookie-bound HMAC verification
+  // Checks: 1) state exists  2) cookie nonce matches state nonce (browser binding)
+  //         3) not expired (10 min)  4) HMAC integrity (server-signed)
+  if (!verifyOAuthState(req, res)) {
+    res.status(400).json({ error: 'معلمة الأمان state غير صالحة أو مفقودة — يرجى إعادة المحاولة' })
     return
   }
-  oauthStates.delete(state)
 
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
 
