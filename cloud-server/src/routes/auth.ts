@@ -105,6 +105,7 @@ function parseBrowser(ua: string): string {
 const authAttempts = new Map<string, { count: number; resetTime: number }>()
 const otpAttempts = new Map<string, { count: number; resetTime: number }>()
 const oauthCodes = new Map<string, { token: string; createdAt: number }>()
+const oauthStates = new Map<string, { createdAt: number }>()
 
 // Periodic cleanup to prevent memory leak — purges expired entries every 5 minutes
 setInterval(
@@ -119,6 +120,10 @@ setInterval(
     // Clean up expired OAuth codes (60s TTL)
     for (const [key, val] of oauthCodes.entries()) {
       if (now - val.createdAt > 60_000) oauthCodes.delete(key)
+    }
+    // Clean up expired OAuth states (10 min TTL)
+    for (const [key, val] of oauthStates.entries()) {
+      if (now - val.createdAt > 10 * 60 * 1000) oauthStates.delete(key)
     }
   },
   5 * 60 * 1000
@@ -618,10 +623,13 @@ authRouter.get('/google', (_req: Request, res: Response) => {
     res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
+  const state = require('crypto').randomBytes(32).toString('hex')
+  oauthStates.set(state, { createdAt: Date.now() })
   const url = client.generateAuthUrl({
     access_type: 'offline',
     scope: ['email', 'profile'],
-    prompt: 'consent'
+    prompt: 'consent',
+    state
   })
   res.redirect(url)
 })
@@ -632,11 +640,20 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'تسجيل الدخول عبر Google غير مُعد' })
     return
   }
-  const { code } = req.query
+  const { code, state } = req.query
   if (!code || typeof code !== 'string') {
     res.status(400).json({ error: 'رمز التفويض مفقود' })
     return
   }
+
+  // Validate state parameter to protect against OAuth CSRF
+  if (!state || typeof state !== 'string' || !oauthStates.has(state)) {
+    if (state && typeof state === 'string') oauthStates.delete(state)
+    res.status(400).json({ error: 'معلمة الأمان state غير صالحة أو مفقودة' })
+    return
+  }
+  oauthStates.delete(state)
+
   const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173'
 
   // Helper: redirect with properly encoded error message
@@ -1529,10 +1546,16 @@ authRouter.post('/mfa/disable', authMiddleware, async (req: Request, res: Respon
 })
 
 // Exchange temporary OAuth code for JWT (C-05 fix: avoids JWT in URL)
-authRouter.post('/exchange', async (req: Request, res: Response) => {
+// Security layers after CSRF exemption:
+//   1. authRateLimiter — IP-based throttling (50 req / 15 min)
+//   2. code must be a non-empty string
+//   3. code must exist in oauthCodes map (crypto-random 256-bit, single-use)
+//   4. code must not be expired (60 s TTL)
+//   5. code is deleted immediately on first lookup — anti-replay
+authRouter.post('/exchange', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const { code } = req.body
-    if (!code) {
+    if (!code || typeof code !== 'string') {
       res.status(400).json({ error: 'الرمز مطلوب' })
       return
     }
@@ -1550,3 +1573,4 @@ authRouter.post('/exchange', async (req: Request, res: Response) => {
     res.status(500).json({ error: 'فشل تبادل الرمز' })
   }
 })
+
