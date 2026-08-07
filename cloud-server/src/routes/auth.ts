@@ -191,17 +191,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       return
     }
 
-    const searchUsername = username.trim()
-    const emailSearch = username.includes('@') ? username.trim().toLowerCase() : ''
+    const searchUsername = username.trim().toLowerCase()
 
     const params: any[] = [searchUsername]
-    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE (u.username = $1`
-
-    if (emailSearch) {
-      params.push(emailSearch)
-      userQuery += ` OR u.recovery_email = $2`
-    }
-    userQuery += `)`
+    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE (LOWER(u.username) = $1 OR LOWER(u.recovery_email) = $1)`
 
     if (companyId) {
       params.push(companyId)
@@ -279,7 +272,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
         return
       }
 
-      if (!company.is_verified) {
+      if (!company.is_verified && user.role_key !== 'admin' && user.company_id !== (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')) {
         await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب غير مفعل')
         await logLoginAttempt(user.id, user.company_id, false, 'حساب غير مفعل', req)
         res.status(403).json({ error: 'AccountNotVerified' })
