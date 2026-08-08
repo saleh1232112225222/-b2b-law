@@ -89,7 +89,11 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
     if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
 
     const host = req.get('host') || 'localhost:8080'
-    const protocol = req.protocol || 'http'
+    const xProto = req.get('x-forwarded-proto')
+    const protocol =
+      (xProto && xProto.includes('https')) || req.secure || host.includes('onrender.com') || process.env.NODE_ENV === 'production'
+        ? 'https'
+        : 'http'
     const redirectUri = `${protocol}://${host}/api/integrations/oauth/callback`
     const state = Buffer.from(JSON.stringify({ service, companyId, userId, timestamp: Date.now() })).toString('base64')
 
@@ -186,7 +190,11 @@ integrationsRouter.get('/oauth/callback', async (req: Request, res: Response) =>
 
     if (service === 'google_calendar' && !String(code).startsWith('DEMO_')) {
       const host = req.get('host') || 'localhost:8080'
-      const protocol = req.protocol || 'http'
+      const xProto = req.get('x-forwarded-proto')
+      const protocol =
+        (xProto && xProto.includes('https')) || req.secure || host.includes('onrender.com') || process.env.NODE_ENV === 'production'
+          ? 'https'
+          : 'http'
       const googleCalendarRedirectUri =
         process.env.GOOGLE_CALENDAR_CALLBACK_URL || `${protocol}://${host}/api/integrations/oauth/callback`
 
