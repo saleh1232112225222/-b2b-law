@@ -173,14 +173,14 @@
         <div class="d-flex align-center justify-space-between mb-4">
           <div class="d-flex align-center gap-3">
             <div class="icon-header-bg">
-              <LucideIcon :name="selectedService?.icon || 'link'" :size="24" class="text-primary" />
+              <LucideIcon :name="selectedService?.icon || 'calendar'" :size="24" class="text-primary" />
             </div>
             <div>
               <h3 class="text-subtitle-1 font-weight-black">
-                بدء تدفق OAuth 2.0 - {{ selectedService?.name }}
+                ربط {{ selectedService?.name }}
               </h3>
               <p class="text-caption text-medium-emphasis mb-0">
-                سيتم تحويلك إلى موفر الخدمة لتوثيق الحساب واستخراج البريد والتراخيص تلقائياً
+                مزامنة الجلسات والمهام تلقائياً مع تقويمك الشخصي
               </p>
             </div>
           </div>
@@ -196,10 +196,10 @@
 
         <!-- Direct OAuth 2.0 Redirect Button -->
         <div v-if="selectedService?.id === 'outlook' || selectedService?.id === 'google_calendar'" class="mb-4 text-center pa-4 bg-surface-variant rounded-xl border">
-          <LucideIcon name="shield-check" :size="32" class="mb-2 text-primary" />
-          <h4 class="text-subtitle-2 font-weight-black mb-1">تسجيل الدخول والتفويض الرسمي عبر OAuth 2.0</h4>
-          <p class="text-caption text-medium-emphasis mb-3">
-            اضغط على الزر أدناه للانتقال إلى بوابة تسجيل الدخول الرسمية لـ {{ selectedService?.provider }}، والموافقة على صلاحيات التقويم.
+          <LucideIcon name="calendar-check-2" :size="36" class="mb-2 text-primary" />
+          <h4 class="text-subtitle-2 font-weight-black mb-1">ربط تقويم {{ selectedService?.id === 'outlook' ? 'Outlook' : 'Google' }}</h4>
+          <p class="text-caption text-medium-emphasis mb-4">
+            اضغط للانتقال إلى {{ selectedService?.id === 'outlook' ? 'Microsoft' : 'Google' }} ومنح التطبيق صلاحية الوصول إلى التقويم.
           </p>
 
           <v-btn
@@ -211,7 +211,7 @@
             @click="triggerDirectOAuthRedirect(selectedService.id)"
           >
             <LucideIcon name="external-link" :size="18" class="me-2" />
-            التفويض الرسمي عبر {{ selectedService?.id === 'outlook' ? 'Microsoft Azure' : 'Google Identity' }}
+            ربط تقويم {{ selectedService?.id === 'outlook' ? 'Outlook' : 'Google' }}
           </v-btn>
 
           <v-btn
@@ -224,7 +224,7 @@
             @click="triggerDemoOAuthRedirect(selectedService.id)"
           >
             <LucideIcon name="zap" :size="14" class="me-1" />
-            تجربة تدفق OAuth التفاعلي (OAuth Sandbox Demo Test)
+            تجربة المزامنة التفاعلية (Sandbox Test)
           </v-btn>
         </div>
 
@@ -232,7 +232,7 @@
         <v-expansion-panels v-if="selectedService?.id === 'outlook' || selectedService?.id === 'google_calendar'" variant="accordion" class="mb-4">
           <v-expansion-panel class="rounded-lg border">
             <v-expansion-panel-title class="text-caption font-weight-bold text-medium-emphasis">
-              خيارات متقدمة: إدخال مفتاح التوثيق اليدوي (Bearer Token)
+              خيارات متقدمة للمطورين (اختبار يدوي)
             </v-expansion-panel-title>
             <v-expansion-panel-text>
               <v-form @submit.prevent="submitManualConnect">

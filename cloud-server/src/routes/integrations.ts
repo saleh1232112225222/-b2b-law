@@ -121,11 +121,13 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
       if (isDemo) {
         authUrl = `${protocol}://${host}/api/integrations/oauth/callback?code=DEMO_GOOGLE_CODE_${Date.now()}&state=${state}&email=lawyer.admin@gmail-demo.com`
       } else {
+        const googleCalendarRedirectUri =
+          process.env.GOOGLE_CALENDAR_CALLBACK_URL || `${protocol}://${host}/api/integrations/oauth/callback`
         const scopes = encodeURIComponent(
           'https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/userinfo.email openid'
         )
         authUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(
-          redirectUri
+          googleCalendarRedirectUri
         )}&scope=${scopes}&access_type=offline&prompt=consent&state=${state}`
       }
     } else {
@@ -135,7 +137,9 @@ integrationsRouter.get('/oauth/authorize/:service', authMiddleware, async (req: 
     return res.json({
       service,
       authUrl,
-      redirectUri,
+      redirectUri: service === 'google_calendar'
+        ? (process.env.GOOGLE_CALENDAR_CALLBACK_URL || `${protocol}://${host}/api/integrations/oauth/callback`)
+        : redirectUri,
       provider: service === 'outlook' ? 'Microsoft Azure AD' : 'Google Identity'
     })
   } catch (err: any) {
@@ -165,21 +169,62 @@ integrationsRouter.get('/oauth/callback', async (req: Request, res: Response) =>
       return res.status(400).send('Invalid state parameter')
     }
 
-    const { service, companyId, userId } = stateData
+    const { service, companyId, userId, timestamp } = stateData
 
     if (!companyId || !service) {
       return res.status(400).send('Missing company or service info in OAuth state')
     }
 
-    // Perform Token Exchange & Microsoft Graph / Google UserInfo Fetch
+    // Verify freshness of state (10 minute limit)
+    if (timestamp && Date.now() - timestamp > 10 * 60 * 1000) {
+      return res.redirect(`${FRONTEND_URL}/#/settings?oauth=error&message=${encodeURIComponent('انتهت صلاحية جلسة التفويض، يرجى إعادة المحاولة')}`)
+    }
+
     let verifiedEmail = ''
     let accessToken = `oauth_at_${Date.now()}`
     let refreshToken = `oauth_rt_${Date.now()}`
 
-    if (service === 'outlook') {
-      // Real Microsoft Graph Health Check call
-      verifiedEmail = req.query.email ? String(req.query.email) : `lawyer_${companyId.substring(0, 6)}@outlook.com`
-    } else if (service === 'google_calendar') {
+    if (service === 'google_calendar' && !String(code).startsWith('DEMO_')) {
+      const host = req.get('host') || 'localhost:8080'
+      const protocol = req.protocol || 'http'
+      const googleCalendarRedirectUri =
+        process.env.GOOGLE_CALENDAR_CALLBACK_URL || `${protocol}://${host}/api/integrations/oauth/callback`
+
+      try {
+        const tokenRes = await fetch('https://oauth2.googleapis.com/token', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams({
+            code: String(code),
+            client_id: GOOGLE_CLIENT_ID,
+            client_secret: process.env.GOOGLE_CLIENT_SECRET || '',
+            redirect_uri: googleCalendarRedirectUri,
+            grant_type: 'authorization_code'
+          })
+        })
+
+        const tokenData: any = await tokenRes.json()
+        if (tokenData.access_token) {
+          accessToken = tokenData.access_token
+          if (tokenData.refresh_token) {
+            refreshToken = tokenData.refresh_token
+          }
+
+          // Fetch User Profile Email from Google UserInfo
+          const userInfoRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+            headers: { Authorization: `Bearer ${accessToken}` }
+          })
+          const userInfo: any = await userInfoRes.json()
+          if (userInfo && userInfo.email) {
+            verifiedEmail = userInfo.email
+          }
+        }
+      } catch (e: any) {
+        console.error('[IntegrationsRouter] Google Token Exchange failed:', e?.message || e)
+      }
+    }
+
+    if (!verifiedEmail) {
       verifiedEmail = req.query.email ? String(req.query.email) : `lawyer_${companyId.substring(0, 6)}@gmail.com`
     }
 

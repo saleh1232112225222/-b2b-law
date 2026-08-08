@@ -720,8 +720,6 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
   }
 
   // Validate state: cookie-bound HMAC verification
-  // Checks: 1) state exists 2) __oauth_nonce cookie present & matches state nonce strictly
-  //         3) not expired (10 min) 4) HMAC integrity (server-signed)
   if (!verifyOAuthState(req, res)) {
     res.status(400).json({ error: 'معلمة الأمان state غير صالحة أو مفقودة — يرجى إعادة المحاولة' })
     return
