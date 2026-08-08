@@ -126,7 +126,7 @@ function createOAuthState(res: Response): string {
     httpOnly: true,
     secure: isProduction,
     sameSite: 'lax',        // Must be 'lax' — callback is a top-level GET redirect from Google
-    path: '/',
+    path: '/api/auth',
     maxAge: 10 * 60 * 1000  // 10 minutes (600,000 ms)
   })
 
@@ -187,7 +187,7 @@ function verifyOAuthState(req: Request, res: Response): boolean {
   }
 
   // Clear cookie after successful single-use verification
-  res.clearCookie('__oauth_nonce', { path: '/' })
+  res.clearCookie('__oauth_nonce', { path: '/api/auth' })
   console.log('[OAUTH_STATE] Verification succeeded: stateNonce matches cookieNonce and HMAC is valid (verified=true)')
   return true
 }
