@@ -21,7 +21,17 @@
               </div>
             </div>
           </v-col>
-          <v-col cols="12" sm="auto">
+          <v-col cols="12" sm="auto" class="d-flex align-center gap-2">
+            <v-btn
+              color="accent"
+              variant="outlined"
+              :size="isMobile ? 'default' : 'large'"
+              class="font-weight-black rounded-lg"
+              :loading="syncingGoogle"
+              @click="triggerGoogleCalendarSync"
+            >
+              <LucideIcon name="calendar" :size="18" class="me-2 text-gold" /> مزامنة تقويم Google
+            </v-btn>
             <v-btn
               color="accent"
               :size="isMobile ? 'default' : 'large'"
@@ -125,6 +135,7 @@ import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useSessionsStore } from '../stores/sessions'
 import { useCasesStore } from '../stores/cases'
+import { useIntegrationsStore } from '../stores/integrations'
 import { useSearch } from '../composables/useSearch'
 import { safeArray, safeLength, valWithDefault } from '../utils/safe'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
@@ -142,13 +153,29 @@ const route = useRoute()
 const router = useRouter()
 const store = useSessionsStore()
 const casesStore = useCasesStore()
+const integrationsStore = useIntegrationsStore()
+
+const syncingGoogle = ref(false)
+
+async function triggerGoogleCalendarSync() {
+  syncingGoogle.value = true
+  const res = await integrationsStore.triggerSync()
+  syncingGoogle.value = false
+  if (res && res.success) {
+    showSnackbar(`تمت مزامنة ${(res as any).syncedCount || 0} جلسة قادمة بنجاح مع تقويم Google 🟢`, 'success')
+    await loadItems(serverOptions.value)
+  } else {
+    showSnackbar(integrationsStore.error || 'تعذر إجراء المزامنة مع تقويم Google', 'error')
+  }
+}
 
 const { isMobile } = useMobileLayout()
 
 const mobileSessions = computed(() =>
   safeArray(store.sessions).map((s) => ({
     ...s,
-    date: s.date ? s.date.split('T')[0] : s.date
+    date: s.date ? s.date.split('T')[0] : s.date,
+    google_sync_status_text: s.google_event_id ? 'مزامَن 🟢' : 'غير مزامن'
   }))
 )
 

@@ -209,6 +209,22 @@
                 </template>
               </v-text-field>
             </v-col>
+
+            <v-col cols="12" class="mt-2">
+              <v-alert
+                type="info"
+                variant="tonal"
+                color="gold"
+                class="rounded-xl border-dashed py-3"
+              >
+                <template #prepend>
+                  <LucideIcon name="calendar-check" :size="22" class="text-gold me-2" />
+                </template>
+                <div class="text-caption font-weight-bold text-white">
+                  <strong>المزامنة السحابية مفعّلة 🟢:</strong> عند حفظ هذه الجلسة، سيتم إدراجها وتحديثها تلقائياً في <strong>Google Calendar</strong> الخاص بالمكتب.
+                </div>
+              </v-alert>
+            </v-col>
           </v-row>
         </v-form>
       </v-card-text>

@@ -7,7 +7,8 @@
       subtitle-field="client_name"
       :info-fields="[
         { key: 'date', label: 'التاريخ' },
-        { key: 'status', label: 'الحالة' }
+        { key: 'status', label: 'الحالة' },
+        { key: 'google_sync_status_text', label: 'تقويم Google' }
       ]"
       icon-field="icon"
       default-icon="mdi-calendar-clock"

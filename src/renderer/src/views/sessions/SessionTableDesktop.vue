@@ -37,6 +37,9 @@
         <template #[`header.status`]="{ column }">
           <span class="font-weight-black text-gold">{{ column.title }}</span>
         </template>
+        <template #[`header.google_sync`]="{ column }">
+          <span class="font-weight-black text-gold">{{ column.title }}</span>
+        </template>
         <template #[`header.actions`]="{ column }">
           <span class="font-weight-black text-gold">{{ column.title }}</span>
         </template>
@@ -120,6 +123,30 @@
             class="font-weight-black rounded-md"
             >{{ item.status }}</v-chip
           >
+        </template>
+
+        <template #[`item.google_sync`]="{ item }">
+          <div class="d-flex align-center justify-center">
+            <v-chip
+              v-if="item.google_event_id"
+              color="success"
+              size="x-small"
+              variant="tonal"
+              class="font-weight-black rounded-md"
+            >
+              <LucideIcon name="calendar" :size="12" class="me-1" />
+              مزامَن 🟢
+            </v-chip>
+            <v-chip
+              v-else
+              color="grey"
+              size="x-small"
+              variant="outlined"
+              class="font-weight-medium rounded-md opacity-60"
+            >
+              غير مزامن
+            </v-chip>
+          </div>
         </template>
 
         <template #[`item.session_room`]="{ item }">
@@ -217,6 +244,7 @@ const headers = [
   { title: 'اسم الموكل', key: 'client_name', align: 'center' as const, width: 150 },
   { title: 'القاعة / الدائرة', key: 'court_room', align: 'center' as const, width: 130 },
   { title: 'حالة الجلسة', key: 'status', align: 'center' as const, width: 100 },
+  { title: 'تقويم Google', key: 'google_sync', align: 'center' as const, width: 120 },
   { title: '', key: 'session_room', sortable: false, align: 'center' as const, width: 80 },
   { title: 'إجراءات', key: 'actions', sortable: false, align: 'center' as const, width: 100 }
 ]
