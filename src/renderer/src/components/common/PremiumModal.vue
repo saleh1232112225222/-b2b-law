@@ -93,13 +93,15 @@ function close() {
 .modal-card-flex {
   display: flex !important;
   flex-direction: column !important;
-  max-height: 85vh !important;
+  max-height: 90vh !important;
+  height: auto !important;
 }
 
 .modal-body-scroll {
   flex: 1 1 auto !important;
   overflow-y: auto !important;
-  max-height: calc(85vh - 140px) !important;
+  max-height: calc(90vh - 130px) !important;
+  padding-bottom: 2rem !important;
 }
 
 .dialog-actions-sticky {
@@ -107,6 +109,7 @@ function close() {
   bottom: 0 !important;
   z-index: 10 !important;
   background-color: #f8fafc !important;
+  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 .modal-header {
