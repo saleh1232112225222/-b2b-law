@@ -17,8 +17,15 @@
       </v-col>
     </v-row>
 
+    <!-- Top Row: OpenConnector Integrations (Google Calendar, etc.) -->
+    <v-row dense class="mb-2">
+      <v-col cols="12">
+        <SettingsIntegrationsCard />
+      </v-col>
+    </v-row>
+
     <v-row dense>
-      <!-- Row 1: Core Identity & Licensing -->
+      <!-- Column 1: Office Identity & Licensing -->
       <v-col cols="12" md="6">
         <SettingsOfficeCard v-model="settings" @save="saveSettings" />
 
@@ -82,142 +89,11 @@
             </v-btn>
           </div>
         </v-card>
-
-        <SettingsSecurityCard />
-        <SettingsIntegrationsCard class="mt-4" />
       </v-col>
 
-      <!-- Row 2: Data & Sync -->
+      <!-- Column 2: Security & Local Data Backup -->
       <v-col cols="12" md="6">
-        <v-card
-          elevation="0"
-          class="glass-card mb-4 border border-gold border-opacity-20 glass-card"
-        >
-          <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
-            <LucideIcon name="cloud-cog" :size="20" class="text-primary me-3" />
-            <span class="text-subtitle-1 font-weight-black text-primary">المزامنة السحابية</span>
-          </div>
-          <v-card-text class="pa-4">
-            <v-text-field
-              v-model="gasUrl"
-              label="رابط المزامنة (Google Apps Script)"
-              variant="outlined"
-              density="compact"
-              class="mb-3 glass-input"
-              hide-details="auto"
-              @update:model-value="onGasUrlInput"
-            ></v-text-field>
-            <v-row dense class="mb-2">
-              <v-col cols="4">
-                <v-btn
-                  variant="outlined"
-                  color="gold"
-                  block
-                  class="font-weight-black premium-btn-gold-gradient"
-                  size="small"
-                  :loading="testingSync"
-                  @click="testConnection"
-                  >اختبار</v-btn
-                >
-              </v-col>
-              <v-col cols="4">
-                <v-btn
-                  color="accent"
-                  variant="flat"
-                  block
-                  class="font-weight-black premium-btn-gold-gradient"
-                  size="small"
-                  :loading="syncingCloud"
-                  @click="handleCloudSync"
-                  >مزامنة</v-btn
-                >
-              </v-col>
-              <v-col cols="4">
-                <v-btn
-                  color="gold"
-                  variant="tonal"
-                  block
-                  class="font-weight-black premium-btn-gold-gradient"
-                  size="small"
-                  @click="openSyncSheet"
-                  >فتح الشيت</v-btn
-                >
-              </v-col>
-            </v-row>
-            <div class="d-flex align-center justify-space-between mb-4">
-              <span class="text-caption text-gold font-weight-bold"
-                >آخر مزامنة: {{ syncService.lastSyncTime }}</span
-              >
-              <v-btn
-                variant="tonal"
-                size="small"
-                color="gold"
-                class="font-weight-black px-4 premium-btn-gold-gradient"
-                @click="copySyncScript"
-              >
-                <LucideIcon name="code" :size="14" class="me-1" />
-                كود الإعداد والربط
-              </v-btn>
-            </div>
-            <v-divider class="mb-4 opacity-10" />
-            <div class="text-caption font-weight-bold text-white mb-2">
-              استعادة سحابية آمنة (ملف منفصل):
-            </div>
-            <v-row dense>
-              <v-col cols="6">
-                <v-btn
-                  class="premium-btn-gold-gradient"
-                  variant="outlined"
-                  color="gold"
-                  block
-                  size="small"
-                  :loading="preparingRestore"
-                  @click="prepareRestore"
-                  >إنشاء ملف استعادة</v-btn
-                >
-              </v-col>
-              <v-col cols="6">
-                <v-btn
-                  class="premium-btn-gold-gradient"
-                  color="error"
-                  variant="tonal"
-                  block
-                  size="small"
-                  :loading="approvingRestore"
-                  @click="approveRestore"
-                  >اعتماد الاستعادة</v-btn
-                >
-              </v-col>
-            </v-row>
-            <v-alert
-              v-if="restorePreview"
-              type="info"
-              variant="flat"
-              density="compact"
-              class="mt-3 glass-panel-light border-gold text-white rounded-lg"
-            >
-              <div class="text-tiny font-weight-bold">جاهز: {{ restorePreview.updatedAt }}</div>
-              <div class="d-flex ga-1 mt-1">
-                <v-btn
-                  class="premium-btn-gold-gradient"
-                  size="x-small"
-                  variant="tonal"
-                  color="gold"
-                  @click="showRestoreInFolder"
-                  >فتح</v-btn
-                >
-                <v-btn
-                  class="premium-btn-gold-gradient"
-                  size="x-small"
-                  variant="tonal"
-                  color="gold"
-                  @click="exportRestoreFile"
-                  >تصدير</v-btn
-                >
-              </div>
-            </v-alert>
-          </v-card-text>
-        </v-card>
+        <SettingsSecurityCard class="mb-4" />
 
         <v-card
           elevation="0"
