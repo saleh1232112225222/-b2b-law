@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
+import { GoogleCalendarService } from '../services/googleCalendarService'
 
 export const integrationsRouter = Router()
 
@@ -403,6 +404,83 @@ integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Respo
     })
   } catch (err: any) {
     console.error('[IntegrationsRouter] Error syncing integrations:', err.message)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// 8. GET /api/integrations/google_calendar/status - Detailed Google Calendar Integration Status
+integrationsRouter.get('/google_calendar/status', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = req.auth?.companyId
+    if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
+
+    const status = await GoogleCalendarService.getStatus(companyId)
+    return res.json(status)
+  } catch (err: any) {
+    console.error('[IntegrationsRouter] Error getting google_calendar status:', err.message)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// 9. GET /api/integrations/google_calendar/calendars - Fetch User's Google Calendars
+integrationsRouter.get('/google_calendar/calendars', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = req.auth?.companyId
+    const userId = req.auth?.userId
+    if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
+
+    const result = await GoogleCalendarService.fetchUserCalendars(companyId, userId)
+    return res.json(result)
+  } catch (err: any) {
+    console.error('[IntegrationsRouter] Error fetching google_calendar calendars:', err.message)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// 10. POST /api/integrations/google_calendar/select - Select Default Google Calendar
+integrationsRouter.post('/google_calendar/select', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = req.auth?.companyId
+    const userId = req.auth?.userId
+    const { calendarId } = req.body
+
+    if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
+    if (!calendarId) return res.status(400).json({ error: 'calendarId is required' })
+
+    const result = await GoogleCalendarService.selectCalendar(companyId, calendarId, userId)
+    if (!result.success) {
+      return res.status(400).json({ error: result.error || 'فشل اختيار التقويم' })
+    }
+
+    return res.json({
+      message: 'تم حفظ التقويم الافتراضي بنجاح',
+      selectedCalendarId: result.selectedCalendarId
+    })
+  } catch (err: any) {
+    console.error('[IntegrationsRouter] Error selecting google_calendar calendar:', err.message)
+    return res.status(500).json({ error: 'Internal server error' })
+  }
+})
+
+// 11. POST /api/integrations/sync - Batch Sync Unsynced Upcoming Sessions to Google Calendar
+integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Response) => {
+  try {
+    const companyId = req.auth?.companyId
+    const userId = req.auth?.userId
+
+    if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
+
+    const result = await GoogleCalendarService.syncUpcomingSessions(companyId, userId)
+    if (!result.success) {
+      return res.status(400).json({ error: result.error || 'فشلت المزامنة' })
+    }
+
+    return res.json({
+      message: 'تمت المزامنة بنجاح',
+      syncedCount: result.syncedCount
+    })
+  } catch (err: any) {
+    console.error('[IntegrationsRouter] Error syncing Google Calendar sessions:', err.message)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })

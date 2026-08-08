@@ -111,9 +111,18 @@
             </p>
 
             <div v-if="item.status === 'connected' && item.config?.accountEmail" class="mb-2">
-              <span class="text-caption text-primary font-weight-bold">
+              <div class="text-caption text-primary font-weight-bold mb-1">
                 الحساب المعتمد عبر OAuth: {{ item.config.accountEmail }}
-              </span>
+              </div>
+              <div v-if="item.id === 'google_calendar'" class="text-caption text-secondary font-weight-bold d-flex align-center gap-1">
+                <LucideIcon name="calendar" :size="13" class="text-primary" />
+                <span v-if="item.config?.selectedCalendarSummary">
+                  التقويم المعتمد: {{ item.config.selectedCalendarSummary }}
+                </span>
+                <span v-else class="text-warning">
+                  لم يتم اختيار تقويم افتراضي بعد
+                </span>
+              </div>
             </div>
           </div>
 
@@ -126,6 +135,31 @@
             <div class="d-flex align-center gap-2">
               <template v-if="item.status === 'connected'">
                 <v-btn
+                  v-if="item.id === 'google_calendar'"
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  @click="openCalendarSelectModal()"
+                >
+                  <LucideIcon name="calendar" :size="14" class="me-1" />
+                  اختيار التقويم
+                </v-btn>
+
+                <v-btn
+                  v-if="item.id === 'google_calendar'"
+                  color="info"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="integrationsStore.syncing"
+                  @click="triggerManualSync()"
+                >
+                  <LucideIcon name="refresh-cw" :size="14" class="me-1" />
+                  مزامنة الجلسات القادمة
+                </v-btn>
+
+                <v-btn
                   color="success"
                   variant="outlined"
                   size="small"
@@ -134,7 +168,7 @@
                   @click="testConnection(item)"
                 >
                   <LucideIcon name="activity" :size="14" class="me-1" />
-                  فحص Graph API
+                  فحص الاتصال الفعلي
                 </v-btn>
 
                 <v-btn
@@ -269,6 +303,71 @@
         </div>
       </v-card>
     </v-dialog>
+
+    <!-- GOOGLE CALENDAR SELECTION MODAL (PHASE 1) -->
+    <v-dialog v-model="showCalendarModal" max-width="500" persistent>
+      <v-card class="rounded-xl pa-6 border" dir="rtl">
+        <div class="d-flex align-center justify-space-between mb-4">
+          <div class="d-flex align-center gap-3">
+            <div class="icon-header-bg">
+              <LucideIcon name="calendar" :size="24" class="text-primary" />
+            </div>
+            <div>
+              <h3 class="text-subtitle-1 font-weight-black">تحديد تقويم Google للمكتب</h3>
+              <p class="text-caption text-medium-emphasis mb-0">اختر التقويم المراد اعتماده لإدارة الجلسات والمهام</p>
+            </div>
+          </div>
+          <v-btn icon variant="text" size="small" @click="showCalendarModal = false">
+            <LucideIcon name="x" :size="20" />
+          </v-btn>
+        </div>
+
+        <v-alert v-if="calendarModalError" type="warning" variant="tonal" class="mb-4 rounded-lg text-caption">
+          {{ calendarModalError }}
+        </v-alert>
+
+        <div v-if="loadingCalendars" class="text-center py-6">
+          <v-progress-circular indeterminate color="primary" class="mb-2"></v-progress-circular>
+          <div class="text-caption text-medium-emphasis">جاري جلب قائمة تقاويم Google المتاحة...</div>
+        </div>
+
+        <div v-else-if="userCalendars.length === 0" class="text-center py-4">
+          <p class="text-caption text-medium-emphasis">لم يتم العثور على أي تقاويم مرتبطة بهذا الحساب.</p>
+        </div>
+
+        <div v-else class="mb-4">
+          <v-radio-group v-model="selectedCalendarId" class="mt-2">
+            <v-radio
+              v-for="cal in userCalendars"
+              :key="cal.id"
+              :value="cal.id"
+              color="primary"
+              class="mb-2 border rounded-lg pa-2"
+            >
+              <template #label>
+                <div class="d-flex align-center justify-space-between w-100 me-2">
+                  <span class="font-weight-bold text-body-2">{{ cal.summary }}</span>
+                  <v-chip v-if="cal.primary" size="x-small" color="primary" variant="flat" class="ms-2">الرئيسي (Primary)</v-chip>
+                </div>
+              </template>
+            </v-radio>
+          </v-radio-group>
+        </div>
+
+        <div class="d-flex align-center justify-end gap-2">
+          <v-btn variant="outlined" color="secondary" class="rounded-lg" @click="showCalendarModal = false">إلغاء</v-btn>
+          <v-btn
+            color="primary"
+            class="rounded-lg font-weight-bold"
+            :loading="savingCalendar"
+            :disabled="!selectedCalendarId || loadingCalendars"
+            @click="saveCalendarSelection"
+          >
+            حفظ التقويم المختار
+          </v-btn>
+        </div>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -289,6 +388,51 @@ const accountEmail = ref('')
 const apiKeyToken = ref('')
 const modalError = ref<string | null>(null)
 const isSubmitting = ref(false)
+
+// Phase 1: Calendar Select Modal State
+const showCalendarModal = ref(false)
+const loadingCalendars = ref(false)
+const savingCalendar = ref(false)
+const calendarModalError = ref<string | null>(null)
+const userCalendars = ref<Array<{ id: string; summary: string; primary: boolean; description: string }>>([])
+const selectedCalendarId = ref<string | null>(null)
+
+async function openCalendarSelectModal() {
+  showCalendarModal.value = true
+  loadingCalendars.value = true
+  calendarModalError.value = null
+  userCalendars.value = []
+
+  const res = await integrationsStore.fetchGoogleCalendars()
+  loadingCalendars.value = false
+
+  if (res.success && res.calendars) {
+    userCalendars.value = res.calendars
+    const primaryCal = res.calendars.find((c) => c.primary)
+    selectedCalendarId.value = primaryCal ? primaryCal.id : res.calendars[0]?.id || null
+  } else {
+    calendarModalError.value = res.error || 'تعذر جلب تقاويم Google'
+  }
+}
+
+async function saveCalendarSelection() {
+  if (!selectedCalendarId.value) return
+  savingCalendar.value = true
+  calendarModalError.value = null
+
+  const res = await integrationsStore.selectGoogleCalendar(selectedCalendarId.value)
+  savingCalendar.value = false
+
+  if (res.success) {
+    showCalendarModal.value = false
+    pingFeedback.value = {
+      success: true,
+      message: 'تم حفظ وتوثيق التقويم الافتراضي بنجاح 🟢'
+    }
+  } else {
+    calendarModalError.value = res.error || 'فشل حفظ التقويم المختار'
+  }
+}
 
 onMounted(() => {
   integrationsStore.fetchStatus()
@@ -393,8 +537,24 @@ async function testConnection(item: IntegrationService) {
   }
 }
 
+async function triggerManualSync() {
+  pingFeedback.value = null
+  const res = await integrationsStore.triggerSync()
+  if (res && res.success) {
+    pingFeedback.value = {
+      success: true,
+      message: `تمت المزامنة بنجاح 🟢 (${(res as any).syncedCount || 0} جلسة قادمة تم رفعها إلى Google Calendar)`
+    }
+  } else {
+    pingFeedback.value = {
+      success: false,
+      message: integrationsStore.error || 'تعذر إكمال عملية المزامنة'
+    }
+  }
+}
+
 async function handleSyncAll() {
-  await integrationsStore.triggerSync()
+  await triggerManualSync()
 }
 
 function formatDate(isoStr: string | null) {

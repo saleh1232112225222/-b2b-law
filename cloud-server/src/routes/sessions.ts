@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
+import { GoogleCalendarService } from '../services/googleCalendarService'
 
 export const sessionsRouter = Router()
 
@@ -381,6 +382,7 @@ sessionsRouter.post(
         'notes',
         'result',
         'meeting_link',
+        'google_event_id',
         'is_archived',
         'archived_at',
         'archived_by',
@@ -403,6 +405,59 @@ sessionsRouter.post(
       const columns = keys.join(', ')
 
       await query(`INSERT INTO sessions (${columns}) VALUES (${placeholders})`, values)
+
+      // PHASE 2-A: Async Google Calendar Event Creation (Graceful Fallback)
+      try {
+        let caseNumber = ''
+        let caseTitle = ''
+        if (body.case_id) {
+          const caseRes = await query(
+            `SELECT case_number, title FROM cases WHERE id = $1 AND company_id = $2`,
+            [body.case_id, companyId]
+          )
+          if (caseRes.rows.length > 0) {
+            caseNumber = caseRes.rows[0].case_number || ''
+            caseTitle = caseRes.rows[0].title || ''
+          }
+        }
+
+        const sessionDate = body.date
+        const sessionTime = body.time || '09:00'
+        if (sessionDate) {
+          const timeClean = sessionTime.length === 5 ? `${sessionTime}:00` : sessionTime
+          const startTimeStr = `${sessionDate}T${timeClean}`
+          const summary = `جلسة قضائية: ${caseTitle || caseNumber || body.court_room || 'جلسة محكمة'}`
+          const description = `جلسة قضائية محليّة\nرقم القضية: ${caseNumber || 'غير محدد'}\nعنوان القضية: ${caseTitle || 'غير محدد'}\nالقاعة/المحكمة: ${body.court_room || 'غير محدد'}\nملاحظات: ${body.notes || 'لا يوجد'}`
+          const location = body.court_room || ''
+
+          const calRes = await GoogleCalendarService.createCalendarEvent(
+            companyId,
+            {
+              summary,
+              description,
+              location,
+              startTime: startTimeStr,
+              existingGoogleEventId: body.google_event_id
+            },
+            req.auth?.userId
+          )
+
+          if (calRes.success && calRes.googleEventId) {
+            body.google_event_id = calRes.googleEventId
+            body.google_sync_status = 'synced'
+            await query(
+              `UPDATE sessions SET google_event_id = $1 WHERE id = $2 AND company_id = $3`,
+              [calRes.googleEventId, id, companyId]
+            )
+          } else {
+            body.google_sync_status = calRes.reason === 'not_connected' ? 'not_connected' : 'failed'
+          }
+        }
+      } catch (calErr: any) {
+        console.error('[SESSIONS] Google Calendar event creation fallback:', calErr?.message || calErr)
+        body.google_sync_status = 'failed'
+      }
+
       res.status(201).json(body)
     } catch (err) {
       console.error('[SESSIONS] Create error:', err)
@@ -472,6 +527,44 @@ sessionsRouter.put(
         res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
+
+      // Google Calendar Async Update Hook
+      try {
+        const sessRes = await query(
+          `SELECT google_event_id, date, time, court_room, notes, case_id FROM sessions WHERE id = $1 AND company_id = $2`,
+          [id, companyId]
+        )
+        if (sessRes.rows.length > 0 && sessRes.rows[0].google_event_id) {
+          const sess = sessRes.rows[0]
+          let caseNumber = ''
+          if (sess.case_id) {
+            const cRes = await query(
+              `SELECT case_number FROM cases WHERE id = $1 AND company_id = $2`,
+              [sess.case_id, companyId]
+            )
+            if (cRes.rows.length > 0) caseNumber = cRes.rows[0].case_number || ''
+          }
+          const sessionDate = sess.date
+          const sessionTime = sess.time || '09:00'
+          const timeClean = sessionTime.length === 5 ? `${sessionTime}:00` : sessionTime
+          const startTimeStr = `${sessionDate}T${timeClean}`
+
+          await GoogleCalendarService.updateCalendarEvent(
+            companyId,
+            sess.google_event_id,
+            {
+              summary: `جلسة قضائية: ${caseNumber || sess.court_room || 'جلسة محكمة'}`,
+              description: `جلسة قضائية\nرقم القضية: ${caseNumber || 'غير محدد'}\nالقاعة/المحكمة: ${sess.court_room || 'غير محدد'}\nملاحظات: ${sess.notes || 'لا يوجد'}`,
+              location: sess.court_room || '',
+              startTime: startTimeStr
+            },
+            req.auth?.userId
+          )
+        }
+      } catch (calErr: any) {
+        console.error('[SESSIONS] Google Calendar update fallback:', calErr?.message || calErr)
+      }
+
       res.json({ success: true })
     } catch (err) {
       console.error('[SESSIONS] Update error:', err)
@@ -488,6 +581,13 @@ sessionsRouter.delete(
     try {
       const companyId = getCompanyId(req)
       const { id } = req.params
+
+      const checkRes = await query(
+        `SELECT google_event_id FROM sessions WHERE id = $1 AND company_id = $2`,
+        [id, companyId]
+      )
+      const googleEventId = checkRes.rows.length > 0 ? checkRes.rows[0].google_event_id : null
+
       const result = await query(`DELETE FROM sessions WHERE id = $1 AND company_id = $2`, [
         id,
         companyId
@@ -496,6 +596,15 @@ sessionsRouter.delete(
         res.status(404).json({ error: 'الجلسة غير موجودة' })
         return
       }
+
+      if (googleEventId) {
+        try {
+          await GoogleCalendarService.deleteCalendarEvent(companyId, googleEventId, req.auth?.userId)
+        } catch (calErr: any) {
+          console.error('[SESSIONS] Google Calendar delete fallback:', calErr?.message || calErr)
+        }
+      }
+
       res.json({ success: true })
     } catch (err) {
       console.error('[SESSIONS] Delete error:', err)

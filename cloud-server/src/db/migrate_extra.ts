@@ -733,4 +733,17 @@ export async function runExtraMigrations() {
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] office_integrations table warning:', err.message)
   }
+
+  // Google Calendar Event ID column for sessions table
+  try {
+    await query(`
+      ALTER TABLE sessions ADD COLUMN IF NOT EXISTS google_event_id TEXT
+    `)
+    await query(`
+      CREATE INDEX IF NOT EXISTS idx_sessions_google_event ON sessions(google_event_id) WHERE google_event_id IS NOT NULL
+    `)
+    console.log('[MIGRATE_EXTRA] sessions google_event_id column ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] sessions google_event_id migration warning:', err.message)
+  }
 }

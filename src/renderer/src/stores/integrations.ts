@@ -139,6 +139,43 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     }
   }
 
+  async function fetchGoogleCalendars() {
+    try {
+      const res = await apiFetch<{
+        success: boolean
+        calendars: Array<{
+          id: string
+          summary: string
+          description: string
+          primary: boolean
+          timeZone: string
+          accessRole: string
+        }>
+        needsReauthorization: boolean
+        error?: string
+      }>('/api/integrations/google_calendar/calendars')
+      return res
+    } catch (err: any) {
+      return { success: false, calendars: [], needsReauthorization: true, error: err.message || 'فشل جلب التقاويم' }
+    }
+  }
+
+  async function selectGoogleCalendar(calendarId: string) {
+    try {
+      const res = await apiFetch<{ success: boolean; selectedCalendarId?: string; message?: string }>(
+        '/api/integrations/google_calendar/select',
+        {
+          method: 'POST',
+          body: JSON.stringify({ calendarId })
+        }
+      )
+      await fetchStatus()
+      return res
+    } catch (err: any) {
+      return { success: false, error: err.message || 'فشل حفظ التقويم المختار' }
+    }
+  }
+
   return {
     integrations,
     loading,
@@ -149,6 +186,8 @@ export const useIntegrationsStore = defineStore('integrations', () => {
     connectService,
     disconnectService,
     pingService,
-    triggerSync
+    triggerSync,
+    fetchGoogleCalendars,
+    selectGoogleCalendar
   }
 })
