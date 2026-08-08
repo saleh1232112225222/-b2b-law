@@ -79,6 +79,7 @@ import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
 const app = express()
+app.set('trust proxy', 1)
 const PORT = parseInt(process.env.PORT || '8080', 10)
 
 const allowedOrigins = [
