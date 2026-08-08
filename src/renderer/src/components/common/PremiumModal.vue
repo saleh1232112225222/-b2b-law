@@ -1,14 +1,14 @@
 <template>
   <v-dialog
     v-model="internalValue"
-    max-width="600"
+    max-width="640"
     persistent
     transition="dialog-bottom-transition"
     class="premium-modal"
   >
-    <v-card class="rounded-xl overflow-hidden glass-card" elevation="24">
+    <v-card class="rounded-xl overflow-hidden glass-card modal-card-flex" elevation="24">
       <!-- Header -->
-      <div class="modal-header pa-6 d-flex align-center bg-primary text-white">
+      <div class="modal-header pa-5 pa-sm-6 d-flex align-center bg-primary text-white flex-shrink-0">
         <div class="header-icon-box me-4">
           <LucideIcon :name="icon || 'gavel'" :size="28" class="text-white" />
         </div>
@@ -27,21 +27,21 @@
       </div>
 
       <!-- Body -->
-      <v-card-text class="pa-8 bg-surface">
+      <v-card-text class="pa-6 pa-sm-8 bg-surface modal-body-scroll">
         <slot></slot>
       </v-card-text>
 
       <!-- Footer -->
-      <v-divider></v-divider>
-      <v-card-actions class="pa-6 bg-grey-lighten-5">
+      <v-divider class="flex-shrink-0"></v-divider>
+      <v-card-actions class="pa-4 pa-sm-6 bg-grey-lighten-5 flex-shrink-0 dialog-actions-sticky">
         <v-spacer></v-spacer>
         <v-btn
-          variant="text"
+          variant="outlined"
           color="secondary"
           class="rounded-lg font-weight-black px-6"
           @click="close"
         >
-          الغاء
+          إلغاء
         </v-btn>
         <v-btn
           :color="saveColor || 'primary'"
@@ -88,6 +88,25 @@ function close() {
 <style scoped>
 .premium-modal :deep(.v-card) {
   border: 1px solid rgba(var(--v-theme-primary), 0.1);
+}
+
+.modal-card-flex {
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 85vh !important;
+}
+
+.modal-body-scroll {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  max-height: calc(85vh - 140px) !important;
+}
+
+.dialog-actions-sticky {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+  background-color: #f8fafc !important;
 }
 
 .modal-header {
