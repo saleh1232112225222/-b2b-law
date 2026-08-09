@@ -409,38 +409,36 @@ const arabicFilter = (item: any, query: string): boolean => {
 
 <style scoped>
 .session-dialog-card {
-  background: rgba(13, 22, 40, 0.96) !important;
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  background: #ffffff !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
   border-radius: 20px !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 20px 50px rgba(115, 92, 0, 0.12) !important;
 }
 
 .session-dialog-header {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
+  background: #fbf3e5 !important;
+  border-bottom: 1px solid rgba(208, 198, 175, 0.4) !important;
 }
 
 .session-dialog-footer {
-  background: rgba(0, 0, 0, 0.3) !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
+  background: #fbf3e5 !important;
+  border-top: 1px solid rgba(208, 198, 175, 0.4) !important;
 }
 
 .session-form :deep(.v-label) {
-  color: #e9c349 !important;
-  font-weight: 800 !important;
+  color: #735c00 !important;
+  font-weight: 900 !important;
   font-size: 0.9rem !important;
 }
 
 .session-form :deep(.glass-input),
 .session-form :deep(.premium-input-solid),
 .session-form :deep(.v-field) {
-  background: rgba(15, 23, 42, 0.55) !important;
+  background: #ffffff !important;
   border-radius: 12px !important;
-  border: 1px solid rgba(233, 195, 73, 0.3) !important;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
-  transition: all 0.3s ease !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
+  transition: all 0.25s ease !important;
 }
 
 .session-form :deep(.v-field__outline) {
@@ -448,69 +446,70 @@ const arabicFilter = (item: any, query: string): boolean => {
 }
 
 .session-form :deep(.v-field--focused) {
-  background: rgba(15, 23, 42, 0.8) !important;
-  border-color: #e9c349 !important;
-  box-shadow: 0 0 12px rgba(233, 195, 73, 0.3), inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
+  background: #ffffff !important;
+  border-color: #735c00 !important;
+  box-shadow: 0 0 10px rgba(233, 195, 73, 0.3) !important;
 }
 
 .session-form :deep(input),
 .session-form :deep(textarea),
 .session-form :deep(.v-select__selection-text),
 .session-form :deep(.v-autocomplete__selection-text) {
-  color: #ffffff !important;
+  color: #1f1b13 !important;
   font-weight: 700 !important;
 }
 
 .session-form :deep(.v-field__input::placeholder),
 .session-form :deep(input::placeholder),
 .session-form :deep(textarea::placeholder) {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: #7f7663 !important;
   font-weight: 500 !important;
 }
 
 .session-form :deep(.dual-date-picker) {
-  background: rgba(15, 23, 42, 0.45) !important;
-  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  background: #fcf8f2 !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
   border-radius: 14px !important;
 }
 
 .session-form :deep(.glass-date-container) {
-  background: rgba(15, 23, 42, 0.35) !important;
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  background: #fcf8f2 !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.08) !important;
-  border: 1px solid rgba(255, 255, 255, 0.2) !important;
-  color: #ffffff !important;
+  background: rgba(115, 92, 0, 0.05) !important;
+  border: 1px solid rgba(208, 198, 175, 0.8) !important;
+  color: #4d4635 !important;
   border-radius: 12px !important;
+  font-weight: 800 !important;
   transition: all 0.25s ease !important;
 }
 
 .btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.15) !important;
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  background: rgba(115, 92, 0, 0.1) !important;
+  border-color: rgba(115, 92, 0, 0.3) !important;
 }
 
 .premium-btn-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
-  color: #000000 !important;
+  background: linear-gradient(135deg, #e9c349 0%, #735c00 100%) !important;
+  color: #ffffff !important;
   font-weight: 900 !important;
   border: none !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3) !important;
-  transition: all 0.3s ease !important;
+  box-shadow: 0 4px 16px rgba(115, 92, 0, 0.25) !important;
+  transition: all 0.25s ease !important;
 }
 
 .premium-btn-gold-gradient:hover:not(.v-btn--disabled) {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45) !important;
+  box-shadow: 0 6px 20px rgba(115, 92, 0, 0.35) !important;
 }
 
 .premium-btn-gold-gradient.v-btn--disabled {
-  background: rgba(212, 175, 55, 0.2) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-  border: 1px solid rgba(212, 175, 55, 0.15) !important;
+  background: rgba(208, 198, 175, 0.4) !important;
+  color: rgba(31, 27, 19, 0.4) !important;
+  border: 1px solid rgba(208, 198, 175, 0.3) !important;
   box-shadow: none !important;
   opacity: 1 !important;
 }

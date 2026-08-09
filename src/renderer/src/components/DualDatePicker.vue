@@ -88,35 +88,35 @@ onMounted(() => {
 
 <style scoped>
 :deep(.v-messages__message) {
-  color: #e9c349 !important;
+  color: #735c00 !important;
   font-weight: bold;
 }
 
 .glass-date-container {
-  background: rgba(15, 23, 42, 0.45) !important;
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: #fcf8f2 !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 8px rgba(115, 92, 0, 0.04) !important;
 }
 
 .dual-date-picker :deep(.v-field) {
-  background: rgba(15, 23, 42, 0.5) !important;
+  background: #ffffff !important;
   border-radius: 10px !important;
-  border: 1px solid rgba(233, 195, 73, 0.2) !important;
+  border: 1px solid rgba(208, 198, 175, 0.6) !important;
 }
 
 .dual-date-picker :deep(input),
 .dual-date-picker :deep(.v-field__input) {
-  color: #ffffff !important;
+  color: #1f1b13 !important;
   font-weight: 700 !important;
 }
 
 .dual-date-picker :deep(.v-label) {
-  color: #e9c349 !important;
-  font-weight: 700 !important;
+  color: #735c00 !important;
+  font-weight: 800 !important;
 }
 
 .hijri-field :deep(.v-field) {
-  background: transparent !important;
+  background: #ffffff !important;
 }
 </style>

@@ -562,7 +562,7 @@ const onPartiesUpdate = (updated: any[]): void => {
 }
 
 .modal-footer-solid {
-  background: rgba(15, 23, 42, 0.95) !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
 }
 </style>

@@ -137,20 +137,14 @@ defineEmits<{
 <style scoped>
 .poa-form :deep(.glass-input .v-field__outline) {
   --v-field-border-opacity: 1 !important;
-  color: #000000 !important;
-}
-
-.poa-form :deep(.glass-input .v-field__outline__start),
-.poa-form :deep(.glass-input .v-field__outline__notch),
-.poa-form :deep(.glass-input .v-field__outline__end) {
-  border-color: #000000 !important;
+  color: var(--border, rgba(208, 198, 175, 0.6)) !important;
 }
 
 .poa-form :deep(.glass-input input),
 .poa-form :deep(.glass-input .v-field__input),
 .poa-form :deep(.glass-input .v-select__selection-text) {
-  color: #000000 !important;
-  font-weight: 800;
+  color: var(--text-primary, #1f1b13) !important;
+  font-weight: 700;
 }
 
 .modal-scrollable {
@@ -158,32 +152,9 @@ defineEmits<{
   overflow-y: auto;
 }
 
-.premium-button-highlight {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
-  transition: all 0.3s ease !important;
-}
-
-.premium-button-highlight:hover {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
-  border-color: rgba(233, 195, 73, 0.8) !important;
-}
-
-.premium-button-highlight.v-btn--disabled {
-  background: #f5f5f5 !important;
-  color: #9e9e9e !important;
-  border-color: #e0e0e0 !important;
-  opacity: 1 !important;
-}
-
 .modal-footer-solid {
-  background: #ffffff !important;
-  opacity: 1 !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
 }
 
 .action-btn-unified {
