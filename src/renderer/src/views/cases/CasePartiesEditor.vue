@@ -8,18 +8,18 @@
       </div>
       <div class="d-flex ga-3 align-center">
         <v-btn
-          variant="flat"
-          class="btn-gold-outline font-weight-black rounded-lg px-4"
+          variant="outlined"
+          class="pill-btn-gold px-4"
           @click="addParty('client')"
         >
-          <LucideIcon name="user-plus" :size="18" class="me-2 text-gold" /> إضافة موكل
+          <LucideIcon name="user-plus" :size="18" class="me-2" /> إضافة موكل
         </v-btn>
         <v-btn
           variant="outlined"
-          class="btn-secondary font-weight-black rounded-lg px-4"
+          class="pill-btn-opponent px-4"
           @click="addParty('opponent')"
         >
-          <LucideIcon name="user-x" :size="18" class="me-2 text-gold" /> إضافة خصم
+          <LucideIcon name="user-x" :size="18" class="me-2" /> إضافة خصم
         </v-btn>
       </div>
     </div>
@@ -371,8 +371,8 @@ const onClientChange = (index: number, clientId: string): void => {
 }
 
 .party-card-box {
-  background: var(--surface-variant, #fcf8f2) !important;
-  border: none !important;
+  background: transparent !important;
+  border: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
   border-radius: 12px !important;
   transition: all 0.2s ease;
 }

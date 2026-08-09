@@ -142,6 +142,110 @@
   border: 1px solid var(--gold-alpha-soft) !important;
 }
 
+/* ===== Reference Pill Button Styling (Match Reference Image 3) ===== */
+.pill-btn-gold {
+  border-radius: 9999px !important;
+  border: 1.5px solid var(--primary, #735c00) !important;
+  background: #ffffff !important;
+  color: var(--primary, #735c00) !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(115, 92, 0, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.pill-btn-gold:hover {
+  background: #fbf3e5 !important;
+  box-shadow: 0 4px 12px rgba(115, 92, 0, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.pill-btn-gold .v-btn__content,
+.pill-btn-gold span,
+.pill-btn-gold i,
+.pill-btn-gold svg {
+  color: var(--primary, #735c00) !important;
+}
+
+.pill-btn-opponent {
+  border-radius: 9999px !important;
+  border: 1.5px solid #d97706 !important;
+  background: #ffffff !important;
+  color: #b45309 !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 8px rgba(217, 119, 6, 0.08) !important;
+  transition: all 0.2s ease !important;
+}
+
+.pill-btn-opponent:hover {
+  background: #fef3c7 !important;
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15) !important;
+  transform: translateY(-1px);
+}
+
+.pill-btn-opponent .v-btn__content,
+.pill-btn-opponent span,
+.pill-btn-opponent i,
+.pill-btn-opponent svg {
+  color: #b45309 !important;
+}
+
+.pill-btn-cancel {
+  border-radius: 9999px !important;
+  border: 1.5px solid rgba(180, 170, 150, 0.7) !important;
+  background: #ffffff !important;
+  color: #374151 !important;
+  font-weight: 800 !important;
+  transition: all 0.2s ease !important;
+}
+
+.pill-btn-cancel:hover {
+  background: #f3f4f6 !important;
+  color: #111827 !important;
+}
+
+.pill-btn-cancel .v-btn__content,
+.pill-btn-cancel span,
+.pill-btn-cancel svg {
+  color: #374151 !important;
+}
+
+.pill-btn-gold-filled {
+  border-radius: 9999px !important;
+  border: 1.5px solid var(--primary, #735c00) !important;
+  background: var(--primary, #735c00) !important;
+  color: #ffffff !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(115, 92, 0, 0.25) !important;
+  transition: all 0.2s ease !important;
+}
+
+.pill-btn-gold-filled:hover {
+  background: #5c4a00 !important;
+  box-shadow: 0 6px 18px rgba(115, 92, 0, 0.35) !important;
+  transform: translateY(-1px);
+}
+
+.pill-btn-gold-filled .v-btn__content,
+.pill-btn-gold-filled span,
+.pill-btn-gold-filled i,
+.pill-btn-gold-filled svg {
+  color: #ffffff !important;
+}
+
+.pill-btn-gold-filled.v-btn--disabled {
+  background: #e0d9cc !important;
+  border-color: #d0c6af !important;
+  color: #9e9585 !important;
+  box-shadow: none !important;
+  opacity: 0.7 !important;
+}
+
+.pill-btn-gold-filled.v-btn--disabled .v-btn__content,
+.pill-btn-gold-filled.v-btn--disabled span,
+.pill-btn-gold-filled.v-btn--disabled svg {
+  color: #9e9585 !important;
+}
+
 /* ===== Universal Adaptive Modal Dialog Styling (Light & Dark Theme) ===== */
 .v-dialog .v-card,
 .poa-dialog-card,

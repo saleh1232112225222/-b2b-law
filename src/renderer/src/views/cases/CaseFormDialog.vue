@@ -237,12 +237,12 @@
 
                 <v-btn
                   variant="outlined"
-                  class="btn-gold-outline font-weight-black rounded-lg px-4"
+                  class="pill-btn-gold px-4"
                   size="small"
                   :disabled="caseNumberChecking || !!caseNumberError"
                   @click="$emit('addSession')"
                 >
-                  <LucideIcon name="calendar-plus" :size="16" class="me-2 text-gold" /> إضافة جلسة
+                  <LucideIcon name="calendar-plus" :size="16" class="me-2" /> إضافة جلسة
                 </v-btn>
               </div>
             </v-col>
@@ -441,7 +441,7 @@
           <v-btn
             variant="outlined"
             size="large"
-            class="btn-secondary font-weight-black rounded-lg px-6 w-100 w-sm-auto"
+            class="pill-btn-cancel px-6 w-100 w-sm-auto"
             @click="$emit('cancel')"
           >
             <LucideIcon name="x" :size="18" class="me-1" /> إلغاء
@@ -450,12 +450,12 @@
           <v-btn
             variant="flat"
             size="large"
-            class="btn-gold-outline font-weight-black rounded-lg px-10 w-100 w-sm-auto"
+            class="pill-btn-gold-filled px-10 w-100 w-sm-auto"
             :disabled="!canSubmit"
             :loading="saving"
             @click="$emit('save')"
           >
-            <LucideIcon name="file-check" :size="18" class="me-2 text-gold" />
+            <LucideIcon name="file-check" :size="18" class="me-2" />
             {{ isEditing ? 'تحديث ملف القضية' : 'تأكيد التسجيل والنشر' }}
           </v-btn>
         </div>
