@@ -467,7 +467,7 @@
               @click="router.push('/sessions?new=1')"
             >
               <LucideIcon name="calendar-plus" :size="24" class="mb-1" />
-              <span class="font-weight-bold text-body-2">حجز جلسة</span>
+              <span class="font-weight-bold text-body-2">إدراج جلسة</span>
             </v-btn>
           </v-col>
 
@@ -553,7 +553,13 @@ const activeCasesCount = computed(() => {
   const cases = casesStore.cases || []
   if (cases.length > 0) {
     return cases.filter(
-      (c: any) => c.status !== 'مغلقة' && c.status !== 'منتهية' && c.status !== 'أرشيف'
+      (c: any) =>
+        c.status !== 'مغلقة' &&
+        c.status !== 'منتهية' &&
+        c.status !== 'أرشيف' &&
+        c.status !== 'مؤرشفة' &&
+        c.status !== 'كأن لم تكن' &&
+        !String(c.status || '').includes('محكوم')
     ).length
   }
   return casesStore.total || 0

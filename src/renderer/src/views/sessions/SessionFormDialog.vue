@@ -21,13 +21,13 @@
         }}</span>
         <v-spacer />
         <v-btn
-          class="premium-btn-gold-gradient"
-          variant="text"
-          color="gold"
           icon
+          variant="tonal"
+          color="error"
+          class="rounded-lg"
           @click="$emit('update:show', false)"
         >
-          <LucideIcon name="x" :size="24" />
+          <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
 
@@ -409,68 +409,82 @@ const arabicFilter = (item: any, query: string): boolean => {
 
 <style scoped>
 .session-dialog-card {
-  background: rgba(15, 23, 42, 0.95) !important;
+  background: rgba(13, 22, 40, 0.96) !important;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
-  border-radius: 24px !important;
+  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6) !important;
 }
 
 .session-dialog-header {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.15) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-bottom: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
 .session-dialog-footer {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.15) !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
 .session-form :deep(.v-label) {
   color: #e9c349 !important;
   font-weight: 800 !important;
-  font-size: 0.95rem !important;
-  margin-bottom: 6px !important;
+  font-size: 0.9rem !important;
 }
 
 .session-form :deep(.v-field) {
-  background: rgba(0, 0, 0, 0.4) !important;
-  border-radius: 14px !important;
+  background: rgba(15, 23, 42, 0.6) !important;
+  border-radius: 12px !important;
   border: 1px solid rgba(233, 195, 73, 0.25) !important;
   transition: all 0.3s ease;
 }
 
 .session-form :deep(.v-field--focused) {
   border-color: #e9c349 !important;
-  box-shadow: 0 0 12px rgba(233, 195, 73, 0.2) !important;
+  box-shadow: 0 0 12px rgba(233, 195, 73, 0.25) !important;
 }
 
 .session-form :deep(input),
 .session-form :deep(textarea),
 .session-form :deep(.v-select__selection-text) {
   color: #ffffff !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
 }
 
-.premium-button-highlight {
-  background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.premium-btn-gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
+  color: #000000 !important;
+  font-weight: 900 !important;
+  border: none !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.3) !important;
   transition: all 0.3s ease !important;
 }
 
-.premium-button-highlight:hover {
+.premium-btn-gold-gradient:hover:not(.v-btn--disabled) {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
-  border-color: rgba(233, 195, 73, 0.8) !important;
+  box-shadow: 0 6px 20px rgba(212, 175, 55, 0.45) !important;
 }
 
-.premium-button-highlight.v-btn--disabled {
-  background: #f5f5f5 !important;
-  color: #9e9e9e !important;
-  border-color: #e0e0e0 !important;
+.premium-btn-gold-gradient.v-btn--disabled {
+  background: rgba(212, 175, 55, 0.2) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(212, 175, 55, 0.15) !important;
+  box-shadow: none !important;
   opacity: 1 !important;
 }
 

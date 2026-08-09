@@ -18,7 +18,8 @@
         <v-btn
           icon
           variant="tonal"
-          class="rounded-lg premium-btn-gold-gradient"
+          color="error"
+          class="rounded-lg"
           @click="$emit('update:modelValue', false)"
         >
           <LucideIcon name="x" :size="20" />

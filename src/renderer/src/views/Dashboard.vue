@@ -476,7 +476,15 @@ const stats = computed(() => [
   },
   {
     title: 'القضايا النشطة',
-    value: safeArray(casesStore.cases).filter((c) => c.status === 'قيد النظر').length,
+    value: safeArray(casesStore.cases).filter(
+      (c) =>
+        c.status !== 'مغلقة' &&
+        c.status !== 'منتهية' &&
+        c.status !== 'أرشيف' &&
+        c.status !== 'مؤرشفة' &&
+        c.status !== 'كأن لم تكن' &&
+        !String(c.status || '').includes('محكوم')
+    ).length || casesStore.total,
     icon: 'gavel',
     color: 'indigo',
     to: '/cases'
@@ -686,8 +694,8 @@ const fetchData = async () => {
     (enforcement as any)?.total ?? (Array.isArray(enforcement) ? (enforcement as any[]).length : 0)
 
   await Promise.allSettled([
-    safeCall('جلب الموكلين', () => clientsStore.fetchClients(), 8000),
-    safeCall('جلب القضايا', () => casesStore.fetchCases(), 8000),
+    safeCall('جلب الموكلين', () => clientsStore.fetchAllClients(), 8000),
+    safeCall('جلب القضايا', () => casesStore.fetchAllCases(), 8000),
     safeCall('الخدمات القانونية', () => legalStore.fetchServices({ page: 1, pageSize: 1 }), 4500),
     safeCall('جلسات اليوم', () => sessionsStore.fetchTodaySessions(25), 8000),
     safeCall('جلسات الغد', () => sessionsStore.fetchTomorrowSessions(25), 8000),

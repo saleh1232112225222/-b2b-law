@@ -1,8 +1,8 @@
 <template>
-  <div class="dual-date-picker pa-3 border rounded-lg bg-surface mb-4 shadow-sm">
+  <div class="dual-date-picker pa-3 border rounded-xl glass-date-container mb-2">
     <div v-if="label" class="d-flex align-center mb-3 px-1">
-      <LucideIcon :name="icon" :size="16" class="me-2 text-primary" />
-      <span class="text-subtitle-2 font-weight-black text-primary">{{ label }}</span>
+      <LucideIcon :name="icon" :size="16" class="me-2 text-gold" />
+      <span class="text-subtitle-2 font-weight-black text-gold">{{ label }}</span>
     </div>
     <v-row dense>
       <v-col cols="12">
@@ -13,7 +13,7 @@
           variant="outlined"
           density="comfortable"
           hide-details="auto"
-          bg-color="surface"
+          bg-color="transparent"
           class="mb-3 glass-input"
           @update:model-value="onGDateUpdate"
         ></v-text-field>
@@ -88,8 +88,32 @@ onMounted(() => {
 
 <style scoped>
 :deep(.v-messages__message) {
-  color: #1a73e8 !important;
+  color: #e9c349 !important;
   font-weight: bold;
+}
+
+.glass-date-container {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.dual-date-picker :deep(.v-field) {
+  background: rgba(15, 23, 42, 0.5) !important;
+  border-radius: 10px !important;
+  border: 1px solid rgba(233, 195, 73, 0.2) !important;
+}
+
+.dual-date-picker :deep(input),
+.dual-date-picker :deep(.v-field__input) {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+.dual-date-picker :deep(.v-label) {
+  color: #e9c349 !important;
+  font-weight: 700 !important;
 }
 
 .hijri-field :deep(.v-field) {

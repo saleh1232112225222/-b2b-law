@@ -430,7 +430,7 @@ async function saveCalendarSelection() {
       message: 'تم حفظ وتوثيق التقويم الافتراضي بنجاح 🟢'
     }
   } else {
-    calendarModalError.value = res.error || 'فشل حفظ التقويم المختار'
+    calendarModalError.value = (res as any).error || (res as any).message || 'فشل حفظ التقويم المختار'
   }
 }
 
