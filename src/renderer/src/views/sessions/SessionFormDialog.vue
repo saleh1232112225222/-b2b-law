@@ -433,23 +433,50 @@ const arabicFilter = (item: any, query: string): boolean => {
   font-size: 0.9rem !important;
 }
 
+.session-form :deep(.glass-input),
+.session-form :deep(.premium-input-solid),
 .session-form :deep(.v-field) {
-  background: rgba(15, 23, 42, 0.6) !important;
+  background: rgba(15, 23, 42, 0.55) !important;
   border-radius: 12px !important;
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
-  transition: all 0.3s ease;
+  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.3s ease !important;
+}
+
+.session-form :deep(.v-field__outline) {
+  display: none !important;
 }
 
 .session-form :deep(.v-field--focused) {
+  background: rgba(15, 23, 42, 0.8) !important;
   border-color: #e9c349 !important;
-  box-shadow: 0 0 12px rgba(233, 195, 73, 0.25) !important;
+  box-shadow: 0 0 12px rgba(233, 195, 73, 0.3), inset 0 1px 3px rgba(0, 0, 0, 0.4) !important;
 }
 
 .session-form :deep(input),
 .session-form :deep(textarea),
-.session-form :deep(.v-select__selection-text) {
+.session-form :deep(.v-select__selection-text),
+.session-form :deep(.v-autocomplete__selection-text) {
   color: #ffffff !important;
   font-weight: 700 !important;
+}
+
+.session-form :deep(.v-field__input::placeholder),
+.session-form :deep(input::placeholder),
+.session-form :deep(textarea::placeholder) {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-weight: 500 !important;
+}
+
+.session-form :deep(.dual-date-picker) {
+  background: rgba(15, 23, 42, 0.45) !important;
+  border: 1px solid rgba(233, 195, 73, 0.3) !important;
+  border-radius: 14px !important;
+}
+
+.session-form :deep(.glass-date-container) {
+  background: rgba(15, 23, 42, 0.35) !important;
+  border: 1px solid rgba(233, 195, 73, 0.25) !important;
 }
 
 .btn-secondary {
