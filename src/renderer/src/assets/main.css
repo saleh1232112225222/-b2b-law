@@ -82,17 +82,22 @@
   opacity: 1 !important;
 }
 
+.btn-gold-outline,
 .premium-btn-gold-gradient,
 .premium-button-highlight {
-  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
-  color: #000000 !important;
-  font-weight: 900 !important;
-  border: none !important;
+  background: #fdfbf7 !important;
+  border: 1.5px solid #d4af37 !important;
+  color: #735c00 !important;
+  font-weight: 800 !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35) !important;
+  box-shadow: 0 2px 10px rgba(233, 195, 73, 0.2) !important;
   transition: all 0.25s ease-in-out !important;
 }
 
+.btn-gold-outline .v-btn__content,
+.btn-gold-outline .v-icon,
+.btn-gold-outline i,
+.btn-gold-outline span,
 .premium-btn-gold-gradient .v-btn__content,
 .premium-btn-gold-gradient .v-icon,
 .premium-btn-gold-gradient i,
@@ -101,31 +106,36 @@
 .premium-button-highlight .v-icon,
 .premium-button-highlight i,
 .premium-button-highlight span {
-  color: #000000 !important;
-  font-weight: 900 !important;
+  color: #735c00 !important;
+  font-weight: 800 !important;
 }
 
+.btn-gold-outline:hover:not(.v-btn--disabled),
 .premium-btn-gold-gradient:hover:not(.v-btn--disabled),
 .premium-button-highlight:hover:not(.v-btn--disabled) {
-  background: linear-gradient(135deg, #e9c349 0%, #fbbf24 100%) !important;
+  background: #ffffff !important;
+  border-color: #e9c349 !important;
+  box-shadow: 0 4px 16px rgba(233, 195, 73, 0.35) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 22px rgba(212, 175, 55, 0.5) !important;
 }
 
+.btn-gold-outline.v-btn--disabled,
 .premium-btn-gold-gradient.v-btn--disabled,
 .premium-button-highlight.v-btn--disabled {
-  background: rgba(212, 175, 55, 0.25) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  background: #f5f3ef !important;
+  border: 1.5px solid rgba(208, 198, 175, 0.5) !important;
+  color: #9e9585 !important;
   box-shadow: none !important;
-  opacity: 1 !important;
+  opacity: 0.8 !important;
 }
 
+.btn-gold-outline.v-btn--disabled .v-btn__content,
+.btn-gold-outline.v-btn--disabled span,
 .premium-btn-gold-gradient.v-btn--disabled .v-btn__content,
 .premium-btn-gold-gradient.v-btn--disabled span,
 .premium-button-highlight.v-btn--disabled .v-btn__content,
 .premium-button-highlight.v-btn--disabled span {
-  color: rgba(255, 255, 255, 0.4) !important;
+  color: #9e9585 !important;
 }
 
 .border-gold-soft {

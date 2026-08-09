@@ -8,26 +8,25 @@
   >
     <v-card class="rounded-xl shadow-2xl elevation-24 glass-card">
       <!-- Header -->
-      <v-toolbar color="primary" flat height="72" class="px-4">
-        <v-btn :icon="ICONS.UI.CLOSE" variant="text" color="white" @click="close"></v-btn>
-        <v-toolbar-title class="font-weight-black text-white">
+      <v-toolbar color="surface-variant" flat height="72" class="px-4 modal-header border-b">
+        <v-btn :icon="ICONS.UI.CLOSE" variant="tonal" color="error" class="rounded-lg me-2" @click="close"></v-btn>
+        <v-toolbar-title class="font-weight-black text-gold">
           {{ isEdit ? 'تعديل طلب تنفيذ' : 'تقديم طلب تنفيذ جديد' }}
         </v-toolbar-title>
         <v-spacer></v-spacer>
         <v-chip
           v-if="form.request_type"
-          color="white"
-          variant="flat"
-          text-color="primary"
+          color="accent"
+          variant="tonal"
           class="me-4 font-weight-black"
         >
           {{ getTypeName(form.request_type) }}
         </v-chip>
       </v-toolbar>
 
-      <v-card-text class="pa-0 bg-grey-lighten-5" style="height: 700px">
+      <v-card-text class="pa-6 modal-body-bg" style="min-height: 500px">
         <v-stepper v-model="step" flat class="bg-transparent" hide-actions>
-          <v-stepper-header class="elevation-0 bg-white border-b">
+          <v-stepper-header class="elevation-0 bg-white border-b rounded-xl mb-4">
             <v-stepper-item
               :value="1"
               title="البيانات الأساسية"
@@ -51,7 +50,7 @@
               :value="3"
               title="المرفقات والتأكيد"
               subtitle="رفع المستندات"
-              :complete="step > 3"
+              :disabled="!form.request_type || !form.instrument_no"
             ></v-stepper-item>
           </v-stepper-header>
 
@@ -117,11 +116,10 @@
       <v-divider></v-divider>
 
       <!-- Actions -->
-      <v-card-actions class="pa-4 bg-white">
+      <v-card-actions class="pa-6 modal-footer-solid border-t d-flex align-center gap-3">
         <v-btn
-          variant="tonal"
-          color="error"
-          class="rounded-lg px-6 font-weight-black"
+          variant="outlined"
+          class="btn-secondary px-6 font-weight-black"
           @click="close"
         >
           إلغاء وتراجع
@@ -130,9 +128,8 @@
         <v-btn
           v-if="step > 1"
           variant="outlined"
-          color="grey"
+          class="btn-secondary px-6 font-weight-black"
           :prepend-icon="ICONS.UI.CHEVRON_RIGHT"
-          class="rounded-lg px-6 font-weight-black"
           @click="step--"
         >
           السابق
@@ -142,10 +139,9 @@
 
         <v-btn
           v-if="step < 3"
-          color="accent"
           variant="flat"
+          class="btn-gold-outline px-8 font-weight-black"
           :append-icon="ICONS.UI.CHEVRON_LEFT"
-          class="rounded-lg px-8 font-weight-black"
           :disabled="!canProceed"
           @click="step++"
         >
@@ -154,10 +150,9 @@
 
         <v-btn
           v-else
-          color="success"
           variant="flat"
+          class="btn-gold-outline px-10 font-weight-black"
           :prepend-icon="ICONS.SYSTEM.SAVE_CHECK"
-          class="rounded-lg px-10 font-weight-black"
           :loading="saving"
           @click="confirmSave"
         >

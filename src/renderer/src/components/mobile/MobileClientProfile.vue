@@ -1,5 +1,5 @@
 <template>
-  <div class="pa-2">
+  <div class="pa-4 pt-6 rtl">
     <v-card v-if="loading" elevation="0" class="glass-panel-light pa-8 text-center">
       <v-progress-circular indeterminate color="accent" size="56" width="4"></v-progress-circular>
       <div class="mt-6 text-body-1 text-gold opacity-60 font-weight-black">
@@ -42,23 +42,22 @@
       <v-row dense class="mb-4 ga-2">
         <v-col cols="6">
           <v-btn
-            color="accent"
-            variant="elevated"
+            variant="flat"
             block
-            class="rounded-xl py-3 font-weight-black"
+            class="rounded-xl py-3 font-weight-black btn-gold-outline"
             @click="openEditDialog"
           >
-            <LucideIcon name="pencil" :size="18" class="me-2" /> تعديل الملف
+            <LucideIcon name="pencil" :size="18" class="me-2 text-gold" /> تعديل الملف
           </v-btn>
         </v-col>
         <v-col cols="6">
           <v-btn
             variant="outlined"
             block
-            class="rounded-xl py-3 font-weight-black border-gold text-gold"
+            class="rounded-xl py-3 font-weight-black btn-secondary"
             @click="goToCases"
           >
-            <LucideIcon name="gavel" :size="18" class="me-2" /> القضايا ({{
+            <LucideIcon name="gavel" :size="18" class="me-2 text-gold" /> القضايا ({{
               safeLength(linkedCases)
             }})
           </v-btn>
@@ -67,36 +66,36 @@
 
       <!-- Tabs -->
       <v-card elevation="0" class="glass-card border-gold-alpha glass-card">
-        <v-tabs v-model="tab" color="accent" class="border-b border-gold opacity-10" grow>
-          <v-tab value="overview" class="font-weight-black text-gold py-4">
-            <LucideIcon name="info" :size="18" class="me-2" /> الأساسية
+        <v-tabs v-model="tab" color="primary" class="border-b border-gold-soft" grow>
+          <v-tab value="overview" class="font-weight-black text-visible-high py-4">
+            <LucideIcon name="info" :size="18" class="me-2 text-gold" /> الأساسية
           </v-tab>
-          <v-tab value="cases" class="font-weight-black text-gold py-4">
-            <LucideIcon name="gavel" :size="18" class="me-2" /> القضايا
+          <v-tab value="cases" class="font-weight-black text-visible-high py-4">
+            <LucideIcon name="gavel" :size="18" class="me-2 text-gold" /> القضايا
             <v-badge
               v-if="safeLength(linkedCases) > 0"
               :content="safeLength(linkedCases)"
-              color="accent"
+              color="primary"
               class="ms-2"
               inline
             ></v-badge>
           </v-tab>
-          <v-tab value="agencies" class="font-weight-black text-gold py-4">
-            <LucideIcon name="file-text" :size="18" class="me-2" /> الوكالات
+          <v-tab value="agencies" class="font-weight-black text-visible-high py-4">
+            <LucideIcon name="file-text" :size="18" class="me-2 text-gold" /> الوكالات
             <v-badge
               v-if="safeLength(linkedAgencies) > 0"
               :content="safeLength(linkedAgencies)"
-              color="accent"
+              color="primary"
               class="ms-2"
               inline
             ></v-badge>
           </v-tab>
-          <v-tab value="legal-services" class="font-weight-black text-gold py-4">
-            <LucideIcon name="scale" :size="18" class="me-2" /> الخدمات
+          <v-tab value="legal-services" class="font-weight-black text-visible-high py-4">
+            <LucideIcon name="scale" :size="18" class="me-2 text-gold" /> الخدمات
             <v-badge
               v-if="legalServicesSummary.total_services > 0"
               :content="legalServicesSummary.total_services"
-              color="accent"
+              color="primary"
               class="ms-2"
               inline
             ></v-badge>
