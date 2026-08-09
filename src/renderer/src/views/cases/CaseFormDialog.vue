@@ -542,12 +542,25 @@ const onPartiesUpdate = (updated: any[]): void => {
   bottom: 0;
   z-index: 10;
 }
-.premium-button-highlight {
-  background: #ffffff !important;
+.premium-button-highlight,
+.premium-btn-gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
   color: #000000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+  font-weight: 900 !important;
+  border: none !important;
   border-radius: 12px !important;
+  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35) !important;
 }
+
+.premium-button-highlight.v-btn--disabled,
+.premium-btn-gold-gradient.v-btn--disabled {
+  background: rgba(212, 175, 55, 0.25) !important;
+  color: rgba(255, 255, 255, 0.4) !important;
+  border: 1px solid rgba(212, 175, 55, 0.2) !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+}
+
 .modal-footer-solid {
   background: rgba(15, 23, 42, 0.95) !important;
   border-top: 1px solid rgba(233, 195, 73, 0.2) !important;

@@ -375,13 +375,13 @@
           </span>
           <v-spacer />
           <v-btn
-            class="premium-btn-gold-gradient"
-            variant="text"
-            color="gold"
             icon
+            variant="tonal"
+            color="error"
+            class="rounded-lg"
             @click="showDialog = false"
           >
-            <LucideIcon name="x" :size="24" />
+            <LucideIcon name="x" :size="20" />
           </v-btn>
         </div>
 
@@ -396,7 +396,7 @@
           <v-btn
             variant="outlined"
             size="large"
-            class="px-8 font-weight-black rounded-lg text-white"
+            class="px-8 font-weight-black rounded-lg text-white btn-secondary"
             @click="showDialog = false"
           >
             إلغاء
