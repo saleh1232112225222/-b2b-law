@@ -1,82 +1,109 @@
 <template>
   <v-dialog
     :model-value="modelValue"
-    width="90%"
+    width="92%"
     max-width="1100"
     persistent
     scrollable
     scrim="rgba(2, 6, 23, 0.65)"
     transition="dialog-bottom-transition"
+    class="case-form-modal-dialog"
     @update:model-value="$emit('update:modelValue', $event)"
   >
     <v-card
       ref="cardEl"
-      class="glass-panel overflow-hidden glass-card"
+      class="glass-panel overflow-hidden glass-card case-dialog-card rounded-xl"
       :class="{ 'is-dragging': drag.active }"
       :style="dragStyle"
     >
-      <v-toolbar
-        color="transparent"
-        class="case-dialog-handle px-4 border-b"
+      <!-- Header (Fixed Sticky) -->
+      <div
+        class="modal-header case-dialog-handle pa-4 pa-sm-5 d-flex align-center justify-space-between flex-shrink-0 border-b"
         @pointerdown="onPointerDown"
         @mousedown="onPointerDown"
       >
+        <div class="d-flex align-center">
+          <div class="header-icon-box me-3">
+            <LucideIcon name="scale" :size="24" class="text-gold" />
+          </div>
+          <div>
+            <h3 class="text-h6 text-sm-h5 font-weight-black text-gold tracking-tight">
+              {{ isEditing ? 'تعديل ملف القضية' : 'تسجيل ملف قضية جديد' }}
+            </h3>
+            <div class="text-caption text-visible-high opacity-80 font-weight-bold d-none d-sm-block">
+              أدخل بيانات القضية ومعلومات الأطراف والتصنيفات
+            </div>
+          </div>
+        </div>
+
         <v-btn
           data-no-drag
           icon
           variant="tonal"
           color="error"
           class="rounded-lg"
+          size="small"
           @click="$emit('cancel')"
         >
-          <LucideIcon name="x" :size="24" />
+          <LucideIcon name="x" :size="20" />
         </v-btn>
-        <v-toolbar-title class="font-weight-black text-h5 ms-4 text-visible-high tracking-tight">
-          {{ isEditing ? 'تعديل ملف القضية' : 'تسجيل ملف قضية جديد' }}
-        </v-toolbar-title>
-      </v-toolbar>
+      </div>
 
-      <v-card-text class="pa-8 bg-transparent">
+      <!-- Scrollable Body -->
+      <v-card-text class="pa-4 pa-sm-6 pa-md-8 modal-body-scroll bg-surface">
         <v-form ref="formRef" v-model="localFormValid">
-          <v-row>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">رقم القضية*</label>
+          <v-row dense class="ga-y-2">
+            <!-- 1. معلومات القضية -->
+            <v-col cols="12">
+              <div class="section-header-gold mb-3">
+                <LucideIcon name="info" :size="20" class="text-gold me-2" />
+                <span class="font-weight-black text-subtitle-1 text-gold">معلومات القضية</span>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">رقم القضية*</label>
               <v-text-field
                 v-model="item.case_number"
                 placeholder="مثال: 1445/78291"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 :loading="caseNumberChecking"
                 :error-messages="caseNumberError ? [caseNumberError] : []"
                 :rules="[(v: any) => !!v || 'رقم القضية مطلوب']"
                 required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="hash" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="hash" :size="18" class="text-gold me-2" />
+                </template>
               </v-text-field>
             </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">مسؤول القضية*</label>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">مسؤول القضية*</label>
               <v-select
                 v-model="item.responsible_user_id"
                 :items="assignableUsers"
                 :item-title="(u: any) => u?.full_name || u?.username || ''"
                 item-value="id"
+                placeholder="اختر مسؤول القضية..."
                 variant="outlined"
+                density="comfortable"
                 class="glass-input premium-select"
                 :rules="[(v: any) => !!v || 'مسؤول القضية مطلوب']"
                 required
                 :loading="assignableLoading"
               >
-                <template #prepend-inner
-                  ><LucideIcon name="user-check" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="user-check" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
 
-            <v-col cols="12"><v-divider class="my-2 opacity-10" /></v-col>
+            <v-col cols="12"><v-divider class="my-4 opacity-20 border-gold-soft" /></v-col>
 
+            <!-- 2. أطراف القضية -->
             <v-col cols="12">
               <CasePartiesEditor
                 :parties="parties"
@@ -87,291 +114,351 @@
               />
             </v-col>
 
-            <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
+            <v-col cols="12"><v-divider class="my-4 opacity-20 border-gold-soft" /></v-col>
+
+            <!-- 3. تصنيف القضية -->
+            <v-col cols="12">
+              <div class="section-header-gold mb-3">
+                <LucideIcon name="folder" :size="20" class="text-gold me-2" />
+                <span class="font-weight-black text-subtitle-1 text-gold">تصنيف القضية</span>
+              </div>
+            </v-col>
 
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">التصنيف الرئيسي*</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">التصنيف الرئيسي*</label>
               <v-select
                 v-model="item.main_classification"
                 :items="mainClassifications"
+                placeholder="اختر التصنيف الرئيسي..."
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 :rules="[(v: any) => !!v || 'التصنيف الرئيسي مطلوب']"
                 required
                 @update:model-value="onMainChange"
               >
-                <template #prepend-inner
-                  ><LucideIcon name="folder-tree" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="folder-tree" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
+
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">التصنيف الفرعي*</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">التصنيف الفرعي*</label>
               <v-select
                 v-model="item.sub_classification"
                 :items="subClassifications"
+                placeholder="اختر التصنيف الفرعي..."
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 :disabled="!item.main_classification"
                 :rules="[(v: any) => !!v || 'التصنيف الفرعي مطلوب']"
                 required
                 @update:model-value="onSubChange"
               >
-                <template #prepend-inner
-                  ><LucideIcon name="layers" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="layers" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
+
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">نوع الدعوى*</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">نوع الدعوى*</label>
               <v-select
                 v-model="item.case_type"
                 :items="caseTypeOptions"
+                placeholder="اختر نوع الدعوى..."
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 :disabled="!item.sub_classification"
                 :rules="[(v: any) => !!v || 'نوع الدعوى مطلوب']"
                 required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="file-text" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="file-text" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
 
-            <v-col cols="12" md="8">
-              <label class="mb-2 font-weight-black text-gold">موضوع الدعوى*</label>
+            <v-col cols="12"><v-divider class="my-4 opacity-20 border-gold-soft" /></v-col>
+
+            <!-- 4. تفاصيل الدعوى -->
+            <v-col cols="12">
+              <div class="section-header-gold mb-3">
+                <LucideIcon name="file-search" :size="20" class="text-gold me-2" />
+                <span class="font-weight-black text-subtitle-1 text-gold">تفاصيل الدعوى</span>
+              </div>
+            </v-col>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">موضوع الدعوى*</label>
               <v-text-field
                 v-model="item.subject"
+                placeholder="اكتب موضوع الدعوى..."
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 :rules="[(v: any) => !!v || 'الموضوع مطلوب']"
                 required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="pencil" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="pencil" :size="18" class="text-gold me-2" />
+                </template>
               </v-text-field>
             </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">طلب المدعي</label>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">طلب المدعي</label>
               <v-textarea
                 v-model="item.plaintiff_requests"
                 variant="outlined"
                 rows="3"
+                density="comfortable"
                 class="premium-select glass-input"
                 placeholder="اكتب طلبات المدعي هنا..."
               >
-                <template #prepend-inner
-                  ><LucideIcon name="message-square" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="message-square" :size="18" class="text-gold me-2" />
+                </template>
               </v-textarea>
             </v-col>
 
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">المحكمة المختصة*</label>
-              <v-combobox
-                v-model="item.court"
-                :items="COURT_TYPES"
-                variant="outlined"
-                class="premium-select glass-input"
-                :rules="[(v: any) => !!v || 'المحكمة مطلوبة']"
-                required
-              >
-                <template #prepend-inner
-                  ><LucideIcon name="landmark" :size="20" class="text-primary me-2"
-                /></template>
-              </v-combobox>
-            </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">الدائرة القضائية</label>
-              <v-text-field
-                v-model="item.circuit"
-                variant="outlined"
-                class="premium-select glass-input"
-                placeholder="مثال: الدائرة الأولى"
-              >
-                <template #prepend-inner
-                  ><LucideIcon name="git-merge" :size="20" class="text-primary me-2"
-                /></template>
-              </v-text-field>
-            </v-col>
+            <v-col cols="12"><v-divider class="my-4 opacity-20 border-gold-soft" /></v-col>
 
-            <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
-
+            <!-- 5. المحكمة ومراحل التقاضي -->
             <v-col cols="12">
-              <div class="d-flex align-center justify-space-between mb-4">
-                <div class="text-h6 font-weight-black text-primary">
-                  <LucideIcon name="milestone" :size="24" class="text-primary me-2" /> مرحلة التقاضي
-                  والجلسات
+              <div class="d-flex align-center justify-space-between mb-3 flex-wrap ga-2">
+                <div class="section-header-gold">
+                  <LucideIcon name="landmark" :size="20" class="text-gold me-2" />
+                  <span class="font-weight-black text-subtitle-1 text-gold">المحكمة والجهة القضائية</span>
                 </div>
+
                 <v-btn
-                  variant="tonal"
-                  color="accent"
-                  class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
+                  variant="outlined"
+                  class="btn-gold-outline font-weight-black rounded-lg px-4"
+                  size="small"
                   :disabled="caseNumberChecking || !!caseNumberError"
                   @click="$emit('addSession')"
                 >
-                  <LucideIcon name="calendar-plus" :size="20" class="me-2" /> إضافة جلسة
+                  <LucideIcon name="calendar-plus" :size="16" class="me-2 text-gold" /> إضافة جلسة
                 </v-btn>
               </div>
             </v-col>
 
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">المرحلة التقاضية</label>
-              <v-select
-                v-model="item.phase"
-                :items="CASE_PHASES"
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">المحكمة المختصة*</label>
+              <v-combobox
+                v-model="item.court"
+                :items="COURT_TYPES"
+                placeholder="اختر المحكمة..."
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
+                :rules="[(v: any) => !!v || 'المحكمة مطلوبة']"
+                required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="trending-up" :size="20" class="text-primary me-2"
-                /></template>
-              </v-select>
-            </v-col>
-            <v-col cols="12" md="8">
-              <CaseSessionTable :sessions="caseSessions" :loading="sessionsLoading" />
+                <template #prepend-inner>
+                  <LucideIcon name="landmark" :size="18" class="text-gold me-2" />
+                </template>
+              </v-combobox>
             </v-col>
 
             <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">الحالة التشغيلية*</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">الدائرة القضائية</label>
+              <v-text-field
+                v-model="item.circuit"
+                variant="outlined"
+                density="comfortable"
+                class="premium-select glass-input"
+                placeholder="مثال: الدائرة الأولى"
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="git-merge" :size="18" class="text-gold me-2" />
+                </template>
+              </v-text-field>
+            </v-col>
+
+            <v-col cols="12" md="4">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">المرحلة التقاضية</label>
+              <v-select
+                v-model="item.phase"
+                :items="CASE_PHASES"
+                placeholder="اختر المرحلة..."
+                variant="outlined"
+                density="comfortable"
+                class="premium-select glass-input"
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="trending-up" :size="18" class="text-gold me-2" />
+                </template>
+              </v-select>
+            </v-col>
+
+            <v-col cols="12" class="mt-2">
+              <CaseSessionTable :sessions="caseSessions" :loading="sessionsLoading" />
+            </v-col>
+
+            <v-col cols="12"><v-divider class="my-4 opacity-20 border-gold-soft" /></v-col>
+
+            <!-- 6. معلومات إضافية -->
+            <v-col cols="12">
+              <div class="section-header-gold mb-3">
+                <LucideIcon name="clipboard-list" :size="20" class="text-gold me-2" />
+                <span class="font-weight-black text-subtitle-1 text-gold">معلومات إضافية والتصنيف التشغيلي</span>
+              </div>
+            </v-col>
+
+            <v-col cols="12" sm="6" md="3">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">الحالة التشغيلية*</label>
               <v-select
                 v-model="item.status"
                 :items="CASE_STATUSES"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="activity" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="activity" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">درجة الأولوية*</label>
+
+            <v-col cols="12" sm="6" md="3">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">درجة الأولوية*</label>
               <v-select
                 v-model="item.priority"
                 :items="PRIORITIES"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 required
               >
-                <template #prepend-inner
-                  ><LucideIcon name="flag" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="flag" :size="18" class="text-gold me-2" />
+                </template>
               </v-select>
             </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">تاريخ القيد*</label>
+
+            <v-col cols="12" sm="6" md="3">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">تاريخ القيد*</label>
               <DualDatePicker v-model="item.registration_date" />
             </v-col>
 
-            <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
-            <v-col cols="12">
-              <div class="text-h6 font-weight-black text-primary">
-                <LucideIcon name="clipboard-list" :size="24" class="text-primary me-2" /> تفاصيل
-                إضافية
-              </div>
-            </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">صفة الموكل</label>
+            <v-col cols="12" sm="6" md="3">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">صفة الموكل</label>
               <v-text-field
                 v-model="item.client_role"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 placeholder="مثال: مدعي"
               >
-                <template #prepend-inner
-                  ><LucideIcon name="badge-info" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="badge-info" :size="18" class="text-gold me-2" />
+                </template>
               </v-text-field>
             </v-col>
-            <v-col cols="12" md="8">
-              <label class="mb-2 font-weight-black text-gold">التقييم الفني</label>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">التقييم الفني</label>
               <v-textarea
                 v-model="item.assessment"
                 variant="outlined"
                 rows="2"
+                density="comfortable"
                 class="premium-select glass-input"
                 placeholder="تقييم فني لحالة القضية..."
               >
-                <template #prepend-inner
-                  ><LucideIcon name="bar-chart-3" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="bar-chart-3" :size="18" class="text-gold me-2" />
+                </template>
               </v-textarea>
             </v-col>
-            <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">ملاحظات عامة</label>
+
+            <v-col cols="12" md="6">
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">ملاحظات عامة</label>
               <v-textarea
                 v-model="item.notes"
                 variant="outlined"
                 rows="2"
+                density="comfortable"
                 class="premium-select glass-input"
                 placeholder="أي ملاحظات إضافية..."
               >
-                <template #prepend-inner
-                  ><LucideIcon name="sticky-note" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="sticky-note" :size="18" class="text-gold me-2" />
+                </template>
               </v-textarea>
             </v-col>
 
-            <v-col cols="12"><v-divider class="my-4 opacity-10" /></v-col>
-            <v-col cols="12">
-              <div class="text-h6 font-weight-black text-primary">
-                <LucideIcon name="link" :size="24" class="text-primary me-2" /> روابط وملفات القضية
-              </div>
-            </v-col>
+            <!-- 7. روابط وملفات القضية -->
             <v-col cols="12" md="6">
-              <label class="mb-2 font-weight-black text-gold">رابط مجلد القضية</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">رابط مجلد القضية</label>
               <v-text-field
                 v-model="item.folder_link"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
-                placeholder="ضع رابط المجلد هنا للوصول السريع..."
+                placeholder="ضع رابط المجلد للوصول السريع..."
               >
-                <template #prepend-inner
-                  ><LucideIcon name="folder" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="folder" :size="18" class="text-gold me-2" />
+                </template>
               </v-text-field>
             </v-col>
+
             <v-col cols="12" md="6">
-              <label class="mb-2 font-weight-black text-gold">رابط القضية في ناجز</label>
+              <label class="mb-1 font-weight-bold text-gold text-caption d-block">رابط القضية في ناجز</label>
               <v-text-field
                 v-model="item.najiz_url"
                 variant="outlined"
+                density="comfortable"
                 class="premium-select glass-input"
                 placeholder="https://najiz.sa/..."
               >
-                <template #prepend-inner
-                  ><LucideIcon name="globe" :size="20" class="text-primary me-2"
-                /></template>
+                <template #prepend-inner>
+                  <LucideIcon name="globe" :size="18" class="text-gold me-2" />
+                </template>
               </v-text-field>
             </v-col>
           </v-row>
         </v-form>
       </v-card-text>
 
-      <v-divider />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
-        <v-btn
-          variant="outlined"
-          size="large"
-          class="px-8 font-weight-black rounded-lg text-white btn-secondary"
-          @click="$emit('cancel')"
-          >إلغاء</v-btn
-        >
-        <v-spacer />
-        <v-btn
-          variant="flat"
-          size="large"
-          class="px-12 font-weight-black premium-button-highlight h-56 premium-btn-gold-gradient"
-          :disabled="!canSubmit"
-          :loading="saving"
-          @click="$emit('save')"
-        >
-          {{ isEditing ? 'تحديث ملف القضية' : 'تأكيد التسجيل والنشر' }}
-        </v-btn>
+      <!-- Footer (Fixed Sticky) -->
+      <v-divider class="flex-shrink-0" />
+      <v-card-actions
+        class="pa-4 pa-sm-6 modal-footer-solid modal-footer-sticky flex-shrink-0 d-flex align-center flex-wrap ga-3"
+      >
+        <span class="text-caption text-gold opacity-80 font-weight-bold d-none d-sm-inline me-auto">
+          * الحقول المطلوبة
+        </span>
+
+        <div class="d-flex align-center ga-3 w-100 w-sm-auto ms-sm-auto flex-column-reverse flex-sm-row">
+          <v-btn
+            variant="outlined"
+            size="large"
+            class="btn-secondary font-weight-black rounded-lg px-6 w-100 w-sm-auto"
+            @click="$emit('cancel')"
+          >
+            <LucideIcon name="x" :size="18" class="me-1" /> إلغاء
+          </v-btn>
+
+          <v-btn
+            variant="flat"
+            size="large"
+            class="btn-gold-outline font-weight-black rounded-lg px-10 w-100 w-sm-auto"
+            :disabled="!canSubmit"
+            :loading="saving"
+            @click="$emit('save')"
+          >
+            <LucideIcon name="file-check" :size="18" class="me-2 text-gold" />
+            {{ isEditing ? 'تحديث ملف القضية' : 'تأكيد التسجيل والنشر' }}
+          </v-btn>
+        </div>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -530,39 +617,83 @@ const onPartiesUpdate = (updated: any[]): void => {
 </script>
 
 <style scoped>
+.section-header-gold {
+  border-right: 4px solid #d4af37;
+  padding-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
 .case-dialog-handle {
   cursor: move;
   user-select: none;
 }
+
 .is-dragging {
   transition: none !important;
 }
-.modal-footer-sticky {
-  position: sticky;
-  bottom: 0;
-  z-index: 10;
-}
-.premium-button-highlight,
-.premium-btn-gold-gradient {
-  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
-  color: #000000 !important;
-  font-weight: 900 !important;
-  border: none !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 16px rgba(212, 175, 55, 0.35) !important;
+
+.case-dialog-card {
+  border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  background: var(--surface, #ffffff) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  max-height: 92vh !important;
 }
 
-.premium-button-highlight.v-btn--disabled,
-.premium-btn-gold-gradient.v-btn--disabled {
-  background: rgba(212, 175, 55, 0.25) !important;
-  color: rgba(255, 255, 255, 0.4) !important;
-  border: 1px solid rgba(212, 175, 55, 0.2) !important;
-  box-shadow: none !important;
-  opacity: 1 !important;
-}
-
-.modal-footer-solid {
+.modal-header {
   background: var(--surface-variant, #fbf3e5) !important;
-  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
+  border-bottom: 1px solid var(--border, rgba(208, 198, 175, 0.5)) !important;
+}
+
+.header-icon-box {
+  width: 42px;
+  height: 42px;
+  background: rgba(115, 92, 0, 0.08);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(208, 198, 175, 0.5);
+}
+
+.modal-body-scroll {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  max-height: calc(92vh - 140px) !important;
+  padding-bottom: 5rem !important;
+}
+
+.modal-footer-sticky {
+  position: sticky !important;
+  bottom: 0 !important;
+  z-index: 10 !important;
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.5)) !important;
+}
+
+.tracking-tight {
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 767px) {
+  .case-form-modal-dialog :deep(.v-overlay__content) {
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 100% !important;
+    height: 100% !important;
+  }
+
+  .case-dialog-card {
+    max-height: 100vh !important;
+    height: 100vh !important;
+    border-radius: 0 !important;
+  }
+
+  .modal-body-scroll {
+    max-height: calc(100vh - 130px) !important;
+    padding-bottom: 6rem !important;
+  }
 }
 </style>

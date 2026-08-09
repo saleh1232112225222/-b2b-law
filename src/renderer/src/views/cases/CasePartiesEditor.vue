@@ -1,28 +1,25 @@
 <template>
-  <div>
-    <div class="d-flex align-center justify-space-between mb-4">
-      <div class="text-h6 font-weight-black text-primary">
-        <LucideIcon name="users" :size="24" class="text-primary me-2" /> أطراف القضية (موكلين
-        وخصوم)*
+  <div class="parties-editor-container">
+    <!-- Section Header -->
+    <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-3">
+      <div class="section-header-gold">
+        <LucideIcon name="users" :size="22" class="text-gold me-2" />
+        <span class="font-weight-black text-h6 text-gold">أطراف القضية (موكلين وخصوم)*</span>
       </div>
-      <div class="d-flex ga-4">
+      <div class="d-flex ga-3 align-center">
         <v-btn
-          size="large"
-          variant="tonal"
-          color="primary"
-          class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
+          variant="flat"
+          class="btn-gold-outline font-weight-black rounded-lg px-4"
           @click="addParty('client')"
         >
-          <LucideIcon name="plus" :size="20" class="me-2" /> إضافة موكل
+          <LucideIcon name="user-plus" :size="18" class="me-2 text-gold" /> إضافة موكل
         </v-btn>
         <v-btn
-          size="large"
-          variant="tonal"
-          color="accent"
-          class="font-weight-black rounded-xl px-6 premium-btn-gold-gradient"
+          variant="outlined"
+          class="btn-secondary font-weight-black rounded-lg px-4"
           @click="addParty('opponent')"
         >
-          <LucideIcon name="plus" :size="20" class="me-2" /> إضافة خصم
+          <LucideIcon name="user-x" :size="18" class="me-2 text-gold" /> إضافة خصم
         </v-btn>
       </div>
     </div>
@@ -36,143 +33,266 @@
       يجب إضافة طرف واحد على الأقل (موكل) لحفظ القضية.
     </v-alert>
 
+    <!-- Party Items List -->
     <div
       v-for="(party, idx) in parties"
       :key="idx"
-      class="party-item mb-6 pa-6 rounded-xl glass-card border position-relative overflow-hidden premium-hover shadow-premium"
+      class="party-card-box mb-4 pa-4 pa-sm-5 rounded-xl border position-relative"
+      :class="party.party_type === 'client' ? 'party-card-client' : 'party-card-opponent'"
     >
-      <div
-        class="position-absolute text-primary"
-        style="top: -20px; right: -20px; opacity: 0.06; pointer-events: none"
-      >
-        <LucideIcon :name="party.party_type === 'client' ? 'user-check' : 'user-x'" :size="120" />
-      </div>
-      <v-btn
-        variant="tonal"
-        color="error"
-        size="small"
-        class="position-absolute rounded-lg glass-card premium-btn-gold-gradient"
-        style="top: 12px; left: 12px; z-index: 2"
-        @click="removeParty(idx)"
-      >
-        <LucideIcon name="trash-2" :size="18" />
-      </v-btn>
-
-      <v-row dense>
-        <v-col cols="12" md="2">
-          <v-select
-            :model-value="party.party_type"
-            :items="[
-              { title: 'موكل', value: 'client' },
-              { title: 'خصم', value: 'opponent' }
-            ]"
-            label="نوع الطرف"
-            variant="outlined"
-            density="compact"
-            hide-details
-            readonly
-            class="premium-select glass-input"
+      <!-- Mobile Layout (<768px) -->
+      <div class="d-block d-md-none">
+        <div class="d-flex align-center justify-space-between mb-3 border-b pb-2">
+          <v-chip
+            size="small"
+            variant="flat"
+            :color="party.party_type === 'client' ? 'primary' : 'warning'"
+            class="font-weight-black px-3"
           >
-            <template #prepend-inner>
-              <LucideIcon
-                :name="party.party_type === 'client' ? 'user-check' : 'user-x'"
-                :size="16"
-                class="text-primary me-2"
-              />
-            </template>
-          </v-select>
-        </v-col>
+            {{ party.party_type === 'client' ? 'موكل' : 'خصم' }}
+          </v-chip>
 
-        <template v-if="party.party_type === 'client'">
-          <v-col cols="12" md="5">
-            <v-autocomplete
-              :model-value="party.client_id"
-              :items="clients"
-              item-title="name"
-              item-value="id"
-              label="اختر الموكل من القائمة*"
+          <v-btn
+            variant="tonal"
+            color="error"
+            size="small"
+            class="rounded-lg px-3 font-weight-black"
+            @click="removeParty(idx)"
+          >
+            <LucideIcon name="trash-2" :size="16" class="me-1" /> حذف الطرف
+          </v-btn>
+        </div>
+
+        <div class="d-flex flex-column ga-3">
+          <!-- Client Select -->
+          <template v-if="party.party_type === 'client'">
+            <div>
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الموكل من القائمة*</label>
+              <v-autocomplete
+                :model-value="party.client_id"
+                :items="clients"
+                item-title="name"
+                item-value="id"
+                placeholder="اختر الموكل..."
+                variant="outlined"
+                density="comfortable"
+                hide-details="auto"
+                class="glass-input premium-select w-100"
+                :rules="[(v: any) => !!v || 'الموكل مطلوب']"
+                @update:model-value="(val: string) => onClientChange(idx, val)"
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="user" :size="18" class="text-gold me-2" />
+                </template>
+              </v-autocomplete>
+            </div>
+          </template>
+
+          <!-- Defendant Select -->
+          <template v-else>
+            <div>
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم من القائمة*</label>
+              <div class="d-flex ga-2 align-center">
+                <v-autocomplete
+                  :model-value="party.defendant_id"
+                  :items="defendants"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="اختر الخصم..."
+                  variant="outlined"
+                  density="comfortable"
+                  hide-details="auto"
+                  class="glass-input flex-grow-1 premium-select"
+                  :rules="[(v: any) => !!v || 'الخصم مطلوب']"
+                  @update:model-value="(val: string) => $emit('defendantChange', { index: idx, value: val })"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="user-x" :size="18" class="text-gold me-2" />
+                  </template>
+                </v-autocomplete>
+
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  class="btn-gold-outline rounded-lg px-2 h-44"
+                  title="إضافة خصم سريع"
+                  @click="$emit('quickAddDefendant', idx)"
+                >
+                  <LucideIcon name="user-plus" :size="18" />
+                </v-btn>
+              </div>
+            </div>
+          </template>
+
+          <!-- Role -->
+          <div>
+            <label class="text-caption font-weight-bold text-gold mb-1 d-block">الصفة</label>
+            <v-select
+              :model-value="party.role"
+              :items="['مدعي', 'مدعى عليه', 'طرف ثالث', 'متدخل']"
+              placeholder="اختر الصفة..."
+              variant="outlined"
+              density="comfortable"
+              hide-details="auto"
+              class="premium-select glass-input w-100"
+              @update:model-value="(val: string) => updateParty(idx, { role: val })"
+            >
+              <template #prepend-inner>
+                <LucideIcon name="tag" :size="18" class="text-gold me-2" />
+              </template>
+            </v-select>
+          </div>
+
+          <!-- Phone -->
+          <div>
+            <label class="text-caption font-weight-bold text-gold mb-1 d-block">رقم الجوال</label>
+            <v-text-field
+              :model-value="party.phone"
+              placeholder="05xxxxxxx"
+              variant="outlined"
+              density="comfortable"
+              hide-details="auto"
+              class="premium-select glass-input w-100"
+              @update:model-value="(val: string) => updateParty(idx, { phone: val })"
+            >
+              <template #prepend-inner>
+                <LucideIcon name="phone" :size="18" class="text-gold me-2" />
+              </template>
+            </v-text-field>
+          </div>
+        </div>
+      </div>
+
+      <!-- Desktop Layout (>=768px) -->
+      <div class="d-none d-md-block">
+        <v-row dense class="align-center">
+          <v-col cols="12" md="2">
+            <label class="text-caption font-weight-bold text-gold mb-1 d-block">نوع الطرف</label>
+            <v-select
+              :model-value="party.party_type"
+              :items="[
+                { title: 'موكل', value: 'client' },
+                { title: 'خصم', value: 'opponent' }
+              ]"
               variant="outlined"
               density="compact"
               hide-details
-              class="glass-input premium-select"
-              :rules="[(v: any) => !!v || 'الموكل مطلوب']"
-              @update:model-value="(val: string) => onClientChange(idx, val)"
+              readonly
+              class="premium-select glass-input"
             >
               <template #prepend-inner>
-                <LucideIcon name="user" :size="16" class="text-primary me-2" />
+                <LucideIcon
+                  :name="party.party_type === 'client' ? 'user-check' : 'user-x'"
+                  :size="16"
+                  class="text-gold me-2"
+                />
               </template>
-            </v-autocomplete>
+            </v-select>
           </v-col>
-        </template>
 
-        <template v-else>
-          <v-col cols="12" md="5">
-            <div class="d-flex ga-4 align-center">
+          <template v-if="party.party_type === 'client'">
+            <v-col cols="12" md="4">
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الموكل من القائمة*</label>
               <v-autocomplete
-                :model-value="party.defendant_id"
-                :items="defendants"
+                :model-value="party.client_id"
+                :items="clients"
                 item-title="name"
                 item-value="id"
-                label="اختر الخصم من القائمة*"
                 variant="outlined"
                 density="compact"
                 hide-details
-                class="glass-input flex-grow-1 premium-select"
-                :rules="[(v: any) => !!v || 'الخصم مطلوب']"
-                @update:model-value="
-                  (val: string) => $emit('defendantChange', { index: idx, value: val })
-                "
+                class="glass-input premium-select"
+                :rules="[(v: any) => !!v || 'الموكل مطلوب']"
+                @update:model-value="(val: string) => onClientChange(idx, val)"
               >
                 <template #prepend-inner>
-                  <LucideIcon name="user-x" :size="16" class="text-accent me-2" />
+                  <LucideIcon name="user" :size="16" class="text-gold me-2" />
                 </template>
               </v-autocomplete>
-              <v-btn
-                size="small"
-                variant="tonal"
-                color="primary"
-                class="rounded-lg h-40 px-3 premium-btn-gold-gradient"
-                @click="$emit('quickAddDefendant', idx)"
-              >
-                <LucideIcon name="user-plus" :size="18" />
-              </v-btn>
-            </div>
+            </v-col>
+          </template>
+
+          <template v-else>
+            <v-col cols="12" md="4">
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم من القائمة*</label>
+              <div class="d-flex ga-2 align-center">
+                <v-autocomplete
+                  :model-value="party.defendant_id"
+                  :items="defendants"
+                  item-title="name"
+                  item-value="id"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  class="glass-input flex-grow-1 premium-select"
+                  :rules="[(v: any) => !!v || 'الخصم مطلوب']"
+                  @update:model-value="
+                    (val: string) => $emit('defendantChange', { index: idx, value: val })
+                  "
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="user-x" :size="16" class="text-gold me-2" />
+                  </template>
+                </v-autocomplete>
+                <v-btn
+                  size="small"
+                  variant="outlined"
+                  class="btn-gold-outline rounded-lg h-40 px-2"
+                  @click="$emit('quickAddDefendant', idx)"
+                >
+                  <LucideIcon name="user-plus" :size="18" />
+                </v-btn>
+              </div>
+            </v-col>
+          </template>
+
+          <v-col cols="12" md="3">
+            <label class="text-caption font-weight-bold text-gold mb-1 d-block">الصفة</label>
+            <v-select
+              :model-value="party.role"
+              :items="['مدعي', 'مدعى عليه', 'طرف ثالث', 'متدخل']"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="premium-select glass-input"
+              @update:model-value="(val: string) => updateParty(idx, { role: val })"
+            >
+              <template #prepend-inner>
+                <LucideIcon name="tag" :size="16" class="text-gold me-2" />
+              </template>
+            </v-select>
           </v-col>
-        </template>
 
-        <v-col cols="12" md="3">
-          <v-select
-            :model-value="party.role"
-            :items="['مدعي', 'مدعى عليه', 'طرف ثالث', 'متدخل']"
-            label="الصفة"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="premium-select glass-input"
-            @update:model-value="(val: string) => updateParty(idx, { role: val })"
-          >
-            <template #prepend-inner>
-              <LucideIcon name="tag" :size="16" class="text-primary me-2" />
-            </template>
-          </v-select>
-        </v-col>
+          <v-col cols="12" md="2">
+            <label class="text-caption font-weight-bold text-gold mb-1 d-block">رقم الجوال</label>
+            <v-text-field
+              :model-value="party.phone"
+              variant="outlined"
+              density="compact"
+              hide-details
+              class="premium-select glass-input"
+              @update:model-value="(val: string) => updateParty(idx, { phone: val })"
+            >
+              <template #prepend-inner>
+                <LucideIcon name="phone" :size="16" class="text-gold me-2" />
+              </template>
+            </v-text-field>
+          </v-col>
 
-        <v-col cols="12" md="2">
-          <v-text-field
-            :model-value="party.phone"
-            label="رقم الجوال"
-            variant="outlined"
-            density="compact"
-            hide-details
-            class="premium-select glass-input"
-            @update:model-value="(val: string) => updateParty(idx, { phone: val })"
-          >
-            <template #prepend-inner>
-              <LucideIcon name="phone" :size="16" class="text-primary me-2" />
-            </template>
-          </v-text-field>
-        </v-col>
-      </v-row>
+          <v-col cols="12" md="1" class="d-flex justify-end pt-5">
+            <v-btn
+              variant="tonal"
+              color="error"
+              size="small"
+              class="rounded-lg"
+              title="حذف الطرف"
+              @click="removeParty(idx)"
+            >
+              <LucideIcon name="trash-2" :size="18" />
+            </v-btn>
+          </v-col>
+        </v-row>
+      </div>
     </div>
   </div>
 </template>
@@ -241,3 +361,26 @@ const onClientChange = (index: number, clientId: string): void => {
   emit('clientChange', { index, value: clientId })
 }
 </script>
+
+<style scoped>
+.section-header-gold {
+  border-right: 4px solid #d4af37;
+  padding-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.party-card-box {
+  background: var(--surface, #ffffff) !important;
+  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  transition: all 0.2s ease;
+}
+
+.party-card-client {
+  border-right: 4px solid #d4af37 !important;
+}
+
+.party-card-opponent {
+  border-right: 4px solid #f59e0b !important;
+}
+</style>
