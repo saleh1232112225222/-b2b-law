@@ -445,7 +445,7 @@
           cols="12"
           class="mt-4"
         >
-          <div class="text-subtitle-2 font-weight-black text-primary mb-3">
+          <div class="text-subtitle-2 font-weight-black text-gold mb-3">
             <LucideIcon name="file-text" :size="18" class="me-1" /> بيانات الحكم القضائي
           </div>
           <v-row dense>
@@ -594,7 +594,7 @@
         </v-col>
 
         <v-col cols="12" class="mt-4">
-          <div class="text-subtitle-2 font-weight-black text-primary mb-3">
+          <div class="text-subtitle-2 font-weight-black text-gold mb-3">
             {{
               outcomeModal.result === 'أخرى' ? 'سبب النتيجة (مطلوب)' : 'ملاحظات إضافية (اختياري)'
             }}
@@ -704,6 +704,15 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <SessionFormDialog
+      :show="addPostponedSessionState.show"
+      :case-options="casesList"
+      :is-editing="false"
+      :editing-item="addPostponedSessionState.editingItem"
+      @update:show="addPostponedSessionState.show = $event"
+      @save="savePostponedSession"
+    />
   </v-container>
 </template>
 
@@ -723,10 +732,55 @@ import DailyProgress from '../components/briefing/DailyProgress.vue'
 import DashboardKpiCards from '../components/briefing/DashboardKpiCards.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { ICONS } from '../config/icons'
+import SessionFormDialog from './sessions/SessionFormDialog.vue'
+import { useCasesStore } from '../stores/cases'
 
 const router = useRouter()
+const casesStore = useCasesStore()
+const casesList = computed(() => casesStore.cases)
 const activeTab = ref('overview')
 const loading = ref(true)
+
+const addPostponedSessionState = ref<{
+  show: boolean
+  editingItem: any
+}>({
+  show: false,
+  editingItem: null
+})
+
+const openAddSessionForCase = (caseId: string, currentSession: any) => {
+  addPostponedSessionState.value.editingItem = {
+    case_id: String(caseId),
+    type: currentSession?.session_type || currentSession?.type || 'مرافعة',
+    status: 'قادمة',
+    date: new Date().toISOString().split('T')[0],
+    time: '09:00',
+    court_room: currentSession?.court_room || '',
+    notes: `مُؤجلة من الجلسة السابقة (${currentSession?.date || currentSession?.session_date || ''})`
+  }
+  addPostponedSessionState.value.show = true
+}
+
+const savePostponedSession = async (formData: any) => {
+  try {
+    const api = (window as any).api
+    await api.sessions.create(formData)
+    addPostponedSessionState.value.show = false
+    cleanSnackbar.value = {
+      show: true,
+      text: 'تم إدراج موعد الجلسة الجديدة القادمة بنجاح.',
+      color: 'success'
+    }
+    await loadSummary()
+  } catch (e: any) {
+    cleanSnackbar.value = {
+      show: true,
+      text: 'فشل إدراج الجلسة الجديدة: ' + (e.message || ''),
+      color: 'error'
+    }
+  }
+}
 
 // Data state
 const actionRequired = ref<any[]>([])
@@ -996,6 +1050,10 @@ async function submitOutcome(): Promise<void> {
         action: async () => {
           confirmDialog.value.loading = true
           try {
+            const currentSession = outcomeModal.value.session
+            const targetCaseId = currentSession?.case_id || currentSession?.caseId
+            const isPostponed = result.includes('تأجيل') || result.includes('موعد آخر')
+
             const applied = await api.sessionOutcome.apply({
               sessionId: outcomeModal.value.session.id,
               result,
@@ -1016,6 +1074,10 @@ async function submitOutcome(): Promise<void> {
               color: 'success'
             }
             closeConfirm()
+
+            if (isPostponed && targetCaseId) {
+              openAddSessionForCase(targetCaseId, currentSession)
+            }
           } catch (e: unknown) {
             cleanSnackbar.value = {
               show: true,

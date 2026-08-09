@@ -8,20 +8,20 @@
   >
     <v-card class="rounded-xl overflow-hidden glass-card modal-card-flex" elevation="24">
       <!-- Header -->
-      <div class="modal-header pa-5 pa-sm-6 d-flex align-center bg-primary text-white flex-shrink-0">
+      <div class="modal-header pa-5 pa-sm-6 d-flex align-center flex-shrink-0 border-b">
         <div class="header-icon-box me-4">
-          <LucideIcon :name="icon || 'gavel'" :size="28" class="text-white" />
+          <LucideIcon :name="icon || 'gavel'" :size="24" class="text-gold" />
         </div>
         <div>
-          <h3 class="text-h6 font-weight-black tracking-tight">{{ title }}</h3>
-          <div class="text-caption opacity-80 font-weight-bold">{{ subtitle }}</div>
+          <h3 class="text-h6 font-weight-black text-gold tracking-tight">{{ title }}</h3>
+          <div v-if="subtitle" class="text-caption text-visible-high font-weight-bold opacity-80">{{ subtitle }}</div>
         </div>
         <v-spacer></v-spacer>
         <v-btn
           :icon="ICONS.UI.CLOSE"
-          variant="text"
-          color="white"
-          class="opacity-70"
+          variant="tonal"
+          color="error"
+          class="rounded-lg"
           @click="close"
         ></v-btn>
       </div>
@@ -33,20 +33,18 @@
 
       <!-- Footer -->
       <v-divider class="flex-shrink-0"></v-divider>
-      <v-card-actions class="pa-4 pa-sm-6 bg-grey-lighten-5 flex-shrink-0 dialog-actions-sticky">
-        <v-spacer></v-spacer>
+      <v-card-actions class="pa-4 pa-sm-6 modal-footer-solid flex-shrink-0 dialog-actions-sticky d-flex align-center gap-3">
         <v-btn
           variant="outlined"
-          color="secondary"
-          class="rounded-lg font-weight-black px-6"
+          class="btn-secondary px-6 font-weight-black"
           @click="close"
         >
           إلغاء
         </v-btn>
+        <v-spacer></v-spacer>
         <v-btn
-          :color="saveColor || 'primary'"
           variant="flat"
-          class="rounded-lg font-weight-black px-8 shadow-sm"
+          class="btn-gold-outline px-8 font-weight-black"
           :loading="loading"
           @click="$emit('save')"
         >
@@ -86,21 +84,19 @@ function close() {
 </script>
 
 <style scoped>
-.premium-modal :deep(.v-card) {
-  border: 1px solid rgba(var(--v-theme-primary), 0.1);
-}
-
 .modal-card-flex {
   display: flex !important;
   flex-direction: column !important;
   max-height: 90vh !important;
   height: auto !important;
+  background: var(--surface, #ffffff) !important;
+  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
 }
 
 .modal-body-scroll {
   flex: 1 1 auto !important;
   overflow-y: auto !important;
-  max-height: calc(90vh - 130px) !important;
+  max-height: calc(90vh - 140px) !important;
   padding-bottom: 2rem !important;
 }
 
@@ -108,23 +104,24 @@ function close() {
   position: sticky !important;
   bottom: 0 !important;
   z-index: 10 !important;
-  background-color: #f8fafc !important;
-  border-top: 1px solid rgba(0, 0, 0, 0.08) !important;
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
 }
 
 .modal-header {
-  background: linear-gradient(135deg, var(--primary) 0%, #15406d 100%);
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-bottom: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
 }
 
 .header-icon-box {
-  width: 48px;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.1);
+  width: 44px;
+  height: 44px;
+  background: rgba(115, 92, 0, 0.08);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(208, 198, 175, 0.5);
 }
 
 .tracking-tight {
