@@ -174,19 +174,32 @@
   font-weight: 800 !important;
 }
 
-/* Adaptive Input Fields in Modals */
+/* Single Box Input Fields in Modals (NO BOX-IN-BOX) */
+.v-dialog .v-input,
 .v-dialog .glass-input,
-.v-dialog .premium-input-solid,
+.v-dialog .premium-select {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+}
+
 .v-dialog .v-field {
   background: var(--surface, #ffffff) !important;
-  border-radius: var(--radius-md, 10px) !important;
-  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.v-dialog .v-field__outline {
+  display: none !important;
 }
 
 .v-dialog .v-field--focused {
   background: var(--surface, #ffffff) !important;
   border-color: var(--primary, #735c00) !important;
-  box-shadow: 0 0 10px rgba(233, 195, 73, 0.3) !important;
+  box-shadow: 0 0 0 3px rgba(115, 92, 0, 0.15) !important;
 }
 
 /* Adaptive High-Contrast Input Text */

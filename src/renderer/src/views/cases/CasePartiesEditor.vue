@@ -37,7 +37,7 @@
     <div
       v-for="(party, idx) in parties"
       :key="idx"
-      class="party-card-box mb-4 pa-4 pa-sm-5 rounded-xl border position-relative"
+      class="party-card-box mb-4 pa-4 pa-sm-5 rounded-xl position-relative"
       :class="party.party_type === 'client' ? 'party-card-client' : 'party-card-opponent'"
     >
       <!-- Mobile Layout (<768px) -->
@@ -364,23 +364,24 @@ const onClientChange = (index: number, clientId: string): void => {
 
 <style scoped>
 .section-header-gold {
-  border-right: 4px solid #d4af37;
+  border-right: 4px solid var(--primary, #735c00);
   padding-right: 12px;
   display: flex;
   align-items: center;
 }
 
 .party-card-box {
-  background: var(--surface, #ffffff) !important;
-  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  background: var(--surface-variant, #fcf8f2) !important;
+  border: none !important;
+  border-radius: 12px !important;
   transition: all 0.2s ease;
 }
 
 .party-card-client {
-  border-right: 4px solid #d4af37 !important;
+  border-right: 4px solid var(--primary, #735c00) !important;
 }
 
 .party-card-opponent {
-  border-right: 4px solid #f59e0b !important;
+  border-right: 4px solid #d97706 !important;
 }
 </style>

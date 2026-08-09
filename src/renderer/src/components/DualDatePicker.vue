@@ -1,11 +1,11 @@
 <template>
-  <div class="dual-date-picker pa-3 border rounded-xl glass-date-container mb-2">
-    <div v-if="label" class="d-flex align-center mb-3 px-1">
+  <div class="dual-date-picker">
+    <div v-if="label" class="d-flex align-center mb-2">
       <LucideIcon :name="icon" :size="16" class="me-2 text-gold" />
-      <span class="text-subtitle-2 font-weight-black text-gold">{{ label }}</span>
+      <span class="text-caption font-weight-bold text-gold">{{ label }}</span>
     </div>
-    <v-row dense>
-      <v-col cols="12">
+    <v-row dense class="ga-y-2">
+      <v-col cols="6">
         <v-text-field
           v-model="gDateStr"
           label="ميلادي"
@@ -14,11 +14,11 @@
           density="comfortable"
           hide-details="auto"
           bg-color="transparent"
-          class="mb-3 glass-input"
+          class="glass-input"
           @update:model-value="onGDateUpdate"
         ></v-text-field>
       </v-col>
-      <v-col cols="12">
+      <v-col cols="6">
         <v-text-field
           v-model="hDateStr"
           label="هجري"
@@ -27,7 +27,6 @@
           density="comfortable"
           hide-details="auto"
           bg-color="transparent"
-          :prepend-inner-icon="ICONS.NAV.SESSIONS"
           class="hijri-field glass-input"
         ></v-text-field>
       </v-col>
@@ -37,13 +36,12 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { ICONS } from '../config/icons'
 import LucideIcon from './common/LucideIcon.vue'
 import { convertToHijri } from '../utils/hijri'
 
 const props = defineProps({
   modelValue: { type: String, default: '' },
-  label: { type: String, default: 'التاريخ' },
+  label: { type: String, default: '' },
   icon: { type: String, default: 'calendar' }
 })
 
@@ -60,7 +58,7 @@ const syncHijri = (val: string) => {
   try {
     hDateStr.value = convertToHijri(new Date(val))
   } catch (e) {
-    hDateStr.value = 'خطأ في التاريخ'
+    hDateStr.value = 'خطأ'
   }
 }
 
@@ -92,19 +90,6 @@ onMounted(() => {
   font-weight: bold;
 }
 
-.glass-date-container {
-  background: #fcf8f2 !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-  border-radius: 14px !important;
-  box-shadow: 0 2px 8px rgba(115, 92, 0, 0.04) !important;
-}
-
-.dual-date-picker :deep(.v-field) {
-  background: #ffffff !important;
-  border-radius: 10px !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-}
-
 .dual-date-picker :deep(input),
 .dual-date-picker :deep(.v-field__input) {
   color: #1f1b13 !important;
@@ -114,9 +99,5 @@ onMounted(() => {
 .dual-date-picker :deep(.v-label) {
   color: #735c00 !important;
   font-weight: 800 !important;
-}
-
-.hijri-field :deep(.v-field) {
-  background: #ffffff !important;
 }
 </style>
