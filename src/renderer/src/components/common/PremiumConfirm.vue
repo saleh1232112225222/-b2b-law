@@ -1,20 +1,19 @@
 <template>
   <v-dialog v-model="visible" max-width="580" persistent>
-    <v-card class="glass-card overflow-hidden rounded-xl border-gold-soft">
+    <v-card class="overflow-hidden rounded-xl confirm-dialog-card elevation-24">
       <!-- Top Decorative Accent -->
       <div class="decorative-accent" :style="{ backgroundColor: `var(--${color})` }"></div>
 
+      <!-- Header -->
       <v-card-title
-        class="d-flex flex-column align-center modal-header border-b"
-        :class="isMobile ? 'pa-4 pb-2' : 'pa-6'"
+        class="d-flex flex-column align-center modal-header border-b pa-5 pa-sm-6"
       >
         <div
-          class="icon-wrapper rounded-xl mb-3"
-          :class="isMobile ? 'pa-3' : 'pa-4'"
+          class="icon-wrapper rounded-xl mb-3 pa-3 pa-sm-4"
           style="background: rgba(115, 92, 0, 0.08); border: 1px solid rgba(208, 198, 175, 0.5);"
         >
           <LucideIcon
-            :name="icon"
+            :name="icon || 'brain'"
             :size="isMobile ? 28 : 36"
             class="text-gold"
           />
@@ -24,14 +23,13 @@
         </h3>
       </v-card-title>
 
-      <v-card-text
-        class="py-4 font-weight-bold confirm-message-box"
-        :class="isMobile ? 'px-4 text-body-2' : 'px-6 text-body-1'"
-      >
-        {{ message }}
+      <!-- Message Content -->
+      <v-card-text class="pa-4 pa-sm-6 confirm-body-box">
+        <div class="confirm-message-inner">{{ message }}</div>
       </v-card-text>
 
-      <v-card-actions class="modal-footer-solid border-t d-flex align-center gap-3" :class="isMobile ? 'pa-4' : 'pa-6'">
+      <!-- Actions Footer -->
+      <v-card-actions class="modal-footer-solid border-t d-flex align-center gap-3 pa-4 pa-sm-6">
         <v-btn
           variant="outlined"
           class="rounded-lg flex-grow-1 font-weight-black btn-secondary"
@@ -107,39 +105,43 @@ const handleCancel = () => {
   width: 100%;
 }
 
-.confirm-message-box {
+.confirm-dialog-card {
+  background: var(--surface, #ffffff) !important;
   color: var(--text-primary, #1f1b13) !important;
+  border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+}
+
+.modal-header {
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-bottom: 1px solid var(--border, rgba(208, 198, 175, 0.5)) !important;
+}
+
+.confirm-body-box {
+  background: var(--surface, #ffffff) !important;
+}
+
+.confirm-message-inner {
+  color: #1f1b13 !important;
+  background: var(--surface-variant, #fcf8f2) !important;
+  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  border-radius: 14px !important;
+  padding: 18px !important;
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  line-height: 1.8 !important;
   white-space: pre-wrap !important;
   text-align: right !important;
   direction: rtl !important;
-  line-height: 1.75 !important;
-  background: var(--surface-variant, #fdfbf7) !important;
-  border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
-  border-radius: 14px !important;
-  margin: 12px 16px !important;
-  padding: 16px !important;
-  font-size: 0.95rem !important;
+}
+
+.modal-footer-solid {
+  background: var(--surface-variant, #fbf3e5) !important;
+  border-top: 1px solid var(--border, rgba(208, 198, 175, 0.5)) !important;
 }
 
 .icon-wrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  animation: pulse-subtle 2s infinite ease-in-out;
-}
-
-@keyframes pulse-subtle {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
 }
 </style>

@@ -47,6 +47,7 @@
   --color-outline-variant: #d0c6af;
 
   /* Glassmorphism */
+  --glass-bg: rgba(255, 255, 255, 0.95);
   --glass-bg-white: rgba(255, 255, 255, 0.7);
   --glass-bg-soft: rgba(255, 255, 255, 0.5);
   --glass-bg-dark: rgba(15, 42, 85, 0.08);
