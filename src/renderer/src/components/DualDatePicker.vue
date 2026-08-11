@@ -7,6 +7,7 @@
     <v-row dense class="ga-y-2">
       <v-col cols="6">
         <v-text-field
+          ref="gInputRef"
           v-model="gDateStr"
           label="ميلادي"
           type="date"
@@ -14,9 +15,14 @@
           density="comfortable"
           hide-details="auto"
           bg-color="transparent"
-          class="glass-input"
+          class="glass-input date-input-field"
           @update:model-value="onGDateUpdate"
-        ></v-text-field>
+          @click="openPicker"
+        >
+          <template #prepend-inner>
+            <LucideIcon name="calendar" :size="16" class="text-gold me-1 cursor-pointer" @click.stop="openPicker" />
+          </template>
+        </v-text-field>
       </v-col>
       <v-col cols="6">
         <v-text-field
@@ -46,6 +52,22 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue'])
+
+const gInputRef = ref<any>(null)
+
+const openPicker = () => {
+  const rootEl = gInputRef.value?.$el
+  if (!rootEl) return
+  const inputEl = rootEl.querySelector('input[type="date"]') || rootEl.querySelector('input')
+  if (inputEl && typeof inputEl.showPicker === 'function') {
+    try {
+      inputEl.showPicker()
+    } catch (e) {
+      inputEl.focus()
+      inputEl.click()
+    }
+  }
+}
 
 /**
  * Normalizes any date input (ISO, DD/MM/YYYY, YYYY/MM/DD, timestamp) into standard YYYY-MM-DD
@@ -164,5 +186,21 @@ onMounted(() => {
 .dual-date-picker :deep(.v-label) {
   color: #735c00 !important;
   font-weight: 800 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+:deep(input[type="date"]::-webkit-calendar-picker-indicator) {
+  cursor: pointer;
+  filter: invert(45%) sepia(80%) saturate(450%) hue-rotate(5deg) brightness(90%) contrast(85%);
+  opacity: 0.95;
+  padding: 4px;
+}
+
+:deep(input[type="date"]::-webkit-calendar-picker-indicator:hover) {
+  opacity: 1;
+  transform: scale(1.15);
 }
 </style>

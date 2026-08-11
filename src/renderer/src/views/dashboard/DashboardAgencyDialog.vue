@@ -1,5 +1,5 @@
 <template>
-  <v-dialog v-model="agencyEditDialog.show" width="90%" max-width="800" persistent scrollable>
+  <v-dialog v-model="agencyEditDialog.show" width="92%" max-width="950" persistent scrollable>
     <v-card class="b2b-modal-card overflow-hidden" style="background: #FFFFFF; border: 1px solid #E5E1D8; border-radius: 16px;">
       <div class="pa-4 px-6 d-flex align-center" style="background: #F7F3E8; border-bottom: 1px solid #E5E1D8;">
         <div class="icon-circle-gold me-3">
@@ -21,10 +21,10 @@
       </div>
 
       <v-card-text class="pa-6 modal-scrollable poa-form" style="background: #F8F7F3;">
-        <div class="section-card-wrapper mb-0 pa-5">
+        <div class="section-card-wrapper mb-0 pa-6">
           <v-form ref="agencyFormRef" v-model="agencyEditDialog.valid" lazy-validation>
-            <v-row dense>
-              <v-col cols="12" class="mb-3">
+            <v-row dense class="ga-y-3">
+              <v-col cols="12" md="7">
                 <label class="text-caption font-weight-bold text-navy mb-1 d-block">الموكل صاحب الوكالة *</label>
                 <v-autocomplete
                   v-model="agencyEditDialog.data.client_id"
@@ -33,7 +33,7 @@
                   item-value="id"
                   placeholder="ابحث عن اسم الموكل..."
                   variant="outlined"
-                  density="compact"
+                  density="comfortable"
                   hide-details="auto"
                   :rules="[(v) => !!v || 'تعيين الموكل ضروري لإتمام التسجيل']"
                   no-data-text="لا يوجد موكلون مسجلون"
@@ -44,33 +44,33 @@
                   </template>
                 </v-autocomplete>
               </v-col>
-              <v-col cols="12" md="4" class="mb-3">
+              <v-col cols="12" md="5">
                 <label class="text-caption font-weight-bold text-navy mb-1 d-block">رقم الوكالة الرسمي *</label>
                 <v-text-field
                   v-model="agencyEditDialog.data.agency_number"
                   placeholder="مثال: 44123456"
                   variant="outlined"
-                  density="compact"
+                  density="comfortable"
                   hide-details="auto"
                   :rules="[(v) => !!v || 'رقم الوكالة مطلوب للتحقق النظامي']"
                   required
                 />
               </v-col>
-              <v-col cols="12" md="4" class="mb-3">
+              <v-col cols="12" md="6">
                 <label class="text-caption font-weight-bold text-navy mb-1 d-block">تاريخ صدور الوكالة *</label>
                 <DualDatePicker v-model="agencyEditDialog.data.date" />
               </v-col>
-              <v-col cols="12" md="4" class="mb-3">
+              <v-col cols="12" md="6">
                 <label class="text-caption font-weight-bold text-navy mb-1 d-block">تاريخ انتهاء الوكالة</label>
                 <DualDatePicker v-model="agencyEditDialog.data.expiry_date" />
               </v-col>
-              <v-col cols="12" class="mb-3">
+              <v-col cols="12">
                 <label class="text-caption font-weight-bold text-navy mb-1 d-block">جهة الإصدار (كتابة عدل / منصة ناجز)</label>
                 <v-text-field
                   v-model="agencyEditDialog.data.court"
                   placeholder="مثال: كتابة العدل الأولى بالرياض"
                   variant="outlined"
-                  density="compact"
+                  density="comfortable"
                   hide-details
                 >
                   <template #prepend-inner>
@@ -84,8 +84,8 @@
                   v-model="agencyEditDialog.data.notes"
                   placeholder="دون هنا الصلاحيات الأساسية (المرافعة، الحجز، قبض الثمن...)"
                   variant="outlined"
-                  rows="3"
-                  density="compact"
+                  rows="4"
+                  density="comfortable"
                   hide-details
                 >
                   <template #prepend-inner>
@@ -150,16 +150,12 @@ defineEmits<{
 }
 
 .modal-scrollable {
-  max-height: calc(100vh - 280px);
+  max-height: calc(100vh - 240px);
   overflow-y: auto;
 }
 
 .modal-footer-solid {
   background: var(--surface-variant, #fbf3e5) !important;
   border-top: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
-}
-
-.action-btn-unified {
-  min-width: 180px !important;
 }
 </style>

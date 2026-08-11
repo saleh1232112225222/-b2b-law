@@ -482,8 +482,8 @@
     <!-- Add/Edit Agency Dialog -->
     <v-dialog
       v-model="showDialog"
-      width="90%"
-      max-width="800"
+      width="92%"
+      max-width="950"
       persistent
       scrollable
       :fullscreen="isMobile"
@@ -511,8 +511,8 @@
 
         <v-card-text class="pa-8 modal-scrollable poa-form poa-dialog-body">
           <v-form ref="formRef" v-model="formValid" lazy-validation>
-            <v-row dense>
-              <v-col cols="12">
+            <v-row dense class="ga-y-3">
+              <v-col cols="12" md="7">
                 <label class="mb-2 font-weight-black text-gold">الموكل صاحب الوكالة*</label>
                 <v-autocomplete
                   v-model="editItem.client_id"
@@ -531,7 +531,7 @@
                   </template>
                 </v-autocomplete>
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="5">
                 <label class="mb-2 font-weight-black text-gold">رقم الوكالة الرسمي*</label>
                 <v-text-field
                   v-model="editItem.agency_number"
@@ -542,11 +542,11 @@
                   required
                 />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <label class="mb-2 font-weight-black text-gold">تاريخ صدور الوكالة*</label>
                 <DualDatePicker v-model="editItem.date" />
               </v-col>
-              <v-col cols="12" md="4">
+              <v-col cols="12" md="6">
                 <label class="mb-2 font-weight-black text-gold">تاريخ انتهاء الوكالة</label>
                 <DualDatePicker v-model="editItem.expiry_date" />
               </v-col>
