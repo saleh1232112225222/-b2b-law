@@ -47,32 +47,97 @@ const props = defineProps({
 
 const emit = defineEmits(['update:modelValue'])
 
-const gDateStr = ref(props.modelValue || '')
+/**
+ * Normalizes any date input (ISO, DD/MM/YYYY, YYYY/MM/DD, timestamp) into standard YYYY-MM-DD
+ */
+const toYYYYMMDD = (val: any): string => {
+  if (!val) return ''
+  const str = String(val).trim()
+  if (!str) return ''
+
+  // ISO string with T or space (e.g. 2026-08-06T00:00:00.000Z or 2026-08-06 00:00:00)
+  if (str.includes('T') || (str.includes(' ') && str.includes('-'))) {
+    const firstPart = str.split(/[T ]/)[0]
+    if (/^\d{4}-\d{2}-\d{2}$/.test(firstPart)) {
+      return firstPart
+    }
+  }
+
+  // Already YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return str
+  }
+
+  // YYYY/MM/DD
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(str)) {
+    return str.replace(/\//g, '-')
+  }
+
+  // DD/MM/YYYY or DD-MM-YYYY
+  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/.test(str)) {
+    const parts = str.split(/[\/-]/)
+    const p1 = parseInt(parts[0], 10)
+    const p2 = parseInt(parts[1], 10)
+    const year = parts[2]
+    if (p1 > 12) {
+      // p1 is day, p2 is month
+      const day = String(p1).padStart(2, '0')
+      const month = String(p2).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    } else {
+      // Assuming DD/MM/YYYY for Arabic locale
+      const day = String(p1).padStart(2, '0')
+      const month = String(p2).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+  }
+
+  const d = new Date(str)
+  if (!isNaN(d.getTime())) {
+    const yyyy = d.getFullYear()
+    const mm = String(d.getMonth() + 1).padStart(2, '0')
+    const dd = String(d.getDate()).padStart(2, '0')
+    return `${yyyy}-${mm}-${dd}`
+  }
+
+  return ''
+}
+
+const gDateStr = ref(toYYYYMMDD(props.modelValue))
 const hDateStr = ref('')
 
 const syncHijri = (val: string) => {
-  if (!val) {
+  const normalized = toYYYYMMDD(val)
+  if (!normalized) {
     hDateStr.value = ''
     return
   }
   try {
-    hDateStr.value = convertToHijri(new Date(val))
+    const parts = normalized.split('-')
+    const year = parseInt(parts[0], 10)
+    const month = parseInt(parts[1], 10) - 1
+    const day = parseInt(parts[2], 10)
+    const localDate = new Date(year, month, day)
+    hDateStr.value = convertToHijri(localDate)
   } catch (e) {
-    hDateStr.value = 'خطأ'
+    hDateStr.value = ''
   }
 }
 
 const onGDateUpdate = (val: string) => {
-  emit('update:modelValue', val)
-  syncHijri(val)
+  const normalized = toYYYYMMDD(val)
+  gDateStr.value = normalized || val
+  emit('update:modelValue', normalized || val)
+  syncHijri(normalized || val)
 }
 
 watch(
   () => props.modelValue,
   (newVal) => {
-    if (newVal !== gDateStr.value) {
-      gDateStr.value = newVal || ''
-      syncHijri(newVal || '')
+    const normalized = toYYYYMMDD(newVal)
+    if (normalized !== gDateStr.value) {
+      gDateStr.value = normalized
+      syncHijri(normalized)
     }
   }
 )

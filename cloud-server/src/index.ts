@@ -625,7 +625,7 @@ async function seedSuperAdmin() {
 
     const ADMIN_HASH =
       process.env.ADMIN_BOOTSTRAP_HASH ||
-      '$2a$12$FcHV1Iy9RIa5O0Q/PoVrB.49T1FHjrDYqMUrdMviSG9lUCP.10cxm'
+      '$2a$10$e19OH80qYwzCTfr15mdifO2rng3PsLNIlrx9ubkXTuOKbtj.zZmTS'
     const ADMIN_EMAIL = 'slaehmap@gmail.com'
 
     if (adminCheck.rows.length === 0) {
