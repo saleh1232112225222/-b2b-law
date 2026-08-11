@@ -235,88 +235,8 @@
     </div>
   </v-app-bar>
 
-  <v-banner
-    v-if="isApproachingExpiration && !isLoginPage && daysRemaining > 0"
-    color="warning"
-    icon="mdi-clock-alert-outline"
-    class="countdown-banner"
-    stacked
-    dense
-  >
-    <template #text>
-      <div class="d-flex align-center justify-space-between w-100">
-        <div>
-          <strong v-if="daysRemaining > 1"
-            >فترة تجربتك تنتهي خلال {{ countdownDetail.days }} أيام</strong
-          >
-          <strong v-else-if="countdownDetail.hours > 0"
-            >فترة تجربتك تنتهي خلال {{ countdownDetail.hours }} ساعة و
-            {{ countdownDetail.minutes }} دقيقة</strong
-          >
-          <strong v-else>فترة تجربتك تنتهي خلال {{ countdownDetail.minutes }} دقيقة</strong>
-          <span class="ms-2">— اشترك الآن لضمان عدم توقف الخدمة</span>
-        </div>
-        <v-btn
-          color="warning"
-          variant="flat"
-          size="small"
-          class="ms-3 font-weight-bold"
-          @click="router.push('/subscription')"
-        >
-          اشترك الآن
-        </v-btn>
-      </div>
-    </template>
-  </v-banner>
-
-  <v-banner
-    v-if="isTrialExpired && !isLoginPage"
-    color="warning"
-    icon="mdi-crown"
-    class="readonly-banner"
-    stacked
-    dense
-  >
-    <template #text>
-      <div class="d-flex align-center justify-space-between w-100">
-        <div>
-          <strong> بياناتك محفوظة — فعّل الاشتراك للاستمرار </strong>
-          <span class="ms-2">— يمكنك التصفح الآن، والاشتراك يمنحك صلاحيات كاملة. </span>
-          <router-link to="/subscription" class="text-decoration-underline font-weight-bold"
-            >تفعيل الاشتراك</router-link
-          >
-        </div>
-      </div>
-    </template>
-  </v-banner>
-
   <v-main class="main-content-scroll">
     <div class="main-body-wrapper" :class="mainBodyPaddingClass">
-      <v-alert
-        v-if="trialInfo && !trialInfo.isValid && !trialInfo.isActivated && !isTrialExpired"
-        type="warning"
-        variant="tonal"
-        density="comfortable"
-        icon="mdi-crown"
-        class="mb-6 rounded-xl"
-        prominent
-      >
-        <div class="d-flex align-center justify-space-between w-100 flex-wrap gap-3">
-          <div class="d-flex align-center">
-            <LucideIcon name="crown" :size="20" class="me-2 text-gold" />
-            <span>لقد استكشفت B2B-LAW! بياناتك محفوظة — فعّل الاشتراك للوصول الكامل.</span>
-          </div>
-          <v-btn
-            color="accent"
-            size="small"
-            class="rounded-lg text-white font-weight-bold premium-btn-gold-gradient"
-            @click="router.push('/subscription')"
-          >
-            تفعيل الاشتراك
-          </v-btn>
-        </div>
-      </v-alert>
-
       <router-view v-slot="{ Component }">
         <transition name="premium-fade" mode="out-in">
           <component :is="Component" :key="$route.path" />
@@ -730,13 +650,15 @@ onUnmounted(() => {
   z-index: 1100 !important;
   top: 0 !important;
   left: 0 !important;
-  background: var(--glass-bg) !important;
-  border-bottom: 1px solid var(--divider) !important;
-  border-radius: 0 0 var(--radius-lg) var(--radius-lg) !important;
-  box-shadow: 0 18px 50px -34px rgba(15, 23, 42, 0.18) !important;
-  backdrop-filter: var(--glass-blur) !important;
-  -webkit-backdrop-filter: var(--glass-blur) !important;
+  background: #FFFFFF !important;
+  border-bottom: 1px solid #E5E1D8 !important;
+  box-shadow: 0 4px 20px rgba(31, 42, 68, 0.06) !important;
   transition: var(--transition-premium);
+}
+
+[data-theme='dark'] .glass-header {
+  background: #0F172A !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 .header-action-btn {

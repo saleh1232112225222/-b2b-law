@@ -69,8 +69,9 @@ export const useLegalStore = defineStore('legal', () => {
         status_id: params.status_id !== undefined ? params.status_id : filterStatus.value
       }
 
-      total.value = await window.api.legalServices.count(finalParams)
-      services.value = await window.api.legalServices.list(finalParams)
+      const rawCount = await window.api.legalServices.count(finalParams)
+      total.value = typeof rawCount === 'number' ? rawCount : (typeof rawCount?.count === 'number' ? rawCount.count : (Array.isArray(rawCount?.data) ? rawCount.data.length : 0))
+      services.value = Array.isArray(await window.api.legalServices.list(finalParams)) ? await window.api.legalServices.list(finalParams) : []
 
       // Sync state
       page.value = finalParams.page

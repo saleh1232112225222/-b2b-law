@@ -7,24 +7,25 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="session-dialog-card overflow-hidden glass-card">
-      <div class="session-dialog-header d-flex align-center py-5 px-8">
-        <div class="bg-accent-alpha pa-2 rounded-lg me-4">
+    <v-card class="session-dialog-card overflow-hidden">
+      <div class="session-dialog-header d-flex align-center py-4 px-6">
+        <div class="icon-circle-gold me-3">
           <LucideIcon
             :name="isEditing ? 'edit-3' : 'calendar-plus'"
-            :size="24"
-            class="text-accent"
+            :size="20"
           />
         </div>
-        <span class="text-h5 font-weight-black text-gold">{{
-          isEditing ? 'تعديل بيانات الجلسة المجدولة' : 'إدراج موعد جلسة قضائية جديد'
-        }}</span>
+        <div>
+          <h3 class="text-h6 font-weight-black text-navy mb-0">{{
+            isEditing ? 'تعديل بيانات الجلسة المجدولة' : 'إدراج موعد جلسة قضائية جديد'
+          }}</h3>
+          <span class="text-caption text-muted-gray">حدد القضية، الموعد، والقاعة لعرضها في التقويم</span>
+        </div>
         <v-spacer />
         <v-btn
           icon
-          variant="tonal"
-          color="error"
-          class="rounded-lg"
+          variant="text"
+          class="rounded-circle close-btn"
           @click="$emit('update:show', false)"
         >
           <LucideIcon name="x" :size="20" />
@@ -228,12 +229,12 @@
           </v-row>
         </v-form>
       </v-card-text>
-      <v-divider class="border-gold" style="opacity: 0.1" />
-      <v-card-actions class="pa-8 session-dialog-footer">
+      <v-divider />
+      <v-card-actions class="pa-4 session-dialog-footer">
         <v-btn
           variant="outlined"
           size="large"
-          class="px-8 font-weight-black rounded-lg text-white btn-secondary"
+          class="pill-btn-cancel px-6"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
@@ -241,7 +242,7 @@
         <v-btn
           variant="flat"
           size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
+          class="pill-btn-gold-filled px-8"
           :disabled="!formValid || caseBlockStatus.is_blocked"
           :loading="saving"
           @click="handleSave"
@@ -410,111 +411,23 @@ const arabicFilter = (item: any, query: string): boolean => {
 <style scoped>
 .session-dialog-card {
   background: #ffffff !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 20px 50px rgba(115, 92, 0, 0.12) !important;
+  border: 1px solid #E5E1D8 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 20px 50px rgba(31, 42, 68, 0.12) !important;
 }
 
 .session-dialog-header {
-  background: #fbf3e5 !important;
-  border-bottom: 1px solid rgba(208, 198, 175, 0.4) !important;
+  background: #F7F3E8 !important;
+  border-bottom: 1px solid #E5E1D8 !important;
 }
 
 .session-dialog-footer {
-  background: #fbf3e5 !important;
-  border-top: 1px solid rgba(208, 198, 175, 0.4) !important;
+  background: #F7F3E8 !important;
+  border-top: 1px solid #E5E1D8 !important;
 }
 
-.session-form :deep(.v-label) {
-  color: #735c00 !important;
-  font-weight: 900 !important;
-  font-size: 0.9rem !important;
-}
-
-.session-form :deep(.glass-input),
-.session-form :deep(.premium-input-solid),
-.session-form :deep(.v-field) {
-  background: #ffffff !important;
-  border-radius: 12px !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.02) !important;
-  transition: all 0.25s ease !important;
-}
-
-.session-form :deep(.v-field__outline) {
-  display: none !important;
-}
-
-.session-form :deep(.v-field--focused) {
-  background: #ffffff !important;
-  border-color: #735c00 !important;
-  box-shadow: 0 0 10px rgba(233, 195, 73, 0.3) !important;
-}
-
-.session-form :deep(input),
-.session-form :deep(textarea),
-.session-form :deep(.v-select__selection-text),
-.session-form :deep(.v-autocomplete__selection-text) {
-  color: #1f1b13 !important;
-  font-weight: 700 !important;
-}
-
-.session-form :deep(.v-field__input::placeholder),
-.session-form :deep(input::placeholder),
-.session-form :deep(textarea::placeholder) {
-  color: #7f7663 !important;
-  font-weight: 500 !important;
-}
-
-.session-form :deep(.dual-date-picker) {
-  background: #fcf8f2 !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-  border-radius: 14px !important;
-}
-
-.session-form :deep(.glass-date-container) {
-  background: #fcf8f2 !important;
-  border: 1px solid rgba(208, 198, 175, 0.6) !important;
-}
-
-.btn-secondary {
-  background: rgba(115, 92, 0, 0.05) !important;
-  border: 1px solid rgba(208, 198, 175, 0.8) !important;
-  color: #4d4635 !important;
-  border-radius: 12px !important;
-  font-weight: 800 !important;
-  transition: all 0.25s ease !important;
-}
-
-.btn-secondary:hover {
-  background: rgba(115, 92, 0, 0.1) !important;
-  border-color: rgba(115, 92, 0, 0.3) !important;
-}
-
-.premium-btn-gold-gradient {
-  background: linear-gradient(135deg, #e9c349 0%, #735c00 100%) !important;
-  color: #ffffff !important;
-  font-weight: 900 !important;
-  border: none !important;
-  border-radius: 12px !important;
-  box-shadow: 0 4px 16px rgba(115, 92, 0, 0.25) !important;
-  transition: all 0.25s ease !important;
-}
-
-.premium-btn-gold-gradient:hover:not(.v-btn--disabled) {
-  transform: translateY(-2px) !important;
-  box-shadow: 0 6px 20px rgba(115, 92, 0, 0.35) !important;
-}
-
-.premium-btn-gold-gradient.v-btn--disabled {
-  background: rgba(208, 198, 175, 0.4) !important;
-  color: rgba(31, 27, 19, 0.4) !important;
-  border: 1px solid rgba(208, 198, 175, 0.3) !important;
-  box-shadow: none !important;
-  opacity: 1 !important;
-}
-
-.action-btn-unified {
-  min-width: 180px !important;
+.close-btn:hover {
+  background: #FFEBEE !important;
+  color: #C94A4A !important;
 }
 </style>

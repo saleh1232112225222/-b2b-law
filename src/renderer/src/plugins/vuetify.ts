@@ -4,9 +4,9 @@ import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import { ar, en } from 'vuetify/locale'
 import '@mdi/font/css/materialdesignicons.css'
 
-const navy = '#1A437D'
-const gold = '#E9C349'
-const goldDark = '#B8941E'
+const navy = '#1F2A44'
+const gold = '#B08A2E'
+const goldDark = '#8A6A20'
 
 export default createVuetify({
   icons: {
@@ -65,31 +65,31 @@ export default createVuetify({
         dark: false,
         colors: {
           primary: navy,
-          'primary-dark': '#0F2A55',
-          'primary-light': '#8FB0E8',
+          'primary-dark': '#141B2D',
+          'primary-light': '#2A3B5F',
           'on-primary': '#FFFFFF',
-          secondary: '#EFF2F7',
-          'secondary-dark': '#D1D9E6',
+          secondary: '#F8F7F3',
+          'secondary-dark': '#E5E1D8',
           accent: gold,
-          'on-accent': '#0F172A',
-          gold: goldDark,
-          'gold-light': '#F5D94E',
-          background: '#F4F6FA',
-          'background-dark': '#E8ECF2',
+          'on-accent': '#FFFFFF',
+          gold: gold,
+          'gold-light': '#F3E8C8',
+          background: '#F8F7F3',
+          'background-dark': '#EFECE6',
           surface: '#FFFFFF',
-          'surface-variant': '#F8FAFC',
-          'on-surface': '#0F172A',
-          'on-surface-variant': '#475569',
-          info: '#3B82F6',
-          'info-light': '#DBEAFE',
-          success: '#059669',
-          'success-light': '#D1FAE5',
+          'surface-variant': '#F7F3E8',
+          'on-surface': '#1F2A44',
+          'on-surface-variant': '#73777D',
+          info: '#1F2A44',
+          'info-light': '#E8EEF5',
+          success: '#2E7D5B',
+          'success-light': '#E8F5E9',
           warning: '#D97706',
           'warning-light': '#FEF3C7',
-          error: '#DC2626',
-          'error-light': '#FEE2E2',
-          'sidebar-bg': '#0F2A55',
-          'sidebar-hover': 'rgba(233, 195, 73, 0.12)'
+          error: '#C94A4A',
+          'error-light': '#FFEBEE',
+          'sidebar-bg': '#1F2A44',
+          'sidebar-hover': 'rgba(176, 138, 46, 0.15)'
         }
       },
       dark: {

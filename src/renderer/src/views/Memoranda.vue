@@ -11,12 +11,12 @@
       <v-row dense class="mb-8 align-center">
         <v-col>
           <div class="d-flex align-center">
-            <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
-              <LucideIcon name="file-text" :size="36" class="text-accent" />
+            <div class="header-icon-box pa-4 rounded-xl me-5">
+              <LucideIcon name="file-text" :size="36" class="text-gold" />
             </div>
             <div>
               <h1 class="text-h5 font-weight-black text-gold mb-1">المذكرات واللوائح القانونية</h1>
-              <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+              <p class="text-subtitle-1 text-gold font-weight-bold opacity-90">
                 إدارة وتحرير المذكرات القضائية والردود الجوابية المرتبطة بالقضايا
               </p>
             </div>
@@ -36,12 +36,12 @@
                 <LucideIcon name="share-2" :size="18" class="me-2" /> تصدير
               </v-btn>
             </template>
-            <v-list class="glass-card border-gold opacity-10 py-2">
+            <v-list class="glass-card border-gold py-2">
               <v-list-item @click="exportAllPdf">
                 <template #prepend>
                   <LucideIcon name="file-type-2" :size="18" class="text-error me-3" />
                 </template>
-                <v-list-item-title class="font-weight-black text-white"
+                <v-list-item-title class="font-weight-black text-dark-primary"
                   >تصدير كـ PDF</v-list-item-title
                 >
               </v-list-item>
@@ -49,7 +49,7 @@
                 <template #prepend>
                   <LucideIcon name="file-spreadsheet" :size="18" class="text-success me-3" />
                 </template>
-                <v-list-item-title class="font-weight-black text-white"
+                <v-list-item-title class="font-weight-black text-dark-primary"
                   >تصدير كـ CSV</v-list-item-title
                 >
               </v-list-item>
@@ -68,7 +68,7 @@
       </v-row>
 
       <!-- Search Bar -->
-      <v-card elevation="0" class="glass-card mb-8 pa-5 glass-card">
+      <v-card elevation="0" class="glass-card mb-8 pa-5">
         <v-row dense align="center">
           <v-col cols="12" md="6">
             <v-text-field
@@ -81,26 +81,26 @@
               clearable
             >
               <template #prepend-inner>
-                <LucideIcon name="search" :size="20" class="text-gold opacity-50" />
+                <LucideIcon name="search" :size="20" class="text-gold" />
               </template>
             </v-text-field>
           </v-col>
           <v-spacer />
           <v-col cols="auto">
             <div
-              class="glass-panel-light px-6 py-2 rounded-lg border-gold opacity-10 d-flex align-center"
+              class="glass-panel-light px-6 py-2 rounded-lg border-gold d-flex align-center"
             >
-              <span class="text-gold opacity-50 font-weight-black me-3 text-tiny"
+              <span class="text-gold font-weight-black me-3 text-tiny"
                 >إجمالي المذكرات</span
               >
-              <span class="text-h6 font-weight-black text-accent">{{ filteredMemos.length }}</span>
+              <span class="text-h6 font-weight-black text-gold">{{ filteredMemos.length }}</span>
             </div>
           </v-col>
         </v-row>
       </v-card>
 
       <!-- Data Table -->
-      <v-card elevation="0" class="glass-card overflow-hidden min-h-500 glass-card">
+      <v-card elevation="0" class="glass-card overflow-hidden min-h-500">
         <v-data-table
           :headers="headers"
           :items="filteredMemos"
@@ -117,32 +117,32 @@
           </template>
 
           <template #[`header.memo_title`]="{ column }">
-            <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+            <span class="font-weight-black text-gold">{{ column.title }}</span>
           </template>
           <template #[`header.case_info`]="{ column }">
-            <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+            <span class="font-weight-black text-gold">{{ column.title }}</span>
           </template>
           <template #[`header.memo_date`]="{ column }">
-            <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+            <span class="font-weight-black text-gold">{{ column.title }}</span>
           </template>
           <template #[`header.memo_status`]="{ column }">
-            <span class="font-weight-black text-gold opacity-70">{{ column.title }}</span>
+            <span class="font-weight-black text-gold">{{ column.title }}</span>
           </template>
 
           <!-- Column: Memo Title/Label -->
           <template #[`item.memo_title`]="{ item }">
             <div class="d-flex align-center py-2">
-              <div class="glass-panel-light pa-2 rounded-lg me-4 border-gold opacity-10">
-                <LucideIcon :name="getMemoIcon(item.memo_type)" :size="24" class="text-accent" />
+              <div class="memo-item-icon-box pa-2 rounded-lg me-4">
+                <LucideIcon :name="getMemoIcon(item.memo_type)" :size="22" class="text-gold" />
               </div>
               <div>
                 <div
-                  class="font-weight-black text-body-1 text-white hover-gold cursor-pointer"
+                  class="font-weight-black text-body-1 text-dark-primary hover-gold cursor-pointer"
                   @click="openPreviewDialog(item)"
                 >
                   {{ item.memo_title }}
                 </div>
-                <div class="text-tiny text-gold opacity-50 font-weight-black">
+                <div class="text-caption text-gold font-weight-bold mt-1">
                   {{ item.memo_label || item.memo_type }}
                 </div>
               </div>
@@ -153,22 +153,22 @@
           <template #[`item.case_info`]="{ item }">
             <div class="d-flex flex-column py-2">
               <div
-                class="font-weight-black text-body-2 mb-1 d-flex align-center text-white opacity-80"
+                class="font-weight-black text-body-2 mb-1 d-flex align-center text-dark-primary"
               >
-                <LucideIcon name="briefcase" :size="14" class="me-2 text-gold opacity-50" />
+                <LucideIcon name="briefcase" :size="15" class="me-2 text-gold" />
                 {{ item.case_number || 'مستقلة' }}
               </div>
-              <div class="text-tiny d-flex align-center flex-wrap font-weight-black">
-                <span class="text-accent">{{ item.client_name || '-' }}</span>
-                <LucideIcon name="chevron-left" :size="12" class="mx-2 text-gold opacity-30" />
-                <span class="text-error opacity-80">{{ item.opponent_name || '-' }}</span>
+              <div class="text-caption d-flex align-center flex-wrap font-weight-bold">
+                <span class="text-gold">{{ item.client_name || '-' }}</span>
+                <LucideIcon name="chevron-left" :size="12" class="mx-2 text-gold" />
+                <span class="text-error font-weight-bold">{{ item.opponent_name || '-' }}</span>
               </div>
             </div>
           </template>
 
           <!-- Column: Date -->
           <template #[`item.memo_date`]="{ item }">
-            <div class="text-body-2 font-weight-black text-white opacity-70">
+            <div class="text-body-2 font-weight-bold text-dark-primary">
               {{ formatDate(item.memo_date) }} مـ
             </div>
           </template>
@@ -891,6 +891,33 @@ const showSnackbar = (text: string, color = 'success') => {
 
 .min-w-180 {
   min-w: 180px;
+}
+
+.header-icon-box {
+  width: 64px;
+  height: 64px;
+  background: var(--surface-variant, #fbf3e5);
+  border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.memo-item-icon-box {
+  width: 44px;
+  height: 44px;
+  background: var(--surface-variant, #fbf3e5) !important;
+  border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 12px !important;
+}
+
+.text-dark-primary {
+  color: var(--text-primary, #1f1b13) !important;
 }
 
 /* ====================================================

@@ -1,31 +1,31 @@
 /* src/assets/css/theme.css — Lex Aurum Light Theme */
 
 :root {
-  /* Gold & Primary Palette */
-  --color-gold: #e9c349;
-  --color-gold-light: #fceabb;
-  --color-gold-dark: #735c00;
-  --color-gold-gradient: linear-gradient(135deg, #e9c349 0%, #fceabb 100%);
-  --color-accent: #e9c349;
-  --color-primary: #735c00;
+  /* Gold & Primary Palette (B2B Legal Palette) */
+  --color-gold: #B08A2E;
+  --color-gold-light: #F3E8C8;
+  --color-gold-dark: #8A6A20;
+  --color-gold-gradient: linear-gradient(135deg, #B08A2E 0%, #C79A32 100%);
+  --color-accent: #B08A2E;
+  --color-primary: #1F2A44;
 
   /* Surface / Background */
-  --color-surface-bright: #fff8f0;
-  --color-surface: #f5eddf;
-  --color-surface-dim: #e1d9cc;
-  --color-surface-container-low: #fbf3e5;
-  --color-surface-container: #f5eddf;
-  --color-surface-container-high: #efe7da;
-  --color-surface-container-highest: #eae2d4;
-  --color-background: #f9fafb;
-  --color-surface-variant: #eae2d4;
+  --color-surface-bright: #F7F3E8;
+  --color-surface: #FFFFFF;
+  --color-surface-dim: #EFECE6;
+  --color-surface-container-low: #F7F3E8;
+  --color-surface-container: #FFFFFF;
+  --color-surface-container-high: #F8F7F3;
+  --color-surface-container-highest: #E5E1D8;
+  --color-background: #F8F7F3;
+  --color-surface-variant: #F7F3E8;
 
   /* Text */
-  --color-on-surface: #1f1b13;
-  --color-on-surface-variant: #4d4635;
-  --color-on-primary: #735c00;
-  --color-on-primary-fixed: #231a00;
-  --color-on-background: #1f1b13;
+  --color-on-surface: #1F2A44;
+  --color-on-surface-variant: #73777D;
+  --color-on-primary: #1F2A44;
+  --color-on-primary-fixed: #1F2A44;
+  --color-on-background: #1F2A44;
 
   /* Inverse */
   --color-inverse-surface: #343027;

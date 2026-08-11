@@ -1,97 +1,104 @@
 <template>
   <v-dialog
     :model-value="show"
-    max-width="520"
+    max-width="540"
     persistent
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="glass-card border-gold border-opacity-30 border-2 overflow-hidden glass-card">
-      <div class="bg-gold-gradient pa-4 d-flex align-center">
-        <LucideIcon name="user-plus" :size="24" class="text-ebony me-3" />
-        <span class="text-h6 font-weight-black text-ebony">إضافة مستخدم جديد للنظام</span>
+    <v-card class="b2b-modal-card overflow-hidden" style="background: #FFFFFF; border: 1px solid #E5E1D8; border-radius: 16px;">
+      <div class="pa-4 px-6 d-flex align-center" style="background: #F7F3E8; border-bottom: 1px solid #E5E1D8;">
+        <div class="icon-circle-gold me-3">
+          <LucideIcon name="user-plus" :size="20" />
+        </div>
+        <div>
+          <h3 class="text-h6 font-weight-black text-navy mb-0">إضافة مستخدم جديد للنظام</h3>
+          <span class="text-caption text-muted-gray">أدخل بيانات الحساب والدور الوظيفي المطلوب</span>
+        </div>
         <v-spacer />
         <v-btn
-          class="premium-btn-gold-gradient"
           icon
           variant="text"
-          color="ebony"
+          class="rounded-circle close-btn"
           @click="$emit('update:show', false)"
         >
           <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
-      <v-card-text class="pa-8">
-        <v-row dense>
-          <v-col cols="12">
-            <v-text-field
-              v-model="form.username"
-              label="اسم المستخدم (Username)"
-              variant="outlined"
-              class="glass-input mb-4 glass-input"
-              hide-details
-            >
-              <template #prepend-inner>
-                <LucideIcon name="user" :size="20" class="text-gold me-2" />
-              </template>
-            </v-text-field>
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              v-model="form.full_name"
-              label="الاسم الكامل"
-              variant="outlined"
-              class="glass-input mb-4 glass-input"
-              hide-details
-            >
-              <template #prepend-inner>
-                <LucideIcon name="id-card" :size="20" class="text-gold me-2" />
-              </template>
-            </v-text-field>
-          </v-col>
-          <v-col cols="12">
-            <v-select
-              v-model="form.role_key"
-              :items="roles"
-              label="الدور الوظيفي"
-              variant="outlined"
-              class="glass-input mb-4 glass-input"
-              hide-details
-            >
-              <template #prepend-inner>
-                <LucideIcon name="shield-check" :size="20" class="text-gold me-2" />
-              </template>
-            </v-select>
-          </v-col>
-          <v-col cols="12">
-            <v-text-field
-              v-model="form.password"
-              label="كلمة المرور الأولية"
-              type="password"
-              variant="outlined"
-              class="glass-input mb-4 glass-input"
-              hide-details
-            >
-              <template #prepend-inner>
-                <LucideIcon name="lock" :size="20" class="text-gold me-2" />
-              </template>
-            </v-text-field>
-          </v-col>
-        </v-row>
+      <v-card-text class="pa-6" style="background: #F8F7F3;">
+        <div class="section-card-wrapper mb-0 pa-5">
+          <v-row dense>
+            <v-col cols="12" class="mb-3">
+              <label class="text-caption font-weight-bold text-navy mb-1 d-block">اسم المستخدم (Username) *</label>
+              <v-text-field
+                v-model="form.username"
+                placeholder="أدخل اسم المستخدم للكون"
+                variant="outlined"
+                density="compact"
+                hide-details
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="user" :size="18" class="text-gold-accent me-2" />
+                </template>
+              </v-text-field>
+            </v-col>
+            <v-col cols="12" class="mb-3">
+              <label class="text-caption font-weight-bold text-navy mb-1 d-block">الاسم الكامل *</label>
+              <v-text-field
+                v-model="form.full_name"
+                placeholder="أدخل الاسم الثلاثي أو الكامل"
+                variant="outlined"
+                density="compact"
+                hide-details
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="id-card" :size="18" class="text-gold-accent me-2" />
+                </template>
+              </v-text-field>
+            </v-col>
+            <v-col cols="12" class="mb-3">
+              <label class="text-caption font-weight-bold text-navy mb-1 d-block">الدور الوظيفي *</label>
+              <v-select
+                v-model="form.role_key"
+                :items="roles"
+                variant="outlined"
+                density="compact"
+                hide-details
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="shield-check" :size="18" class="text-gold-accent me-2" />
+                </template>
+              </v-select>
+            </v-col>
+            <v-col cols="12">
+              <label class="text-caption font-weight-bold text-navy mb-1 d-block">كلمة المرور الأولية *</label>
+              <v-text-field
+                v-model="form.password"
+                type="password"
+                placeholder="••••••••"
+                variant="outlined"
+                density="compact"
+                hide-details
+              >
+                <template #prepend-inner>
+                  <LucideIcon name="lock" :size="18" class="text-gold-accent me-2" />
+                </template>
+              </v-text-field>
+            </v-col>
+          </v-row>
+        </div>
       </v-card-text>
-      <v-divider class="border-gold opacity-10" />
-      <v-card-actions class="pa-6">
-        <v-spacer />
+      <v-divider />
+      <v-card-actions class="pa-4 px-6" style="background: #F7F3E8; border-top: 1px solid #E5E1D8;">
         <v-btn
-          variant="text"
-          color="gold"
-          class="px-6 font-weight-black premium-btn-gold-gradient"
+          variant="outlined"
+          class="pill-btn-cancel px-6"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
+        <v-spacer />
         <v-btn
-          color="accent"
           variant="flat"
-          class="px-10 font-weight-black text-ebony rounded-lg premium-btn-gold-gradient"
+          class="pill-btn-gold-filled px-8"
           @click="handleCreate"
           >تأكيد الإضافة</v-btn
         >

@@ -1,16 +1,16 @@
 <template>
   <v-card
     elevation="0"
-    class="glass-card overflow-hidden border-gold border-opacity-20 border-2 glass-card"
+    class="section-card-wrapper overflow-hidden pa-0"
   >
-    <v-table density="comfortable" class="glass-table">
+    <v-table density="comfortable" class="b2b-table">
       <thead>
-        <tr>
-          <th class="text-right text-gold font-weight-black">اسم المستخدم</th>
-          <th class="text-right text-gold font-weight-black">الاسم الكامل</th>
-          <th class="text-right text-gold font-weight-black">الدور الوظيفي</th>
-          <th class="text-right text-gold font-weight-black">الحالة</th>
-          <th class="text-center text-gold font-weight-black">إجراءات التحكم</th>
+        <tr style="background: #F7F3E8; border-bottom: 2px solid #E5E1D8;">
+          <th class="text-right text-navy font-weight-black py-3">اسم المستخدم</th>
+          <th class="text-right text-navy font-weight-black py-3">الاسم الكامل</th>
+          <th class="text-right text-navy font-weight-black py-3">الدور الوظيفي</th>
+          <th class="text-right text-navy font-weight-black py-3">الحالة</th>
+          <th class="text-center text-navy font-weight-black py-3">إجراءات التحكم</th>
         </tr>
       </thead>
       <tbody>
@@ -21,13 +21,13 @@
         </tr>
         <tr v-else-if="safeLength(users) === 0">
           <td colspan="5" class="text-center py-12">
-            <LucideIcon name="users-round" :size="48" class="text-gold opacity-20 mb-4 mx-auto" />
-            <div class="text-h6 text-gold opacity-40">لا يوجد مستخدمون حالياً</div>
+            <LucideIcon name="users-round" :size="48" class="text-muted-gray mb-4 mx-auto" />
+            <div class="text-h6 text-navy font-weight-bold opacity-60">لا يوجد مستخدمون حالياً</div>
           </td>
         </tr>
-        <tr v-for="u in safeArray(users)" :key="u.id" class="premium-hover-row">
-          <td class="font-weight-black text-accent">{{ u.username || '-' }}</td>
-          <td class="text-white">{{ u.full_name || '---' }}</td>
+        <tr v-for="u in safeArray(users)" :key="u.id" class="b2b-table-row">
+          <td class="font-weight-black text-navy">{{ u.username || '-' }}</td>
+          <td class="text-navy font-weight-medium">{{ u.full_name || '---' }}</td>
           <td style="min-width: 240px">
             <v-select
               :items="roles"

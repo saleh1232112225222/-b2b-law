@@ -1,17 +1,17 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6 pb-12 rtl">
     <PrintReportFrame title="بيان المذكرات واللوائح القانونية" />
 
     <!-- Header Section -->
     <v-row dense class="mb-8 align-center">
       <v-col>
-        <div class="d-flex align-center">
-          <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
-            <LucideIcon name="file-signature" :size="36" class="text-accent" />
-          </div>
-          <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير المذكرات واللوائح</h1>
-            <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+          <div class="d-flex align-center">
+            <div class="header-icon-box pa-4 rounded-xl me-5">
+              <LucideIcon name="file-signature" :size="36" class="text-gold" />
+            </div>
+            <div>
+              <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير المذكرات واللوائح</h1>
+              <p class="text-subtitle-1 text-gold font-weight-bold opacity-90">
               استعراض تحليلي لكافة الدفوع القانونية، المذكرات الجوابية، ولوائح الدعوى
             </p>
           </div>

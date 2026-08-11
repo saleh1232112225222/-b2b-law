@@ -7,20 +7,22 @@
     scrollable
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="modal-card overflow-hidden glass-card">
-      <div class="modal-header-solid d-flex align-center py-5 px-8 bg-white border-b">
-        <div class="bg-accent-alpha pa-2 rounded-lg me-4">
-          <LucideIcon name="file-plus" :size="24" class="text-accent" />
+    <v-card class="b2b-modal-card overflow-hidden" style="background: #FFFFFF; border: 1px solid #E5E1D8; border-radius: 16px;">
+      <div class="pa-4 px-6 d-flex align-center" style="background: #F7F3E8; border-bottom: 1px solid #E5E1D8;">
+        <div class="icon-circle-gold me-3">
+          <LucideIcon name="file-plus" :size="20" />
         </div>
-        <span class="text-h5 font-weight-black text-pure-black">تحرير عقد قانوني جديد</span>
+        <div>
+          <h3 class="text-h6 font-weight-black text-navy mb-0">تحرير عقد قانوني جديد</h3>
+          <span class="text-caption text-muted-gray">صياغة اتفاقية أتعاب أو عقد توظيف مع الأطراف المعنية</span>
+        </div>
         <v-spacer />
         <v-btn
-          class="premium-btn-gold-gradient"
-          variant="text"
-          color="primary"
           icon
+          variant="text"
+          class="rounded-circle close-btn"
           @click="$emit('update:show', false)"
-          ><LucideIcon name="x" :size="24"
+          ><LucideIcon name="x" :size="20"
         /></v-btn>
       </div>
 
@@ -443,20 +445,18 @@
           </v-row>
         </v-form>
       </v-card-text>
-      <v-divider class="border-gold opacity-20" />
-      <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky">
+      <v-divider />
+      <v-card-actions class="pa-4 px-6 modal-footer-sticky" style="background: #F7F3E8; border-top: 1px solid #E5E1D8;">
         <v-btn
-          variant="flat"
-          size="large"
-          class="px-8 font-weight-black premium-button-highlight action-btn-unified premium-btn-gold-gradient"
+          variant="outlined"
+          class="pill-btn-cancel px-6"
           @click="$emit('update:show', false)"
           >إلغاء</v-btn
         >
         <v-spacer />
         <v-btn
           variant="flat"
-          size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
+          class="pill-btn-gold-filled px-8"
           :disabled="!createValid"
           :loading="saving"
           @click="handleCreate"

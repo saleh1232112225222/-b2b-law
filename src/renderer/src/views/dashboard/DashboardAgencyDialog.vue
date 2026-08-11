@@ -1,113 +1,115 @@
 <template>
   <v-dialog v-model="agencyEditDialog.show" width="90%" max-width="800" persistent scrollable>
-    <v-card class="glass-card overflow-hidden glass-card">
-      <div class="glass-panel d-flex align-center py-5 px-8 border-b">
-        <div class="glass-panel-light pa-2 rounded-lg me-4">
-          <LucideIcon name="edit-3" :size="24" class="text-accent" />
+    <v-card class="b2b-modal-card overflow-hidden" style="background: #FFFFFF; border: 1px solid #E5E1D8; border-radius: 16px;">
+      <div class="pa-4 px-6 d-flex align-center" style="background: #F7F3E8; border-bottom: 1px solid #E5E1D8;">
+        <div class="icon-circle-gold me-3">
+          <LucideIcon name="edit-3" :size="20" />
         </div>
-        <span class="text-h5 font-weight-black text-gold">تعديل بيانات الوكالة الشرعية</span>
+        <div>
+          <h3 class="text-h6 font-weight-black text-navy mb-0">تعديل بيانات الوكالة الشرعية</h3>
+          <span class="text-caption text-muted-gray">أدخل بيانات الموكل ورقم الوكالة ونطاق الصلاحيات الممنوحة</span>
+        </div>
         <v-spacer></v-spacer>
         <v-btn
-          class="premium-btn-gold-gradient"
-          variant="text"
-          color="gold"
           icon
+          variant="text"
+          class="rounded-circle close-btn"
           @click="$emit('close')"
         >
-          <LucideIcon name="x" :size="24" />
+          <LucideIcon name="x" :size="20" />
         </v-btn>
       </div>
 
-      <v-card-text class="pa-8 bg-white modal-scrollable poa-form">
-        <v-form ref="agencyFormRef" v-model="agencyEditDialog.valid" lazy-validation>
-          <v-row dense>
-            <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold">الموكل صاحب الوكالة*</label>
-              <v-autocomplete
-                v-model="agencyEditDialog.data.client_id"
-                :items="clients"
-                item-title="name"
-                item-value="id"
-                placeholder="ابحث عن اسم الموكل..."
-                variant="outlined"
-                class="glass-input"
-                :rules="[(v) => !!v || 'تعيين الموكل ضروري لإتمام التسجيل']"
-                no-data-text="لا يوجد موكلون مسجلون"
-                required
-              >
-                <template #prepend-inner>
-                  <LucideIcon name="user-cog" :size="20" class="text-gold opacity-50" />
-                </template>
-              </v-autocomplete>
-            </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">رقم الوكالة الرسمي*</label>
-              <v-text-field
-                v-model="agencyEditDialog.data.agency_number"
-                placeholder="مثال: 44123456"
-                variant="outlined"
-                class="glass-input"
-                :rules="[(v) => !!v || 'رقم الوكالة مطلوب للتحقق النظامي']"
-                required
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">تاريخ صدور الوكالة*</label>
-              <DualDatePicker v-model="agencyEditDialog.data.date" />
-            </v-col>
-            <v-col cols="12" md="4">
-              <label class="mb-2 font-weight-black text-gold">تاريخ انتهاء الوكالة</label>
-              <DualDatePicker v-model="agencyEditDialog.data.expiry_date" />
-            </v-col>
-            <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold"
-                >جهة الإصدار (كتابة عدل / منصة ناجز)</label
-              >
-              <v-text-field
-                v-model="agencyEditDialog.data.court"
-                placeholder="مثال: كتابة العدل الأولى بالرياض"
-                variant="outlined"
-                class="glass-input"
-              >
-                <template #prepend-inner>
-                  <LucideIcon name="landmark" :size="20" class="text-gold opacity-50" />
-                </template>
-              </v-text-field>
-            </v-col>
-            <v-col cols="12">
-              <label class="mb-2 font-weight-black text-gold"
-                >نطاق الوكالة / الصلاحيات الممنوحة</label
-              >
-              <v-textarea
-                v-model="agencyEditDialog.data.notes"
-                placeholder="دون هنا الصلاحيات الأساسية (المرافعة، الحجز، قبض الثمن...)"
-                variant="outlined"
-                rows="3"
-                class="glass-input"
-              >
-                <template #prepend-inner>
-                  <LucideIcon name="sticky-note" :size="20" class="text-gold opacity-50" />
-                </template>
-              </v-textarea>
-            </v-col>
-          </v-row>
-        </v-form>
+      <v-card-text class="pa-6 modal-scrollable poa-form" style="background: #F8F7F3;">
+        <div class="section-card-wrapper mb-0 pa-5">
+          <v-form ref="agencyFormRef" v-model="agencyEditDialog.valid" lazy-validation>
+            <v-row dense>
+              <v-col cols="12" class="mb-3">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">الموكل صاحب الوكالة *</label>
+                <v-autocomplete
+                  v-model="agencyEditDialog.data.client_id"
+                  :items="clients"
+                  item-title="name"
+                  item-value="id"
+                  placeholder="ابحث عن اسم الموكل..."
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  :rules="[(v) => !!v || 'تعيين الموكل ضروري لإتمام التسجيل']"
+                  no-data-text="لا يوجد موكلون مسجلون"
+                  required
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="user-cog" :size="18" class="text-gold-accent me-2" />
+                  </template>
+                </v-autocomplete>
+              </v-col>
+              <v-col cols="12" md="4" class="mb-3">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">رقم الوكالة الرسمي *</label>
+                <v-text-field
+                  v-model="agencyEditDialog.data.agency_number"
+                  placeholder="مثال: 44123456"
+                  variant="outlined"
+                  density="compact"
+                  hide-details="auto"
+                  :rules="[(v) => !!v || 'رقم الوكالة مطلوب للتحقق النظامي']"
+                  required
+                />
+              </v-col>
+              <v-col cols="12" md="4" class="mb-3">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">تاريخ صدور الوكالة *</label>
+                <DualDatePicker v-model="agencyEditDialog.data.date" />
+              </v-col>
+              <v-col cols="12" md="4" class="mb-3">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">تاريخ انتهاء الوكالة</label>
+                <DualDatePicker v-model="agencyEditDialog.data.expiry_date" />
+              </v-col>
+              <v-col cols="12" class="mb-3">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">جهة الإصدار (كتابة عدل / منصة ناجز)</label>
+                <v-text-field
+                  v-model="agencyEditDialog.data.court"
+                  placeholder="مثال: كتابة العدل الأولى بالرياض"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="landmark" :size="18" class="text-gold-accent me-2" />
+                  </template>
+                </v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <label class="text-caption font-weight-bold text-navy mb-1 d-block">نطاق الوكالة / الصلاحيات الممنوحة</label>
+                <v-textarea
+                  v-model="agencyEditDialog.data.notes"
+                  placeholder="دون هنا الصلاحيات الأساسية (المرافعة، الحجز، قبض الثمن...)"
+                  variant="outlined"
+                  rows="3"
+                  density="compact"
+                  hide-details
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="sticky-note" :size="18" class="text-gold-accent me-2" />
+                  </template>
+                </v-textarea>
+              </v-col>
+            </v-row>
+          </v-form>
+        </div>
       </v-card-text>
 
-      <v-divider class="border-gold opacity-10"></v-divider>
-      <v-card-actions class="pa-8 modal-footer-solid">
+      <v-divider />
+      <v-card-actions class="pa-4 px-6" style="background: #F7F3E8; border-top: 1px solid #E5E1D8;">
         <v-btn
           variant="outlined"
-          size="large"
-          class="px-8 font-weight-black rounded-lg text-white btn-secondary action-btn-unified"
+          class="pill-btn-cancel px-6"
           @click="$emit('close')"
           >إلغاء</v-btn
         >
         <v-spacer></v-spacer>
         <v-btn
           variant="flat"
-          size="large"
-          class="px-12 font-weight-black premium-button-highlight action-btn-unified h-56 premium-btn-gold-gradient"
+          class="pill-btn-gold-filled px-8"
           :disabled="!agencyEditDialog.valid"
           :loading="agencyEditDialog.saving"
           @click="$emit('save', agencyEditDialog.data)"

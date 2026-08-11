@@ -512,7 +512,7 @@ const stats = computed(() => [
   },
   {
     title: 'الخدمات القانونية',
-    value: legalStore.total,
+    value: typeof legalStore.total === 'number' ? legalStore.total : safeLength(legalStore.services),
     icon: 'scale',
     color: 'accent',
     to: '/legal-services'

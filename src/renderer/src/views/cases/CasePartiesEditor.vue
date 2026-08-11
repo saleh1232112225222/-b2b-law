@@ -1,10 +1,15 @@
 <template>
   <div class="parties-editor-container">
     <!-- Section Header -->
-    <div class="d-flex align-center justify-space-between mb-4 flex-wrap ga-3">
-      <div class="section-header-gold">
-        <LucideIcon name="users" :size="22" class="text-gold me-2" />
-        <span class="font-weight-black text-h6 text-gold">أطراف القضية (موكلين وخصوم)*</span>
+    <div class="d-flex align-center justify-space-between mb-4 pb-2 border-b-light flex-wrap ga-3">
+      <div class="d-flex align-center">
+        <div class="icon-circle-gold me-3">
+          <LucideIcon name="users" :size="18" />
+        </div>
+        <div>
+          <h4 class="text-h6 font-weight-black text-navy mb-0">أطراف القضية (موكلين وخصوم) *</h4>
+          <span class="text-caption text-muted-gray">أضف الموكلين والخصوم المرتبطين بالقضية</span>
+        </div>
       </div>
       <div class="d-flex ga-3 align-center">
         <v-btn
@@ -363,25 +368,18 @@ const onClientChange = (index: number, clientId: string): void => {
 </script>
 
 <style scoped>
-.section-header-gold {
-  border-right: 4px solid var(--primary, #735c00);
-  padding-right: 12px;
-  display: flex;
-  align-items: center;
-}
-
 .party-card-box {
-  background: transparent !important;
-  border: 1px solid var(--border, rgba(208, 198, 175, 0.4)) !important;
+  background: #F8F7F3 !important;
+  border: 1px solid #E5E1D8 !important;
   border-radius: 12px !important;
   transition: all 0.2s ease;
 }
 
 .party-card-client {
-  border-right: 4px solid var(--primary, #735c00) !important;
+  border-right: 4px solid #B08A2E !important;
 }
 
 .party-card-opponent {
-  border-right: 4px solid #d97706 !important;
+  border-right: 4px solid #D97706 !important;
 }
 </style>
