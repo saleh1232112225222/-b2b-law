@@ -427,8 +427,9 @@ async function saveCalendarSelection() {
     showCalendarModal.value = false
     pingFeedback.value = {
       success: true,
-      message: 'تم حفظ وتوثيق التقويم الافتراضي بنجاح 🟢'
+      message: 'تم حفظ وتوثيق التقويم الافتراضي وجاري مزامنة الجلسات بنجاح 🟢'
     }
+    await triggerManualSync()
   } else {
     calendarModalError.value = (res as any).error || (res as any).message || 'فشل حفظ التقويم المختار'
   }
