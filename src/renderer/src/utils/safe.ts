@@ -39,3 +39,17 @@ export function isValidDate(d: any): boolean {
   const date = new Date(d)
   return !isNaN(date.getTime())
 }
+
+/**
+ * Safely extracts/formats a date string to YYYY-MM-DD,
+ * stripping out ISO timestamp zero values (e.g. '2026-08-09T00:00:00.000Z' -> '2026-08-09').
+ */
+export function formatDateOnly(val: unknown, fallback: string = '—'): string {
+  if (!val) return fallback
+  const str = String(val).trim()
+  if (!str || str === 'undefined' || str === 'null') return fallback
+  if (str.includes('T')) return str.split('T')[0]
+  if (str.includes(' ')) return str.split(' ')[0]
+  return str
+}
+

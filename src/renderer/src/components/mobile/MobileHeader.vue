@@ -16,6 +16,8 @@
 
       <v-spacer />
 
+      <SyncStatusIndicator class="me-2" />
+
       <v-btn icon variant="text" class="mobile-action-btn text-ebony" @click="emit('toggle-theme')">
         <v-icon
           :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
@@ -28,6 +30,8 @@
 </template>
 
 <script setup lang="ts">
+import SyncStatusIndicator from '../sync/SyncStatusIndicator.vue'
+
 defineProps<{
   title: string
   isDark: boolean

@@ -54,7 +54,7 @@
       </template>
       <template #[`item.date`]="{ item }">
         <div class="d-flex flex-column text-start">
-          <span class="text-subtitle-2">{{ (item as Voucher).date || '-' }} مـ</span>
+          <span class="text-subtitle-2">{{ formatDateOnly((item as Voucher).date) }} مـ</span>
         </div>
       </template>
       <template #[`item.amount`]="{ item }">
@@ -319,7 +319,7 @@ import { useSearch } from '../../composables/useSearch'
 import { storeToRefs } from 'pinia'
 import DualDatePicker from '../DualDatePicker.vue'
 import { Voucher } from '../../types'
-import { safeArray, safeLength } from '../../utils/safe'
+import { safeArray, safeLength, formatDateOnly } from '../../utils/safe'
 import ConfirmDialog from '../common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../../composables/useConfirmDialog'
 import LucideIcon from '../common/LucideIcon.vue'

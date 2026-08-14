@@ -1,8 +1,11 @@
-import { Pool, PoolClient, QueryResult } from 'pg'
+import { Pool, PoolClient, QueryResult, types } from 'pg'
 import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as fs from 'fs'
 import * as path from 'path'
+
+// Return PostgreSQL DATE columns (OID 1082) as plain string 'YYYY-MM-DD' instead of Date object (prevents T00:00:00.000Z)
+types.setTypeParser(1082, (val: string) => val)
 
 // Simple helper to load .env since we don't have dotenv dependency
 try {

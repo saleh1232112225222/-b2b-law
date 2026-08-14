@@ -85,7 +85,7 @@
                 <td class="text-visible-high font-weight-black">{{ report.case.case_number }}</td>
                 <td class="cell-label-noir w-25">تاريخ القيد</td>
                 <td class="text-visible-medium font-weight-black">
-                  {{ report.case.registration_date || '-' }}
+                  {{ formatDate(report.case.registration_date) }}
                 </td>
               </tr>
               <tr>

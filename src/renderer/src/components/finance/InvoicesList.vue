@@ -45,7 +45,7 @@
       </template>
       <template #[`item.date`]="{ item }">
         <div class="d-flex flex-column text-start">
-          <span class="text-subtitle-2">{{ (item as Invoice).date || '-' }} مـ</span>
+          <span class="text-subtitle-2">{{ formatDateOnly((item as Invoice).date) }} مـ</span>
           <v-chip
             v-if="isValidDate((item as Invoice).date)"
             size="x-small"
@@ -321,7 +321,7 @@ import { useSearch } from '../../composables/useSearch'
 import DualDatePicker from '../DualDatePicker.vue'
 import { convertToHijri } from '../../utils/hijri'
 import { Invoice } from '../../types'
-import { safeArray, isValidDate } from '../../utils/safe'
+import { safeArray, isValidDate, formatDateOnly } from '../../utils/safe'
 import ConfirmDialog from '../common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../../composables/useConfirmDialog'
 import LucideIcon from '../common/LucideIcon.vue'
@@ -513,7 +513,7 @@ const getZatcaQrUrl = (invoice: Invoice): string => {
   }
 
   const toUtf8Bytes = (str: string): number[] => {
-    const utf8 = []
+    const utf8: number[] = []
     for (let i = 0; i < str.length; i++) {
       let charcode = str.charCodeAt(i)
       if (charcode < 0x80) utf8.push(charcode)

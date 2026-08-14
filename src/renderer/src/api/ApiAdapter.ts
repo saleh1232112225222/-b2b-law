@@ -2163,6 +2163,32 @@ const api = {
       mode === 'desktop'
         ? Promise.resolve({ success: true })
         : cloudRequest({ method: 'DELETE', url: `/time-tracking/${id}` })
+  },
+  sync: {
+    getStatus: () =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:status') || Promise.resolve({ status: 'synced', unresolvedConflicts: 0 }))
+        : cloudRequest({ method: 'GET', url: '/sync/status' }),
+    pull: (data: any) =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:pull', data) || Promise.resolve({ changes: {} }))
+        : cloudRequest({ method: 'POST', url: '/sync/pull', data }),
+    push: (data: any) =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:push', data) || Promise.resolve({ success: true, processed: 0, results: [] }))
+        : cloudRequest({ method: 'POST', url: '/sync/push', data }),
+    getConflicts: () =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:conflicts') || Promise.resolve([]))
+        : cloudRequest({ method: 'GET', url: '/sync/conflicts' }),
+    resolveConflict: (data: any) =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:resolve-conflict', data) || Promise.resolve({ success: true }))
+        : cloudRequest({ method: 'POST', url: '/sync/resolve-conflict', data }),
+    getLogs: (params?: any) =>
+      mode === 'desktop'
+        ? (window.ipcRenderer?.invoke('sync:logs', params) || Promise.resolve([]))
+        : cloudRequest({ method: 'GET', url: '/sync/logs', params })
   }
 }
 

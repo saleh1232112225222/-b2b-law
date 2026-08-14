@@ -75,6 +75,7 @@ import officeAccountsRouter from './routes/office_accounts'
 import officeManagementRouter from './routes/office_management'
 import { archiveRouter } from './routes/archive'
 import { timeTrackingRouter } from './routes/time_tracking'
+import { syncRouter } from './routes/sync'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -247,6 +248,7 @@ app.use('/api/office-accounts', officeAccountsRouter)
 app.use('/api/office-management', officeManagementRouter)
 app.use('/api/archive', archiveRouter)
 app.use('/api/time-tracking', timeTrackingRouter)
+app.use('/api/sync', syncRouter)
 
 // Finance stats endpoint - must be registered before the generic entity router
 app.get(

@@ -20,7 +20,7 @@
           /></template>
           <v-list-item-title class="font-weight-black text-primary">تاريخ القيد</v-list-item-title>
           <v-list-item-subtitle class="text-primary font-weight-bold"
-            >{{ caseItem.registration_date }} مـ |
+            >{{ formatDateOnly(caseItem.registration_date) }} مـ |
             {{ caseItem.registration_date_hijri }} هـ</v-list-item-subtitle
           >
         </v-list-item>
@@ -107,6 +107,7 @@
 
 <script setup lang="ts">
 import LucideIcon from '../../components/common/LucideIcon.vue'
+import { formatDateOnly } from '../../utils/safe'
 
 defineProps<{
   caseItem: any

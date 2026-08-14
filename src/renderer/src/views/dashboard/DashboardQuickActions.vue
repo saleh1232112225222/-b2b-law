@@ -62,6 +62,7 @@ const emit = defineEmits<{
 }>()
 
 const quickActions = [
+  { title: 'مزامنة البيانات الآن', icon: 'refresh-cw', onClick: 'sync' },
   { title: 'إضافة قضية', icon: 'scale', to: '/cases?new=1' },
   { title: 'موكل جديد', icon: 'user-plus', to: '/clients?new=1' },
   { title: 'تسجيل جلسة', icon: 'calendar-plus', to: '/sessions?new=1' },

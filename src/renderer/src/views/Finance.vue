@@ -234,8 +234,8 @@
                 </template>
 
                 <template #[`item.date`]="{ item }">
-                  <div class="text-tiny font-weight-black text-gold opacity-50 font-mono">
-                    {{ (item as Transaction).date }}
+                  <div class="text-tiny font-weight-black text-gold opacity-70 font-mono">
+                    {{ formatDateOnly((item as Transaction).date) }}
                   </div>
                 </template>
 
@@ -713,7 +713,7 @@ import OfficeManagementDashboard from '../components/finance/OfficeManagementDas
 import CreateCreditNoteModal from '../components/finance/CreateCreditNoteModal.vue'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
-import { safeArray, safeLength, valWithDefault as safeDefaults } from '../utils/safe'
+import { safeArray, safeLength, valWithDefault as safeDefaults, formatDateOnly } from '../utils/safe'
 import { useMobileLayout } from '../composables/useMobileLayout'
 import MobileFinance from '../components/mobile/MobileFinance.vue'
 

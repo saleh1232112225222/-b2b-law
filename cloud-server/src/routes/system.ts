@@ -429,6 +429,9 @@ systemRouter.post(
               }
               return val
             }
+            if (dtype === 'date' && typeof val === 'string' && val.includes('T')) {
+              return val.split('T')[0]
+            }
             if (
               dtype === 'uuid' &&
               typeof val === 'string' &&

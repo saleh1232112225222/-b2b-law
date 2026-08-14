@@ -208,6 +208,47 @@ export const useFinanceStore = defineStore('finance', () => {
     }
   }
 
+  const budgetStats = ref<any>({
+    income: 0,
+    expense: 0,
+    budget: 0,
+    utilization: 0,
+    lawyer_contributions: []
+  })
+  const budgets = ref<any[]>([])
+
+  const fetchBudgetStats = async (month?: number, year?: number) => {
+    try {
+      const res = await (window.api as any).officeManagement?.getBudgetStats?.({ month, year }) ||
+        await (window.api as any).reports?.getBudgetStats?.({ month, year })
+      if (res) {
+        budgetStats.value = res
+      }
+    } catch (e) {
+      console.warn('Could not fetch budget stats:', e)
+    }
+  }
+
+  const fetchBudgets = async (month?: number, year?: number) => {
+    try {
+      const res = await (window.api as any).officeManagement?.getBudgets?.({ month, year })
+      if (res) {
+        budgets.value = res
+      }
+    } catch (e) {
+      console.warn('Could not fetch budgets:', e)
+    }
+  }
+
+  const saveBudgets = async (payload: any) => {
+    try {
+      await (window.api as any).officeManagement?.saveBudgets?.(payload)
+      await fetchBudgets()
+    } catch (e) {
+      console.warn('Could not save budgets:', e)
+    }
+  }
+
   return {
     transactions,
     invoices,
@@ -234,6 +275,12 @@ export const useFinanceStore = defineStore('finance', () => {
     createInstallments,
     fetchInstallments,
     adjustFee,
-    closeFinance
+    closeFinance,
+    // Budget
+    budgetStats,
+    budgets,
+    fetchBudgetStats,
+    fetchBudgets,
+    saveBudgets
   }
 })

@@ -334,7 +334,7 @@
                 </template>
                 <template #[`item.date`]="{ item }">
                   <div class="text-caption font-weight-black text-gold opacity-60">
-                    {{ item.date }} مـ
+                    {{ formatDateOnly(item.date) }} مـ
                   </div>
                 </template>
               </v-data-table>
@@ -541,7 +541,7 @@
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { Client, Case, Agency } from '../types'
-import { safeArray, safeLength } from '../utils/safe'
+import { safeArray, safeLength, formatDateOnly } from '../utils/safe'
 import ClientForm from '../components/ClientForm.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'

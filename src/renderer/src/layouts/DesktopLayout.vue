@@ -197,6 +197,11 @@
             </v-chip>
           </template>
         </v-tooltip>
+
+        <v-divider vertical class="mx-1"></v-divider>
+
+        <!-- Sync Status & Button -->
+        <SyncStatusIndicator />
       </div>
 
       <div class="header-clock pa-2 px-4 rounded-xl border glass-card me-4 hidden-md-and-down">
@@ -284,6 +289,7 @@ import { useLicensingStore } from '../stores/licensing'
 import { useAppStore } from '../stores/app'
 import { useMobileLayout } from '../composables/useMobileLayout'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import SyncStatusIndicator from '../components/sync/SyncStatusIndicator.vue'
 import appLogo from '../assets/app-logo.png'
 
 const emit = defineEmits<{
@@ -460,7 +466,7 @@ const categorizedMenu = computed(() => {
       title: 'الإعدادات والأدوات',
       icon: 'settings-2',
       children: [
-        ...(session.value?.companyId === '00000000-0000-0000-0000-000000000000'
+        ...((session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000'
           ? [{ title: 'إدارة الاشتراكات', icon: 'crown', to: '/admin/subscriptions' }]
           : []),
         { title: 'إدارة المستخدمين', icon: 'users-2', to: '/users', perm: 'manage_users' },

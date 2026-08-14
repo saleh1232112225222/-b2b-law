@@ -163,6 +163,7 @@ import { useSessionsStore } from '../stores/sessions'
 import { useTasksStore } from '../stores/tasks'
 import { useLegalStore } from '../stores/legal'
 import { useAgenciesStore } from '../stores/agencies'
+import { useSyncStore } from '../stores/sync'
 import { safeArray, safeLength } from '../utils/safe'
 import { useMobileLayout } from '../composables/useMobileLayout'
 import { setFabAction, clearFabAction } from '../composables/useFabAction'
@@ -193,14 +194,27 @@ const sessionsStore = useSessionsStore()
 const tasksStore = useTasksStore()
 const legalStore = useLegalStore()
 const agenciesStore = useAgenciesStore()
+const syncStore = useSyncStore()
 
 const { isMobile } = useMobileLayout()
 const route = useRoute()
 const router = useRouter()
 
-const handleQuickAction = (action: string) => {
-  if (action === 'snapshot') handleSnapshotExport()
-  else if (action === 'backup') handleBackupExport()
+const handleQuickAction = async (action: string) => {
+  if (action === 'sync') {
+    showMessage('جارٍ مزامنة البيانات مع السحابة...', 'info')
+    const res = await syncStore.syncNow()
+    if (res.success) {
+      showMessage(res.message || 'تمت المزامنة بنجاح', 'success')
+      await fetchData()
+    } else {
+      showMessage(res.message || 'فشلت المزامنة', 'error')
+    }
+  } else if (action === 'snapshot') {
+    handleSnapshotExport()
+  } else if (action === 'backup') {
+    handleBackupExport()
+  }
 }
 
 const snackbar = ref({
