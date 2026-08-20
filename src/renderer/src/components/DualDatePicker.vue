@@ -96,8 +96,8 @@ const toYYYYMMDD = (val: any): string => {
   }
 
   // DD/MM/YYYY or DD-MM-YYYY
-  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/.test(str)) {
-    const parts = str.split(/[\/-]/)
+  if (/^\d{1,2}[/-]\d{1,2}[/-]\d{4}$/.test(str)) {
+    const parts = str.split(/[/-]/)
     const p1 = parseInt(parts[0], 10)
     const p2 = parseInt(parts[1], 10)
     const year = parts[2]

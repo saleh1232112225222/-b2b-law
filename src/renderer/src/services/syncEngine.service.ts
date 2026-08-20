@@ -113,8 +113,4 @@ export class SyncEngineService {
   public static setLastSync(time: string): void {
     localStorage.setItem(STORAGE_LAST_SYNC_KEY, time)
   }
-
-  public static getDeviceIdHeader(): string {
-    return this.getDeviceId()
-  }
 }
