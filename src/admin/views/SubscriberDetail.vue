@@ -545,7 +545,8 @@ onMounted(fetchAll)
   direction: rtl;
 }
 .glass-card {
-  background: rgba(255, 255, 255, 0.95) !important;
-  border: 1px solid rgba(212, 175, 55, 0.12);
+  background: var(--surface, #ffffff) !important;
+  border: 1px solid var(--border, rgba(212, 175, 55, 0.12)) !important;
+  color: var(--text-primary) !important;
 }
 </style>

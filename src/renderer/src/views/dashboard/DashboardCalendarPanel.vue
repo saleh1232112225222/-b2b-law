@@ -245,6 +245,59 @@ const filteredCells = computed(() => {
   color: #7f7663 !important;
 }
 
+/* Dark Mode Specific Overrides */
+[data-theme='dark'] .calendar-cell-mini {
+  background: #111F31 !important;
+  border: 1px solid #26364A !important;
+  color: #F3F6FA !important;
+}
+
+[data-theme='dark'] .calendar-cell-mini:hover {
+  background: rgba(229, 181, 43, 0.2) !important;
+  border-color: #E5B52B !important;
+}
+
+[data-theme='dark'] .calendar-day--muted {
+  background: rgba(17, 31, 49, 0.4) !important;
+  color: #5B697C !important;
+  border-color: rgba(38, 54, 74, 0.4) !important;
+}
+
+[data-theme='dark'] .calendar-day--selected {
+  background: rgba(229, 181, 43, 0.25) !important;
+  color: #F3F6FA !important;
+  border: 2px solid #E5B52B !important;
+  box-shadow: 0 0 12px rgba(229, 181, 43, 0.3) !important;
+}
+
+[data-theme='dark'] .calendar-head {
+  color: #E5B52B !important;
+}
+
+[data-theme='dark'] .border {
+  border-color: #26364A !important;
+}
+
+[data-theme='dark'] .border-b {
+  border-color: #26364A !important;
+}
+
+[data-theme='dark'] .detail-date-label {
+  color: #E5B52B !important;
+}
+
+[data-theme='dark'] .detail-title {
+  color: #F3F6FA !important;
+}
+
+[data-theme='dark'] .detail-subtitle {
+  color: #9EACBD !important;
+}
+
+[data-theme='dark'] .detail-empty-text {
+  color: #9EACBD !important;
+}
+
 @media (max-width: 768px) {
   .calendar-cell-mini {
     min-height: 36px !important;

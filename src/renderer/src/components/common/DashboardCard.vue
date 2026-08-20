@@ -147,14 +147,15 @@ const getHexColor = (colorName: string): string => {
 }
 
 [data-theme='dark'] .glass-card.premium-lift {
-  background: rgba(13, 21, 38, 0.7) !important;
-  border-color: rgba(233, 195, 73, 0.1) !important;
+  background: #0D1929 !important;
+  border: 1px solid #26364A !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
 [data-theme='dark'] .glass-card.premium-lift:hover {
-  border-color: rgba(233, 195, 73, 0.35) !important;
+  border-color: #E5B52B !important;
   box-shadow:
-    0 8px 32px -4px rgba(233, 195, 73, 0.12),
-    0 0 0 1px rgba(233, 195, 73, 0.08) !important;
+    0 8px 24px -4px rgba(229, 181, 43, 0.25),
+    0 0 0 1px rgba(229, 181, 43, 0.15) !important;
 }
 </style>

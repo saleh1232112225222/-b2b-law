@@ -7,7 +7,7 @@
         class="mobile-action-btn text-ebony"
         @click="emit('toggle-drawer')"
       >
-        <v-icon icon="mdi-menu" :size="22" color="#1F1B13" />
+        <v-icon icon="mdi-menu" :size="22" />
       </v-btn>
 
       <v-toolbar-title class="font-weight-black text-subtitle-1 text-center text-ebony">
@@ -22,7 +22,6 @@
         <v-icon
           :icon="isDark ? 'mdi-weather-sunny' : 'mdi-weather-night'"
           :size="22"
-          color="#1F1B13"
         />
       </v-btn>
     </div>

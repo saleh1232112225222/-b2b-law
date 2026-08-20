@@ -280,7 +280,7 @@ onMounted(() => {
 <style scoped>
 .admin-dashboard {
   padding: 24px;
-  background-color: #f5f5f5;
+  background-color: transparent;
   min-height: 100vh;
 }
 

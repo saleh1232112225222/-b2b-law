@@ -663,8 +663,19 @@ onUnmounted(() => {
 }
 
 [data-theme='dark'] .glass-header {
-  background: #0F172A !important;
-  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  background: #07111F !important;
+  border-bottom: 1px solid #26364A !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4) !important;
+}
+
+[data-theme='dark'] .header-clock {
+  background: #0D1929 !important;
+  border: 1px solid #26364A !important;
+}
+
+[data-theme='dark'] .status-container {
+  background: #0D1929 !important;
+  border: 1px solid #26364A !important;
 }
 
 .header-action-btn {
@@ -721,6 +732,11 @@ onUnmounted(() => {
   border-top: 1px solid var(--divider) !important;
   backdrop-filter: var(--glass-blur) !important;
   -webkit-backdrop-filter: var(--glass-blur) !important;
+}
+
+[data-theme='dark'] .glass-footer {
+  background: #07111F !important;
+  border-top: 1px solid #26364A !important;
 }
 
 .logout-btn-modern {

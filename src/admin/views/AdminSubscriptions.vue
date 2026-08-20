@@ -1101,13 +1101,15 @@ async function printReport() {
 }
 
 .stat-card {
-  background: white;
-  border-radius: 8px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
   display: flex;
   align-items: center;
   gap: 16px;
+  transition: all 0.2s ease;
 }
 
 .stat-icon {
@@ -1117,23 +1119,28 @@ async function printReport() {
 }
 
 .stat-icon.active {
-  background-color: #dcfce7;
+  background-color: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
 }
 
 .stat-icon.trial {
-  background-color: #fef3c7;
+  background-color: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
 .stat-icon.expired {
-  background-color: #fee2e2;
+  background-color: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
 }
 
 .stat-icon.canceled {
-  background-color: #e2e8f0;
+  background-color: rgba(148, 163, 184, 0.15);
+  border: 1px solid rgba(148, 163, 184, 0.3);
 }
 
 .stat-icon.none {
-  background-color: #f3f4f6;
+  background-color: rgba(148, 163, 184, 0.1);
+  border: 1px solid rgba(148, 163, 184, 0.2);
 }
 
 .stat-info {
@@ -1142,19 +1149,21 @@ async function printReport() {
 
 .stat-value {
   font-size: 24px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 800;
+  color: var(--text-primary, #1e293b);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #64748b;
+  font-weight: 600;
+  color: var(--text-secondary, #64748b);
 }
 
 .table-container {
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.1));
   overflow: hidden;
 }
 
@@ -1167,56 +1176,57 @@ async function printReport() {
 .subscriptions-table td {
   padding: 16px;
   text-align: right;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border, #e2e8f0);
+  color: var(--text-primary, #1e293b);
 }
 
 .subscriptions-table th {
-  background-color: #f8fafc;
-  font-weight: 600;
-  color: #475569;
+  background-color: var(--surface-variant, #f8fafc);
+  font-weight: 800;
+  color: var(--text-secondary, #475569);
 }
 
 .subscriptions-table tr:hover {
-  background-color: #f8fafc;
+  background-color: var(--surface-hover, rgba(0, 0, 0, 0.02));
 }
 
 .status-badge {
   display: inline-block;
   padding: 4px 12px;
-  border-radius: 4px;
+  border-radius: 6px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
 }
 
 .status-active {
-  background-color: #dcfce7;
-  color: #166534;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
 }
 
 .status-trial {
-  background-color: #fef3c7;
-  color: #92400e;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
 }
 
 .status-expired {
-  background-color: #fee2e2;
-  color: #991b1b;
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
 }
 
 .status-suspended {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
   border: 1px solid #fbbf24;
 }
 
 .status-canceled {
-  background-color: #e2e8f0;
-  color: #475569;
+  background-color: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
 }
 
 .status-none {
-  background-color: #f3f4f6;
-  color: #6b7280;
+  background-color: rgba(148, 163, 184, 0.1);
+  color: #94a3b8;
 }
 
 .actions {
@@ -1230,30 +1240,32 @@ async function printReport() {
   justify-content: center;
   width: 32px;
   height: 32px;
-  background-color: #f1f5f9;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
+  background-color: var(--surface-variant, #f1f5f9);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 6px;
+  color: var(--text-primary, #1e293b);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-icon:hover {
-  background-color: #e2e8f0;
+  background-color: var(--surface-hover, #e2e8f0);
 }
 
 .btn-icon.danger {
-  background-color: #fee2e2;
-  border-color: #fecaca;
+  background-color: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #ef4444;
 }
 
 .btn-icon.danger:hover {
-  background-color: #fee2e2;
+  background-color: rgba(239, 68, 68, 0.25);
 }
 
 .modal {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1269,14 +1281,16 @@ async function printReport() {
 }
 
 .modal-content {
-  background: white;
-  border-radius: 8px;
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
   padding: 24px;
   width: 90%;
   max-width: 600px;
   max-height: 90vh;
   overflow-y: auto;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-premium, 0 20px 25px -5px rgba(0, 0, 0, 0.2));
+  color: var(--text-primary, #1e293b);
 }
 
 .modal-header {
@@ -1288,8 +1302,8 @@ async function printReport() {
 
 .modal-header h3 {
   font-size: 20px;
-  font-weight: 600;
-  color: #1e293b;
+  font-weight: 700;
+  color: var(--text-primary, #1e293b);
 }
 
 .close-btn {
@@ -1297,11 +1311,11 @@ async function printReport() {
   border: none;
   font-size: 24px;
   cursor: pointer;
-  color: #64748b;
+  color: var(--text-secondary, #64748b);
 }
 
 .close-btn:hover {
-  color: #1e293b;
+  color: var(--text-primary, #1e293b);
 }
 
 .form-grid {
@@ -1319,15 +1333,17 @@ async function printReport() {
 
 .form-group label {
   font-size: 14px;
-  font-weight: 500;
-  color: #475569;
+  font-weight: 600;
+  color: var(--text-secondary, #475569);
 }
 
 .form-group input,
 .form-group select {
   padding: 10px 12px;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
+  border: 1px solid var(--border, #d1d5db);
+  background-color: var(--surface-variant, #ffffff);
+  color: var(--text-primary, #1e293b);
+  border-radius: 8px;
   font-size: 14px;
   transition: border-color 0.2s;
 }
@@ -1335,7 +1351,7 @@ async function printReport() {
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
+  border-color: var(--primary, #3b82f6);
 }
 
 .form-actions {
@@ -1346,15 +1362,16 @@ async function printReport() {
 }
 
 .company-info {
-  background-color: #f8fafc;
+  background-color: var(--surface-variant, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
   padding: 16px;
-  border-radius: 6px;
+  border-radius: 8px;
   margin-bottom: 24px;
 }
 
 .company-info p {
   margin: 8px 0;
-  color: #475569;
+  color: var(--text-secondary, #475569);
 }
 
 .checkbox-label {
@@ -1362,6 +1379,7 @@ async function printReport() {
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  color: var(--text-primary, #1e293b);
 }
 
 .checkbox-label input {

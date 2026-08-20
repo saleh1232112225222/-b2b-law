@@ -1073,7 +1073,8 @@ onMounted(async () => {
 
 /* Session Cards */
 .session-card {
-  background-color: #ffffff;
+  background-color: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e5e5e5);
 }
 .status-pill {
   padding: 3px 8px;
@@ -1081,12 +1082,12 @@ onMounted(async () => {
   font-size: 0.75rem;
 }
 .pill-green {
-  background-color: #dcfce7;
-  color: #15803d;
+  background-color: rgba(16, 185, 129, 0.15);
+  color: #10b981;
 }
 .pill-yellow {
-  background-color: #fef3c7;
-  color: #b45309;
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
 }
 .session-date-box {
   min-width: 80px;
@@ -1108,12 +1109,16 @@ onMounted(async () => {
   width: 100%;
 }
 .calendar-date-cell {
-  background-color: #f4f4f5;
+  background-color: var(--surface-variant, #f4f4f5);
+  color: var(--text-primary, #1e293b);
+  border: 1px solid var(--border, #e5e5e5);
   font-size: 0.85rem;
 }
 .cell-today {
-  background-color: #18181b !important;
-  color: #ffffff !important;
+  background-color: var(--primary, #e9c349) !important;
+  color: #000000 !important;
+  font-weight: 800 !important;
+  border: 1.5px solid var(--primary, #e9c349) !important;
 }
 .dot {
   width: 6px;
@@ -1134,7 +1139,7 @@ onMounted(async () => {
 /* Revenue Summary */
 .revenue-progress-track {
   height: 10px;
-  background-color: #f3e8ff;
+  background-color: rgba(147, 51, 234, 0.15);
   overflow: hidden;
 }
 .revenue-progress-fill {
@@ -1144,9 +1149,33 @@ onMounted(async () => {
 
 /* Quick Actions */
 .quick-action-btn {
-  border: 1px solid #e5e5e5 !important;
-  background-color: #ffffff !important;
+  border: 1px solid var(--border, #e5e5e5) !important;
+  background-color: var(--surface, #ffffff) !important;
+  color: var(--text-primary) !important;
   text-transform: none;
+}
+
+[data-theme='dark'] .stat-card {
+  background-color: #0D1929 !important;
+  border: 1px solid #26364A !important;
+  color: #F3F6FA !important;
+}
+
+[data-theme='dark'] .session-card {
+  background-color: #0D1929 !important;
+  border-color: #26364A !important;
+}
+
+[data-theme='dark'] .quick-action-btn {
+  background-color: #0D1929 !important;
+  border-color: #26364A !important;
+  color: #F3F6FA !important;
+}
+
+[data-theme='dark'] .calendar-date-cell {
+  background-color: #111F31 !important;
+  border-color: #26364A !important;
+  color: #F3F6FA !important;
 }
 
 /* Responsive Font & Layout Scaling for Mobile Viewports */
