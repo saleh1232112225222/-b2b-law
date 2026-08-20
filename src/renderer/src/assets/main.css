@@ -984,7 +984,7 @@ body,
   user-select: text;
   height: 100vh !important;
   width: 100vw !important;
-  font-family: 'Cairo', 'Inter', 'Manrope', sans-serif !important;
+  font-family: 'Cairo', 'Tajawal', 'Almarai', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans Arabic', Tahoma, Arial, sans-serif !important;
   background-color: var(--background);
   color: var(--text-primary);
   -webkit-font-smoothing: antialiased;

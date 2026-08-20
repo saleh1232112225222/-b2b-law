@@ -539,23 +539,17 @@ async function testConnection(item: IntegrationService) {
 }
 
 async function triggerManualSync() {
-  pingFeedback.value = null
-  const res = await integrationsStore.triggerSync()
-  if (res && res.success) {
-    pingFeedback.value = {
-      success: true,
-      message: `تمت المزامنة بنجاح 🟢 (${(res as any).syncedCount || 0} جلسة قادمة تم رفعها إلى Google Calendar)`
-    }
-  } else {
-    pingFeedback.value = {
-      success: false,
-      message: integrationsStore.error || 'تعذر إكمال عملية المزامنة'
-    }
+  pingFeedback.value = {
+    success: true,
+    message: 'عزيزي المستخدم: ميزة التكامل والربط الخارجي قيد التطوير والترقية حالياً، وسوف تتاح بكامل خصائصها في الإصدارات القادمة بإذن الله 💡'
   }
 }
 
 async function handleSyncAll() {
-  await triggerManualSync()
+  pingFeedback.value = {
+    success: true,
+    message: 'عزيزي المستخدم: خدمات التكامل والربط الخارجي قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله 💡'
+  }
 }
 
 function formatDate(isoStr: string | null) {

@@ -49,6 +49,10 @@ body {
   background: var(--color-background);
   line-height: 1.6;
   font-family:
+    'Cairo',
+    'Tajawal',
+    'Almarai',
+    'Noto Sans Arabic',
     Inter,
     -apple-system,
     BlinkMacSystemFont,

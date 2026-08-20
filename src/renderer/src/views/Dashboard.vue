@@ -149,6 +149,17 @@
         :loading="confirmDialog.loading"
         @confirm="confirmDialog.action"
       />
+
+      <!-- Dashboard Notification Snackbar -->
+      <v-snackbar
+        v-model="snackbar.show"
+        :color="snackbar.color"
+        :timeout="snackbar.timeout"
+        location="bottom"
+        class="font-weight-bold text-center"
+      >
+        {{ snackbar.text }}
+      </v-snackbar>
     </v-container>
   </template>
 </template>
@@ -202,14 +213,8 @@ const router = useRouter()
 
 const handleQuickAction = async (action: string) => {
   if (action === 'sync') {
-    showMessage('جارٍ مزامنة البيانات مع السحابة...', 'info')
     const res = await syncStore.syncNow()
-    if (res.success) {
-      showMessage(res.message || 'تمت المزامنة بنجاح', 'success')
-      await fetchData()
-    } else {
-      showMessage(res.message || 'فشلت المزامنة', 'error')
-    }
+    showMessage(res.message || 'عزيزي المستخدم: خدمة المزامنة قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله.', 'info')
   } else if (action === 'snapshot') {
     handleSnapshotExport()
   } else if (action === 'backup') {

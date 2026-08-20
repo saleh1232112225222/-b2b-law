@@ -31,13 +31,17 @@ const STORAGE_DEVICE_KEY = 'b2b_device_id'
 const STORAGE_LAST_SYNC_KEY = 'b2b_last_sync_timestamp'
 
 export class SyncEngineService {
-  private static getDeviceId(): string {
+  public static getDeviceId(): string {
     let id = localStorage.getItem(STORAGE_DEVICE_KEY)
     if (!id) {
       id = 'dev_' + uuidv4().slice(0, 8)
       localStorage.setItem(STORAGE_DEVICE_KEY, id)
     }
     return id
+  }
+
+  public static getDeviceIdHeader(): string {
+    return this.getDeviceId()
   }
 
   public static getPendingQueue(): SyncQueueItem[] {

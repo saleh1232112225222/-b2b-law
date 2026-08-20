@@ -43,7 +43,13 @@
     <ConflictResolutionModal v-model="showConflictModal" />
 
     <!-- Notification Snackbar -->
-    <v-snackbar v-model="snackbar" :color="snackbarColor" timeout="3000">
+    <v-snackbar
+      v-model="snackbar"
+      :color="snackbarColor"
+      timeout="4000"
+      location="bottom"
+      class="font-weight-bold text-center"
+    >
       {{ snackbarText }}
     </v-snackbar>
   </div>
@@ -107,16 +113,8 @@ const handleBadgeClick = () => {
 
 const triggerSync = async () => {
   const res = await syncStore.syncNow()
-  if (res.success) {
-    snackbarText.value = res.message || 'تمت المزامنة بنجاح'
-    snackbarColor.value = 'success'
-  } else {
-    snackbarText.value = res.message || 'فشلت المزامنة'
-    snackbarColor.value = 'error'
-    if (conflictCount.value > 0) {
-      showConflictModal.value = true
-    }
-  }
+  snackbarText.value = res.message || 'عزيزي المستخدم: خدمة المزامنة قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله.'
+  snackbarColor.value = 'info'
   snackbar.value = true
 }
 </script>

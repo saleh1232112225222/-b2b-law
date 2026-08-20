@@ -84,7 +84,13 @@ app.set('trust proxy', 1)
 const PORT = parseInt(process.env.PORT || '8080', 10)
 
 const allowedOrigins = [
-  process.env.FRONTEND_URL || 'https://b2b-law.netlify.app',
+  process.env.FRONTEND_URL || 'https://app.saleh-lawyer.com',
+  'https://app.saleh-lawyer.com',
+  'https://saleh-lawyer.com',
+  'https://www.saleh-lawyer.com',
+  'https://b2b-law.netlify.app',
+  'https://lawer496.com',
+  'https://www.lawer496.com',
   'https://b2blaw.com',
   'http://localhost:5173',
   'http://localhost:8080',
@@ -122,7 +128,7 @@ app.use(
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", process.env.FRONTEND_URL || 'https://b2b-law.netlify.app']
+        connectSrc: ["'self'", 'https://app.saleh-lawyer.com', 'https://saleh-lawyer.com', 'https://lawer496.com', process.env.FRONTEND_URL || 'https://b2b-law.netlify.app']
       }
     },
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
