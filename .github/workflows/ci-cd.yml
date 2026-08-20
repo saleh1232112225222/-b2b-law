@@ -3,6 +3,8 @@ name: CI/CD
 on:
   push:
     branches: [main]
+    tags:
+      - 'v*'
   pull_request:
     branches: [main]
 
@@ -125,7 +127,7 @@ jobs:
 
   docker:
     name: Docker Build & Push
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -148,6 +150,7 @@ jobs:
           images: ghcr.io/${{ github.repository_owner }}/b2b-law-server
           tags: |
             type=raw,value=latest
+            type=ref,event=tag
             type=sha,prefix=
 
       - name: Set up Docker Buildx
@@ -165,7 +168,7 @@ jobs:
 
   deploy:
     name: Deploy
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && github.event_name == 'push'
     needs: [build, docker]
     runs-on: ubuntu-latest
     steps:
