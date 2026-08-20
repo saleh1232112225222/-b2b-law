@@ -1,20 +1,20 @@
 <template>
-  <div v-if="isMockMode" class="mock-banner-container">
+  <div class="mock-banner-container">
     <div class="mock-banner-content">
-      <LucideIcon name="info" :size="18" class="text-gold banner-icon" />
+      <LucideIcon name="shield-check" :size="18" class="text-gold banner-icon" />
       <span class="banner-text">
-        وضع التحقق التجريبي نشط: لن يتم إرسال رسائل بريد حقيقية. الرمز الافتراضي هو
-        <strong class="otp-highlight">123456</strong>
+        بوابة الدخول الآمنة | نظام B2B-LAW لإدارة مكاتب المحاماة
+      </span>
+      <span class="security-badge">
+        <LucideIcon name="lock" :size="13" class="text-gold lock-icon" />
+        اتصال مشفر 256-Bit SSL
       </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import LucideIcon from './common/LucideIcon.vue'
-
-const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
 </script>
 
 <style scoped>
@@ -24,27 +24,33 @@ const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
   left: 0;
   right: 0;
   z-index: 9999;
-  background: rgba(20, 16, 10, 0.9);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.6);
+  background: rgba(15, 20, 35, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  padding: 12px 24px;
+  padding: 8px 20px;
   animation: slideDown 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .mock-banner-content {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: center;
+  gap: 12px;
   color: #eaeaea;
-  font-size: 0.95rem;
+  font-size: 0.88rem;
   font-weight: 500;
-  letter-spacing: 0.5px;
   direction: rtl;
+  flex-wrap: wrap;
+}
+
+.banner-text {
+  color: #f0f0f0;
+  letter-spacing: 0.2px;
 }
 
 .text-gold {
@@ -52,18 +58,24 @@ const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
 }
 
 .banner-icon {
-  animation: pulse-glow 2s infinite ease-in-out;
+  animation: pulse-glow 2.5s infinite ease-in-out;
 }
 
-.otp-highlight {
+.lock-icon {
+  margin-left: 4px;
+}
+
+.security-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(229, 193, 88, 0.12);
   color: #e5c158;
-  background: rgba(229, 193, 88, 0.15);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
   border: 1px solid rgba(229, 193, 88, 0.3);
-  margin: 0 6px;
-  font-family: monospace;
-  font-size: 1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.3px;
 }
 
 @keyframes slideDown {
@@ -82,8 +94,8 @@ const isMockMode = computed(() => import.meta.env.VITE_USE_MOCK_OTP === 'true')
     filter: drop-shadow(0 0 2px rgba(229, 193, 88, 0.4));
   }
   50% {
-    transform: scale(1.15);
-    filter: drop-shadow(0 0 8px rgba(229, 193, 88, 0.8));
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 6px rgba(229, 193, 88, 0.7));
   }
 }
 </style>
