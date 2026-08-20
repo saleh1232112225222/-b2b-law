@@ -49,12 +49,12 @@
             <v-btn
               variant="text"
               color="gold"
-              class="px-0 text-body-1 font-weight-black hover-gold"
+              class="px-0 text-body-1 font-weight-black hover-gold text-gold"
               @click="$emit('edit', item)"
             >
               {{ item.date ? item.date.split('T')[0] : '' }} م
             </v-btn>
-            <span class="text-tiny text-gold opacity-60 font-weight-black"
+            <span class="text-tiny text-gold font-weight-bold"
               >{{ item.date_hijri || '---' }} هـ</span
             >
             <v-btn
@@ -72,8 +72,8 @@
 
         <template #[`item.time`]="{ item }">
           <div class="d-flex align-center justify-center">
-            <LucideIcon name="clock" :size="14" class="text-gold opacity-50 me-2" />
-            <span class="font-weight-black text-white">{{ item.time || '--:--' }}</span>
+            <LucideIcon name="clock" :size="14" class="text-gold me-2" />
+            <span class="font-weight-black text-visible-high">{{ item.time || '--:--' }}</span>
           </div>
         </template>
 
@@ -82,13 +82,13 @@
             v-if="item.client_id"
             variant="text"
             color="gold"
-            class="px-0 text-body-2 font-weight-black opacity-80 hover-gold"
+            class="px-0 text-body-2 font-weight-black text-gold hover-gold"
             :to="'/clients/' + item.client_id"
             density="compact"
           >
             {{ item.client_name }}
           </v-btn>
-          <div v-else class="text-body-2 font-weight-black text-white opacity-40">
+          <div v-else class="text-body-2 font-weight-black text-visible-high">
             {{ item.client_name || 'بدون موكل' }}
           </div>
         </template>
@@ -98,19 +98,19 @@
             v-if="item.case_id"
             variant="text"
             color="accent"
-            class="px-0 text-body-2 font-weight-black hover-gold"
+            class="px-0 text-body-2 font-weight-black text-accent hover-gold"
             :to="'/cases/' + item.case_id"
             density="compact"
           >
             {{ item.case_number }}
           </v-btn>
-          <div v-else class="text-body-2 font-weight-black text-accent opacity-60">
+          <div v-else class="text-body-2 font-weight-black text-accent">
             {{ item.case_number }}
           </div>
         </template>
 
         <template #[`item.court_room`]="{ item }">
-          <span class="text-body-2 font-weight-black text-white opacity-80">
+          <span class="text-body-2 font-weight-black text-visible-high">
             {{ item.court_room || '---' }}
           </span>
         </template>

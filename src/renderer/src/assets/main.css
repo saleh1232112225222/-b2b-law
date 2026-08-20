@@ -470,6 +470,8 @@
 [data-theme='dark'] .text-ebony,
 [data-theme='dark'] .text-main,
 [data-theme='dark'] .text-high-emphasis,
+[data-theme='dark'] .text-visible-high,
+[data-theme='dark'] .text-white,
 [data-theme='dark'] .text-primary,
 [data-theme='dark'] .v-card-title,
 [data-theme='dark'] .v-toolbar-title,
@@ -495,6 +497,7 @@
 }
 
 [data-theme='dark'] .text-gold-accent,
+[data-theme='dark'] .text-accent,
 [data-theme='dark'] .text-gold {
   color: #E5B52B !important;
 }

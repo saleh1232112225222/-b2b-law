@@ -60,8 +60,8 @@
               <LucideIcon name="scale" :size="24" class="text-accent" />
             </div>
             <div>
-              <div class="text-tiny font-weight-black text-white mb-1">إجمالي الخدمات</div>
-              <div class="text-h5 font-weight-black text-gold">{{ store.total }}</div>
+              <div class="text-body-2 font-weight-black text-visible-high mb-1">إجمالي الخدمات</div>
+              <div class="text-h4 font-weight-black text-gold">{{ store.total }}</div>
             </div>
           </div>
         </v-card>
@@ -76,8 +76,8 @@
               <LucideIcon name="clock" :size="24" class="text-accent" />
             </div>
             <div>
-              <div class="text-tiny font-weight-black text-white mb-1">قيد العمل</div>
-              <div class="text-h5 font-weight-black text-gold">{{ inProgressCount }}</div>
+              <div class="text-body-2 font-weight-black text-visible-high mb-1">قيد العمل</div>
+              <div class="text-h4 font-weight-black text-gold">{{ inProgressCount }}</div>
             </div>
           </div>
         </v-card>
@@ -92,8 +92,8 @@
               <LucideIcon name="check-circle" :size="24" class="text-accent" />
             </div>
             <div>
-              <div class="text-tiny font-weight-black text-white mb-1">منجزة</div>
-              <div class="text-h5 font-weight-black text-gold">{{ completedCount }}</div>
+              <div class="text-body-2 font-weight-black text-visible-high mb-1">منجزة</div>
+              <div class="text-h4 font-weight-black text-gold">{{ completedCount }}</div>
             </div>
           </div>
         </v-card>
@@ -108,7 +108,7 @@
               <LucideIcon name="banknote" :size="24" class="text-accent" />
             </div>
             <div>
-              <div class="text-tiny font-weight-black text-white mb-1">المستحقات المعلقة</div>
+              <div class="text-body-2 font-weight-black text-visible-high mb-1">المستحقات المعلقة</div>
               <div class="text-h5 font-weight-black text-gold">
                 {{ formatCurrency(totalRemainingFees) }}
               </div>
