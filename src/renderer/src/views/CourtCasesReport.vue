@@ -74,7 +74,7 @@
             clearable
           />
         </v-col>
-        <v-col cols="12" class="d-flex justify-end gap-3 mt-6">
+        <v-col cols="12" class="report-actions d-flex justify-end gap-3 mt-6">
           <v-btn
             color="accent"
             variant="flat"
@@ -87,7 +87,7 @@
             <LucideIcon name="refresh-cw" :size="18" class="me-2" /> توليد التقرير
           </v-btn>
 
-          <v-divider vertical class="mx-2 border-gold opacity-10" />
+          <v-divider vertical class="report-actions-divider mx-2 border-gold opacity-10" />
 
           <v-btn
             variant="tonal"
@@ -616,6 +616,31 @@ onMounted(() => {
   :deep(.v-card-actions .v-btn) {
     flex: 1 1 auto !important;
     min-width: 100px !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .report-page {
+    padding-inline: 12px !important;
+  }
+
+  .report-page > :deep(.v-card.pa-8) {
+    padding: 14px !important;
+  }
+
+  .report-actions {
+    align-items: stretch !important;
+    flex-direction: column !important;
+  }
+
+  .report-actions :deep(.v-btn) {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-inline: 0 !important;
+  }
+
+  .report-actions-divider {
+    display: none !important;
   }
 }
 </style>

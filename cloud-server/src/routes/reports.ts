@@ -14,7 +14,7 @@ reportsRouter.get(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const { caseId } = req.query
+      const { caseId, from, to } = req.query
       if (!caseId) {
         res.status(400).json({ error: 'معرف القضية مطلوب' })
         return
@@ -29,26 +29,62 @@ reportsRouter.get(
       }
       const caseRow = caseData.rows[0]
 
-      const sessions = await query(
-        'SELECT * FROM sessions WHERE case_id = $1 AND company_id = $2 ORDER BY date DESC',
-        [caseId, companyId]
+      const appendDateRange = (
+        sql: string,
+        values: any[],
+        column: string
+      ): { sql: string; values: any[] } => {
+        let filteredSql = sql
+        if (from) {
+          values.push(from)
+          filteredSql += ` AND ${column} >= $${values.length}`
+        }
+        if (to) {
+          values.push(to)
+          filteredSql += ` AND ${column} <= $${values.length}`
+        }
+        return { sql: filteredSql, values }
+      }
+
+      const sessionsFilter = appendDateRange(
+        'SELECT * FROM sessions WHERE case_id = $1 AND company_id = $2',
+        [caseId, companyId],
+        'date'
       )
-      const tasks = await query(
-        'SELECT * FROM tasks_v2 WHERE case_id = $1 AND company_id = $2 ORDER BY created_at DESC',
-        [caseId, companyId]
+      const tasksFilter = appendDateRange(
+        'SELECT * FROM tasks_v2 WHERE case_id = $1 AND company_id = $2',
+        [caseId, companyId],
+        'created_at'
       )
-      const finances = await query(
+      const financesFilter = appendDateRange(
         'SELECT * FROM finances WHERE case_id = $1 AND company_id = $2',
-        [caseId, companyId]
+        [caseId, companyId],
+        'date'
       )
-      const documents = await query(
+      const documentsFilter = appendDateRange(
         'SELECT * FROM documents_v2 WHERE case_id = $1 AND company_id = $2',
-        [caseId, companyId]
+        [caseId, companyId],
+        'created_at'
       )
-      const activityLogs = await query(
-        `SELECT * FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 50`,
-        [companyId]
+      const activityFilter = appendDateRange(
+        `SELECT * FROM activity_logs
+         WHERE company_id = $1
+           AND (
+             entity_id = $2
+             OR metadata_json ->> 'caseId' = $2
+             OR metadata_json ->> 'case_id' = $2
+           )`,
+        [companyId, String(caseId)],
+        'timestamp'
       )
+
+      const [sessions, tasks, finances, documents, activityLogs] = await Promise.all([
+        query(`${sessionsFilter.sql} ORDER BY date DESC`, sessionsFilter.values),
+        query(`${tasksFilter.sql} ORDER BY created_at DESC`, tasksFilter.values),
+        query(`${financesFilter.sql} ORDER BY date DESC`, financesFilter.values),
+        query(`${documentsFilter.sql} ORDER BY created_at DESC`, documentsFilter.values),
+        query(`${activityFilter.sql} ORDER BY timestamp DESC LIMIT 50`, activityFilter.values)
+      ])
 
       // Build timeline combining sessions, tasks, documents
       const timelineRows: any[] = []
@@ -1345,8 +1381,12 @@ reportsRouter.get(
       const offset = (parseInt(page as string) - 1) * limit
 
       const isArchived = status === 'archived'
-      let countSql = 'SELECT COUNT(*) FROM memoranda WHERE company_id = $1 AND is_archived = $2'
-      let sql = 'SELECT * FROM memoranda WHERE company_id = $1 AND is_archived = $2'
+      let countSql = `SELECT COUNT(*) FROM memoranda
+                      WHERE company_id = $1
+                        AND COALESCE((to_jsonb(memoranda) ->> 'is_archived')::boolean, false) = $2`
+      let sql = `SELECT * FROM memoranda
+                 WHERE company_id = $1
+                   AND COALESCE((to_jsonb(memoranda) ->> 'is_archived')::boolean, false) = $2`
       const params: any[] = [companyId, isArchived]
       let idx = 3
       if (from) {
