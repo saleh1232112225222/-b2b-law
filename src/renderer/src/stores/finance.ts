@@ -62,11 +62,7 @@ export const useFinanceStore = defineStore('finance', () => {
   const addInvoice = async (record: Partial<Invoice>) => {
     try {
       const dataToSave = JSON.parse(JSON.stringify(record))
-      const invoiceId = await window.api.invoices.create(dataToSave)
-
-      // Phase 4: Auto-create receivable from invoice
-      const invoice = { ...dataToSave, id: invoiceId } as Invoice
-      await window.api.receivables.createFromInvoice(invoice)
+      await window.api.invoices.createWithReceivable(dataToSave)
 
       await fetchFinanceData()
     } catch (e: unknown) {
@@ -78,17 +74,18 @@ export const useFinanceStore = defineStore('finance', () => {
   const addVoucher = async (record: Partial<Voucher>) => {
     try {
       const dataToSave = JSON.parse(JSON.stringify(record))
-      await window.api.vouchers.create(dataToSave)
+      const result = await window.api.vouchers.createLinked(dataToSave)
       await fetchFinanceData()
+      return result
     } catch (e: unknown) {
       error.value = (e as Error).message
       throw e
     }
   }
 
-  const applyReceivablePayment = async (id: string, amount: number) => {
+  const applyReceivablePayment = async (id: string, amount: number, accountId?: string) => {
     try {
-      await window.api.receivables.applyPayment(id, amount)
+      await window.api.receivables.applyPayment(id, amount, accountId)
       await fetchFinanceData()
     } catch (e: unknown) {
       error.value = (e as Error).message
@@ -138,6 +135,7 @@ export const useFinanceStore = defineStore('finance', () => {
       amount: number
       payment_method?: string
       payment_schedule_id?: string
+      account_id?: string
       notes?: string
     }
   ) => {

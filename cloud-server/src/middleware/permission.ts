@@ -25,6 +25,8 @@ export const DEFAULT_PERMISSIONS = [
   { key: 'create_documents', name: 'إضافة المستندات', module: 'documents' },
   { key: 'view_finances', name: 'عرض المالية', module: 'finances' },
   { key: 'create_finances', name: 'إضافة مالية', module: 'finances' },
+  { key: 'delete_finances', name: 'حذف مالية', module: 'finances' },
+  { key: 'manage_office', name: 'إدارة المكتب', module: 'finances' },
   { key: 'view_contracts', name: 'عرض العقود', module: 'contracts' },
   { key: 'create_contracts', name: 'إضافة عقود', module: 'contracts' },
   { key: 'view_enforcement', name: 'عرض طلبات التنفيذ', module: 'enforcement' },

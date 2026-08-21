@@ -29,6 +29,8 @@ export type ReportExportPdfPayload = {
 export type ReportExportPdfResult = {
   saved: boolean
   path?: string
+  filename?: string
+  opened?: boolean
 }
 
 export type ReportExportCsvPayload = {
@@ -38,7 +40,9 @@ export type ReportExportCsvPayload = {
 
 export type ReportExportCsvResult = {
   filename: string
-  csv: string
+  csv?: string
+  saved?: boolean
+  path?: string
 }
 
 export type UserListRow = {

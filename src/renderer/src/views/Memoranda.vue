@@ -87,12 +87,8 @@
           </v-col>
           <v-spacer />
           <v-col cols="auto">
-            <div
-              class="glass-panel-light px-6 py-2 rounded-lg border-gold d-flex align-center"
-            >
-              <span class="text-gold font-weight-black me-3 text-tiny"
-                >إجمالي المذكرات</span
-              >
+            <div class="glass-panel-light px-6 py-2 rounded-lg border-gold d-flex align-center">
+              <span class="text-gold font-weight-black me-3 text-tiny">إجمالي المذكرات</span>
               <span class="text-h6 font-weight-black text-gold">{{ filteredMemos.length }}</span>
             </div>
           </v-col>
@@ -152,9 +148,7 @@
           <!-- Column: Case (Client vs Opponent) -->
           <template #[`item.case_info`]="{ item }">
             <div class="d-flex flex-column py-2">
-              <div
-                class="font-weight-black text-body-2 mb-1 d-flex align-center text-dark-primary"
-              >
+              <div class="font-weight-black text-body-2 mb-1 d-flex align-center text-dark-primary">
                 <LucideIcon name="briefcase" :size="15" class="me-2 text-gold" />
                 {{ item.case_number || 'مستقلة' }}
               </div>
@@ -744,7 +738,7 @@ const exportCsv = async () => {
       showSnackbar('لا يوجد بيانات للتصدير', 'warning')
       return
     }
-    const res = await (window as any).api.reports.exportCsv({
+    await (window as any).api.reports.exportCsv({
       filename: 'memoranda_list.csv',
       rows: data.map((m) => ({
         العنوان: m.memo_title,
@@ -755,13 +749,6 @@ const exportCsv = async () => {
         الحالة: m.memo_status
       }))
     })
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
     showSnackbar('تم تصدير ملف CSV بنجاح')
   } catch {
     showSnackbar('فشل تصدير CSV', 'error')

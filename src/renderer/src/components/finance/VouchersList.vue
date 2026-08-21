@@ -63,7 +63,14 @@
         >
       </template>
       <template #[`item.actions`]="{ item }">
-        <v-btn :icon="ICONS.SYSTEM.PRINTER" variant="text" color="primary" size="small"></v-btn>
+        <v-btn
+          :icon="ICONS.SYSTEM.PRINTER"
+          variant="text"
+          color="primary"
+          size="small"
+          aria-label="طباعة السند"
+          @click="printVoucher(item as Voucher)"
+        ></v-btn>
         <v-btn
           :icon="ICONS.ACTION.DELETE"
           variant="text"
@@ -89,6 +96,9 @@
           ></v-btn>
         </v-toolbar>
         <v-card-text class="pa-6 bg-grey-lighten-4 modal-scrollable">
+          <v-alert v-if="saveError" type="error" variant="tonal" class="mb-4" closable @click:close="saveError = ''">
+            {{ saveError }}
+          </v-alert>
           <v-form ref="formRef" v-model="formValid">
             <v-row dense>
               <v-col cols="12">
@@ -231,7 +241,7 @@
     </v-dialog>
 
     <v-dialog v-model="showVoucherViewDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card v-if="voucherToView" class="rounded-xl modal-card glass-card">
+      <v-card v-if="voucherToView" class="rounded-xl modal-card glass-card voucher-print">
         <v-toolbar color="primary" class="px-6" height="72">
           <LucideIcon name="receipt-text" :size="24" class="text-white me-3" />
           <v-toolbar-title class="font-weight-black text-white">عرض السند</v-toolbar-title>
@@ -291,6 +301,7 @@
         </v-card-text>
         <v-card-actions class="pa-6 bg-white modal-footer-sticky">
           <v-spacer></v-spacer>
+          <v-btn color="primary" variant="tonal" @click="printCurrentVoucher">طباعة</v-btn>
           <v-btn variant="text" size="large" @click="showVoucherViewDialog = false">إغلاق</v-btn>
         </v-card-actions>
       </v-card>
@@ -312,7 +323,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { useClientsStore } from '../../stores/clients'
 import { useSearch } from '../../composables/useSearch'
@@ -348,6 +359,7 @@ const showVoucherViewDialog = ref(false)
 const voucherToView = ref<Voucher | null>(null)
 const formValid = ref(false)
 const saving = ref(false)
+const saveError = ref('')
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
 
 const headers = [
@@ -458,6 +470,7 @@ const openAddDialog = (): void => {
     reference_type: '',
     reference_id: ''
   })
+  saveError.value = ''
   showDialog.value = true
 }
 
@@ -465,6 +478,14 @@ const openVoucherView = (item: Voucher): void => {
   voucherToView.value = item
   showVoucherViewDialog.value = true
 }
+
+const printVoucher = async (item: Voucher): Promise<void> => {
+  openVoucherView(item)
+  await nextTick()
+  window.print()
+}
+
+const printCurrentVoucher = (): void => window.print()
 
 const filteredAccounts = computed(() => {
   const all = safeArray(accounts.value) as any[]
@@ -494,9 +515,16 @@ const executeSave = async (): Promise<void> => {
 
   saving.value = true
   try {
-    await store.addVoucher({ ...editItem })
+    const saved = await store.addVoucher({ ...editItem })
     showDialog.value = false
+    if (saved) {
+      voucherToView.value = { ...editItem, ...saved } as Voucher
+      showVoucherViewDialog.value = true
+      await nextTick()
+      window.print()
+    }
   } catch (e: unknown) {
+    saveError.value = (e as Error).message || 'تعذر حفظ السند'
     console.error('Error saving voucher:', e)
   } finally {
     saving.value = false
@@ -547,3 +575,29 @@ const confirmDelete = async (item: Voucher): Promise<void> => {
   })
 }
 </script>
+
+<style scoped>
+@media print {
+  :global(body *) {
+    visibility: hidden !important;
+  }
+
+  :global(.voucher-print),
+  :global(.voucher-print *) {
+    visibility: visible !important;
+  }
+
+  :global(.voucher-print) {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    box-shadow: none !important;
+  }
+
+  :global(.voucher-print .v-toolbar),
+  :global(.voucher-print .v-card-actions) {
+    display: none !important;
+  }
+}
+</style>

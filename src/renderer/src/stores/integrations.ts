@@ -47,6 +47,14 @@ export const useIntegrationsStore = defineStore('integrations', () => {
   async function fetchStatus() {
     loading.value = true
     error.value = null
+    if (
+      localStorage.getItem('mock_active') === 'true' ||
+      !localStorage.getItem('b2b_cloud_token')
+    ) {
+      integrations.value = []
+      loading.value = false
+      return
+    }
     try {
       const data = await apiFetch<{ integrations: IntegrationService[] }>('/api/integrations/status')
       integrations.value = data.integrations || []

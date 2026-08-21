@@ -1,5 +1,5 @@
 ﻿<template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="تقرير المستخدمين وهيكلية الصلاحيات" />
 
     <!-- Header -->
@@ -34,7 +34,7 @@
       class="glass-card pa-8 border-gold border-opacity-20 border-2 overflow-hidden glass-card"
     >
       <!-- Actions Row -->
-      <div class="d-flex flex-wrap justify-end mb-8 gap-3">
+      <div class="d-flex flex-wrap justify-end mb-8 gap-3 report-actions">
         <v-btn
           color="accent"
           variant="flat"
@@ -72,7 +72,7 @@
           color="white"
           height="48"
           class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
-          :disabled="!data"
+          :disabled="safeLength(data?.users) === 0"
           @click="exportCsv"
         >
           <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير CSV
@@ -272,14 +272,7 @@ const exportCsv = async (): Promise<void> => {
       is_active: u.is_active,
       must_change_password: u.must_change_password
     }))
-    const res = await (window as any).api.reports.exportCsv('users-report.csv', rows)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('users-report.csv', rows)
   } catch {
     error.value = 'فشل تصدير ملف CSV'
   }

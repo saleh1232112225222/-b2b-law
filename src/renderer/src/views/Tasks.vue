@@ -735,7 +735,7 @@ const uploadWorkOutput = async (): Promise<void> => {
     await loadTaskDocuments(taskId)
     showSnackbar('تم رفع المستند وربطه بالمهمة', 'success')
   } catch (err: unknown) {
-    showSnackbar('تعذر رفع المستند: ' + (err as Error).message, 'error')
+    showSnackbar('تعذر رفع المستند: ' + cleanErrorMessage(err), 'error')
   } finally {
     taskDocsUploading.value = false
   }
@@ -747,7 +747,7 @@ const openWorkOutput = async (doc: any): Promise<void> => {
   try {
     await window.api.documents.open(p)
   } catch (err: unknown) {
-    showSnackbar('تعذر فتح المستند: ' + (err as Error).message, 'error')
+    showSnackbar('تعذر فتح المستند: ' + cleanErrorMessage(err), 'error')
   }
 }
 
@@ -935,7 +935,7 @@ const confirmComplete = (task: Task): void => {
         showSnackbar('تم إكمال المهمة', 'success')
         closeConfirm()
       } catch (err: unknown) {
-        showSnackbar('تعذر إكمال المهمة: ' + (err as Error).message, 'error')
+        showSnackbar('تعذر إكمال المهمة: ' + cleanErrorMessage(err), 'error')
       } finally {
         confirmDialog.value.loading = false
       }
@@ -968,7 +968,7 @@ const executeSave = async (): Promise<void> => {
     }
     showDialog.value = false
   } catch (err: unknown) {
-    showSnackbar('خطأ في أرشفة المهمة: ' + (err as Error).message, 'error')
+    showSnackbar('خطأ في أرشفة المهمة: ' + cleanErrorMessage(err), 'error')
   } finally {
     saving.value = false
   }
@@ -1033,7 +1033,7 @@ const confirmActionDialog = async (): Promise<void> => {
     }
     closeActionDialog()
   } catch (err: unknown) {
-    showSnackbar('تعذر تنفيذ الإجراء: ' + (err as Error).message, 'error')
+    showSnackbar('تعذر تنفيذ الإجراء: ' + cleanErrorMessage(err), 'error')
   } finally {
     actionDialog.value.loading = false
   }
@@ -1045,7 +1045,7 @@ const archiveTask = async (task: Task): Promise<void> => {
     await store.refresh()
     showSnackbar('تمت أرشفة المهمة', 'success')
   } catch (err: unknown) {
-    showSnackbar('تعذر أرشفة المهمة: ' + (err as Error).message, 'error')
+    showSnackbar('تعذر أرشفة المهمة: ' + cleanErrorMessage(err), 'error')
   }
 }
 
@@ -1063,6 +1063,16 @@ const arabicFilter = (itemTitle: string, queryText: string): boolean => {
   const normalize = (s: string): string =>
     s.replace(/[أإآ]/g, 'ا').replace(/[ة]/g, 'ه').replace(/[ى]/g, 'ي').toLowerCase()
   return normalize(itemTitle || '').includes(normalize(queryText || ''))
+}
+
+
+const cleanErrorMessage = (err: unknown): string => {
+  const msg = (err as Error)?.message || String(err || '')
+  return msg
+    .replace(/^Error invoking remote method '[^']+': Error:\s*/i, '')
+    .replace(/^Error:\s*/i, '')
+    .replace(/^AxiosError:\s*/i, '')
+    .trim()
 }
 
 const showSnackbar = (text: string, color: string = 'success'): void => {

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <!-- Print Frame Header (Visible only when printing) -->
     <PrintReportFrame title="تقرير قضايا المحكمة التفصيلي" />
 

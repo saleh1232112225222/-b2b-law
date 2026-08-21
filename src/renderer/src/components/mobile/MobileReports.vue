@@ -4,7 +4,7 @@
       <v-icon icon="mdi-file-report" :size="48" color="primary" class="mb-2" />
       <div class="text-body-1 font-weight-bold mb-2">التقارير</div>
       <div class="text-caption text-medium-emphasis mb-4">
-        يفضل فتح هذه الصفحة على سطح المكتب للاستفادة من جميع الميزات
+        افتح التقرير ثم اختر الطباعة أو التصدير بالصيغة المناسبة لجهازك
       </div>
 
       <v-list nav density="compact">
@@ -14,14 +14,15 @@
           :title="report.title"
           :prepend-icon="report.icon"
           class="rounded-lg mb-1"
-          @click="downloadReport(report)"
+          @click="openReport(report)"
         >
           <template #append>
             <v-btn
-              icon="mdi-download"
+              icon="mdi-chevron-left"
               variant="text"
               size="small"
-              @click.stop="downloadReport(report)"
+              :aria-label="`فتح ${report.title}`"
+              @click.stop="openReport(report)"
             />
           </template>
         </v-list-item>
@@ -36,15 +37,12 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 const reports = [
-  { title: 'تقرير القضايا', icon: 'mdi-gavel', path: '/reports/cases' },
-  { title: 'التقرير المالي', icon: 'mdi-bank', path: '/reports/financial' },
+  { title: 'تقرير القضايا', icon: 'mdi-gavel', path: '/reports/case' },
+  { title: 'التقرير المالي', icon: 'mdi-bank', path: '/reports/finance' },
   { title: 'تقرير الجلسات', icon: 'mdi-calendar', path: '/reports/sessions' },
   { title: 'تقرير المستندات', icon: 'mdi-file-document', path: '/reports/documents' },
   { title: 'تقرير المذكرات', icon: 'mdi-file-document-edit', path: '/reports/memoranda' }
 ]
 
-const downloadReport = (report: any) => {
-  const url = `${window.location.origin}/#${report.path}?export=pdf`
-  window.open(url, '_blank')
-}
+const openReport = (report: any) => router.push(report.path)
 </script>

@@ -1,6 +1,9 @@
 <template>
   <v-bottom-sheet v-model="localOpen" inset>
     <v-card class="rounded-t-xl pa-4">
+      <v-alert v-if="saveError" type="error" variant="tonal" class="mb-3" closable @click:close="saveError = ''">
+        {{ saveError }}
+      </v-alert>
       <div class="d-flex justify-space-between align-center mb-4">
         <div class="d-flex align-center">
           <LucideIcon name="wallet" :size="20" class="me-2 text-accent" />
@@ -32,7 +35,10 @@
         variant="outlined"
         density="comfortable"
         class="mb-3"
-        :rules="[(v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
+        :rules="[
+          (v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر',
+          (v) => v <= remainingAmount || 'المبلغ يتجاوز المتبقي'
+        ]"
       />
 
       <v-select
@@ -41,6 +47,17 @@
         item-title="text"
         item-value="value"
         label="طريقة الدفع"
+        variant="outlined"
+        density="comfortable"
+        class="mb-3"
+      />
+
+      <v-select
+        v-model="paymentAccountId"
+        :items="paymentAccounts"
+        item-title="name"
+        item-value="id"
+        label="حساب التحصيل*"
         variant="outlined"
         density="comfortable"
         class="mb-3"
@@ -61,7 +78,7 @@
         size="large"
         class="rounded-xl font-weight-black"
         :loading="saving"
-        :disabled="!paymentAmount || paymentAmount <= 0"
+        :disabled="!paymentAmount || paymentAmount <= 0 || paymentAmount > remainingAmount || !paymentAccountId"
         @click="handleSave"
       >
         <LucideIcon name="check-circle" :size="18" class="me-2" />
@@ -72,8 +89,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import LucideIcon from '../common/LucideIcon.vue'
+import { useFinanceStore } from '../../stores/finance'
 
 const props = defineProps<{
   open: boolean
@@ -93,6 +111,17 @@ const paymentAmount = ref(props.remainingAmount || 0)
 const paymentMethod = ref('cash')
 const paymentNotes = ref('')
 const saving = ref(false)
+const saveError = ref('')
+const financeStore = useFinanceStore()
+const paymentAccountId = ref('')
+const paymentAccounts = computed(() =>
+  financeStore.accounts.filter((account) => account.type === 'asset' || account.type === 'revenue')
+)
+watch(paymentAccounts, (accounts) => {
+  if (!paymentAccountId.value && accounts.length) {
+    paymentAccountId.value = accounts.find((account) => account.code === '1101')?.id || accounts[0].id
+  }
+})
 
 const paymentMethods = [
   { text: 'نقدي', value: 'cash' },
@@ -111,6 +140,9 @@ watch(
       paymentAmount.value = props.remainingAmount || 0
       paymentMethod.value = 'cash'
       paymentNotes.value = ''
+      saveError.value = ''
+      if (!financeStore.accounts.length) void financeStore.fetchFinanceData()
+      paymentAccountId.value = paymentAccounts.value.find((account) => account.code === '1101')?.id || paymentAccounts.value[0]?.id || ''
     }
   }
 )
@@ -122,16 +154,16 @@ watch(localOpen, (val) => {
 const handleSave = async () => {
   saving.value = true
   try {
-    const { useFinanceStore } = await import('../../stores/finance')
-    const financeStore = useFinanceStore()
     await financeStore.recordPayment(props.engagementId, {
       amount: paymentAmount.value,
       payment_method: paymentMethod.value,
+      account_id: paymentAccountId.value,
       notes: paymentNotes.value || undefined
     })
     emit('saved')
     localOpen.value = false
   } catch (e) {
+    saveError.value = (e as Error).message || 'تعذر تسجيل الدفعة'
     console.error('Error recording payment:', e)
   } finally {
     saving.value = false

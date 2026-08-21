@@ -28,7 +28,9 @@
           معدل انتهاء القضايا
         </div>
         <div class="d-flex align-center justify-space-between">
-          <div class="text-h5 font-weight-black text-white tabular-nums">{{ completionRate }}%</div>
+          <div class="text-h5 font-weight-black text-white tabular-nums">
+            {{ completionRate === '--' ? '--' : `${completionRate}%` }}
+          </div>
           <div class="bg-accent-alpha pa-3 rounded-xl">
             <LucideIcon name="trending-up" :size="32" class="text-gold" />
           </div>

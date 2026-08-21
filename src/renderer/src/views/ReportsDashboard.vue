@@ -1,7 +1,19 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
+    <PrintReportFrame title="فهرس مركز التقارير" />
+
+    <section class="print-only reports-print-index">
+      <h1>فهرس التقارير المتاحة</h1>
+      <ol>
+        <li v-for="report in reportCards" :key="`print-${report.path}`">
+          <strong>{{ report.title }}</strong>
+          <span>{{ report.subtitle }}</span>
+        </li>
+      </ol>
+    </section>
+
     <!-- Header -->
-    <v-row dense class="mb-8 align-center">
+    <v-row dense class="mb-8 align-center no-print">
       <v-col>
         <div class="d-flex align-center">
           <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
@@ -30,13 +42,17 @@
           class="rounded-lg px-6 font-weight-black premium-lift h-100 premium-btn-gold-gradient"
           @click="exportPdf"
         >
-          <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير PDF العام
+          <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير تقرير العمليات PDF
         </v-btn>
       </v-col>
     </v-row>
 
     <!-- Main Grid -->
-    <v-card elevation="0" class="glass-card pa-8 glass-card">
+    <v-alert v-if="error" type="error" variant="tonal" class="mb-6 no-print">
+      {{ error }}
+    </v-alert>
+
+    <v-card elevation="0" class="glass-card pa-8 glass-card no-print">
       <v-row dense>
         <v-col v-for="report in reportCards" :key="report.path" cols="12" sm="6" md="4" lg="3">
           <v-card
@@ -71,7 +87,11 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import PrintReportFrame from '../components/common/PrintReportFrame.vue'
+
+const error = ref('')
 
 const reportCards = [
   {
@@ -153,13 +173,16 @@ const printPage = () => {
 }
 
 const exportPdf = async () => {
+  error.value = ''
   try {
-    await (window as any).api.reports.exportPdf({
+    const result = await (window as any).api.reports.exportPdf({
       type: 'operations',
+      filename: 'تقرير_العمليات.pdf',
       params: {}
     })
+    if (result?.saved === false) error.value = 'تم إلغاء تصدير التقرير'
   } catch (e: unknown) {
-    console.error('Export error:', e)
+    error.value = (e as Error)?.message || 'فشل تصدير تقرير العمليات'
   }
 }
 </script>
@@ -185,5 +208,34 @@ const exportPdf = async () => {
 .glass-panel-light:hover {
   border-color: rgba(212, 175, 55, 0.4) !important;
   background: rgba(212, 175, 55, 0.05) !important;
+}
+
+@media print {
+  .reports-print-index h1 {
+    margin: 0 0 3mm;
+    font-size: 15pt;
+  }
+
+  .reports-print-index ol {
+    margin: 0;
+    padding-inline-start: 8mm;
+  }
+
+  .reports-print-index li {
+    margin-bottom: 1mm;
+    padding-bottom: 1.5mm;
+    border-bottom: 1px solid #ddd;
+    break-inside: avoid;
+    font-size: 9pt;
+    line-height: 1.25;
+  }
+
+  .reports-print-index span {
+    display: block;
+    margin-top: 0.5mm;
+    color: #555;
+    font-size: 7.5pt;
+    line-height: 1.2;
+  }
 }
 </style>

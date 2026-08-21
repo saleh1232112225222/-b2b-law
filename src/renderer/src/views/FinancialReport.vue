@@ -1,5 +1,5 @@
 ﻿<template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="ملخص العمليات المالية" />
 
     <!-- Header -->
@@ -104,7 +104,7 @@
       </v-row>
 
       <!-- Export Actions -->
-      <div class="d-flex flex-wrap justify-end mb-8 gap-3">
+      <div class="d-flex flex-wrap justify-end mb-8 gap-3 report-actions">
         <v-btn
           variant="tonal"
           color="white"
@@ -128,6 +128,7 @@
           color="white"
           height="48"
           class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
+          :disabled="safeLength(rows) === 0"
           @click="exportCsv"
         >
           <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير CSV
@@ -506,14 +507,7 @@ const printPage = () => {
 const exportCsv = async (): Promise<void> => {
   if (safeLength(rows.value) === 0) return
   try {
-    const res = await (window as any).api.reports.exportCsv('financial-report.csv', rows.value)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('financial-report.csv', rows.value)
   } catch (e: unknown) {
     error.value = (e as Error)?.message || 'فشل تصدير الفايل CSV'
   }

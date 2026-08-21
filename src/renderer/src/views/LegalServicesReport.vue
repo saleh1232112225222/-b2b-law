@@ -1,5 +1,6 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
+    <PrintReportFrame title="تقرير الخدمات والارتباطات القانونية" />
     <!-- Header -->
     <v-row dense class="mb-8 align-center">
       <v-col>
@@ -30,6 +31,7 @@
           color="accent"
           variant="flat"
           class="rounded-lg px-6 font-weight-black premium-lift h-56 text-ebony"
+          :disabled="items.length === 0"
           @click="exportCSV"
         >
           <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير CSV
@@ -44,6 +46,10 @@
         </v-btn>
       </v-col>
     </v-row>
+
+    <v-alert v-if="exportError" type="error" variant="tonal" class="mb-6 no-print">
+      {{ exportError }}
+    </v-alert>
 
     <!-- Advanced Filters -->
     <v-card elevation="0" class="glass-card pa-6 border-gold-alpha mb-6">
@@ -415,11 +421,13 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useLegalStore } from '../stores/legal'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import PrintReportFrame from '../components/common/PrintReportFrame.vue'
 import PieChart from '../components/charts/PieChart.vue'
 import SimpleBarChart from '../components/SimpleBarChart.vue'
 
 const store = useLegalStore()
 const loading = ref(false)
+const exportError = ref('')
 
 const filters = reactive({
   client_id: null,
@@ -597,6 +605,7 @@ const prevPage = () => {
 }
 
 const exportCSV = async () => {
+  exportError.value = ''
   try {
     const params: any = {
       format: 'csv',
@@ -620,7 +629,7 @@ const exportCSV = async () => {
       await window.api.documents.open(blob.path)
     }
   } catch (e) {
-    console.error('CSV export error:', e)
+    exportError.value = (e as Error)?.message || 'فشل تصدير ملف CSV'
   }
 }
 

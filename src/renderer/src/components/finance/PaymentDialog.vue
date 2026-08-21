@@ -11,6 +11,9 @@
         تسجيل دفعة جديدة
       </v-card-title>
       <v-card-text>
+        <v-alert v-if="saveError" type="error" variant="tonal" class="mb-4" closable @click:close="saveError = ''">
+          {{ saveError }}
+        </v-alert>
         <v-card variant="outlined" class="pa-4 mb-4 rounded-xl bg-grey-lighten-5">
           <div class="text-body-2 text-medium-emphasis mb-1">
             الخدمة:
@@ -39,7 +42,10 @@
           type="number"
           variant="outlined"
           class="mb-1"
-          :rules="[(v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
+          :rules="[
+            (v) => v > 0 || 'المبلغ يجب أن يكون أكبر من صفر',
+            (v) => v <= Number(engagement?.remaining_amount || 0) || 'المبلغ يتجاوز المتبقي'
+          ]"
         />
 
         <v-select
@@ -50,6 +56,17 @@
           label="طريقة الدفع"
           variant="outlined"
           class="mb-1"
+        />
+
+        <v-select
+          v-model="paymentAccountId"
+          :items="paymentAccounts"
+          item-title="name"
+          item-value="id"
+          label="حساب التحصيل*"
+          variant="outlined"
+          class="mb-1"
+          :rules="[(v) => !!v || 'حساب التحصيل مطلوب']"
         />
 
         <v-textarea
@@ -85,7 +102,10 @@
         <v-btn
           color="primary"
           :loading="saving"
-          :disabled="!paymentAmount || paymentAmount <= 0"
+          :disabled="
+            !paymentAmount || paymentAmount <= 0 ||
+            paymentAmount > Number(engagement?.remaining_amount || 0) || !paymentAccountId
+          "
           @click="handleSave"
         >
           <LucideIcon name="check-circle" :size="16" class="me-1" />
@@ -114,9 +134,11 @@ const financeStore = useFinanceStore()
 const paymentAmount = ref(0)
 const paymentMethod = ref('cash')
 const paymentNotes = ref('')
+const paymentAccountId = ref('')
 const linkToSchedule = ref(false)
 const selectedScheduleId = ref('')
 const saving = ref(false)
+const saveError = ref('')
 
 const paymentMethods = [
   { text: 'نقدي', value: 'cash' },
@@ -134,6 +156,14 @@ const hasInstallments = computed(() => Number(props.engagement?.installment_coun
 const availableSchedules = computed(() =>
   financeStore.paymentSchedules.filter((s) => s.status === 'pending')
 )
+const paymentAccounts = computed(() =>
+  financeStore.accounts.filter((account) => account.type === 'asset' || account.type === 'revenue')
+)
+watch(paymentAccounts, (accounts) => {
+  if (!paymentAccountId.value && accounts.length) {
+    paymentAccountId.value = accounts.find((account) => account.code === '1101')?.id || accounts[0].id
+  }
+})
 
 const formatMoney = (v: number) => (v || 0).toLocaleString('ar-SA')
 
@@ -146,6 +176,9 @@ watch(
       paymentNotes.value = ''
       linkToSchedule.value = false
       selectedScheduleId.value = ''
+      saveError.value = ''
+      paymentAccountId.value = paymentAccounts.value.find((account) => account.code === '1101')?.id || paymentAccounts.value[0]?.id || ''
+      if (!financeStore.accounts.length) void financeStore.fetchFinanceData()
       if (Number(props.engagement.installment_count || 0) > 1) {
         financeStore.fetchInstallments(props.engagement.id)
       }
@@ -160,11 +193,13 @@ const handleSave = async () => {
       amount: paymentAmount.value,
       payment_method: paymentMethod.value,
       payment_schedule_id: linkToSchedule.value ? selectedScheduleId.value : undefined,
+      account_id: paymentAccountId.value,
       notes: paymentNotes.value || undefined
     })
     emit('save')
     emit('update:modelValue', false)
   } catch (e) {
+    saveError.value = (e as Error).message || 'تعذر تسجيل الدفعة'
     console.error('Error recording payment:', e)
   } finally {
     saving.value = false

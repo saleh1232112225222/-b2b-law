@@ -1,3 +1,4 @@
+import { handleBusinessEvent } from '../services/taskWorkflow.service'
 import { Router, Request, Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
 import { query } from '../db/connection'
@@ -405,6 +406,11 @@ sessionsRouter.post(
       const columns = keys.join(', ')
 
       await query(`INSERT INTO sessions (${columns}) VALUES (${placeholders})`, values)
+
+      // Auto-complete pending schedule_next_session tasks
+      if (body.case_id) {
+        handleBusinessEvent({ event: 'session_created', companyId, caseId: body.case_id, sourceId: id, userId: req.auth!.userId }).catch(() => {})
+      }
 
       // PHASE 2-A: Async Google Calendar Event Creation (Graceful Fallback)
       try {

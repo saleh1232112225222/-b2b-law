@@ -1,5 +1,13 @@
 <template>
   <v-container fluid class="pa-6 rtl">
+    <v-alert
+      v-if="!isDesktopRuntime"
+      type="info"
+      variant="tonal"
+      class="mb-4 rounded-lg font-weight-bold"
+    >
+      خزانة الملفات المحلية متاحة عند تشغيل نسخة سطح المكتب.
+    </v-alert>
     <MobileFileVault
       v-if="isMobile"
       :items="safeArray(assets)"
@@ -74,6 +82,7 @@
               variant="flat"
               block
               height="48"
+              :disabled="!isDesktopRuntime"
               class="rounded-lg font-weight-black premium-lift border-gold-button text-black bg-white premium-btn-gold-gradient"
               @click="chooseRoot"
             >
@@ -131,6 +140,7 @@
               color="accent"
               block
               height="56"
+              :disabled="!isDesktopRuntime"
               class="rounded-lg font-weight-black premium-lift premium-btn-gold-gradient"
               :loading="uploading"
               @click="upload"
@@ -272,6 +282,7 @@ const assets = ref<VaultAsset[]>([])
 const loadingAssets = ref(false)
 const loadingLookups = ref(false)
 const uploading = ref(false)
+const isDesktopRuntime = Boolean((window as any).ipcRenderer)
 
 const entityType = ref<'case' | 'client' | 'session' | 'task' | 'none'>('case')
 const entityId = ref<string | null>(null)
@@ -305,6 +316,10 @@ const showStatus = (text: string, color = 'success'): void => {
 }
 
 const loadRoot = async (): Promise<void> => {
+  if (!isDesktopRuntime) {
+    vaultRoot.value = 'متاح في نسخة سطح المكتب فقط'
+    return
+  }
   try {
     const res = await (window as any).api.vault.getRoot()
     vaultRoot.value = res?.path || ''
@@ -314,6 +329,10 @@ const loadRoot = async (): Promise<void> => {
 }
 
 const chooseRoot = async (): Promise<void> => {
+  if (!isDesktopRuntime) {
+    showStatus('خزانة الملفات المحلية متاحة في نسخة سطح المكتب فقط', 'info')
+    return
+  }
   try {
     const res = await (window as any).api.vault.chooseRoot()
     if (res?.selected) {
@@ -368,6 +387,10 @@ watch(entityId, () => {
 })
 
 const upload = async (): Promise<void> => {
+  if (!isDesktopRuntime) {
+    showStatus('رفع الملفات إلى الخزانة المحلية متاح في نسخة سطح المكتب فقط', 'info')
+    return
+  }
   if (entityType.value !== 'none' && !entityId.value) {
     showStatus('يرجى اختيار المرجع أولاً', 'error')
     return
@@ -392,6 +415,10 @@ const upload = async (): Promise<void> => {
 }
 
 const loadAssets = async (): Promise<void> => {
+  if (!isDesktopRuntime) {
+    assets.value = []
+    return
+  }
   loadingAssets.value = true
   try {
     const data = await (window as any).api.files.listByEntity({

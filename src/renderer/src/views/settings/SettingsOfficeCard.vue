@@ -11,6 +11,7 @@
             :model-value="modelValue.officeName"
             label="اسم المكتب"
             placeholder="اكتب اسم المكتب هنا"
+            persistent-placeholder
             variant="outlined"
             density="compact"
             class="mb-3 glass-input"

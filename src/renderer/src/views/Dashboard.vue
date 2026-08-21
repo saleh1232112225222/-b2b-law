@@ -818,7 +818,7 @@ const fetchData = async () => {
   font-size: 0.7rem !important;
   line-height: 1.1 !important;
   font-weight: 800 !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
 }
 
 .dashboard-sessions-today :deep(.text-caption),
@@ -835,27 +835,27 @@ const fetchData = async () => {
   padding-bottom: 4px !important;
   font-size: 0.85rem !important;
   font-weight: 800 !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
 }
 
 .dashboard-sessions-today :deep(.v-data-table__th),
 .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
   font-size: 0.85rem !important;
   font-weight: 900 !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
 }
 
-[data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__td),
-[data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__td) {
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.v-data-table__td),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.v-data-table__td) {
   color: #f1f5f9 !important;
 }
 
-[data-theme='dark'] .dashboard-sessions-today :deep(.v-data-table__th),
-[data-theme='dark'] .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.v-data-table__th),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
   color: #f1f5f9 !important;
 }
 
-[data-theme='dark'] .dashboard-list-mini :deep(.v-list-item-title) {
+:global([data-theme='dark']) .dashboard-list-mini :deep(.v-list-item-title) {
   color: #f1f5f9 !important;
 }
 

@@ -358,12 +358,14 @@ declare global {
         getAll: () => Promise<Invoice[]>
         getById: (id: string) => Promise<Invoice>
         create: (data: Partial<Invoice>) => Promise<string>
+        createWithReceivable: (data: Partial<Invoice> & { items?: Array<{ description: string; amount: number }> }) => Promise<{ invoice: Invoice; receivable: Receivable }>
         delete: (id: string) => Promise<void>
       }
       vouchers: {
         getAll: () => Promise<Voucher[]>
         getById: (id: string) => Promise<Voucher>
         create: (data: Partial<Voucher>) => Promise<string>
+        createLinked: (data: Partial<Voucher>) => Promise<Voucher>
         delete: (id: string) => Promise<void>
       }
       creditNotes: {
@@ -541,7 +543,7 @@ declare global {
         getByClientId: (cid: string) => Promise<Receivable[]>
         getOpen: () => Promise<Receivable[]>
         createFromInvoice: (invoice: Invoice, dueDate?: string) => Promise<string>
-        applyPayment: (id: string, amount: number) => Promise<void>
+        applyPayment: (id: string, amount: number, accountId?: string) => Promise<void>
         delete: (id: string) => Promise<void>
       }
       activityLogs: {
@@ -627,7 +629,10 @@ declare global {
         getSessionsReport: (params: any) => Promise<any>
         getFinancialSummary: (params: any) => Promise<any>
         getActivityReport: (params: any) => Promise<any>
-        exportCsv: (filename: string, rows: any[]) => Promise<ReportExportCsvResult>
+        exportCsv: (
+          filename: string | { filename: string; rows: any[] },
+          rows?: any[]
+        ) => Promise<ReportExportCsvResult>
         getUserActivityReport: (params: any) => Promise<any>
         getEvidenceReport: (params: any) => Promise<any>
         getMemorandaReport: (params: any) => Promise<any>
@@ -635,8 +640,16 @@ declare global {
         getDocumentsReport: (params: any) => Promise<any>
         getOperationsSummary: () => Promise<any>
         getUsersPermissionsReport: () => Promise<any>
-        exportPdf: (payload: { type: string; params: any }) => Promise<ReportExportPdfResult>
-        exportHtml: (payload: { type: string; params: any }) => Promise<ReportExportPdfResult>
+        exportPdf: (payload: {
+          type: string
+          params: any
+          filename?: string
+        }) => Promise<ReportExportPdfResult>
+        exportHtml: (payload: {
+          type: string
+          params: any
+          filename?: string
+        }) => Promise<ReportExportPdfResult>
         printReport: (payload: { type: string; params: any }) => Promise<any>
         getPreviewHtml: (payload: { type: string; params: any }) => Promise<any>
         listUsers: () => Promise<any[]>

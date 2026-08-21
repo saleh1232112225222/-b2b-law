@@ -1,12 +1,13 @@
 import { Router } from 'express'
-import { query } from '../db/connection'
+import { getClient, query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
+import { requirePermission } from '../middleware/permission'
 
 const router = Router()
 router.use(authMiddleware)
 
 // Metadata Routes
-router.get('/categories', async (req: any, res) => {
+router.get('/categories', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const result = await query('SELECT * FROM legal_service_categories ORDER BY name_ar')
     res.json(result.rows)
@@ -15,7 +16,7 @@ router.get('/categories', async (req: any, res) => {
   }
 })
 
-router.get('/types', async (req: any, res) => {
+router.get('/types', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const result = await query('SELECT * FROM legal_service_types ORDER BY name_ar')
     res.json(result.rows)
@@ -24,7 +25,7 @@ router.get('/types', async (req: any, res) => {
   }
 })
 
-router.get('/statuses', async (req: any, res) => {
+router.get('/statuses', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const result = await query('SELECT * FROM legal_service_statuses')
     res.json(result.rows)
@@ -33,7 +34,7 @@ router.get('/statuses', async (req: any, res) => {
   }
 })
 
-router.get('/priorities', async (req: any, res) => {
+router.get('/priorities', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const result = await query('SELECT * FROM legal_service_priorities')
     res.json(result.rows)
@@ -43,7 +44,7 @@ router.get('/priorities', async (req: any, res) => {
 })
 
 // Main Engagements Routes
-router.get('/engagements/count', async (req: any, res) => {
+router.get('/engagements/count', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { q, category_id, status_id } = req.query
@@ -72,7 +73,7 @@ router.get('/engagements/count', async (req: any, res) => {
   }
 })
 
-router.get('/engagements', async (req: any, res) => {
+router.get('/engagements', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { page = 1, pageSize = 25, q, category_id, status_id } = req.query
@@ -130,19 +131,20 @@ router.get('/engagements', async (req: any, res) => {
 // Helper: resolve responsible_lawyer_id - accepts employee_id or user_id
 async function resolveLawyerId(
   value: string | null | undefined,
-  companyId: string
+  companyId: string,
+  db: any = { query }
 ): Promise<string | null> {
   if (!value || value === '') return null
 
   // Check if it's a valid employee_id
-  const empRes = await query('SELECT id FROM employees WHERE id = $1 AND company_id = $2', [
+  const empRes = await db.query('SELECT id FROM employees WHERE id = $1 AND company_id = $2', [
     value,
     companyId
   ])
   if (empRes.rows.length > 0) return empRes.rows[0].id
 
   // Check if it's a user_id and get the employee_id
-  const userRes = await query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [
+  const userRes = await db.query('SELECT employee_id FROM users WHERE id = $1 AND company_id = $2', [
     value,
     companyId
   ])
@@ -152,13 +154,16 @@ async function resolveLawyerId(
   return null
 }
 
-router.post('/engagements', async (req: any, res) => {
+router.post('/engagements', requirePermission('create_legal_engagements'), async (req: any, res) => {
+  const client = await getClient()
   try {
+    await client.query('BEGIN')
     const { companyId, userId } = req.auth
     const data = req.body
 
     // Generate engagement number
-    const countRes = await query('SELECT COUNT(*) FROM legal_engagements WHERE company_id = $1', [
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`legal-engagement:${companyId}`])
+    const countRes = await client.query('SELECT COUNT(*) FROM legal_engagements WHERE company_id = $1', [
       companyId
     ])
     const count = parseInt(countRes.rows[0].count) + 1
@@ -167,13 +172,21 @@ router.post('/engagements', async (req: any, res) => {
     const id = data.id || undefined
 
     // Resolve responsible_lawyer_id
-    const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
+    const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId, client)
 
     // Calculate remaining_amount
     const financial_compensation = Number(data.financial_compensation || 0)
     const tax = Number(data.tax || 0)
     const paid_amount = Number(data.paid_amount || 0)
-    const remaining_amount = financial_compensation + tax - paid_amount
+    if (![financial_compensation, tax, paid_amount].every(Number.isFinite) || financial_compensation < 0 || tax < 0 || paid_amount < 0) {
+      throw Object.assign(new Error('القيم المالية غير صحيحة'), { status: 400 })
+    }
+    const totalDue = financial_compensation + tax
+    if (paid_amount > totalDue + 0.001) {
+      throw Object.assign(new Error('المبلغ المدفوع يتجاوز إجمالي الأتعاب'), { status: 400 })
+    }
+    const remaining_amount = Math.max(0, totalDue - paid_amount)
+    const financeStatus = paid_amount >= totalDue && totalDue > 0 ? 'paid' : paid_amount > 0 ? 'partial' : 'pending'
 
     // Handle linked_parties - accept both string and array
     let linkedPartiesValue: string
@@ -195,7 +208,7 @@ router.post('/engagements', async (req: any, res) => {
       assistantTeamValue = '[]'
     }
 
-    const result = await query(
+    const result = await client.query(
       `
       INSERT INTO legal_engagements (
         company_id, engagement_number, engagement_type_id, category_id,
@@ -235,22 +248,22 @@ router.post('/engagements', async (req: any, res) => {
         data.case_id || null,
         userId,
         userId,
-        'pending'
+        financeStatus
       ]
     )
 
     const newId = result.rows[0].id
 
-    // Auto-create finance entry if financial_compensation > 0
-    if (financial_compensation > 0) {
-      const finId = await query('SELECT gen_random_uuid() as id')
+    // Keep a one-to-one ledger entry for every legal engagement.
+    {
+      const finId = await client.query('SELECT gen_random_uuid() as id')
       const financeId = finId.rows[0].id
       const total = financial_compensation + tax
-      await query(
+      await client.query(
         `
         INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
           description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
-        VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
+        VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, $10, $11, $12, $13, $14)
       `,
         [
           financeId,
@@ -262,6 +275,7 @@ router.post('/engagements', async (req: any, res) => {
           newId,
           data.client_id || null,
           data.case_id || null,
+          financeStatus,
           data.payment_method || null,
           paid_amount,
           remaining_amount,
@@ -270,27 +284,55 @@ router.post('/engagements', async (req: any, res) => {
       )
     }
 
+    await client.query('COMMIT')
     res.json({ id: newId })
   } catch (err: any) {
+    await client.query('ROLLBACK')
     console.error('[legal_services] POST /engagements error:', err.message, err.stack)
-    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
+    res.status(err.status || 500).json({ error: err.status ? err.message : 'حدث خطأ أثناء معالجة الطلب' })
+  } finally {
+    client.release()
   }
 })
 
-router.put('/engagements/:id', async (req: any, res) => {
+router.put('/engagements/:id', requirePermission('edit_legal_services'), async (req: any, res) => {
+  const client = await getClient()
   try {
+    await client.query('BEGIN')
     const { companyId, userId } = req.auth
     const { id } = req.params
     const data = req.body
 
     // Resolve responsible_lawyer_id
-    const resolvedLawyerId = await resolveLawyerId(data.responsible_lawyer_id, companyId)
+    const currentResult = await client.query(
+      'SELECT * FROM legal_engagements WHERE id = $1 AND company_id = $2 AND deleted_at IS NULL FOR UPDATE',
+      [id, companyId]
+    )
+    if (!currentResult.rows.length) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ error: 'الخدمة القانونية غير موجودة' })
+    }
+    const current = currentResult.rows[0]
+    const resolvedLawyerId = data.responsible_lawyer_id === undefined
+      ? current.responsible_lawyer_id
+      : await resolveLawyerId(data.responsible_lawyer_id, companyId, client)
 
     // Calculate remaining_amount
-    const financial_compensation = Number(data.financial_compensation || 0)
-    const tax = Number(data.tax || 0)
-    const paid_amount = Number(data.paid_amount || 0)
-    const remaining_amount = financial_compensation + tax - paid_amount
+    const financial_compensation = Number(data.financial_compensation ?? current.financial_compensation ?? 0)
+    const tax = Number(data.tax ?? current.tax ?? 0)
+    const paid_amount = Number(data.paid_amount ?? current.paid_amount ?? 0)
+    if (![financial_compensation, tax, paid_amount].every(Number.isFinite) || financial_compensation < 0 || tax < 0 || paid_amount < 0) {
+      throw Object.assign(new Error('القيم المالية غير صحيحة'), { status: 400 })
+    }
+    const total = financial_compensation + tax
+    if (paid_amount > total + 0.001) {
+      throw Object.assign(new Error('المبلغ المدفوع يتجاوز إجمالي الأتعاب'), { status: 400 })
+    }
+    const remaining_amount = Math.max(0, total + Number(current.late_fee_amount || 0) - paid_amount)
+    const financeStatus = paid_amount >= total + Number(current.late_fee_amount || 0) && total > 0
+      ? 'paid' : paid_amount > 0 ? 'partial' : 'pending'
+    const finalClientId = data.client_id ?? current.client_id ?? null
+    const finalCaseId = data.case_id ?? current.case_id ?? null
 
     // Handle linked_parties - accept both string and array
     let linkedPartiesValue: string | null
@@ -312,7 +354,7 @@ router.put('/engagements/:id', async (req: any, res) => {
       assistantTeamValue = String(data.assistant_team)
     }
 
-    await query(
+    await client.query(
       `
       UPDATE legal_engagements SET
         engagement_type_id = COALESCE($1, engagement_type_id),
@@ -339,8 +381,8 @@ router.put('/engagements/:id', async (req: any, res) => {
         updated_by = $22,
         updated_at = NOW(),
         finance_status = CASE
-          WHEN $17 >= ($15 + $16) THEN 'paid'
-          WHEN $17 > 0 THEN 'partial'
+          WHEN $25 = 'paid' THEN 'paid'
+          WHEN $25 = 'partial' THEN 'partial'
           ELSE 'pending'
         END
       WHERE id = $23 AND company_id = $24
@@ -369,24 +411,20 @@ router.put('/engagements/:id', async (req: any, res) => {
         data.case_id || null,
         userId,
         id,
-        companyId
+        companyId,
+        financeStatus
       ]
     )
 
-    // Update finance entry if exists
-    if (financial_compensation > 0) {
-      const total = financial_compensation + tax
-      let financeStatus = 'pending'
-      if (paid_amount >= total) financeStatus = 'paid'
-      else if (paid_amount > 0) financeStatus = 'partially_paid'
-
-      const updateResult = await query(
+    // Keep an existing finance entry synchronized even when the fee becomes zero.
+    {
+      const updateResult = await client.query(
         `
         UPDATE finances SET
           amount = $1, vat_amount = $2, total = $3, paid_amount = $4,
           remaining_amount = $5, payment_method = COALESCE($6, payment_method),
-          status = $7
-        WHERE legal_engagement_id = $8 AND company_id = $9
+          status = $7, client_id = $8, case_id = $9, updated_by = $10, updated_at = NOW()
+        WHERE legal_engagement_id = $11 AND company_id = $12
         RETURNING id
       `,
         [
@@ -397,20 +435,23 @@ router.put('/engagements/:id', async (req: any, res) => {
           remaining_amount,
           data.payment_method || null,
           financeStatus,
+          finalClientId,
+          finalCaseId,
+          userId,
           id,
           companyId
         ]
       )
 
       // If no finance record exists yet, create one
-      if (updateResult.rows.length === 0) {
-        const finId = await query('SELECT gen_random_uuid() as id')
+      if (updateResult.rows.length === 0 && financial_compensation > 0) {
+        const finId = await client.query('SELECT gen_random_uuid() as id')
         const financeId = finId.rows[0].id
-        await query(
+        await client.query(
           `
           INSERT INTO finances (id, company_id, type, category, amount, vat_amount, total,
             description, date, legal_engagement_id, client_id, case_id, status, payment_method, paid_amount, remaining_amount, created_by)
-          VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, 'pending', $10, $11, $12, $13)
+          VALUES ($1, $2, 'receivable', 'legal_service', $3, $4, $5, $6, CURRENT_DATE, $7, $8, $9, $10, $11, $12, $13, $14)
         `,
           [
             financeId,
@@ -420,8 +461,9 @@ router.put('/engagements/:id', async (req: any, res) => {
             total,
             `خدمة قانونية رقم ${id}`,
             id,
-            data.client_id || null,
-            data.case_id || null,
+            finalClientId,
+            finalCaseId,
+            financeStatus,
             data.payment_method || null,
             paid_amount,
             remaining_amount,
@@ -431,35 +473,55 @@ router.put('/engagements/:id', async (req: any, res) => {
       }
     }
 
+    await client.query('COMMIT')
     res.json({ success: true })
   } catch (err: any) {
+    await client.query('ROLLBACK')
     console.error('[legal_services] PUT /engagements/:id error:', err.message, err.stack)
-    res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
+    res.status(err.status || 500).json({ error: err.status ? err.message : 'حدث خطأ أثناء معالجة الطلب' })
+  } finally {
+    client.release()
   }
 })
 
-router.delete('/engagements/:id', async (req: any, res) => {
+router.delete('/engagements/:id', requirePermission('delete_legal_services'), async (req: any, res) => {
+  const client = await getClient()
   try {
+    await client.query('BEGIN')
     const { companyId, userId } = req.auth
     const { id } = req.params
 
-    await query(
+    const result = await client.query(
       `
       UPDATE legal_engagements 
       SET deleted_at = NOW(), deleted_by = $1 
-      WHERE id = $2 AND company_id = $3
+      WHERE id = $2 AND company_id = $3 AND deleted_at IS NULL
+      RETURNING id
     `,
       [userId, id, companyId]
     )
+    if (!result.rows.length) {
+      await client.query('ROLLBACK')
+      return res.status(404).json({ error: 'الخدمة القانونية غير موجودة' })
+    }
+    await client.query(
+      `UPDATE finances SET status = 'cancelled', updated_by = $1, updated_at = NOW()
+       WHERE legal_engagement_id = $2 AND company_id = $3`,
+      [userId, id, companyId]
+    )
+    await client.query('COMMIT')
 
     res.json({ success: true })
   } catch (err: any) {
+    await client.query('ROLLBACK')
     res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
+  } finally {
+    client.release()
   }
 })
 
 // Get Engagement by ID
-router.get('/engagements/:id', async (req: any, res) => {
+router.get('/engagements/:id', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { id } = req.params
@@ -496,7 +558,7 @@ router.get('/engagements/:id', async (req: any, res) => {
 })
 
 // Get Finance Record for Engagement
-router.get('/engagements/:id/finance', async (req: any, res) => {
+router.get('/engagements/:id/finance', requirePermission('view_finances'), async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { id } = req.params
@@ -516,7 +578,7 @@ router.get('/engagements/:id/finance', async (req: any, res) => {
 })
 
 // Get Engagement Notes
-router.get('/engagements/:id/notes', async (req: any, res) => {
+router.get('/engagements/:id/notes', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { id } = req.params
     const result = await query(
@@ -536,7 +598,7 @@ router.get('/engagements/:id/notes', async (req: any, res) => {
 })
 
 // Add Note
-router.post('/engagements/:id/notes', async (req: any, res) => {
+router.post('/engagements/:id/notes', requirePermission('edit_legal_services'), async (req: any, res) => {
   try {
     const { userId } = req.auth
     const { id } = req.params
@@ -567,7 +629,7 @@ router.post('/engagements/:id/notes', async (req: any, res) => {
 })
 
 // Get Engagement Attachments
-router.get('/engagements/:id/attachments', async (req: any, res) => {
+router.get('/engagements/:id/attachments', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { id } = req.params
     const result = await query(
@@ -587,7 +649,7 @@ router.get('/engagements/:id/attachments', async (req: any, res) => {
 })
 
 // Add Attachment
-router.post('/engagements/:id/attachments', async (req: any, res) => {
+router.post('/engagements/:id/attachments', requirePermission('edit_legal_services'), async (req: any, res) => {
   try {
     const { userId } = req.auth
     const { id } = req.params
@@ -618,7 +680,7 @@ router.post('/engagements/:id/attachments', async (req: any, res) => {
 })
 
 // Get Timeline
-router.get('/engagements/:id/timeline', async (req: any, res) => {
+router.get('/engagements/:id/timeline', requirePermission('view_legal_services'), async (req: any, res) => {
   try {
     const { id } = req.params
     const result = await query(
@@ -638,43 +700,49 @@ router.get('/engagements/:id/timeline', async (req: any, res) => {
 })
 
 // Generate Invoice
-router.post('/engagements/:id/invoice', async (req: any, res) => {
+router.post('/engagements/:id/invoice', requirePermission('create_finances'), async (req: any, res) => {
+  const client = await getClient()
   try {
+    await client.query('BEGIN')
     const { companyId, userId } = req.auth
     const { id } = req.params
 
     // Fetch engagement info
-    const engResult = await query(
+    const engResult = await client.query(
       `
       SELECT e.*, c.name_ar as category_name, t.name_ar as service_type_name
       FROM legal_engagements e
       LEFT JOIN legal_service_categories c ON e.category_id = c.id
       LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
       WHERE e.id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+      FOR UPDATE OF e
     `,
       [id, companyId]
     )
 
     if (engResult.rows.length === 0) {
+      await client.query('ROLLBACK')
       res.status(404).json({ error: 'الارتباط القانوني غير موجود' })
       return
     }
 
     const eng = engResult.rows[0]
     if (eng.invoice_id) {
+      await client.query('ROLLBACK')
       res.status(400).json({ error: 'تم بالفعل إصدار فاتورة لهذا الارتباط' })
       return
     }
 
     // Generate invoice number
-    const countRes = await query('SELECT COUNT(*) FROM invoices WHERE company_id = $1', [companyId])
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`invoice:${companyId}`])
+    const countRes = await client.query('SELECT COUNT(*) FROM invoices WHERE company_id = $1', [companyId])
     const count = parseInt(countRes.rows[0].count) + 1
     const invoice_number = `INV-${new Date().getFullYear()}-${count.toString().padStart(4, '0')}`
 
     const subtotal = Number(eng.financial_compensation || 0)
     const tax = Number(eng.tax || 0)
     const total = subtotal + tax
-    const vat_rate = subtotal > 0 ? Number(((tax / subtotal) * 100).toFixed(2)) : 15.0
+    const vat_rate = subtotal > 0 ? Number((tax / subtotal).toFixed(4)) : 0.15
 
     const paid = Number(eng.paid_amount || 0)
     let status = 'unpaid'
@@ -685,7 +753,7 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     }
 
     // Insert invoice
-    const invInsert = await query(
+    const invInsert = await client.query(
       `
       INSERT INTO invoices (
         company_id, client_id, case_id, invoice_number, date,
@@ -712,7 +780,7 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     const invoiceId = invInsert.rows[0].id
 
     // Insert invoice item
-    await query(
+    await client.query(
       `
       INSERT INTO invoice_items (company_id, invoice_id, description, amount)
       VALUES ($1, $2, $3, $4)
@@ -726,27 +794,27 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
     )
 
     // Update engagement with invoice_id
-    await query(
+    await client.query(
       `
       UPDATE legal_engagements
       SET invoice_id = $1
-      WHERE id = $2
+      WHERE id = $2 AND company_id = $3
     `,
-      [invoiceId, id]
+      [invoiceId, id, companyId]
     )
 
     // Sync finance record status with invoice
-    await query(
+    await client.query(
       `
       UPDATE finances
       SET status = $1, updated_at = NOW()
-      WHERE legal_engagement_id = $2
+      WHERE legal_engagement_id = $2 AND company_id = $3
     `,
-      [status, id]
+      [status, id, companyId]
     )
 
     // Add event to timeline
-    await query(
+    await client.query(
       `
       INSERT INTO legal_service_timeline (engagement_id, event_title, event_description, created_by)
       VALUES ($1, 'إصدار فاتورة', $2, $3)
@@ -754,14 +822,18 @@ router.post('/engagements/:id/invoice', async (req: any, res) => {
       [id, `تم إصدار الفاتورة رقم ${invoice_number}`, userId]
     )
 
+    await client.query('COMMIT')
     res.json({ success: true, invoiceId })
   } catch (err: any) {
+    await client.query('ROLLBACK')
     res.status(500).json({ error: 'حدث خطأ أثناء معالجة الطلب' })
+  } finally {
+    client.release()
   }
 })
 
 // Get Legal Services Summary for a Client
-router.get('/client/:clientId/summary', async (req: any, res) => {
+router.get('/client/:clientId/summary', requirePermission('view_finances'), async (req: any, res) => {
   try {
     const { companyId } = req.auth
     const { clientId } = req.params

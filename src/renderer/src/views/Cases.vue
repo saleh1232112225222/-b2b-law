@@ -253,7 +253,7 @@ const newSession = ref<Partial<Session>>({
 })
 
 const completionRateDisplay = computed(() =>
-  completionRate.value === null ? '--' : `${completionRate.value}%`
+  completionRate.value === null ? '--' : completionRate.value
 )
 
 const canSubmit = computed(() => {

@@ -1,5 +1,6 @@
 ﻿<template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
+    <PrintReportFrame title="تقرير الأداء التشغيلي" />
     <!-- Header Section -->
     <v-row dense class="mb-8 align-center">
       <v-col>
@@ -15,7 +16,7 @@
           </div>
         </div>
       </v-col>
-      <v-col cols="auto" class="d-flex gap-3">
+      <v-col cols="auto" class="d-flex gap-3 report-header-actions">
         <v-btn
           color="gold"
           variant="outlined"
@@ -404,16 +405,81 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import PrintReportFrame from '../components/common/PrintReportFrame.vue'
 
 const summary = ref<any | null>(null)
 const error = ref('')
 const loading = ref(false)
 
+const toNumber = (value: unknown): number => {
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : 0
+}
+
+const normalizeSummary = (response: any): any => {
+  const data = response?.data ?? response ?? {}
+  const cases = data.cases ?? {}
+  const tasks = data.tasks ?? {}
+  const finances = data.finances ?? {}
+  const enforcement = data.enforcement ?? {}
+  const memoranda = data.memoranda ?? {}
+  const employees = Array.isArray(data.employees) ? data.employees : []
+  const won = toNumber(cases.won)
+  const lost = toNumber(cases.lost)
+  const active = toNumber(cases.active)
+  const closed = toNumber(cases.closed)
+
+  return {
+    cases: {
+      winRate: toNumber(cases.winRate),
+      won,
+      lost,
+      active,
+      closed,
+      total: toNumber(cases.total) || active + closed || won + lost
+    },
+    tasks: {
+      completionRate: toNumber(tasks.completionRate),
+      completed: toNumber(tasks.completed),
+      pending: toNumber(tasks.pending)
+    },
+    finances: {
+      collectionRate: toNumber(finances.collectionRate),
+      income: toNumber(finances.income)
+    },
+    enforcement: {
+      total: toNumber(enforcement.total),
+      collected: toNumber(enforcement.collected)
+    },
+    memoranda: {
+      drafts: toNumber(memoranda.drafts),
+      submitted: toNumber(memoranda.submitted)
+    },
+    employees: employees.map((employee: any, index: number) => {
+      const taskTotal = toNumber(employee.tasks?.total ?? employee.tasksCount)
+      return {
+        id: employee.id ?? `employee-${index}`,
+        name: employee.name || 'موظف',
+        title: employee.title || '',
+        score: toNumber(employee.score),
+        tasks: {
+          done: toNumber(
+            employee.tasks?.done ?? employee.tasksCompleted ?? employee.tasksDone ?? taskTotal
+          ),
+          total: taskTotal
+        },
+        memos: toNumber(employee.memos ?? employee.memosCount),
+        level: employee.level || ''
+      }
+    })
+  }
+}
+
 const load = async (): Promise<void> => {
   loading.value = true
   error.value = ''
   try {
-    summary.value = await (window as any).api.analytics.getDashboard()
+    summary.value = normalizeSummary(await (window as any).api.analytics.getDashboard())
   } catch (e: unknown) {
     error.value = (e as Error)?.message || 'فشل تحميل محرك التحليلات'
     summary.value = null
@@ -448,7 +514,11 @@ const printPage = () => window.print()
 
 const exportPdf = async (): Promise<void> => {
   try {
-    await (window as any).api.reports.exportPdf({ type: 'operations_advanced', params: {} })
+    await (window as any).api.reports.exportPdf({
+      type: 'operations_advanced',
+      filename: 'تقرير_الأداء_التشغيلي.pdf',
+      params: {}
+    })
   } catch {
     error.value = 'فشل تصدير PDF للمحرك'
   }
@@ -486,6 +556,20 @@ onMounted(() => {
 
 /* Mobile (<=1023px only) */
 @media (max-width: 1023px) {
+  .report-header-actions {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    margin-top: 8px;
+  }
+  .report-header-actions :deep(.v-btn) {
+    width: 100% !important;
+    min-width: 0 !important;
+    padding-inline: 12px !important;
+    white-space: normal !important;
+  }
   :deep(.v-row.mb-8.align-center > .v-col-auto) {
     flex: 0 0 100% !important;
     max-width: 100% !important;

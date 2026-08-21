@@ -1,5 +1,5 @@
 ﻿<template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="تقرير جرد الأدلة والقرائن" />
 
     <!-- Header Section -->
@@ -89,7 +89,7 @@
       </v-row>
 
       <!-- Export Actions -->
-      <div class="d-flex flex-wrap justify-end mb-8 gap-3">
+      <div class="d-flex flex-wrap justify-end mb-8 gap-3 report-actions">
         <v-btn
           variant="tonal"
           color="white"
@@ -252,14 +252,7 @@ const printPage = () => window.print()
 const exportCsv = async (): Promise<void> => {
   if (safeLength(rows.value) === 0) return
   try {
-    const res = await (window as any).api.reports.exportCsv('evidence-report.csv', rows.value)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('evidence-report.csv', rows.value)
   } catch {
     error.value = 'فشل تصدير ملف CSV'
   }

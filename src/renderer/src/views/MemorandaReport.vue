@@ -1,17 +1,17 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="بيان المذكرات واللوائح القانونية" />
 
     <!-- Header Section -->
     <v-row dense class="mb-8 align-center">
       <v-col>
-          <div class="d-flex align-center">
-            <div class="header-icon-box pa-4 rounded-xl me-5">
-              <LucideIcon name="file-signature" :size="36" class="text-gold" />
-            </div>
-            <div>
-              <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير المذكرات واللوائح</h1>
-              <p class="text-subtitle-1 text-gold font-weight-bold opacity-90">
+        <div class="d-flex align-center">
+          <div class="header-icon-box pa-4 rounded-xl me-5">
+            <LucideIcon name="file-signature" :size="36" class="text-gold" />
+          </div>
+          <div>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير المذكرات واللوائح</h1>
+            <p class="text-subtitle-1 text-gold font-weight-bold opacity-90">
               استعراض تحليلي لكافة الدفوع القانونية، المذكرات الجوابية، ولوائح الدعوى
             </p>
           </div>
@@ -89,7 +89,7 @@
       </v-row>
 
       <!-- Export Actions -->
-      <div class="d-flex flex-wrap justify-end mb-8 gap-3">
+      <div class="d-flex flex-wrap justify-end mb-8 gap-3 report-actions">
         <v-btn
           variant="tonal"
           color="white"
@@ -258,33 +258,12 @@ const load = async (): Promise<void> => {
   }
 }
 
-const printPage = async () => {
-  try {
-    await (window as any).api.reports.printReport({
-      type: 'memoranda_list',
-      params: {
-        caseId: caseId.value || undefined,
-        from: from.value || undefined,
-        to: to.value || undefined,
-        q: ''
-      }
-    })
-  } catch {
-    error.value = 'فشل عملية الطباعة'
-  }
-}
+const printPage = () => window.print()
 
 const exportCsv = async (): Promise<void> => {
   if (safeLength(rows.value) === 0) return
   try {
-    const res = await (window as any).api.reports.exportCsv('memoranda-report.csv', rows.value)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('memoranda-report.csv', rows.value)
   } catch {
     error.value = 'فشل تصدير ملف CSV'
   }

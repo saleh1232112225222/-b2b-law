@@ -92,6 +92,18 @@ html {
   height: calc(var(--mobile-header-height) + env(safe-area-inset-top));
 }
 
+[data-theme='dark'] .mobile-header.glass-header {
+  background: #0d1929 !important;
+  border-bottom-color: #26364a !important;
+  color: #f3f6fa !important;
+}
+
+[data-theme='dark'] .mobile-header .text-ebony,
+[data-theme='dark'] .mobile-header .v-toolbar-title,
+[data-theme='dark'] .mobile-header .v-icon {
+  color: #f3f6fa !important;
+}
+
 .mobile-app-shell .v-btn {
   min-height: 44px !important;
 }
@@ -119,6 +131,16 @@ html {
   background: var(--color-background, #f9fafb) !important;
 }
 
+[data-theme='dark'] .mobile-app-shell,
+[data-theme='dark'] .main-body-wrapper {
+  background: #07111f !important;
+}
+
+[data-theme='dark'] .mobile-bottom-nav {
+  background: #0d1929 !important;
+  border-top: 1px solid #26364a !important;
+}
+
 .v-main.mobile-app-shell {
   overflow-y: auto !important;
   max-height: calc(
@@ -128,7 +150,7 @@ html {
 
 .main-body-wrapper {
   min-height: 100%;
-  padding-bottom: 16px;
+  padding-bottom: calc(var(--mobile-bottom-nav-height) + env(safe-area-inset-bottom) + 24px);
 }
 
 /* Fix overlapping on small screens */

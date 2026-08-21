@@ -415,6 +415,7 @@ const getFinanceStatusColor = (status: string) => {
     case 'paid':
       return 'success'
     case 'partially_paid':
+    case 'partial':
       return 'warning'
     case 'overdue':
       return 'error'
@@ -428,6 +429,7 @@ const getFinanceStatusLabel = (status: string) => {
     case 'paid':
       return 'مدفوع بالكامل'
     case 'partially_paid':
+    case 'partial':
       return 'مدفوع جزئياً'
     case 'overdue':
       return 'متأخر'
@@ -511,7 +513,7 @@ const printInvoice = async () => {
       type: 'invoice',
       params: { id: engagement.value.invoice_id }
     })
-    if (result && result.saved && result.path) {
+    if (result?.saved && result.path) {
       await window.api.documents.open(result.path)
     }
   } catch (e: any) {

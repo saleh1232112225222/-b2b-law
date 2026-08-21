@@ -511,6 +511,7 @@ import { useSessionsStore } from '../../stores/sessions'
 import { useFinanceStore } from '../../stores/finance'
 import { useTasksStore } from '../../stores/tasks'
 import LucideIcon from '../common/LucideIcon.vue'
+import { safeArray } from '../../utils/safe'
 
 const router = useRouter()
 const clientsStore = useClientsStore()
@@ -550,7 +551,7 @@ const currentMonthYearLabel = computed(() => {
 
 // Active Cases Count (100% REAL DB)
 const activeCasesCount = computed(() => {
-  const cases = casesStore.cases || []
+  const cases = safeArray(casesStore.cases)
   if (cases.length > 0) {
     return cases.filter(
       (c: any) =>
@@ -566,30 +567,30 @@ const activeCasesCount = computed(() => {
 })
 
 const activeCasesBadgeCount = computed(() => {
-  const cases = casesStore.cases || []
+  const cases = safeArray(casesStore.cases)
   const now = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   return cases.filter((c: any) => c.created_at && new Date(c.created_at) >= firstOfMonth).length
 })
 
 const reviewCasesCount = computed(() => {
-  const cases = casesStore.cases || []
+  const cases = safeArray(casesStore.cases)
   return cases.filter((c: any) => String(c.status || '').includes('مراجعة')).length
 })
 
 const deadlinesCount = computed(() => {
-  const tasks = tasksStore.pendingTasks || []
+  const tasks = safeArray(tasksStore.pendingTasks)
   return tasks.length
 })
 
 // Clients (100% REAL DB)
 const totalClientsCount = computed(() => {
-  const clients = clientsStore.clients || []
+  const clients = safeArray(clientsStore.clients)
   return clients.length || clientsStore.total || 0
 })
 
 const newClientsCount = computed(() => {
-  const clients = clientsStore.clients || []
+  const clients = safeArray(clientsStore.clients)
   const now = new Date()
   const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
   return clients.filter((c: any) => c.created_at && new Date(c.created_at) >= firstOfMonth).length
@@ -601,7 +602,7 @@ const retentionRate = computed(() => {
 
 // Upcoming Sessions (100% REAL FUTURE DB SESSIONS)
 const totalUpcomingSessionsCount = computed(() => {
-  const sessions = sessionsStore.sessions || []
+  const sessions = safeArray(sessionsStore.sessions)
   const now = new Date()
   return sessions.filter((s: any) => {
     if (!s.session_date) return false
@@ -617,7 +618,7 @@ const totalUpcomingSessionsCount = computed(() => {
 })
 
 const upcoming48hSessionsCount = computed(() => {
-  const sessions = sessionsStore.sessions || []
+  const sessions = safeArray(sessionsStore.sessions)
   const now = new Date()
   const in48h = new Date(now.getTime() + 48 * 3600 * 1000)
   return sessions.filter((s: any) => {
@@ -635,7 +636,7 @@ const upcoming48hSessionsCount = computed(() => {
 })
 
 const thisWeekSessionsCount = computed(() => {
-  const sessions = sessionsStore.sessions || []
+  const sessions = safeArray(sessionsStore.sessions)
   const now = new Date()
   const endOfWeek = new Date(now.getTime() + 7 * 24 * 3600 * 1000)
   return sessions.filter((s: any) => {
@@ -675,7 +676,7 @@ const revenueGrowthPercent = computed(() => (totalIncome.value > 0 ? 12 : 0))
 
 // Pipeline Stages (100% REAL DB)
 const pipelineStages = computed(() => {
-  const cases = casesStore.cases || []
+  const cases = safeArray(casesStore.cases)
   const c = { consultation: 0, preparation: 0, pleading: 0, judgment: 0, enforcement: 0 }
   cases.forEach((item: any) => {
     const s = String(item.stage || item.status || '')
@@ -691,7 +692,7 @@ const pipelineStages = computed(() => {
 
 // Urgent Alert Banner (ONLY REAL DB SESSION WITH URGENCY)
 const urgentAlert = computed(() => {
-  const sessions = sessionsStore.sessions || []
+  const sessions = safeArray(sessionsStore.sessions)
   const now = new Date()
   const in24h = new Date(now.getTime() + 24 * 3600 * 1000)
 
@@ -718,7 +719,7 @@ const priorityItems = computed(() => {
   const items: any[] = []
 
   // Pending Tasks
-  const pendingTasks = tasksStore.pendingTasks || []
+  const pendingTasks = safeArray(tasksStore.pendingTasks)
   pendingTasks.slice(0, 5).forEach((task: any) => {
     let rawDateStr = task.due_date ? String(task.due_date).split('T')[0] : ''
     let formattedDate = rawDateStr
@@ -762,7 +763,7 @@ const priorityItems = computed(() => {
 
 // Display Sessions (REAL UPCOMING SESSIONS ONLY)
 const displaySessions = computed(() => {
-  const sessions = sessionsStore.sessions || []
+  const sessions = safeArray(sessionsStore.sessions)
   const now = new Date()
 
   // Filter ONLY future/upcoming sessions whose status is NOT ended ('منتهية', 'مكتملة', 'ملغاة', 'منعقدة')
@@ -816,8 +817,8 @@ const calendarRow = computed(() => {
     todayNum + 4,
     todayNum + 5
   ]
-  const realSessions = sessionsStore.sessions || []
-  const realTasks = tasksStore.pendingTasks || []
+  const realSessions = safeArray(sessionsStore.sessions)
+  const realTasks = safeArray(tasksStore.pendingTasks)
 
   return daysAround.map((day) => {
     const dayStr = String(day > 31 ? day - 31 : day).padStart(2, '0')
@@ -862,10 +863,10 @@ onMounted(async () => {
 
 <style scoped>
 .mobile-dashboard-wrapper {
-  background-color: #fdf8f3;
+  background-color: var(--background);
   min-height: 100vh;
   font-family: 'Cairo', 'Noto Sans Arabic', sans-serif;
-  color: #18181b;
+  color: var(--text-primary);
 }
 
 /* Header */
@@ -889,14 +890,14 @@ onMounted(async () => {
   line-height: 1.2;
 }
 .header-date {
-  color: #71717a;
+  color: var(--text-secondary);
 }
 .logo-icon-bg {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background-color: #ffffff;
-  border: 1px solid #e5e5e5;
+  background-color: var(--surface);
+  border: 1px solid var(--border-card);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -949,8 +950,8 @@ onMounted(async () => {
 /* Base Cards */
 .stat-card,
 .section-card {
-  background-color: #ffffff;
-  border: 1px solid #e5e5e5;
+  background-color: var(--surface);
+  border: 1px solid var(--border-card);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition:
     transform 0.2s ease,
@@ -986,8 +987,8 @@ onMounted(async () => {
 }
 .badge-count-pill {
   font-size: 0.75rem;
-  background-color: #f4f4f5;
-  color: #3f3f46;
+  background-color: var(--surface-variant);
+  color: var(--text-secondary);
   padding: 3px 8px;
   border-radius: 12px;
 }
@@ -1008,8 +1009,8 @@ onMounted(async () => {
 
 /* Case Pipeline Track */
 .pipeline-stage-pill {
-  background-color: #f4f4f5;
-  border: 1px solid #e4e4e7;
+  background-color: var(--surface-variant);
+  border: 1px solid var(--border-card);
   white-space: nowrap;
   font-size: 0.85rem;
 }
@@ -1017,7 +1018,7 @@ onMounted(async () => {
   font-size: 0.8rem;
   padding: 1px 6px;
   border-radius: 10px;
-  background-color: #ffffff;
+  background-color: var(--surface);
 }
 .count-blue {
   color: #2563eb;
@@ -1040,8 +1041,8 @@ onMounted(async () => {
 
 /* Priority Inbox */
 .priority-item {
-  background-color: #fafafa;
-  border: 1px solid #f4f4f5;
+  background-color: var(--surface-variant);
+  border: 1px solid var(--border-card);
 }
 .border-start-red {
   border-right: 4px solid #dc2626;
@@ -1155,27 +1156,37 @@ onMounted(async () => {
   text-transform: none;
 }
 
-[data-theme='dark'] .stat-card {
+:global([data-theme='dark']) .stat-card,
+:global([data-theme='dark']) .section-card {
   background-color: #0D1929 !important;
   border: 1px solid #26364A !important;
   color: #F3F6FA !important;
 }
 
-[data-theme='dark'] .session-card {
+:global([data-theme='dark']) .session-card {
   background-color: #0D1929 !important;
   border-color: #26364A !important;
 }
 
-[data-theme='dark'] .quick-action-btn {
+:global([data-theme='dark']) .quick-action-btn {
   background-color: #0D1929 !important;
   border-color: #26364A !important;
   color: #F3F6FA !important;
 }
 
-[data-theme='dark'] .calendar-date-cell {
+:global([data-theme='dark']) .calendar-date-cell {
   background-color: #111F31 !important;
   border-color: #26364A !important;
   color: #F3F6FA !important;
+}
+
+:global([data-theme='dark']) .pipeline-stage-pill,
+:global([data-theme='dark']) .stage-count,
+:global([data-theme='dark']) .priority-item,
+:global([data-theme='dark']) .logo-icon-bg {
+  background-color: #111f31 !important;
+  border-color: #26364a !important;
+  color: #f3f6fa !important;
 }
 
 /* Responsive Font & Layout Scaling for Mobile Viewports */

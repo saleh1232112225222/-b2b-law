@@ -1,4 +1,9 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios'
+import {
+  normalizeInvoice,
+  normalizeOfficeAccountsReport,
+  normalizeReceivable
+} from './financeContracts'
 
 type ApiMode = 'desktop' | 'cloud'
 
@@ -373,8 +378,11 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/reports/memoranda')) return { data: [] }
   if (url.startsWith('/reports/documents')) return { data: [] }
   if (url.startsWith('/reports/operations-summary')) return { data: {} }
-  if (url.startsWith('/reports/export/pdf'))
-    return { success: true, url: 'data:application/pdf;base64,JVBERi0xLjQK...' }
+  if (url.startsWith('/reports/export/csv')) return createCsvBlob(data?.rows || [])
+  if (url.startsWith('/reports/export/pdf') || url.startsWith('/reports/export/html')) {
+    return new Blob([createMockReportHtml(data?.type)], { type: 'text/html;charset=utf-8' })
+  }
+  if (url.startsWith('/reports/preview')) return createMockReportHtml(data?.type)
   // Mock sync endpoints
   if (url.startsWith('/sync/status'))
     return {
@@ -479,49 +487,189 @@ function desktopInvoke<T>(channel: string, ...args: any[]): Promise<T> {
     : Promise.resolve([] as any)
 }
 
-function buildCrudApi(entity: string) {
+type ReportSaveResult = {
+  saved: boolean
+  filename?: string
+  path?: string
+  opened?: boolean
+}
+
+function ensureFileExtension(filename: string | undefined, extension: string): string {
+  const base = String(filename || 'report').trim() || 'report'
+  return base.toLowerCase().endsWith(extension) ? base : `${base}${extension}`
+}
+
+function createCsvBlob(rows: any[]): Blob {
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new Error('لا توجد بيانات للتصدير')
+  }
+
+  const headers = Object.keys(rows[0] || {})
+  const escapeCell = (value: unknown) => `"${String(value ?? '').replace(/"/g, '""')}"`
+  const csv = [
+    headers.map(escapeCell).join(','),
+    ...rows.map((row) => headers.map((header) => escapeCell(row?.[header])).join(','))
+  ].join('\r\n')
+
+  return new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' })
+}
+
+function createMockReportHtml(type: string | undefined): string {
+  const titles: Record<string, string> = {
+    sessions: 'تقرير الجلسات',
+    financial: 'التقرير المالي',
+    activity: 'تقرير نشاط المستخدم',
+    evidence: 'تقرير الأدلة',
+    memoranda: 'تقرير المذكرات',
+    memoranda_list: 'تقرير المذكرات',
+    documents: 'تقرير المستندات',
+    users_permissions: 'تقرير المستخدمين والصلاحيات',
+    operations: 'تقرير العمليات',
+    operations_advanced: 'تقرير الأداء التشغيلي',
+    'case-a4': 'تقرير القضية'
+  }
+  const title = titles[String(type || '')] || 'تقرير النظام'
+  return `<!doctype html>
+    <html lang="ar" dir="rtl">
+      <head>
+        <meta charset="utf-8" />
+        <title>${title}</title>
+        <style>
+          @page { size: A4; margin: 18mm; }
+          body { font-family: Arial, sans-serif; color: #172033; direction: rtl; }
+          header { text-align: center; border-bottom: 2px solid #b58b19; padding-bottom: 12px; }
+          h1 { color: #8a6b18; }
+          main { margin-top: 24px; border: 1px solid #ddd; padding: 24px; }
+        </style>
+      </head>
+      <body>
+        <header><h1>مكتب المحاماة</h1><strong>${title}</strong></header>
+        <main>هذه معاينة تجريبية للتقرير. لا توجد بيانات فعلية في وضع العرض التجريبي.</main>
+        <script>window.addEventListener('load', () => setTimeout(() => window.print(), 250))</script>
+      </body>
+    </html>`
+}
+
+function saveBlobToBrowser(blob: Blob, filename: string): ReportSaveResult {
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+  return { saved: true, filename }
+}
+
+async function normalizeReportBlob(response: any, fallbackMime: string): Promise<Blob> {
+  if (response instanceof Blob) return response
+  if (typeof response === 'string') return new Blob([response], { type: fallbackMime })
+
+  const dataUrl = typeof response?.url === 'string' ? response.url : ''
+  if (dataUrl.startsWith('data:')) {
+    const fetched = await fetch(dataUrl)
+    return fetched.blob()
+  }
+  if (dataUrl) {
+    const fetched = await fetch(dataUrl)
+    if (!fetched.ok) throw new Error('تعذر تنزيل ملف التقرير')
+    return fetched.blob()
+  }
+
+  throw new Error('لم يُرجع الخادم ملفًا صالحًا للتصدير')
+}
+
+async function openPrintableReport(
+  response: any,
+  filename: string,
+  previewWindow: Window | null
+): Promise<ReportSaveResult> {
+  const blob = await normalizeReportBlob(response, 'text/html;charset=utf-8')
+  if (blob.type.toLowerCase().includes('pdf')) {
+    previewWindow?.close()
+    return saveBlobToBrowser(blob, ensureFileExtension(filename, '.pdf'))
+  }
+
+  const html = await blob.text()
+  if (previewWindow) {
+    previewWindow.document.open()
+    previewWindow.document.write(html)
+    previewWindow.document.close()
+    return { saved: true, opened: true, filename }
+  }
+
+  const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }))
+  const link = document.createElement('a')
+  link.href = url
+  link.target = '_blank'
+  link.rel = 'noopener'
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 60000)
+  return { saved: true, opened: true, filename }
+}
+
+/**
+ * Keep the renderer contract stable across the desktop API, the cloud API and
+ * development mocks.  Older endpoints return arrays directly while some
+ * adapters wrap them in `{ data }` (and reports occasionally use `{ rows }`).
+ */
+export function unwrapArrayResponse<T = any>(response: unknown): T[] {
+  if (Array.isArray(response)) return response as T[]
+  if (response && typeof response === 'object') {
+    const value = response as { data?: unknown; rows?: unknown; items?: unknown }
+    if (Array.isArray(value.data)) return value.data as T[]
+    if (Array.isArray(value.rows)) return value.rows as T[]
+    if (Array.isArray(value.items)) return value.items as T[]
+  }
+  return []
+}
+
+function buildCrudApi(entity: string, desktopEntity = entity) {
   return {
     getAll: (params?: any) =>
       mode === 'desktop'
-        ? desktopInvoke(`${entity}:getAll`, params)
-        : cloudRequest({ method: 'GET', url: `/${entity}/all`, params }),
+        ? desktopInvoke(`${desktopEntity}:getAll`, params)
+        : cloudRequest({ method: 'GET', url: `/${entity}/all`, params }).then(unwrapArrayResponse),
     list: (params: any) =>
       mode === 'desktop'
-        ? desktopInvoke(`${entity}:list`, params)
-        : cloudRequest<any>({ method: 'GET', url: `/${entity}`, params }).then((r) => r.data),
+        ? desktopInvoke(`${desktopEntity}:list`, params)
+        : cloudRequest<any>({ method: 'GET', url: `/${entity}`, params }).then(unwrapArrayResponse),
     count: (params?: any) =>
       mode === 'desktop'
-        ? desktopInvoke(`${entity}:count`, params)
+        ? desktopInvoke(`${desktopEntity}:count`, params)
         : cloudRequest<any>({ method: 'GET', url: `/${entity}/count`, params }).then(
             (r) => r.count
           ),
     getById: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer
-          ? window.ipcRenderer.invoke(`${entity}:getById`, id)
+          ? window.ipcRenderer.invoke(`${desktopEntity}:getById`, id)
           : Promise.resolve(null)
         : cloudRequest({ method: 'GET', url: `/${entity}/${id}` }),
     create: (data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer
-          ? window.ipcRenderer.invoke(`${entity}:create`, data)
+          ? window.ipcRenderer.invoke(`${desktopEntity}:create`, data)
           : Promise.resolve({})
         : cloudRequest({ method: 'POST', url: `/${entity}`, data }),
     update: (id: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer
-          ? window.ipcRenderer.invoke(`${entity}:update`, id, data)
+          ? window.ipcRenderer.invoke(`${desktopEntity}:update`, id, data)
           : Promise.resolve({})
         : cloudRequest({ method: 'PUT', url: `/${entity}/${id}`, data }),
     delete: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer
-          ? window.ipcRenderer.invoke(`${entity}:delete`, id)
+          ? window.ipcRenderer.invoke(`${desktopEntity}:delete`, id)
           : Promise.resolve(undefined)
         : cloudRequest({ method: 'DELETE', url: `/${entity}/${id}` }),
     search: (query: string) =>
       mode === 'desktop'
-        ? desktopInvoke(`${entity}:search`, query)
+        ? desktopInvoke(`${desktopEntity}:search`, query)
         : cloudRequest({ method: 'GET', url: `/${entity}/search`, params: { q: query } })
   }
 }
@@ -817,9 +965,10 @@ const api = {
             url: `/office-accounts/clients/${clientId}/financial-summary`
           }),
     getOfficeAccountsReport: (params: any) =>
-      mode === 'desktop'
+      Promise.resolve(mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:getOfficeAccountsReport', params)
-        : cloudRequest({ method: 'GET', url: '/office-accounts/report', params }),
+        : cloudRequest({ method: 'GET', url: '/office-accounts/report', params })
+      ).then(normalizeOfficeAccountsReport),
     applyLateFee: (engagementId: string, data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('legalServices:applyLateFee', engagementId, data)
@@ -1144,20 +1293,78 @@ const api = {
     getByCaseId: (caseId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('documents:getByCaseId', caseId)
-        : cloudRequest({ method: 'GET', url: `/documents/by-case/${caseId}` }),
+        : cloudRequest({ method: 'GET', url: `/documents/by-case/${caseId}` }).then(unwrapArrayResponse),
     getByTaskId: (taskId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('documents:getByTaskId', taskId)
-        : cloudRequest({ method: 'GET', url: `/documents/by-task/${taskId}` }),
+        : cloudRequest({ method: 'GET', url: `/documents/by-task/${taskId}` }).then(unwrapArrayResponse),
     getBySessionId: (sessionId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('documents:getBySessionId', sessionId)
-        : cloudRequest({ method: 'GET', url: `/documents/by-session/${sessionId}` }),
-    upload: (_info: any) => {
-      throw new Error('File upload not available in cloud mode')
+        : cloudRequest({ method: 'GET', url: `/documents/by-session/${sessionId}` }).then(unwrapArrayResponse),
+    upload: async (info: any) => {
+      if (mode === 'desktop' && window.ipcRenderer) {
+        return window.ipcRenderer.invoke('documents:upload', info)
+      }
+      return new Promise((resolve, reject) => {
+        const input = document.createElement('input')
+        input.type = 'file'
+        input.onchange = async () => {
+          if (!input.files || input.files.length === 0) {
+            resolve(null)
+            return
+          }
+          const file = input.files[0]
+          const reader = new FileReader()
+          reader.onload = async () => {
+            try {
+              const res = await cloudRequest({
+                method: 'POST',
+                url: '/documents/upload',
+                data: {
+                  name: file.name,
+                  fileType: file.name.includes('.') ? '.' + file.name.split('.').pop() : '',
+                  fileSize: file.size,
+                  fileData: reader.result,
+                  linkType: info.linkType || 'none',
+                  parentId: info.parentId,
+                  linkedTitle: info.linkedTitle
+                }
+              })
+              resolve(res)
+            } catch (err) {
+              reject(err)
+            }
+          }
+          reader.onerror = () => reject(new Error('فشل قراءة الملف المختار'))
+          reader.readAsDataURL(file)
+        }
+        input.oncancel = () => resolve(null)
+        window.addEventListener(
+          'focus',
+          () => {
+            setTimeout(() => {
+              if (!input.files || input.files.length === 0) {
+                resolve(null)
+              }
+            }, 600)
+          },
+          { once: true }
+        )
+        input.click()
+      })
     },
-    open: (_path: string) => {
-      throw new Error('File open not available in cloud mode')
+    open: async (docOrPath: any) => {
+      if (mode === 'desktop' && window.ipcRenderer) {
+        const p = typeof docOrPath === 'string' ? docOrPath : docOrPath?.file_path
+        if (p) return window.ipcRenderer.invoke('documents:open', p)
+      }
+      const p = typeof docOrPath === 'string' ? docOrPath : docOrPath?.file_path || ''
+      if (p.startsWith('http') || p.startsWith('data:') || p.startsWith('blob:')) {
+        window.open(p, '_blank')
+      } else if (typeof docOrPath === 'object' && docOrPath?.id) {
+        window.open(`/api/documents/${docOrPath.id}`, '_blank')
+      }
     }
   },
   finances: {
@@ -1187,13 +1394,13 @@ const api = {
         ? window.ipcRenderer
           ? window.ipcRenderer.invoke('users:listAssignable')
           : Promise.resolve([])
-        : cloudRequest({ method: 'GET', url: '/users/assignable' }),
+        : cloudRequest({ method: 'GET', url: '/users/assignable' }).then(unwrapArrayResponse),
     listActiveStaff: () =>
       mode === 'desktop'
         ? window.ipcRenderer
           ? window.ipcRenderer.invoke('users:listActiveStaff')
           : Promise.resolve([])
-        : cloudRequest({ method: 'GET', url: '/users/active-staff' }),
+        : cloudRequest({ method: 'GET', url: '/users/active-staff' }).then(unwrapArrayResponse),
     toggleActive: (userId: string, isActive: boolean) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('users:toggleActive', userId, isActive)
@@ -1295,10 +1502,33 @@ const api = {
         ? window.ipcRenderer?.invoke('agencies:getExpiryAlerts', params)
         : cloudRequest({ method: 'GET', url: '/agencies/expiry-alerts', params })
   },
-  invoices: buildCrudApi('invoices'),
-  vouchers: buildCrudApi('vouchers'),
+  invoices: {
+    ...buildCrudApi('invoices'),
+    getAll: (params?: any) =>
+      (mode === 'desktop'
+        ? desktopInvoke('invoices:getAll', params)
+        : cloudRequest({ method: 'GET', url: '/invoices/all', params })
+      ).then((rows) => unwrapArrayResponse(rows).map(normalizeInvoice)),
+    createWithReceivable: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('invoices:create', data).then(async (invoiceId: string) => {
+            const invoice = { ...data, id: invoiceId }
+            const receivable = await window.ipcRenderer?.invoke(
+              'receivables:createFromInvoice', invoice, data.due_date
+            )
+            return { invoice, receivable }
+          })
+        : cloudRequest({ method: 'POST', url: '/financial-operations/invoices', data })
+  },
+  vouchers: {
+    ...buildCrudApi('vouchers'),
+    createLinked: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('vouchers:create', data)
+        : cloudRequest({ method: 'POST', url: '/financial-operations/vouchers', data })
+  },
   creditNotes: {
-    ...buildCrudApi('creditNotes'),
+    ...buildCrudApi('credit-notes', 'creditNotes'),
     markAsUsed: (id: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('creditNotes:markAsUsed', id)
@@ -1330,14 +1560,21 @@ const api = {
   accounts: buildCrudApi('accounts'),
   receivables: {
     ...buildCrudApi('receivables'),
+    getAll: (params?: any) =>
+      (mode === 'desktop'
+        ? desktopInvoke('receivables:getAll', params)
+        : cloudRequest({ method: 'GET', url: '/receivables/all', params })
+      ).then((rows) => unwrapArrayResponse(rows).map(normalizeReceivable)),
     getByClientId: (clientId: string) =>
-      mode === 'desktop'
+      Promise.resolve(mode === 'desktop'
         ? window.ipcRenderer?.invoke('receivables:getByClientId', clientId)
-        : cloudRequest({ method: 'GET', url: `/receivables/by-client/${clientId}` }),
+        : cloudRequest({ method: 'GET', url: `/receivables/by-client/${clientId}` })
+      ).then((rows) => unwrapArrayResponse(rows).map(normalizeReceivable)),
     getOpen: () =>
-      mode === 'desktop'
+      Promise.resolve(mode === 'desktop'
         ? window.ipcRenderer?.invoke('receivables:getOpen')
-        : cloudRequest({ method: 'GET', url: '/receivables/open' }),
+        : cloudRequest({ method: 'GET', url: '/receivables/open' })
+      ).then((rows) => unwrapArrayResponse(rows).map(normalizeReceivable)),
     createFromInvoice: (invoice: any, dueDate?: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('receivables:createFromInvoice', invoice, dueDate)
@@ -1346,13 +1583,13 @@ const api = {
             url: '/receivables/from-invoice',
             data: { invoice, dueDate }
           }),
-    applyPayment: (id: string, amount: number) =>
+    applyPayment: (id: string, amount: number, accountId?: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('receivables:applyPayment', id, amount)
         : cloudRequest({
             method: 'POST',
             url: `/receivables/${id}/apply-payment`,
-            data: { amount }
+            data: { amount, account_id: accountId }
           })
   },
   activityLogs: {
@@ -1427,25 +1664,45 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getActivityReport', params)
         : cloudRequest({ method: 'GET', url: '/reports/activity', params }),
-    exportCsv: (filename: string, rows: any[]) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('reports:exportCsv', { filename, rows })
-        : cloudRequest({
-            method: 'POST',
-            url: '/reports/export/csv',
-            data: { filename, rows },
-            responseType: 'blob'
-          }).then((blob) => {
-            if (blob instanceof Blob) {
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = `${filename || 'export'}.csv`
-              a.click()
-              URL.revokeObjectURL(url)
-            }
-            return blob
-          }),
+    exportCsv: async (
+      filenameOrPayload: string | { filename: string; rows: any[] },
+      suppliedRows?: any[]
+    ) => {
+      const payload =
+        typeof filenameOrPayload === 'string'
+          ? { filename: filenameOrPayload, rows: suppliedRows || [] }
+          : filenameOrPayload
+      const filename = ensureFileExtension(payload.filename || 'export', '.csv')
+      if (!Array.isArray(payload.rows) || payload.rows.length === 0) {
+        throw new Error('لا توجد بيانات للتصدير')
+      }
+
+      const response =
+        mode === 'desktop'
+          ? await window.ipcRenderer?.invoke('reports:exportCsv', {
+              filename,
+              rows: payload.rows
+            })
+          : await cloudRequest({
+              method: 'POST',
+              url: '/reports/export/csv',
+              data: { filename, rows: payload.rows },
+              responseType: 'blob'
+            })
+
+      if (response?.saved && !response?.csv && !(response instanceof Blob)) return response
+      const blob =
+        response instanceof Blob
+          ? response
+          : typeof response?.csv === 'string'
+            ? new Blob([response.csv], { type: 'text/csv;charset=utf-8' })
+            : null
+      if (!blob) throw new Error('لم يُرجع الخادم ملف CSV صالحًا')
+      return {
+        ...saveBlobToBrowser(blob, ensureFileExtension(response?.filename || filename, '.csv')),
+        csv: typeof response?.csv === 'string' ? response.csv : undefined
+      }
+    },
     getUserActivityReport: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getUserActivityReport', params)
@@ -1490,94 +1747,58 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:listTasks', caseId)
         : cloudRequest({ method: 'GET', url: '/reports/tasks-list', params: { caseId } }),
-    exportPdf: (payload: any) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('reports:exportPdf', payload)
-        : cloudRequest({
-            method: 'POST',
-            url: '/reports/export/pdf',
-            data: payload,
-            responseType: 'blob'
-          }).then(async (blob) => {
-            if (blob instanceof Blob) {
-              const filename = payload.filename || `${payload.type || 'report'}.html`
-              const isPdf = filename.toLowerCase().endsWith('.pdf')
-              const mime = isPdf ? 'application/pdf' : 'text/html'
-              const ext = isPdf ? '.pdf' : '.html'
+    exportPdf: async (payload: any) => {
+      if (mode === 'desktop') return window.ipcRenderer?.invoke('reports:exportPdf', payload)
 
-              if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-                try {
-                  const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: filename,
-                    types: [
-                      { description: isPdf ? 'ملف PDF' : 'ملف HTML', accept: { [mime]: [ext] } }
-                    ]
-                  })
-                  const writable = await handle.createWritable()
-                  await writable.write(blob)
-                  await writable.close()
-                  return blob
-                } catch (err: any) {
-                  if (err.name === 'AbortError') return blob
-                }
-              }
+      const previewWindow = typeof window !== 'undefined' ? window.open('', '_blank') : null
+      try {
+        const response = await cloudRequest({
+          method: 'POST',
+          url: '/reports/export/pdf',
+          data: payload,
+          responseType: 'blob'
+        })
+        return await openPrintableReport(
+          response,
+          ensureFileExtension(payload.filename || payload.type || 'report', '.pdf'),
+          previewWindow
+        )
+      } catch (error) {
+        previewWindow?.close()
+        throw error
+      }
+    },
+    exportHtml: async (payload: any) => {
+      if (mode === 'desktop') return window.ipcRenderer?.invoke('reports:exportHtml', payload)
+      const response = await cloudRequest({
+        method: 'POST',
+        url: '/reports/export/html',
+        data: payload,
+        responseType: 'blob'
+      })
+      const blob = await normalizeReportBlob(response, 'text/html;charset=utf-8')
+      return saveBlobToBrowser(
+        blob,
+        ensureFileExtension(payload.filename || payload.type || 'report', '.html')
+      )
+    },
+    printReport: async (payload: any) => {
+      if (mode === 'desktop') return window.ipcRenderer?.invoke('reports:printReport', payload)
 
-              const htmlText = await blob.text()
-              const win = window.open('', '_blank')
-              if (win) {
-                win.document.write(htmlText)
-                if (payload.filename) {
-                  win.document.title = payload.filename.replace(/\.pdf$/i, '')
-                }
-                win.document.close()
-              } else {
-                const url = URL.createObjectURL(blob)
-                const a = document.createElement('a')
-                a.href = url
-                a.download = filename
-                a.click()
-                URL.revokeObjectURL(url)
-              }
-            }
-            return blob
-          }),
-    exportHtml: (payload: any) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('reports:exportHtml', payload)
-        : cloudRequest({
-            method: 'POST',
-            url: '/reports/export/html',
-            data: payload,
-            responseType: 'blob'
-          }).then(async (blob) => {
-            if (blob instanceof Blob) {
-              const filename = payload.filename || `${payload.type || 'report'}.html`
-              if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-                try {
-                  const handle = await (window as any).showSaveFilePicker({
-                    suggestedName: filename,
-                    types: [{ description: 'ملف HTML', accept: { 'text/html': ['.html'] } }]
-                  })
-                  const writable = await handle.createWritable()
-                  await writable.write(blob)
-                  await writable.close()
-                  return blob
-                } catch (err: any) {
-                  if (err.name === 'AbortError') return blob
-                }
-              }
-
-              const url = URL.createObjectURL(blob)
-              const a = document.createElement('a')
-              a.href = url
-              a.download = filename
-              a.click()
-              URL.revokeObjectURL(url)
-            }
-            return blob
-          }),
-    printReport: (_payload: any) => {
-      throw new Error('Print not available in cloud mode')
+      const previewWindow = typeof window !== 'undefined' ? window.open('', '_blank') : null
+      try {
+        const response = await cloudRequest({
+          method: 'POST',
+          url: '/reports/export/pdf',
+          data: payload,
+          responseType: 'blob'
+        })
+        await openPrintableReport(response, payload.type || 'report', previewWindow)
+        return true
+      } catch (error) {
+        previewWindow?.close()
+        throw error
+      }
     },
     getPreviewHtml: (payload: any) =>
       mode === 'desktop'
@@ -2180,23 +2401,27 @@ const api = {
   sync: {
     getStatus: () =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:status') || Promise.resolve({ status: 'synced', unresolvedConflicts: 0 }))
-        : cloudRequest({ method: 'GET', url: '/sync/status' }).catch(() => ({
-            status: 'synced',
-            unresolvedConflicts: 0,
-            pendingQueue: 0,
-            lastSyncAt: new Date().toISOString()
-          })),
+        ? window.ipcRenderer?.invoke('sync:status') ||
+          Promise.resolve({ status: 'synced', unresolvedConflicts: 0 })
+        : !localStorage.getItem('b2b_cloud_token')
+          ? Promise.resolve({ status: 'synced', unresolvedConflicts: 0 })
+          : cloudRequest({ method: 'GET', url: '/sync/status' }).catch(() => ({
+              status: 'synced',
+              unresolvedConflicts: 0,
+              pendingQueue: 0,
+              lastSyncAt: new Date().toISOString()
+            })),
     pull: (data: any) =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:pull', data) || Promise.resolve({ changes: {} }))
+        ? window.ipcRenderer?.invoke('sync:pull', data) || Promise.resolve({ changes: {} })
         : cloudRequest({ method: 'POST', url: '/sync/pull', data }).catch(() => ({
             pulledAt: new Date().toISOString(),
             changes: {}
           })),
     push: (data: any) =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:push', data) || Promise.resolve({ success: true, processed: 0, results: [] }))
+        ? window.ipcRenderer?.invoke('sync:push', data) ||
+          Promise.resolve({ success: true, processed: 0, results: [] })
         : cloudRequest({ method: 'POST', url: '/sync/push', data }).catch(() => ({
             success: true,
             processed: 0,
@@ -2204,17 +2429,18 @@ const api = {
           })),
     getConflicts: () =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:conflicts') || Promise.resolve([]))
+        ? window.ipcRenderer?.invoke('sync:conflicts') || Promise.resolve([])
         : cloudRequest({ method: 'GET', url: '/sync/conflicts' }).catch(() => []),
     resolveConflict: (data: any) =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:resolve-conflict', data) || Promise.resolve({ success: true }))
+        ? window.ipcRenderer?.invoke('sync:resolve-conflict', data) ||
+          Promise.resolve({ success: true })
         : cloudRequest({ method: 'POST', url: '/sync/resolve-conflict', data }).catch(() => ({
             success: true
           })),
     getLogs: (params?: any) =>
       mode === 'desktop'
-        ? (window.ipcRenderer?.invoke('sync:logs', params) || Promise.resolve([]))
+        ? window.ipcRenderer?.invoke('sync:logs', params) || Promise.resolve([])
         : cloudRequest({ method: 'GET', url: '/sync/logs', params }).catch(() => [])
   }
 }

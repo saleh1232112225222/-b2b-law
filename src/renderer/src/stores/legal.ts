@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { LegalEngagement } from '../types/legal'
+import { unwrapArrayResponse } from '../api/ApiAdapter'
 import { useAppStore } from './app'
 
 export const useLegalStore = defineStore('legal', () => {
@@ -37,10 +38,10 @@ export const useLegalStore = defineStore('legal', () => {
         window.api.legalServices.getStatuses(),
         window.api.legalServices.getPriorities()
       ])
-      categories.value = cats
-      types.value = typs
-      statuses.value = stats
-      priorities.value = prs
+      categories.value = unwrapArrayResponse(cats)
+      types.value = unwrapArrayResponse(typs)
+      statuses.value = unwrapArrayResponse(stats)
+      priorities.value = unwrapArrayResponse(prs)
       metadataLoaded.value = true
     } catch (e: any) {
       error.value = e.message
@@ -71,7 +72,8 @@ export const useLegalStore = defineStore('legal', () => {
 
       const rawCount = await window.api.legalServices.count(finalParams)
       total.value = typeof rawCount === 'number' ? rawCount : (typeof rawCount?.count === 'number' ? rawCount.count : (Array.isArray(rawCount?.data) ? rawCount.data.length : 0))
-      services.value = Array.isArray(await window.api.legalServices.list(finalParams)) ? await window.api.legalServices.list(finalParams) : []
+      const rawServices = await window.api.legalServices.list(finalParams)
+      services.value = unwrapArrayResponse<LegalEngagement>(rawServices)
 
       // Sync state
       page.value = finalParams.page

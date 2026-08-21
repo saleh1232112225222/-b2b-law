@@ -97,6 +97,9 @@
           ></v-btn>
         </v-toolbar>
         <v-card-text class="pa-6 modal-scrollable">
+          <v-alert v-if="saveError" type="error" variant="tonal" class="mb-4" closable @click:close="saveError = ''">
+            {{ saveError }}
+          </v-alert>
           <v-form ref="formRef" v-model="formValid">
             <v-row>
               <v-col cols="12" md="4">
@@ -106,6 +109,7 @@
                   label="رقم الفاتورة*"
                   variant="outlined"
                   required
+                  :rules="[(v) => !!String(v || '').trim() || 'رقم الفاتورة مطلوب']"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4">
@@ -118,6 +122,7 @@
                   label="الموكل*"
                   variant="outlined"
                   required
+                  :rules="[(v) => !!v || 'الموكل مطلوب']"
                 ></v-select>
               </v-col>
               <v-col cols="12" md="4">
@@ -168,6 +173,7 @@
                       density="compact"
                       hide-details
                       @update:model-value="calculateTotals"
+                      :rules="[(v) => Number(v) > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="1">
@@ -361,6 +367,7 @@ const showInvoiceViewDialog = ref(false)
 const invoiceToView = ref<Invoice | null>(null)
 const formValid = ref(false)
 const saving = ref(false)
+const saveError = ref('')
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
 
 const headers = [
@@ -400,8 +407,11 @@ const openAddDialog = (): void => {
   })
   invoiceLineItems.value = [{ description: 'أتعاب محاماة', amount: 0 }]
   vat_rate.value = 0.15
+  saveError.value = ''
   showDialog.value = true
 }
+
+defineExpose({ openAddDialog })
 
 const openInvoiceView = (item: Invoice): void => {
   invoiceToView.value = item
@@ -434,9 +444,14 @@ const executeSave = async (): Promise<void> => {
 
   saving.value = true
   try {
-    await store.addInvoice({ ...editItem })
+    await store.addInvoice({
+      ...editItem,
+      vat_rate: vat_rate.value,
+      items: invoiceLineItems.value.map((item) => ({ ...item }))
+    })
     showDialog.value = false
   } catch (e: unknown) {
+    saveError.value = (e as Error).message || 'تعذر إصدار الفاتورة'
     console.error('Error saving invoice:', e)
   } finally {
     saving.value = false
@@ -467,6 +482,8 @@ const handleSave = async (): Promise<void> => {
 const getStatusColor = (s: string): string => {
   const map: Record<string, string> = {
     paid: 'success',
+    unpaid: 'warning',
+    partially_paid: 'info',
     draft: 'grey',
     sent: 'info',
     cancelled: 'error'
@@ -477,6 +494,8 @@ const getStatusColor = (s: string): string => {
 const getStatusLabel = (s: string): string => {
   const map: Record<string, string> = {
     paid: 'مدفوعة',
+    unpaid: 'غير مدفوعة',
+    partially_paid: 'مدفوعة جزئياً',
     draft: 'مسودة',
     sent: 'مرسلة',
     cancelled: 'ملغاة'

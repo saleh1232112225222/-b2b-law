@@ -795,21 +795,21 @@ const snackbarColor = ref('success')
 
 /* Glass Dialog Styling matching Figma mockups */
 .poa-dialog-card {
-  background: rgba(15, 23, 42, 0.95) !important;
+  background: var(--surface) !important;
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  border: 1px solid var(--border-card) !important;
   border-radius: 24px !important;
 }
 
 .poa-dialog-header {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-bottom: 1px solid rgba(233, 195, 73, 0.15) !important;
+  background: var(--surface-variant) !important;
+  border-bottom: 1px solid var(--border-card) !important;
 }
 
 .poa-dialog-footer {
-  background: rgba(0, 0, 0, 0.2) !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.15) !important;
+  background: var(--surface-variant) !important;
+  border-top: 1px solid var(--border-card) !important;
 }
 
 .poa-form :deep(.v-label) {
@@ -820,9 +820,9 @@ const snackbarColor = ref('success')
 }
 
 .poa-form :deep(.v-field) {
-  background: rgba(0, 0, 0, 0.4) !important;
+  background: var(--surface-variant) !important;
   border-radius: 14px !important;
-  border: 1px solid rgba(233, 195, 73, 0.25) !important;
+  border: 1px solid var(--border-field) !important;
   transition: all 0.3s ease;
 }
 
@@ -838,8 +838,18 @@ const snackbarColor = ref('success')
 .poa-form :deep(input),
 .poa-form :deep(textarea),
 .poa-form :deep(.v-select__selection-text) {
-  color: #ffffff !important;
+  color: var(--text-primary) !important;
   font-weight: 600 !important;
+}
+
+.poa-form :deep(input::placeholder),
+.poa-form :deep(textarea::placeholder) {
+  color: var(--text-muted) !important;
+  opacity: 0.9 !important;
+}
+
+.poa-dialog-body {
+  padding-bottom: 32px !important;
 }
 
 .poa-form :deep(.v-field__prepend-inner .v-icon),
@@ -867,14 +877,15 @@ const snackbarColor = ref('success')
 }
 
 .premium-btn-gold-gradient.v-btn--disabled {
-  background: rgba(233, 195, 73, 0.3) !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  background: var(--surface-hover) !important;
+  color: var(--text-muted) !important;
+  border: 1px solid var(--border-field) !important;
   box-shadow: none !important;
   opacity: 1 !important;
 }
 
 .text-cancel-link {
-  color: rgba(255, 255, 255, 0.6) !important;
+  color: var(--text-secondary) !important;
   text-decoration: none;
   text-transform: none;
 }

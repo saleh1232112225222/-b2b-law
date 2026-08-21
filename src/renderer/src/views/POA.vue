@@ -207,7 +207,7 @@
         <v-skeleton-loader
           v-for="n in 3"
           :key="n"
-          type="os-card"
+          type="card"
           class="glass-card mb-4 rounded-xl bg-transparent"
         />
       </div>

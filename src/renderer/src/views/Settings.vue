@@ -1296,3 +1296,39 @@ const showSnackbar = (text: string, color: string): void => {
   color: var(--text-secondary) !important;
 }
 </style>
+
+<style>
+[data-theme='light'] .settings-data-btn.premium-btn-gold-gradient {
+  background: rgba(176, 138, 46, 0.04) !important;
+  border-color: rgba(176, 138, 46, 0.72) !important;
+  color: #735c00 !important;
+}
+
+[data-theme='light'] .settings-data-btn.premium-btn-gold-gradient .v-btn__content,
+[data-theme='light'] .settings-data-btn.premium-btn-gold-gradient .v-icon,
+[data-theme='light'] .settings-data-btn.premium-btn-gold-gradient span {
+  color: #735c00 !important;
+}
+
+[data-theme='light'] .settings-data-btn.premium-btn-gold-gradient:hover:not(.v-btn--disabled) {
+  background: rgba(176, 138, 46, 0.12) !important;
+  border-color: #b08a2e !important;
+}
+
+[data-theme='dark'] .settings-data-btn.premium-btn-gold-gradient {
+  background: rgba(229, 181, 43, 0.04) !important;
+  border-color: rgba(229, 181, 43, 0.7) !important;
+  color: #f0c43f !important;
+}
+
+[data-theme='dark'] .settings-data-btn.premium-btn-gold-gradient .v-btn__content,
+[data-theme='dark'] .settings-data-btn.premium-btn-gold-gradient .v-icon,
+[data-theme='dark'] .settings-data-btn.premium-btn-gold-gradient span {
+  color: #f0c43f !important;
+}
+
+[data-theme='dark'] .settings-data-btn.premium-btn-gold-gradient:hover:not(.v-btn--disabled) {
+  background: rgba(229, 181, 43, 0.12) !important;
+  border-color: #e5b52b !important;
+}
+</style>

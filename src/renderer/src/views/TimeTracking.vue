@@ -326,6 +326,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
+import { unwrapArrayResponse } from '../api/ApiAdapter'
 
 const cases = ref<any[]>([])
 const tasks = ref<any[]>([])
@@ -390,11 +391,11 @@ onUnmounted(() => {
 const fetchCasesAndTasks = async () => {
   try {
     const casesData = await (window as any).api.cases.getAll()
-    cases.value = casesData || []
+    cases.value = unwrapArrayResponse(casesData)
 
     // Fetch active tasks
     const tasksData = await (window as any).api.tasks.list({ status: 'in_progress' })
-    tasks.value = tasksData || []
+    tasks.value = unwrapArrayResponse(tasksData)
   } catch (err) {
     console.error('Failed to fetch filter entities:', err)
   }
@@ -404,7 +405,7 @@ const fetchLogs = async () => {
   loadingLogs.value = true
   try {
     const data = await (window as any).api.timeTracking.list({})
-    logs.value = data || []
+    logs.value = unwrapArrayResponse(data)
   } catch (err) {
     console.error('Failed to load logs:', err)
   } finally {

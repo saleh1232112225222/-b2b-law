@@ -51,27 +51,28 @@ const printedDate = computed(() => new Date().toLocaleDateString('ar-EG'))
 @media print {
   .print-signature-page {
     display: block;
-    page-break-before: always;
+    margin-top: 8mm;
+    break-inside: avoid;
   }
 
   .box {
     border: 1px solid #e5e7eb;
     border-radius: 12px;
-    padding: 18px;
+    padding: 12px;
   }
 
   .title {
     font-size: 12pt;
     font-weight: 800;
     color: #1565c0;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
   }
 
   .row {
     display: flex;
     justify-content: space-between;
     border-bottom: 1px solid #f1f5f9;
-    padding: 10px 0;
+    padding: 6px 0;
   }
 
   .label {
@@ -85,11 +86,11 @@ const printedDate = computed(() => new Date().toLocaleDateString('ar-EG'))
   }
 
   .sig {
-    margin-top: 18px;
+    margin-top: 10px;
   }
 
   .space {
-    height: 90px;
+    height: 42px;
     border: 1px dashed #d1d9e6;
     border-radius: 10px;
     margin-top: 10px;

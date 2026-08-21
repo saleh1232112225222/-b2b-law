@@ -81,6 +81,9 @@
           ></v-btn>
         </v-toolbar>
         <v-card-text class="pa-6 text-center modal-scrollable">
+          <v-alert v-if="paymentError" type="error" variant="tonal" class="mb-4" closable @click:close="paymentError = ''">
+            {{ paymentError }}
+          </v-alert>
           <div class="mb-4 text-subtitle-1">
             تسجيل دفعة لـ: <strong>{{ selectedReceivable?.client_name || 'غير معروف' }}</strong>
           </div>
@@ -105,6 +108,16 @@
             autofocus
             hide-details
           ></v-text-field>
+          <v-select
+            v-model="paymentAccountId"
+            class="glass-input mt-4"
+            :items="paymentAccounts"
+            item-title="name"
+            item-value="id"
+            label="حساب التحصيل*"
+            variant="outlined"
+            :rules="[(v) => !!v || 'حساب التحصيل مطلوب']"
+          />
         </v-card-text>
         <v-card-actions class="pa-6 modal-footer-sticky">
           <v-btn variant="text" @click="showPaymentDialog = false">إلغاء</v-btn>
@@ -113,7 +126,7 @@
             color="primary"
             variant="elevated"
             :loading="paying"
-            :disabled="!paymentAmount || paymentAmount <= 0"
+            :disabled="!paymentAmount || paymentAmount <= 0 || !paymentAccountId"
             @click="handlePayment"
             >تأكيد التحصيل</v-btn
           >
@@ -137,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { useSearch } from '../../composables/useSearch'
 import { storeToRefs } from 'pinia'
@@ -149,7 +162,7 @@ import LucideIcon from '../common/LucideIcon.vue'
 import { ICONS } from '../../config/icons'
 
 const financeStore = useFinanceStore()
-const { receivables, loading } = storeToRefs(financeStore)
+const { receivables, accounts, loading } = storeToRefs(financeStore)
 const { search } = useSearch((val) => {
   console.log('Receivables search:', val)
 })
@@ -168,6 +181,11 @@ const showPaymentDialog = ref(false)
 const selectedReceivable = ref<Receivable | null>(null)
 const paymentAmount = ref(0)
 const paying = ref(false)
+const paymentError = ref('')
+const paymentAccountId = ref('')
+const paymentAccounts = computed(() =>
+  safeArray(accounts.value).filter((account: any) => account.type === 'asset' || account.type === 'revenue')
+)
 
 const headers = [
   { title: 'الموكل', key: 'client_name', align: 'start' as const },
@@ -203,6 +221,8 @@ const getStatusColor = (status: string): string => {
 const openPaymentDialog = (item: Receivable): void => {
   selectedReceivable.value = item
   paymentAmount.value = (item.amount_due || 0) - (item.amount_paid || 0)
+  paymentAccountId.value = paymentAccounts.value.find((account: any) => account.code === '1101')?.id || paymentAccounts.value[0]?.id || ''
+  paymentError.value = ''
   showPaymentDialog.value = true
 }
 
@@ -210,9 +230,12 @@ const executePayment = async (): Promise<void> => {
   if (!selectedReceivable.value) return
   paying.value = true
   try {
-    await financeStore.applyReceivablePayment(selectedReceivable.value.id, paymentAmount.value)
+    await financeStore.applyReceivablePayment(
+      selectedReceivable.value.id, paymentAmount.value, paymentAccountId.value
+    )
     showPaymentDialog.value = false
   } catch (e: unknown) {
+    paymentError.value = (e as Error).message || 'تعذر تسجيل الدفعة'
     console.error('Error applying payment:', e)
   } finally {
     paying.value = false

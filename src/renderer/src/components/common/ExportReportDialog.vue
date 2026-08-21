@@ -135,6 +135,14 @@
         >
           {{ exportError }}
         </v-alert>
+        <v-alert
+          v-if="exportSuccess"
+          type="success"
+          variant="tonal"
+          class="mb-4 rounded-xl font-weight-bold text-caption"
+        >
+          {{ exportSuccess }}
+        </v-alert>
 
         <!-- Device / Mobile Info Alert -->
         <div
@@ -202,6 +210,7 @@ const filename = ref('')
 const format = ref<'pdf' | 'csv' | 'html'>('pdf')
 const exporting = ref(false)
 const exportError = ref('')
+const exportSuccess = ref('')
 
 const isMobile = computed(() => {
   if (typeof window === 'undefined') return false
@@ -227,6 +236,7 @@ watch(
         : `تقرير_${today}`
       format.value = 'pdf'
       exportError.value = ''
+      exportSuccess.value = ''
     }
   }
 )
@@ -243,6 +253,7 @@ const handleConfirmExport = async () => {
 
   exporting.value = true
   exportError.value = ''
+  exportSuccess.value = ''
 
   try {
     const finalFilename = filename.value.trim().endsWith(extensionLabel.value)
@@ -256,66 +267,33 @@ const handleConfirmExport = async () => {
         exporting.value = false
         return
       }
-      const res = await (window as any).api.reports.exportCsv(finalFilename, rows)
-      const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-      downloadBlob(blob, finalFilename)
+      const result = await (window as any).api.reports.exportCsv(finalFilename, rows)
+      if (result?.saved === false) throw new Error('تم إلغاء حفظ الملف')
     } else if (format.value === 'pdf') {
-      // ApiAdapter already handles blob download for cloud mode
-      await (window as any).api.reports.exportPdf({
+      const result = await (window as any).api.reports.exportPdf({
         type: props.reportType,
         filename: finalFilename,
         params: props.exportParams || {}
       })
+      if (result?.saved === false) throw new Error('تم إلغاء حفظ الملف')
     } else if (format.value === 'html') {
-      // ApiAdapter already handles blob download for cloud mode
-      await (window as any).api.reports.exportHtml({
+      const result = await (window as any).api.reports.exportHtml({
         type: props.reportType,
         filename: finalFilename,
         params: props.exportParams || {}
       })
+      if (result?.saved === false) throw new Error('تم إلغاء حفظ الملف')
     }
 
     emit('exported', { filename: finalFilename, format: format.value })
-    close()
+    exportSuccess.value =
+      format.value === 'pdf'
+        ? 'تم فتح معاينة الطباعة. اختر «حفظ بصيغة PDF» من خيارات الجهاز.'
+        : `تم تنزيل الملف بنجاح باسم ${finalFilename}`
   } catch (err: any) {
     exportError.value = err?.message || 'حدث خطأ أثناء تنزيل الملف'
   } finally {
     exporting.value = false
   }
-}
-
-const downloadBlob = async (blob: Blob, name: string) => {
-  const ext = name.endsWith('.csv') ? '.csv' : name.endsWith('.pdf') ? '.pdf' : '.html'
-  const mime =
-    ext === '.csv' ? 'text/csv;charset=utf-8;' : ext === '.pdf' ? 'application/pdf' : 'text/html'
-
-  if (typeof window !== 'undefined' && 'showSaveFilePicker' in window) {
-    try {
-      const handle = await (window as any).showSaveFilePicker({
-        suggestedName: name,
-        types: [
-          {
-            description: ext === '.csv' ? 'ملف CSV (إكسل)' : 'ملف تقرير',
-            accept: { [mime]: [ext] }
-          }
-        ]
-      })
-      const writable = await handle.createWritable()
-      await writable.write(blob)
-      await writable.close()
-      return
-    } catch (err: any) {
-      if (err.name === 'AbortError') return
-    }
-  }
-
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = name
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 </script>

@@ -7,6 +7,10 @@
           يتم توزيع مصروفات المكتب العامة بنسبة الدخل، واستبعاد المصاريف المستردة من تكلفة القضية.
         </div>
       </v-col>
+      <v-col cols="auto" class="d-flex ga-2 report-actions">
+        <v-btn variant="outlined" :loading="exporting" @click="exportCsv">تصدير CSV</v-btn>
+        <v-btn color="primary" variant="tonal" @click="printReport">طباعة</v-btn>
+      </v-col>
     </v-row>
 
     <v-data-table
@@ -49,7 +53,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { useCasesStore } from '../../stores/cases'
 import { storeToRefs } from 'pinia'
@@ -59,6 +63,7 @@ const financeStore = useFinanceStore()
 const casesStore = useCasesStore()
 const { transactions, loading } = storeToRefs(financeStore)
 const { cases } = storeToRefs(casesStore)
+const exporting = ref(false)
 
 const headers = [
   { title: 'رقم القضية', key: 'case_number', align: 'start' as const },
@@ -120,4 +125,28 @@ const profitabilityData = computed((): any[] => {
 
   return data.sort((a, b) => b.profit - a.profit)
 })
+
+const exportCsv = async () => {
+  exporting.value = true
+  try {
+    await window.api.reports.exportCsv('case-profitability-report.csv', profitabilityData.value)
+  } finally {
+    exporting.value = false
+  }
+}
+
+const printReport = () => window.print()
 </script>
+
+<style scoped>
+@media print {
+  .report-actions,
+  :deep(.v-data-table-footer) {
+    display: none !important;
+  }
+
+  :deep(.v-table__wrapper) {
+    overflow: visible !important;
+  }
+}
+</style>

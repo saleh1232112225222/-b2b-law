@@ -3,9 +3,10 @@
     <MobileFinance
       v-if="isMobile"
       @add-transaction="openAddDialog"
-      @add-invoice="openAddDialog"
-      @add-receivable="openAddDialog"
+      @add-invoice="openMobileInvoice"
+      @add-receivable="openMobileInvoice"
     />
+    <InvoicesList v-if="isMobile" ref="mobileInvoicesRef" class="d-none" />
     <template v-else>
       <!-- Header -->
       <v-row dense class="mb-8 align-center">
@@ -188,7 +189,13 @@
 
                 <template #[`item.type`]="{ item }">
                   <v-chip
-                    :color="(item as Transaction).type === 'income' ? 'green-darken-3' : 'error'"
+                    :color="
+                      (item as Transaction).type === 'income'
+                        ? 'green-darken-3'
+                        : (item as Transaction).type === 'receivable'
+                          ? 'warning'
+                          : 'error'
+                    "
                     size="x-small"
                     variant="flat"
                     class="font-weight-black rounded-md px-3"
@@ -197,12 +204,20 @@
                       :name="
                         (item as Transaction).type === 'income'
                           ? 'arrow-down-left'
-                          : 'arrow-up-right'
+                          : (item as Transaction).type === 'receivable'
+                            ? 'clock-3'
+                            : 'arrow-up-right'
                       "
                       :size="12"
                       class="me-1"
                     />
-                    {{ (item as Transaction).type === 'income' ? 'إيراد' : 'مصروف' }}
+                    {{
+                      (item as Transaction).type === 'income'
+                        ? 'إيراد'
+                        : (item as Transaction).type === 'receivable'
+                          ? 'ذمة مستحقة'
+                          : 'مصروف'
+                    }}
                   </v-chip>
                 </template>
 
@@ -225,7 +240,11 @@
                   <div
                     class="font-weight-black text-left"
                     :class="
-                      (item as Transaction).type === 'income' ? 'text-green-darken-2' : 'text-error'
+                      (item as Transaction).type === 'income'
+                        ? 'text-green-darken-2'
+                        : (item as Transaction).type === 'receivable'
+                          ? 'text-warning'
+                          : 'text-error'
                     "
                   >
                     <span class="me-1">{{ formatCurrency((item as Transaction).amount) }}</span>
@@ -253,6 +272,7 @@
 
                 <template #[`item.actions`]="{ item }">
                   <v-btn
+                    v-if="!(item as Transaction).legal_engagement_id"
                     icon
                     variant="text"
                     color="error"
@@ -772,6 +792,9 @@ const openAddDialog = (): void => {
   resetEditItem()
   showDialog.value = true
 }
+
+const mobileInvoicesRef = ref<InstanceType<typeof InvoicesList> | null>(null)
+const openMobileInvoice = (): void => mobileInvoicesRef.value?.openAddDialog()
 
 const closeDialog = (): void => {
   showDialog.value = false

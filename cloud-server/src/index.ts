@@ -230,6 +230,8 @@ initTrackingTables()
 
 import { dashboardRouter } from './routes/dashboard'
 import { integrationsRouter } from './routes/integrations'
+import { documentsRouter } from './routes/documents'
+import { financialOperationsRouter } from './routes/financial_operations'
 
 app.use('/api/auth', authRouter)
 app.use('/api/dashboard', dashboardRouter)
@@ -255,6 +257,9 @@ app.use('/api/office-management', officeManagementRouter)
 app.use('/api/archive', archiveRouter)
 app.use('/api/time-tracking', timeTrackingRouter)
 app.use('/api/sync', syncRouter)
+app.use('/api/documents', documentsRouter)
+// Exact financial routes must be mounted before the generic entity routers.
+app.use('/api', financialOperationsRouter)
 
 // Finance stats endpoint - must be registered before the generic entity router
 app.get(
@@ -269,10 +274,13 @@ app.get(
       const result = await query(
         `
         SELECT
-          COALESCE(SUM(CASE WHEN type = 'income' OR type = 'receivable' THEN COALESCE(amount, 0) ELSE 0 END), 0) as income,
-          COALESCE(SUM(CASE WHEN type = 'expense' THEN COALESCE(amount, 0) ELSE 0 END), 0) as expense
+          COALESCE(SUM(CASE
+            WHEN type = 'income' THEN COALESCE(total, amount, 0)
+            WHEN type = 'receivable' THEN COALESCE(paid_amount, 0)
+            ELSE 0 END), 0) as income,
+          COALESCE(SUM(CASE WHEN type = 'expense' THEN COALESCE(total, amount, 0) ELSE 0 END), 0) as expense
         FROM finances
-        WHERE company_id = $1
+        WHERE company_id = $1 AND COALESCE(status, '') <> 'cancelled'
       `,
         [companyId]
       )
@@ -329,6 +337,7 @@ for (const entity of entityTables) {
   if (entity.name === 'cases') continue
   if (entity.name === 'contracts') continue
   if (entity.name === 'sessions') continue
+  if (entity.name === 'documents') continue
 
   let readPermission = ''
   let writePermission = ''

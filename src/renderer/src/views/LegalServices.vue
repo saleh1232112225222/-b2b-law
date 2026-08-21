@@ -108,7 +108,9 @@
               <LucideIcon name="banknote" :size="24" class="text-accent" />
             </div>
             <div>
-              <div class="text-body-2 font-weight-black text-visible-high mb-1">المستحقات المعلقة</div>
+              <div class="text-body-2 font-weight-black text-visible-high mb-1">
+                المستحقات المعلقة
+              </div>
               <div class="text-h5 font-weight-black text-gold">
                 {{ formatCurrency(totalRemainingFees) }}
               </div>
@@ -1360,9 +1362,13 @@ const handlePrintInvoice = async (invoiceId: string) => {
       type: 'invoice',
       params: { id: invoiceId }
     })
-    if (result && result.saved && result.path) {
-      triggerSnackbar('تم إنشاء الفاتورة الضريبية بنجاح. جاري فتح ملف PDF...')
-      await (window as any).api.documents.open(result.path)
+    if (result?.saved) {
+      if (result.path) {
+        triggerSnackbar('تم إنشاء الفاتورة الضريبية بنجاح. جاري فتح ملف PDF...')
+        await (window as any).api.documents.open(result.path)
+      } else {
+        triggerSnackbar('تم فتح معاينة الفاتورة للطباعة أو الحفظ بصيغة PDF')
+      }
     } else {
       triggerSnackbar('تم إلغاء تصدير الفاتورة')
     }
@@ -1454,6 +1460,7 @@ const getFinanceStatusColor = (status: string) => {
     case 'paid':
       return 'success'
     case 'partially_paid':
+    case 'partial':
       return 'warning'
     case 'overdue':
       return 'error'
@@ -1467,6 +1474,7 @@ const getFinanceStatusLabel = (status: string) => {
     case 'paid':
       return 'مدفوع بالكامل'
     case 'partially_paid':
+    case 'partial':
       return 'مدفوع جزئياً'
     case 'overdue':
       return 'متأخر'

@@ -7,11 +7,10 @@
         <div class="print-firm-details">{{ firmDetails }}</div>
       </div>
       <div class="print-title">{{ title }}</div>
-    </div>
-
-    <div class="print-footer">
-      <div>طبع في: {{ printedAt }}</div>
-      <div>أعد التقرير: {{ preparedBy }}</div>
+      <div class="print-meta">
+        <span>طبع في: {{ printedAt }}</span>
+        <span>أعد التقرير: {{ preparedBy }}</span>
+      </div>
     </div>
   </div>
 </template>
@@ -75,14 +74,13 @@ const printedAt = computed(() => new Date().toLocaleString('ar-EG'))
 @media print {
   .print-frame {
     display: block;
+    margin-bottom: 7mm;
+    break-inside: avoid;
   }
 
   .print-header {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 10mm 12mm 6mm;
+    position: static;
+    padding: 0 0 4mm;
     border-bottom: 2px solid #d4af37;
     background: #ffffff;
     text-align: center;
@@ -95,14 +93,14 @@ const printedAt = computed(() => new Date().toLocaleString('ar-EG'))
   }
 
   .print-logo {
-    width: 64px;
-    height: 64px;
+    width: 42px;
+    height: 42px;
     object-fit: contain;
     margin-bottom: 6px;
   }
 
   .print-firm-name {
-    font-size: 16pt;
+    font-size: 14pt;
     font-weight: 800;
     color: #a1843b;
   }
@@ -114,34 +112,26 @@ const printedAt = computed(() => new Date().toLocaleString('ar-EG'))
   }
 
   .print-title {
-    margin-top: 10px;
+    margin-top: 5px;
     display: inline-block;
-    font-size: 14pt;
+    font-size: 12pt;
     font-weight: 800;
     background: #fbf6e6;
     color: #a1843b;
-    padding: 6px 18px;
+    padding: 4px 14px;
     border-radius: 9999px;
     border: 1px solid rgba(161, 132, 59, 0.35);
   }
 
-  .print-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    padding: 6mm 12mm 8mm;
-    border-top: 1px solid #e5e7eb;
-    background: #ffffff;
-    text-align: center;
+  .print-meta {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 3mm 8mm;
+    margin-top: 3mm;
     font-size: 9pt;
     color: #6b7280;
-  }
-
-  :global(body) {
-    margin-top: 42mm;
-    margin-bottom: 22mm;
-    font-size: 10pt;
   }
 }
 </style>

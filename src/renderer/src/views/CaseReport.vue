@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="تقرير قضية شامل" />
 
     <!-- Header -->
@@ -73,7 +73,7 @@
             hide-details
           />
         </v-col>
-        <v-col cols="12" class="d-flex justify-end gap-3 mt-6">
+        <v-col cols="12" class="d-flex justify-end gap-3 mt-6 report-actions">
           <v-btn
             color="accent"
             variant="flat"
@@ -87,7 +87,7 @@
             <LucideIcon name="refresh-cw" :size="18" class="me-2" /> توليد التقرير
           </v-btn>
 
-          <v-divider vertical class="mx-2 border-gold opacity-10" />
+          <v-divider vertical class="mx-2 border-gold opacity-10 d-none d-md-block" />
 
           <v-btn
             variant="tonal"
@@ -116,7 +116,7 @@
             color="white"
             height="56"
             class="rounded-xl px-6 font-weight-black premium-btn-gold-gradient"
-            :disabled="!report"
+            :disabled="safeLength(report?.timeline?.rows) === 0"
             @click="exportExcel"
           >
             <LucideIcon name="file-spreadsheet" :size="20" class="me-2 text-gold" /> تصدير Excel
@@ -833,14 +833,7 @@ const exportExcel = async (): Promise<void> => {
       type: t.type || '',
       title: t.title || ''
     }))
-    const res = await (window as any).api.reports.exportCsv('case-report.csv', rows)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('case-report.csv', rows)
   } catch {
     error.value = 'فشل تصدير Excel'
   }

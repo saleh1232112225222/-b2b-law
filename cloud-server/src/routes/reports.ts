@@ -348,15 +348,24 @@ reportsRouter.post(
       return
     }
     const headers = Object.keys(rows[0])
+    const outputFilename = String(filename || 'export')
+      .trim()
+      .replace(/[\r\n"\\/]/g, '_')
+    const csvFilename = outputFilename.toLowerCase().endsWith('.csv')
+      ? outputFilename
+      : `${outputFilename}.csv`
     const csvRows = [
-      headers.join(','),
+      headers.map((header) => `"${String(header).replace(/"/g, '""')}"`).join(','),
       ...rows.map((r: any) =>
-        headers.map((h) => `"${String(r[h] || '').replace(/"/g, '""')}"`).join(',')
+        headers.map((h) => `"${String(r[h] ?? '').replace(/"/g, '""')}"`).join(',')
       )
     ]
-    const csv = csvRows.join('\n')
-    res.setHeader('Content-Type', 'text/csv')
-    res.setHeader('Content-Disposition', `attachment; filename="${filename || 'export'}.csv"`)
+    const csv = `\uFEFF${csvRows.join('\r\n')}`
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8')
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="report.csv"; filename*=UTF-8''${encodeURIComponent(csvFilename)}`
+    )
     res.send(csv)
   }
 )
@@ -374,13 +383,11 @@ reportsRouter.post(
       res.send(html)
     } catch (err: any) {
       console.error('[REPORTS] export pdf error:', err)
-      res
-        .status(500)
-        .json({
-          error: 'فشل تصدير التقرير',
-          details: err?.message || String(err),
-          stack: err?.stack
-        })
+      res.status(500).json({
+        error: 'فشل تصدير التقرير',
+        details: err?.message || String(err),
+        stack: err?.stack
+      })
     }
   }
 )
@@ -398,13 +405,11 @@ reportsRouter.post(
       res.send(html)
     } catch (err: any) {
       console.error('[REPORTS] export html error:', err)
-      res
-        .status(500)
-        .json({
-          error: 'فشل تصدير التقرير',
-          details: err?.message || String(err),
-          stack: err?.stack
-        })
+      res.status(500).json({
+        error: 'فشل تصدير التقرير',
+        details: err?.message || String(err),
+        stack: err?.stack
+      })
     }
   }
 )
@@ -1751,22 +1756,11 @@ reportsRouter.post(
   requirePermission('export_reports'),
   async (req: Request, res: Response) => {
     try {
-      res.send(`
-      <html>
-        <head>
-          <style>
-            body { font-family: sans-serif; padding: 20px; direction: rtl; text-align: center; color: #333; }
-            .card { border: 1px solid #ccc; padding: 20px; border-radius: 8px; display: inline-block; }
-          </style>
-        </head>
-        <body>
-          <div class="card">
-            <h2>معاينة التقرير</h2>
-            <p>معاينة التقارير عبر الويب غير مدعومة حالياً بشكل كامل. الرجاء استخدام ميزة الطباعة أو تصدير CSV.</p>
-          </div>
-        </body>
-      </html>
-    `)
+      const companyId = getCompanyId(req)
+      const { type, params } = req.body
+      const html = await generateReportHtmlString(companyId, type, params || {}, false)
+      res.setHeader('Content-Type', 'text/html; charset=utf-8')
+      res.send(html)
     } catch (err) {
       console.error('[REPORTS] preview error:', err)
       res.status(500).json({ error: 'فشل جلب معاينة التقرير' })

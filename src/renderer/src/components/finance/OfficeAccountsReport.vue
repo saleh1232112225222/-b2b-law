@@ -1,5 +1,13 @@
 <template>
   <div class="pa-4">
+    <div class="d-flex justify-end ga-2 mb-4 report-actions">
+      <v-btn variant="outlined" :loading="exporting" @click="exportCsv">
+        <LucideIcon name="download" :size="16" class="me-1" /> تصدير CSV
+      </v-btn>
+      <v-btn color="primary" variant="tonal" @click="printReport">
+        <LucideIcon name="printer" :size="16" class="me-1" /> طباعة
+      </v-btn>
+    </div>
     <!-- فلاتر -->
     <v-card variant="outlined" class="pa-4 mb-6 rounded-xl">
       <div class="text-subtitle-2 font-weight-black mb-3">فلاتر التقرير</div>
@@ -44,7 +52,7 @@
 
     <!-- ملخص -->
     <v-row v-if="report" dense class="mb-6">
-      <v-col v-for="stat in summaryCards" :key="stat.key" cols="3">
+        <v-col v-for="stat in summaryCards" :key="stat.key" cols="12" sm="6" md="3">
         <v-card elevation="0" class="pa-5 text-center rounded-xl glass-card">
           <div class="text-caption text-medium-emphasis mb-1">{{ stat.label }}</div>
           <div class="text-h6 font-weight-black" :class="stat.color">
@@ -165,6 +173,7 @@ import { useOfficeAccountsStore } from '../../stores/officeAccounts'
 
 const store = useOfficeAccountsStore()
 const loading = ref(false)
+const exporting = ref(false)
 
 const filters = ref<Record<string, any>>({
   status: 'all',
@@ -205,5 +214,37 @@ const loadReport = async () => {
   }
 }
 
+const exportCsv = async () => {
+  if (!report.value) return
+  exporting.value = true
+  try {
+    const rows = report.value.by_client.map((client) => ({
+      العميل: client.client_name || 'غير محدد',
+      الإجمالي: Number(client.total || 0),
+      المحصل: Number(client.collected || 0),
+      المتبقي: Number(client.total || 0) - Number(client.collected || 0)
+    }))
+    await window.api.reports.exportCsv('office-accounts-report.csv', rows)
+  } finally {
+    exporting.value = false
+  }
+}
+
+const printReport = () => window.print()
+
 onMounted(loadReport)
 </script>
+
+<style scoped>
+@media print {
+  .report-actions,
+  :deep(.v-input),
+  :deep(.v-btn) {
+    display: none !important;
+  }
+
+  :deep(.v-table__wrapper) {
+    overflow: visible !important;
+  }
+}
+</style>

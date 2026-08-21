@@ -23,7 +23,14 @@
       </v-row>
     </v-card>
 
-    <v-tabs v-model="activeTab" density="compact" color="primary" class="mb-3">
+    <v-tabs
+      v-model="activeTab"
+      density="compact"
+      color="primary"
+      class="mb-3"
+      show-arrows
+      center-active
+    >
       <v-tab value="transactions" class="font-weight-bold">المعاملات</v-tab>
       <v-tab value="invoices" class="font-weight-bold">الفواتير</v-tab>
       <v-tab value="receivables" class="font-weight-bold">الذمم</v-tab>
@@ -88,7 +95,7 @@
           default-icon="mdi-hand-coin"
           empty-text="لا توجد ذمم"
           can-add
-          add-label="إضافة ذمة"
+          add-label="إصدار فاتورة وذمة"
           @item-click="openItem"
           @add="emit('add-receivable')"
         />
@@ -166,15 +173,23 @@
         <div class="pa-2">
           <div class="d-flex justify-space-between align-center mb-3">
             <div class="text-subtitle-2 font-weight-black">حسابات المكتب</div>
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              color="accent"
-              :loading="officeLoading"
-              @click="loadOfficeData"
-            >
-              <v-icon size="14">mdi-refresh</v-icon>
-            </v-btn>
+            <div class="d-flex ga-1">
+              <v-btn size="x-small" variant="tonal" :loading="officeExporting" @click="exportOfficeReport">
+                CSV
+              </v-btn>
+              <v-btn size="x-small" variant="tonal" @click="printOfficeReport">
+                <v-icon size="14">mdi-printer</v-icon>
+              </v-btn>
+              <v-btn
+                size="x-small"
+                variant="tonal"
+                color="accent"
+                :loading="officeLoading"
+                @click="loadOfficeData"
+              >
+                <v-icon size="14">mdi-refresh</v-icon>
+              </v-btn>
+            </div>
           </div>
           <v-card variant="outlined" class="pa-3 mb-3 rounded-lg">
             <v-row dense>
@@ -217,18 +232,18 @@
               <div>
                 <div class="font-weight-bold text-body-2">{{ cl.client_name }}</div>
                 <div class="text-caption text-medium-emphasis">
-                  {{ cl.engagement_count || 0 }} تعاقدهات
+                  الإجمالي: {{ formatMoney(cl.total || 0) }}
                 </div>
               </div>
               <div class="text-end">
                 <div class="text-caption text-success font-weight-bold">
-                  {{ formatMoney(cl.total_paid || 0) }}
+                  {{ formatMoney(cl.collected || 0) }}
                 </div>
                 <div
-                  v-if="(cl.total_remaining || 0) > 0"
+                  v-if="Number(cl.total || 0) - Number(cl.collected || 0) > 0"
                   class="text-caption text-error font-weight-bold"
                 >
-                  متبقي: {{ formatMoney(cl.total_remaining || 0) }}
+                  متبقي: {{ formatMoney(Number(cl.total || 0) - Number(cl.collected || 0)) }}
                 </div>
               </div>
             </div>
@@ -361,7 +376,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { storeToRefs } from 'pinia'
 import MobileCardList from './MobileCardList.vue'
@@ -378,6 +393,11 @@ const { transactions, invoices, receivables, stats, loading } = storeToRefs(fina
 
 const activeTab = ref('transactions')
 
+watch(activeTab, (tab) => {
+  if (tab === 'legal') void loadLegalData()
+  if (tab === 'client-accounts') void loadOfficeData()
+})
+
 // Legal services finance data
 const legalLoading = ref(false)
 const legalStats = ref<any>({
@@ -390,6 +410,7 @@ const legalList = ref<any[]>([])
 
 // Office accounts data
 const officeLoading = ref(false)
+const officeExporting = ref(false)
 const officeReport = ref<any>({
   total_revenue: 0,
   total_collected: 0,
@@ -444,6 +465,24 @@ const loadOfficeData = async () => {
     officeLoading.value = false
   }
 }
+
+const exportOfficeReport = async () => {
+  if (!officeReport.value.clients?.length) await loadOfficeData()
+  officeExporting.value = true
+  try {
+    const rows = (officeReport.value.clients || []).map((client: any) => ({
+      العميل: client.client_name || 'غير محدد',
+      الإجمالي: Number(client.total || 0),
+      المحصل: Number(client.collected || 0),
+      المتبقي: Number(client.total || 0) - Number(client.collected || 0)
+    }))
+    await window.api.reports.exportCsv('office-accounts-mobile.csv', rows)
+  } finally {
+    officeExporting.value = false
+  }
+}
+
+const printOfficeReport = () => window.print()
 
 const loadStatement = async () => {
   if (!statementClientId.value) {

@@ -184,10 +184,10 @@ defineEmits<{
 }
 
 .dashboard-title {
-  color: #000000 !important;
+  color: var(--text-primary) !important;
 }
 
-[data-theme='dark'] .dashboard-title {
+:global([data-theme='dark']) .dashboard-title {
   color: #ffffff !important;
 }
 
@@ -217,13 +217,31 @@ defineEmits<{
   padding-bottom: 4px !important;
   font-size: 0.85rem !important;
   font-weight: 800 !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
 }
 
 .dashboard-sessions-today :deep(.v-data-table__th),
 .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
   font-size: 0.85rem !important;
   font-weight: 900 !important;
-  color: #000 !important;
+  color: var(--text-primary) !important;
+}
+
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.v-data-table__td),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.v-data-table__td),
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.text-tiny-v),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.text-tiny-v) {
+  color: #f3f6fa !important;
+}
+
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.v-data-table__th),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.v-data-table__th) {
+  color: #e5b52b !important;
+}
+
+:global([data-theme='dark']) .dashboard-sessions-today :deep(.text-tiny-vv),
+:global([data-theme='dark']) .dashboard-sessions-tomorrow :deep(.text-tiny-vv) {
+  color: #9eacbd !important;
+  opacity: 1 !important;
 }
 </style>

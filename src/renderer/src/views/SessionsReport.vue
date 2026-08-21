@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-6 pb-12 rtl">
+  <v-container fluid class="pa-6 pb-12 rtl report-page">
     <PrintReportFrame title="بيان الجلسات المنعقدة" />
 
     <!-- Header -->
@@ -101,7 +101,7 @@
       </v-row>
 
       <!-- Export Actions -->
-      <div class="d-flex flex-wrap justify-end mb-8 gap-3">
+      <div class="d-flex flex-wrap justify-end mb-8 gap-3 report-actions">
         <v-btn
           variant="tonal"
           color="white"
@@ -147,7 +147,7 @@
       </div>
 
       <!-- Chart Section -->
-      <div class="d-flex align-center mb-4">
+      <div class="d-flex align-center mb-4 no-print">
         <div class="glass-panel-light pa-2 rounded-lg me-3 border border-gold border-opacity-10">
           <LucideIcon name="bar-chart-3" :size="20" class="text-gold" />
         </div>
@@ -156,7 +156,7 @@
 
       <v-card
         elevation="0"
-        class="glass-panel-light pa-6 rounded-xl mb-12 border border-gold border-opacity-10 glass-card"
+        class="glass-panel-light pa-6 rounded-xl mb-12 border border-gold border-opacity-10 glass-card no-print"
       >
         <v-skeleton-loader
           v-if="loading"
@@ -282,7 +282,7 @@
       </v-card>
 
       <!-- Pagination -->
-      <div class="d-flex justify-space-between align-center px-4">
+      <div class="d-flex justify-space-between align-center px-4 report-pagination">
         <div class="text-caption text-gold opacity-40 font-weight-black">
           الصفحة {{ page }} من إجمالي {{ totalRows }} جلسة
         </div>
@@ -401,14 +401,7 @@ const printPage = () => {
 const exportCsv = async (): Promise<void> => {
   if (safeLength(rows.value) === 0) return
   try {
-    const res = await (window as any).api.reports.exportCsv('sessions-report.csv', rows.value)
-    const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = res.filename
-    link.click()
-    URL.revokeObjectURL(url)
+    await (window as any).api.reports.exportCsv('sessions-report.csv', rows.value)
   } catch (e: unknown) {
     error.value = (e as Error)?.message || 'فشل تصدير ملف CSV'
   }

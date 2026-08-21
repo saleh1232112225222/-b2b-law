@@ -73,9 +73,13 @@ opencode.json
 
 # Test screenshots and results
 test-*.png
+test_*.png
 debug-*.png
 test-results/
+playwright/qa-screenshots/
 *.log
+scratch/
+*.mp4
 
 testsprite_tests\tmp\config.json
 

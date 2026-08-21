@@ -1,5 +1,5 @@
 import { Router } from 'express'
-import { query } from '../db/connection'
+import { getClient, query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { requirePermission } from '../middleware/permission'
 
@@ -13,7 +13,8 @@ router.post('/expenses', requirePermission('create_finances'), async (req: any, 
   try {
     const { companyId, userId } = req.auth
     const { category, description, amount, expense_date, paid_by, receipt_number, notes } = req.body
-    if (!category || !description || !amount) {
+    const expenseAmount = Number(amount)
+    if (!category || !description || !Number.isFinite(expenseAmount) || expenseAmount <= 0) {
       return res.status(400).json({ error: 'التصنيف والوصف والمبلغ مطلوبة' })
     }
     const result = await query(
@@ -25,7 +26,7 @@ router.post('/expenses', requirePermission('create_finances'), async (req: any, 
         companyId,
         category,
         description,
-        amount,
+        expenseAmount,
         expense_date || new Date().toISOString().split('T')[0],
         paid_by,
         receipt_number,
@@ -88,15 +89,23 @@ router.post('/partners', requirePermission('manage_office'), async (req: any, re
   try {
     const { companyId } = req.auth
     const { employee_id, name, share_percentage, role } = req.body
-    if (!name || !share_percentage) {
+    const share = Number(share_percentage)
+    if (!name || !Number.isFinite(share) || share <= 0 || share > 100) {
       return res.status(400).json({ error: 'الاسم ونسبة الربح مطلوبة' })
+    }
+    const shareTotal = await query(
+      'SELECT COALESCE(SUM(share_percentage), 0) AS total FROM partners WHERE company_id = $1 AND is_active = TRUE',
+      [companyId]
+    )
+    if (Number(shareTotal.rows[0].total) + share > 100.001) {
+      return res.status(400).json({ error: 'مجموع نسب الشركاء لا يمكن أن يتجاوز 100%' })
     }
     const result = await query(
       `
         INSERT INTO partners (company_id, employee_id, name, share_percentage, role)
         VALUES ($1, $2, $3, $4, $5) RETURNING *
       `,
-      [companyId, employee_id, name, share_percentage, role]
+      [companyId, employee_id, name, share, role]
     )
     res.json(result.rows[0])
   } catch (err: any) {
@@ -136,6 +145,20 @@ router.put('/partners/:id', requirePermission('manage_office'), async (req: any,
     const { companyId } = req.auth
     const { id } = req.params
     const { name, share_percentage, role, is_active } = req.body
+    if (share_percentage !== undefined) {
+      const share = Number(share_percentage)
+      if (!Number.isFinite(share) || share <= 0 || share > 100) {
+        return res.status(400).json({ error: 'نسبة الشريك يجب أن تكون أكبر من صفر ولا تتجاوز 100%' })
+      }
+      const shareTotal = await query(
+        `SELECT COALESCE(SUM(share_percentage), 0) AS total FROM partners
+         WHERE company_id = $1 AND is_active = TRUE AND id <> $2`,
+        [companyId, id]
+      )
+      if (Number(shareTotal.rows[0].total) + share > 100.001) {
+        return res.status(400).json({ error: 'مجموع نسب الشركاء لا يمكن أن يتجاوز 100%' })
+      }
+    }
     await query(
       `
         UPDATE partners SET name = COALESCE($1, name), share_percentage = COALESCE($2, share_percentage),
@@ -269,10 +292,10 @@ router.get('/dashboard', requirePermission('view_finances'), async (req: any, re
     // 1. إجمالي الإيرادات (خدمات قانونية + قضايا)
     const revenueResult = await query(
       `
-        SELECT COALESCE(SUM(paid_amount), 0) as total_revenue
-        FROM legal_engagements
-        WHERE company_id = $1 AND deleted_at IS NULL
-          AND EXTRACT(MONTH FROM updated_at) = $2 AND EXTRACT(YEAR FROM updated_at) = $3
+        SELECT COALESCE(SUM(amount), 0) as total_revenue
+        FROM payment_history
+        WHERE company_id = $1
+          AND EXTRACT(MONTH FROM received_at) = $2 AND EXTRACT(YEAR FROM received_at) = $3
       `,
       [companyId, m, y]
     )
@@ -329,9 +352,14 @@ router.get('/dashboard', requirePermission('view_finances'), async (req: any, re
     // 6. الميزانية التشغيلية
     const budgetResult = await query(
       `
-        SELECT category, budgeted_amount, actual_amount
-        FROM office_budgets
-        WHERE company_id = $1 AND month = $2 AND year = $3
+        SELECT b.category, b.budgeted_amount,
+          COALESCE(SUM(e.amount), 0) AS actual_amount
+        FROM office_budgets b
+        LEFT JOIN office_expenses e ON e.company_id = b.company_id AND e.category = b.category
+          AND EXTRACT(MONTH FROM e.expense_date) = b.month
+          AND EXTRACT(YEAR FROM e.expense_date) = b.year
+        WHERE b.company_id = $1 AND b.month = $2 AND b.year = $3
+        GROUP BY b.category, b.budgeted_amount
       `,
       [companyId, m, y]
     )
@@ -339,10 +367,9 @@ router.get('/dashboard', requirePermission('view_finances'), async (req: any, re
     // 7. إجمالي التحصيلات (السنة الحالية)
     const yearlyRevenue = await query(
       `
-        SELECT COALESCE(SUM(paid_amount), 0) as total
-        FROM legal_engagements
-        WHERE company_id = $1 AND deleted_at IS NULL
-          AND EXTRACT(YEAR FROM updated_at) = $2
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM payment_history
+        WHERE company_id = $1 AND EXTRACT(YEAR FROM received_at) = $2
       `,
       [companyId, y]
     )
@@ -365,7 +392,7 @@ router.get('/dashboard', requirePermission('view_finances'), async (req: any, re
     // 10. حساب نسبة التحصيل من الخدمات
     const totalServicesDue = await query(
       `
-        SELECT COALESCE(SUM(financial_compensation + tax), 0) as total
+        SELECT COALESCE(SUM(financial_compensation + tax + COALESCE(late_fee_amount, 0)), 0) as total
         FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL
       `,
       [companyId]
@@ -411,26 +438,29 @@ router.get('/dashboard', requirePermission('view_finances'), async (req: any, re
 // 12. POST /distributions — توزيع الأرباح
 // ═══════════════════════════════════════════════════
 router.post('/distributions', requirePermission('manage_office'), async (req: any, res) => {
+  const client = await getClient()
   try {
+    await client.query('BEGIN')
     const { companyId } = req.auth
     const { month, year } = req.body
     if (!month || !year) {
+      await client.query('ROLLBACK')
       return res.status(400).json({ error: 'الشهر والسنة مطلوبة' })
     }
 
     // جلب إيرادات الشهر
-    const rev = await query(
+    const rev = await client.query(
       `
-        SELECT COALESCE(SUM(paid_amount), 0) as total
-        FROM legal_engagements
-        WHERE company_id = $1 AND deleted_at IS NULL
-          AND EXTRACT(MONTH FROM updated_at) = $2 AND EXTRACT(YEAR FROM updated_at) = $3
+        SELECT COALESCE(SUM(amount), 0) as total
+        FROM payment_history
+        WHERE company_id = $1
+          AND EXTRACT(MONTH FROM received_at) = $2 AND EXTRACT(YEAR FROM received_at) = $3
       `,
       [companyId, month, year]
     )
 
     // جلب مصروفات الشهر
-    const exp = await query(
+    const exp = await client.query(
       `
         SELECT COALESCE(SUM(amount), 0) as total
         FROM office_expenses
@@ -443,19 +473,30 @@ router.post('/distributions', requirePermission('manage_office'), async (req: an
     const totalRevenue = Number(rev.rows[0]?.total || 0)
     const totalExpenses = Number(exp.rows[0]?.total || 0)
     const netProfit = totalRevenue - totalExpenses
+    if (netProfit <= 0) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ error: 'لا توجد أرباح موجبة قابلة للتوزيع لهذه الفترة' })
+    }
 
     // جلب الشركاء
-    const partners = await query(
+    const partners = await client.query(
       `
         SELECT * FROM partners WHERE company_id = $1 AND is_active = TRUE
       `,
       [companyId]
     )
+    const totalShares = partners.rows.reduce(
+      (sum: number, partner: any) => sum + Number(partner.share_percentage || 0), 0
+    )
+    if (!partners.rows.length || Math.abs(totalShares - 100) > 0.01) {
+      await client.query('ROLLBACK')
+      return res.status(400).json({ error: 'يجب أن يساوي مجموع نسب الشركاء النشطين 100% قبل التوزيع' })
+    }
 
     // توزيع الأرباح
     for (const partner of partners.rows) {
       const share = Math.round((netProfit * Number(partner.share_percentage)) / 100)
-      await query(
+      await client.query(
         `
           INSERT INTO profit_distributions (company_id, partner_id, month, year, total_revenue, total_expenses, net_profit, partner_share)
           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -466,6 +507,8 @@ router.post('/distributions', requirePermission('manage_office'), async (req: an
       )
     }
 
+    await client.query('COMMIT')
+
     res.json({
       success: true,
       total_revenue: totalRevenue,
@@ -473,8 +516,11 @@ router.post('/distributions', requirePermission('manage_office'), async (req: an
       net_profit: netProfit
     })
   } catch (err: any) {
+    await client.query('ROLLBACK')
     console.error('[office-management] POST /distributions error:', err.message)
     res.status(500).json({ error: 'حدث خطأ في توزيع الأرباح' })
+  } finally {
+    client.release()
   }
 })
 

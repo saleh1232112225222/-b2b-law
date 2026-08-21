@@ -1,6 +1,6 @@
 export interface Transaction {
   id: string
-  type: 'income' | 'expense'
+  type: 'income' | 'expense' | 'receivable'
   client_id?: string
   case_id?: string | null
   is_related_to_case: boolean
@@ -19,6 +19,7 @@ export interface Transaction {
   case_number?: string
   opponent_name?: string
   deleteType?: 'transaction' | 'invoice' | 'voucher'
+  legal_engagement_id?: string
 }
 
 export interface Account {
@@ -44,9 +45,15 @@ export interface Invoice {
   amount: number
   vat_amount: number
   total_amount: number
-  status: 'draft' | 'sent' | 'paid' | 'cancelled'
+  status: 'draft' | 'sent' | 'unpaid' | 'partially_paid' | 'paid' | 'cancelled'
   case_id?: string
   description?: string
+  subtotal?: number
+  tax_amount?: number
+  total?: number
+  vat_rate?: number
+  due_date?: string
+  items?: Array<{ description: string; amount: number }>
 }
 
 export interface Voucher {
@@ -61,6 +68,9 @@ export interface Voucher {
   account_id: string
   account_name?: string
   description?: string
+  payment_method?: string
+  reference_type?: string
+  reference_id?: string
 }
 
 export interface Receivable {
@@ -73,7 +83,7 @@ export interface Receivable {
   amount_paid: number
   remaining_amount: number
   due_date: string
-  status: 'pending' | 'partially_paid' | 'paid' | 'overdue'
+  status: 'pending' | 'partial' | 'paid' | 'overdue' | 'cancelled'
 }
 
 export interface CreditNote {
