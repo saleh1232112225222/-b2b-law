@@ -34,15 +34,33 @@ export async function runExtraMigrations() {
     console.warn('[MIGRATE_EXTRA] google_user_id migration warning:', err.message)
   }
 
-  // Unique index on recovery_email to prevent duplicate accounts
+  // Ensure recovery_email is properly configured and owner email is set to slaehmap@gmail.com
   try {
+    // Drop old global unique index if present to avoid cross-tenant/test collision
+    await query(`DROP INDEX IF EXISTS idx_users_recovery_email`)
+
+    // Create unique index per company
     await query(`
-      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_recovery_email 
-      ON users (recovery_email) WHERE recovery_email IS NOT NULL
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_users_company_recovery_email 
+      ON users (company_id, LOWER(recovery_email)) WHERE recovery_email IS NOT NULL
     `)
-    console.log('[MIGRATE_EXTRA] recovery_email unique index ensured for users table')
+
+    // Ensure super admin / owner user has recovery email set to slaehmap@gmail.com
+    await query(`
+      UPDATE users 
+      SET recovery_email = 'slaehmap@gmail.com',
+          security_question = COALESCE(NULLIF(security_question, ''), 'ماهو رقم جوالك الثاني')
+      WHERE username = 'admin' AND (
+        recovery_email IS NULL 
+        OR recovery_email LIKE '%@b2blaw.local' 
+        OR recovery_email = 'admin@b2blaw.local' 
+        OR recovery_email = 'dev@b2blaw.local'
+        OR recovery_email != 'slaehmap@gmail.com'
+      )
+    `)
+    console.log('[MIGRATE_EXTRA] Admin recovery email configured to slaehmap@gmail.com')
   } catch (err: any) {
-    console.warn('[MIGRATE_EXTRA] recovery_email index migration warning:', err.message)
+    console.warn('[MIGRATE_EXTRA] recovery_email migration warning:', err.message)
   }
 
   // is_suspended column for explicit user suspension control

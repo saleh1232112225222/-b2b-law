@@ -414,12 +414,13 @@ reportsRouter.post(
   }
 )
 
-async function generateReportHtmlString(
+export async function generateReportHtmlString(
   companyId: string,
   type: string,
   params: any,
   isPdf: boolean
 ): Promise<string> {
+  params = params && typeof params === 'object' ? params : {}
   let title = 'تقرير النظام'
   let headers: string[] = []
   let rows: any[][] = []
@@ -512,106 +513,320 @@ async function generateReportHtmlString(
   }
 
   try {
-    if (type === 'financial') {
-      title = 'التقرير المالي وحسابات المكتب'
+    if (type === 'case-a4' || type === 'case') {
+      const selectedCaseId = String(params.caseId || '').trim()
+      if (!selectedCaseId) throw new Error('معرف القضية مطلوب لإنشاء تقرير القضية')
+
+      title = 'تقرير قضية شامل'
       const result = await query(
-        `SELECT date, amount_in, amount_out, description, type FROM finances WHERE company_id = $1 ORDER BY date DESC`,
-        [companyId]
+        `SELECT c.id, c.case_number, COALESCE(cl.name, '') AS client_name,
+                c.court, c.circuit, c.status, c.subject, c.case_type,
+                c.registration_date, c.opponent_name, c.client_role, c.phase,
+                c.priority, c.notes
+         FROM cases c
+         LEFT JOIN clients cl ON c.client_id = cl.id
+         WHERE c.company_id = $1 AND c.id = $2`,
+        [companyId, selectedCaseId]
       )
-      headers = ['التاريخ', 'الوارد (ريال)', 'الصادر (ريال)', 'البيان', 'النوع']
+      if (result.rows.length === 0) throw new Error('القضية المحددة غير موجودة')
+      const c = result.rows[0]
+      headers = ['رقم القضية', 'الموكل', 'الخصم', 'المحكمة / الدائرة', 'الحالة', 'الموضوع']
+      rows = [
+        [
+          c.case_number || '',
+          c.client_name || '',
+          c.opponent_name || '-',
+          `${c.court || ''}${c.circuit ? ` / ${c.circuit}` : ''}`,
+          c.status || '',
+          c.subject || ''
+        ]
+      ]
+      summary = `القضية المحددة: ${c.case_number || selectedCaseId} | نوع القضية: ${c.case_type || '-'} | المرحلة: ${c.phase || '-'} | الأولوية: ${c.priority || '-'} | تاريخ القيد: ${c.registration_date ? new Date(c.registration_date).toLocaleDateString('ar-SA') : '-'}`
+    } else if (type === 'financial') {
+      title = 'التقرير المالي وحسابات المكتب'
+      let sql = `SELECT f.date, f.amount, f.description, f.type, f.category, c.case_number,
+                        COALESCE(cl.name, '') AS client_name
+                 FROM finances f
+                 LEFT JOIN cases c ON f.case_id = c.id
+                 LEFT JOIN clients cl ON f.client_id = cl.id
+                 WHERE f.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (params.caseId) {
+        sql += ` AND f.case_id = $${pIdx++}`
+        queryParams.push(params.caseId)
+      }
+      if (params.from) {
+        sql += ` AND f.date >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND f.date <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      if (params.type) {
+        sql += ` AND f.type = $${pIdx++}`
+        queryParams.push(params.type)
+      }
+      sql += ' ORDER BY f.date DESC, f.created_at DESC'
+      const result = await query(sql, queryParams)
+      headers = ['التاريخ', 'المبلغ (ريال)', 'العملية', 'التصنيف', 'رقم القضية', 'الموكل', 'البيان']
       rows = result.rows.map((r: any) => [
         r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
-        r.amount_in || '0',
-        r.amount_out || '0',
-        r.description || '',
-        r.type || ''
+        Number(r.amount || 0).toLocaleString('ar-SA'),
+        r.type === 'income' ? 'دخل' : r.type === 'expense' ? 'مصروف' : r.type || '',
+        r.category || '-',
+        r.case_number || '-',
+        r.client_name || '-',
+        r.description || ''
       ])
       const totalIn = result.rows.reduce(
-        (sum: number, r: any) => sum + parseFloat(r.amount_in || 0),
+        (sum: number, r: any) => sum + (r.type === 'income' ? Number(r.amount || 0) : 0),
         0
       )
       const totalOut = result.rows.reduce(
-        (sum: number, r: any) => sum + parseFloat(r.amount_out || 0),
+        (sum: number, r: any) => sum + (r.type === 'expense' ? Number(r.amount || 0) : 0),
         0
       )
-      summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال`
-    } else if (type === 'activity_log') {
+      summary = `إجمالي المقبوضات: ${totalIn.toLocaleString('ar-SA')} ريال | إجمالي المصروفات: ${totalOut.toLocaleString('ar-SA')} ريال | صافي الرصيد: ${(totalIn - totalOut).toLocaleString('ar-SA')} ريال | عدد العمليات: ${result.rows.length}`
+    } else if (type === 'activity_log' || type === 'activity') {
       title = 'تقرير سجل النشاطات والعمليات'
-      const result = await query(
-        `SELECT timestamp, actor, details FROM activity_logs WHERE company_id = $1 ORDER BY timestamp DESC LIMIT 200`,
-        [companyId]
-      )
-      headers = ['الوقت والتاريخ', 'المستخدم/المنفذ', 'تفاصيل العملية']
+      let sql = `SELECT timestamp, actor, details, module_key, action_key
+                 FROM activity_logs WHERE company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (params.from) {
+        sql += ` AND timestamp >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND timestamp <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      if (params.actor) {
+        sql += ` AND actor = $${pIdx++}`
+        queryParams.push(params.actor)
+      }
+      sql += ' ORDER BY timestamp DESC LIMIT 500'
+      const result = await query(sql, queryParams)
+      headers = ['الوقت والتاريخ', 'المستخدم/المنفذ', 'الوحدة', 'العملية', 'التفاصيل']
       rows = result.rows.map((r: any) => [
         r.timestamp ? new Date(r.timestamp).toLocaleString('ar-SA') : '',
         r.actor || 'النظام',
+        r.module_key || '-',
+        r.action_key || '-',
         r.details || ''
       ])
-      summary = `عدد العمليات المسجلة مؤخراً: ${result.rows.length}`
+      summary = `عدد العمليات المطابقة للتصفية: ${result.rows.length}`
     } else if (type === 'users_permissions') {
       title = 'تقرير صلاحيات ومستخدمي النظام'
       const result = await query(
-        `SELECT username, full_name, role_key, is_active FROM users WHERE company_id = $1`,
+        `SELECT username, full_name, role_key, is_active, must_change_password
+         FROM users WHERE company_id = $1 ORDER BY full_name, username`,
         [companyId]
       )
-      headers = ['اسم المستخدم', 'الاسم الكامل', 'الدور/الصلاحية', 'الحالة']
+      headers = ['اسم المستخدم', 'الاسم الكامل', 'الدور/الصلاحية', 'الحالة', 'تغيير كلمة المرور']
       rows = result.rows.map((r: any) => [
         r.username || '',
         r.full_name || '',
         r.role_key || '',
-        r.is_active ? 'نشط' : 'معطل'
+        r.is_active ? 'نشط' : 'معطل',
+        r.must_change_password ? 'مطلوب' : 'غير مطلوب'
       ])
       summary = `إجمالي عدد مستخدمي النظام: ${result.rows.length}`
     } else if (type === 'sessions') {
       title = 'تقرير جلسات الموكلين والمحاكم'
-      const result = await query(
-        `SELECT s.date, s.time, s.status, s.notes, c.case_number, COALESCE(cl.name, '') as client_name
-         FROM sessions s
-         LEFT JOIN cases c ON s.case_id = c.id
-         LEFT JOIN clients cl ON c.client_id = cl.id
-         WHERE s.company_id = $1
-         ORDER BY s.date DESC`,
-        [companyId]
-      )
-      headers = ['تاريخ الجلسة', 'الوقت', 'رقم القضية', 'الموكل', 'الحالة', 'ملاحظات']
+      let sql = `SELECT s.date, s.time, s.status, s.notes, s.result, c.case_number,
+                        COALESCE(cl.name, '') AS client_name
+                 FROM sessions s
+                 LEFT JOIN cases c ON s.case_id = c.id
+                 LEFT JOIN clients cl ON c.client_id = cl.id
+                 WHERE s.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (params.caseId) {
+        sql += ` AND s.case_id = $${pIdx++}`
+        queryParams.push(params.caseId)
+      }
+      if (params.from) {
+        sql += ` AND s.date >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND s.date <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      if (params.q) {
+        sql += ` AND (COALESCE(s.notes, '') ILIKE $${pIdx} OR COALESCE(s.result, '') ILIKE $${pIdx} OR COALESCE(c.case_number, '') ILIKE $${pIdx})`
+        queryParams.push(`%${params.q}%`)
+        pIdx++
+      }
+      sql += ' ORDER BY s.date DESC, s.time DESC'
+      const result = await query(sql, queryParams)
+      headers = ['تاريخ الجلسة', 'الوقت', 'رقم القضية', 'الموكل', 'الحالة', 'النتيجة / الملاحظات']
       rows = result.rows.map((r: any) => [
         r.date ? new Date(r.date).toLocaleDateString('ar-SA') : '',
         r.time || '',
         r.case_number || '-',
         r.client_name || '-',
         r.status || '-',
-        r.notes || '-'
+        r.result || r.notes || '-'
       ])
-      summary = `إجمالي عدد الجلسات المسجلة: ${result.rows.length}`
+      summary = `إجمالي عدد الجلسات المطابقة للتصفية: ${result.rows.length}`
     } else if (type === 'evidence') {
       title = 'تقرير الأدلة والقرائن'
-      const result = await query(
-        `SELECT e.title, e.type, e.status, c.case_number
-         FROM evidence e
-         LEFT JOIN cases c ON e.case_id = c.id
-         WHERE e.company_id = $1 ORDER BY e.created_at DESC`,
-        [companyId]
-      )
-      headers = ['عنوان الدليل', 'النوع', 'الحالة', 'رقم القضية']
+      let sql = `SELECT e.title, e.description, e.memo_type, e.memo_label, e.status,
+                        e.evidence_date, c.case_number
+                 FROM evidence e
+                 LEFT JOIN cases c ON e.case_id = c.id
+                 WHERE e.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (params.caseId) {
+        sql += ` AND e.case_id = $${pIdx++}`
+        queryParams.push(params.caseId)
+      }
+      if (params.from) {
+        sql += ` AND e.evidence_date >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND e.evidence_date <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      sql += ' ORDER BY e.created_at DESC'
+      const result = await query(sql, queryParams)
+      headers = ['عنوان الدليل', 'التصنيف', 'التاريخ', 'الحالة', 'رقم القضية', 'الوصف']
       rows = result.rows.map((r: any) => [
         r.title || '',
-        r.type || '',
+        r.memo_label || r.memo_type || '-',
+        r.evidence_date ? new Date(r.evidence_date).toLocaleDateString('ar-SA') : '-',
         r.status || '',
-        r.case_number || '-'
+        r.case_number || '-',
+        r.description || '-'
       ])
-      summary = `إجمالي الأدلة المسجلة: ${result.rows.length}`
+      summary = `إجمالي الأدلة المطابقة للتصفية: ${result.rows.length}`
     } else if (type === 'documents') {
       title = 'تقرير المستندات والوثائق'
+      let sql = `SELECT d.name, d.file_type, d.link_type, d.linked_title, d.status,
+                        d.created_at, c.case_number
+                 FROM documents_v2 d
+                 LEFT JOIN cases c ON d.case_id = c.id
+                 WHERE d.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (params.linkType) {
+        sql += ` AND d.link_type = $${pIdx++}`
+        queryParams.push(params.linkType)
+      }
+      if (params.parentId) {
+        const parentColumn =
+          params.linkType === 'task'
+            ? 'task_id'
+            : params.linkType === 'session'
+              ? 'session_id'
+              : 'case_id'
+        sql += ` AND d.${parentColumn} = $${pIdx++}`
+        queryParams.push(params.parentId)
+      }
+      if (params.from) {
+        sql += ` AND d.created_at >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND d.created_at <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      sql += ' ORDER BY d.created_at DESC'
+      const result = await query(sql, queryParams)
+      headers = [
+        'اسم المستند',
+        'نوع الملف',
+        'نوع الارتباط',
+        'المرجع',
+        'رقم القضية',
+        'الحالة',
+        'تاريخ الإضافة'
+      ]
+      rows = result.rows.map((r: any) => [
+        r.name || '',
+        r.file_type || '-',
+        r.link_type || '-',
+        r.linked_title || '-',
+        r.case_number || '-',
+        r.status || '-',
+        r.created_at ? new Date(r.created_at).toLocaleDateString('ar-SA') : '-'
+      ])
+      summary = `إجمالي المستندات المطابقة للتصفية: ${result.rows.length}`
+    } else if (type === 'memoranda' || type === 'memoranda_list') {
+      const memorandumId = type === 'memoranda' ? String(params.id || '').trim() : ''
+      if (type === 'memoranda' && !memorandumId) throw new Error('معرف المذكرة مطلوب')
+      title = type === 'memoranda' ? 'تقرير مذكرة قانونية' : 'تقرير المذكرات القانونية'
+      let sql = `SELECT m.memo_title, m.memo_summary, m.memo_date, m.memo_type,
+                        m.memo_label, m.memo_status, m.najiz_number, c.case_number,
+                        COALESCE(cl.name, '') AS client_name
+                 FROM memoranda m
+                 LEFT JOIN cases c ON m.case_id = c.id
+                 LEFT JOIN clients cl ON c.client_id = cl.id
+                 WHERE m.company_id = $1`
+      const queryParams: any[] = [companyId]
+      let pIdx = 2
+      if (memorandumId) {
+        sql += ` AND m.id = $${pIdx++}`
+        queryParams.push(memorandumId)
+      }
+      if (params.caseId) {
+        sql += ` AND m.case_id = $${pIdx++}`
+        queryParams.push(params.caseId)
+      }
+      if (params.from) {
+        sql += ` AND COALESCE(m.memo_date, m.created_at::date) >= $${pIdx++}`
+        queryParams.push(params.from)
+      }
+      if (params.to) {
+        sql += ` AND COALESCE(m.memo_date, m.created_at::date) <= $${pIdx++}`
+        queryParams.push(params.to)
+      }
+      if (params.q) {
+        sql += ` AND (m.memo_title ILIKE $${pIdx} OR COALESCE(m.memo_summary, '') ILIKE $${pIdx})`
+        queryParams.push(`%${params.q}%`)
+        pIdx++
+      }
+      sql += ' ORDER BY m.created_at DESC'
+      const result = await query(sql, queryParams)
+      headers = ['عنوان المذكرة', 'النوع', 'التاريخ', 'الحالة', 'رقم القضية', 'الموكل', 'الملخص']
+      rows = result.rows.map((r: any) => [
+        r.memo_title || '',
+        r.memo_label || r.memo_type || '-',
+        r.memo_date ? new Date(r.memo_date).toLocaleDateString('ar-SA') : '-',
+        r.memo_status || '-',
+        r.case_number || '-',
+        r.client_name || '-',
+        r.memo_summary || '-'
+      ])
+      summary = `${type === 'memoranda' ? 'المذكرة المحددة' : 'إجمالي المذكرات المطابقة للتصفية'}: ${result.rows.length}`
+    } else if (type === 'operations' || type === 'operations_advanced') {
+      title =
+        type === 'operations_advanced'
+          ? 'تقرير الأداء التشغيلي التفصيلي'
+          : 'التقرير التشغيلي اليومي'
       const result = await query(
-        `SELECT d.title, d.category, c.case_number
-         FROM documents d
-         LEFT JOIN cases c ON d.case_id = c.id
-         WHERE d.company_id = $1 ORDER BY d.created_at DESC`,
+        `SELECT
+           (SELECT COUNT(*) FROM cases WHERE company_id = $1) AS total_cases,
+           (SELECT COUNT(*) FROM sessions WHERE company_id = $1) AS total_sessions,
+           (SELECT COUNT(*) FROM tasks_v2 WHERE company_id = $1) AS total_tasks,
+           (SELECT COUNT(*) FROM clients WHERE company_id = $1) AS total_clients`,
         [companyId]
       )
-      headers = ['اسم المستند', 'التصنيف', 'رقم القضية']
-      rows = result.rows.map((r: any) => [r.title || '', r.category || '', r.case_number || '-'])
-      summary = `إجمالي المستندات: ${result.rows.length}`
+      const stats = result.rows[0] || {}
+      headers = ['المؤشر', 'القيمة']
+      rows = [
+        ['إجمالي القضايا', stats.total_cases || 0],
+        ['إجمالي الجلسات', stats.total_sessions || 0],
+        ['إجمالي المهام', stats.total_tasks || 0],
+        ['إجمالي الموكلين', stats.total_clients || 0]
+      ]
+      summary = 'ملخص مؤشرات التشغيل المرتبطة ببيانات المكتب الحالية'
     } else if (type === 'court-cases' || type === 'court_cases' || type === 'cases') {
       title = 'تقرير قضايا المحكمة والملفات القانونية'
       let sql = `SELECT c.id, c.case_number, COALESCE(cl.name, '') as client_name, c.court, c.circuit, c.status, c.subject
@@ -621,6 +836,10 @@ async function generateReportHtmlString(
       const queryParams: any[] = [companyId]
       let pIdx = 2
 
+      if (params?.caseId && String(params.caseId).trim()) {
+        sql += ` AND c.id = $${pIdx++}`
+        queryParams.push(String(params.caseId).trim())
+      }
       if (params?.court && String(params.court).trim()) {
         sql += ` AND (c.court ILIKE $${pIdx} OR c.circuit ILIKE $${pIdx})`
         queryParams.push(`%${String(params.court).trim()}%`)
@@ -656,28 +875,11 @@ async function generateReportHtmlString(
       ])
       summary = `إجمالي عدد القضايا في التقرير: ${result.rows.length}`
     } else {
-      title = 'تقرير بيانات النظام'
-      const result = await query(
-        `SELECT c.case_number, COALESCE(cl.name, '') as client_name, c.court, c.status, c.subject
-         FROM cases c
-         LEFT JOIN clients cl ON c.client_id = cl.id
-         WHERE c.company_id = $1
-         ORDER BY c.created_at DESC`,
-        [companyId]
-      )
-      headers = ['رقم القضية', 'الموكل', 'المحكمة', 'الحالة', 'الموضوع']
-      rows = result.rows.map((r: any) => [
-        r.case_number || '',
-        r.client_name || '',
-        r.court || '',
-        r.status || '',
-        r.subject || ''
-      ])
-      summary = `إجمالي البيانات: ${result.rows.length}`
+      throw new Error(`نوع التقرير غير مدعوم: ${type || 'غير محدد'}`)
     }
   } catch (err: any) {
     console.error(`[REPORTS] Error building report ${type}:`, err?.message || err)
-    title = 'تقرير بيانات النظام'
+    title = 'تعذر إنشاء التقرير المطلوب'
     headers = ['الحالة', 'الرسالة']
     rows = [['فشل استخراج بيانات التقرير', err?.message || '']]
   }

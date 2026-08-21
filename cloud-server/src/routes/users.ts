@@ -56,21 +56,42 @@ usersRouter.put('/recovery-info', async (req: Request, res: Response) => {
     const userId = req.auth!.userId
     const { email, question, answer } = req.body
 
-    let answerHash: string | null = null
-    if (answer) {
-      answerHash = await bcrypt.hash(answer, 12)
+    const cleanEmail = email ? String(email).trim().toLowerCase() : null
+    const cleanQuestion = question ? String(question).trim() : null
+
+    // If email provided, clear any conflict with other users in the same company
+    if (cleanEmail) {
+      await query(
+        `UPDATE users SET recovery_email = NULL WHERE company_id = $1 AND LOWER(recovery_email) = $2 AND id != $3`,
+        [companyId, cleanEmail, userId]
+      )
     }
 
-    await query(
-      `UPDATE users 
-       SET recovery_email = $1, security_question = $2, security_answer_hash = COALESCE($3, security_answer_hash), updated_at = NOW() 
-       WHERE id = $4 AND company_id = $5`,
-      [email, question, answerHash, userId, companyId]
-    )
+    let answerHash: string | null = null
+    if (answer && String(answer).trim()) {
+      answerHash = await bcrypt.hash(String(answer).trim(), 12)
+    }
+
+    if (answerHash) {
+      await query(
+        `UPDATE users 
+         SET recovery_email = $1, security_question = $2, security_answer_hash = $3, updated_at = NOW() 
+         WHERE id = $4 AND company_id = $5`,
+        [cleanEmail, cleanQuestion, answerHash, userId, companyId]
+      )
+    } else {
+      await query(
+        `UPDATE users 
+         SET recovery_email = $1, security_question = $2, updated_at = NOW() 
+         WHERE id = $3 AND company_id = $4`,
+        [cleanEmail, cleanQuestion, userId, companyId]
+      )
+    }
+
     res.json({ success: true })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Users] Update self recovery info error:', err)
-    res.status(500).json({ error: 'فشل تحديث بيانات الاسترداد' })
+    res.status(500).json({ error: err?.message || 'فشل تحديث بيانات الاسترداد' })
   }
 })
 

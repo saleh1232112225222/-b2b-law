@@ -652,27 +652,23 @@ async function seedSuperAdmin() {
         [
           ADMIN_HASH,
           ADMIN_EMAIL,
-          'ما هو اسم أول حيوان أليف لديك؟',
+          'ماهو رقم جوالك الثاني',
           '$2a$12$ulTaZWcXW.qO7fI6EMrIiOO79VA1Mmt75S9q70cldhs3VhkBQP.Ta'
         ]
       )
       console.log('[SEED] Super Admin user created in owner company')
     } else {
-      // Reset/sync super admin credentials on restart to guarantee recovery parameters are set
+      // Sync super admin credentials on restart, ensuring recovery_email is set to owner email while preserving custom question/answer
       await dbQuery(
         `UPDATE users 
-         SET password_hash = $1, 
-             recovery_email = $2, 
-             security_question = $3, 
-             security_answer_hash = $4,
+         SET recovery_email = $1, 
+             security_question = COALESCE(NULLIF(security_question, ''), $2),
              is_active = TRUE,
              is_suspended = FALSE
          WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
         [
-          ADMIN_HASH,
           ADMIN_EMAIL,
-          'ما هو اسم أول حيوان أليف لديك؟',
-          '$2a$12$ulTaZWcXW.qO7fI6EMrIiOO79VA1Mmt75S9q70cldhs3VhkBQP.Ta'
+          'ماهو رقم جوالك الثاني'
         ]
       )
       console.log('[SEED] Super Admin user credentials updated/synchronized')

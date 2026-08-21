@@ -420,16 +420,21 @@ const loadRecoveryInfo = async () => {
 }
 
 const handleUpdateRecovery = async () => {
+  if (!recoveryData.value.email || !recoveryData.value.email.trim()) {
+    showSnackbar('يرجى إدخال البريد الإلكتروني للاستعادة', 'warning')
+    return
+  }
   updatingRecovery.value = true
   try {
     const success = await (window as any).api.users.updateRecoveryInfo(
-      recoveryData.value.email || null,
-      recoveryData.value.question || null,
-      recoveryData.value.answer || null
+      recoveryData.value.email ? recoveryData.value.email.trim() : null,
+      recoveryData.value.question ? recoveryData.value.question.trim() : null,
+      recoveryData.value.answer ? recoveryData.value.answer.trim() : null
     )
     if (success) {
       showSnackbar('تم تحديث بيانات استعادة الحساب بنجاح', 'success')
       recoveryData.value.answer = '' // Clear answer field
+      await loadRecoveryInfo()
     }
   } catch (err: any) {
     showSnackbar(err.message || 'فشل تحديث بيانات الاستعادة', 'error')
