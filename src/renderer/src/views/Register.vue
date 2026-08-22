@@ -32,24 +32,38 @@
             <h2 class="welcome-back">إنشاء حساب جديد</h2>
           </div>
 
-          <!-- Desktop Mode Guard Alert -->
-          <div v-if="isDesktop" class="text-center py-6">
+          <!-- Registration Disabled / Maintenance Notice -->
+          <div v-if="isRegistrationDisabled || isDesktop" class="text-center py-6">
             <v-alert
-              type="warning"
+              type="info"
               variant="tonal"
               density="comfortable"
               class="mb-6 border-gold border-1 text-right"
+              style="border-color: rgba(200, 169, 81, 0.5) !important; background: rgba(200, 169, 81, 0.08) !important;"
             >
-              عذراً، هذا الإصدار المحلي لا يدعم إنشاء حسابات جديدة مباشرة. التسجيل التلقائي متاح فقط
-              لنسخة الويب السحابية.
+              <div class="font-weight-bold text-gold mb-1">إشعار إداري:</div>
+              <div style="font-size: 15px; line-height: 1.8; color: #fff;">
+                النظام حالياً تحت المراجعة والتجهيز للإطلاق. لطلب عرض خاص يرجى التواصل مع الإدارة.
+              </div>
             </v-alert>
             <v-btn
+              href="https://wa.me/966567905696?text=%D9%85%D8%B1%D8%AD%D8%A8%D8%A7%D9%8B%D8%8C%20%D8%A3%D9%88%D8%AF%20%D8%B7%D9%84%D8%A8%20%D8%B9%D8%B1%D8%B6%20%D8%AE%D8%A7%D8%B5%20%D9%84%D9%86%D8%B8%D8%A7%D9%85%20B2B-LAW"
+              target="_blank"
               block
               height="50"
-              class="premium-submit-btn premium-btn-gold-gradient"
-              @click="router.push('/login')"
+              class="premium-submit-btn mb-3"
+              style="background: linear-gradient(135deg, #25d366 0%, #128c7e 100%) !important; color: #fff !important; font-weight: 700;"
             >
-              العودة لتسجيل الدخول
+              طلب عرض خاص عبر واتساب
+            </v-btn>
+            <v-btn
+              block
+              height="44"
+              variant="text"
+              style="color: #c8a951;"
+              @click="router.push('/maintenance')"
+            >
+              عرض تفاصيل الإشعار
             </v-btn>
           </div>
 
@@ -373,6 +387,10 @@ onMounted(() => {
 })
 
 // Check if app is in desktop/Electron mode
+const isRegistrationDisabled = computed(() => {
+  return import.meta.env.VITE_PUBLIC_REGISTRATION_ENABLED === 'false' || import.meta.env.VITE_PUBLIC_APP_ENABLED === 'false'
+})
+
 const isDesktop = computed(() => {
   return getApiMode() === 'desktop'
 })

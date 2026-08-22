@@ -999,6 +999,22 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     }
 
     // STEP 3: Brand new user — no matching user or company found
+    const isRegistrationEnabled = process.env.PUBLIC_REGISTRATION_ENABLED === 'true'
+    const isAppEnabled = process.env.PUBLIC_APP_ENABLED !== 'false'
+    if (!isRegistrationEnabled || !isAppEnabled) {
+      await logActivity(
+        googleEmail,
+        'REGISTER_FAILED',
+        'auth',
+        'محاولة تسجيل Google فاشلة - التسجيل معطل حالياً'
+      )
+      redirectToLogin(
+        'RegistrationDisabled',
+        'النظام حالياً تحت المراجعة والتجهيز للإطلاق. لطلب عرض خاص يرجى التواصل مع الإدارة.'
+      )
+      return
+    }
+
     // Create company + user + trial subscription
     const companyId = uuidv4()
     const trialExpiresAt = new Date()
@@ -1152,6 +1168,16 @@ authRouter.post('/check-availability', authRateLimiter, async (req: Request, res
 
 authRouter.post('/register', authRateLimiter, async (req: Request, res: Response) => {
   try {
+    const isRegistrationEnabled = process.env.PUBLIC_REGISTRATION_ENABLED === 'true'
+    const isAppEnabled = process.env.PUBLIC_APP_ENABLED !== 'false'
+    if (!isRegistrationEnabled || !isAppEnabled) {
+      res.status(403).json({
+        error: 'RegistrationDisabled',
+        message: 'النظام حالياً تحت المراجعة والتجهيز للإطلاق. لطلب عرض خاص يرجى التواصل مع الإدارة.'
+      })
+      return
+    }
+
     let { companyName, username, email, phone, password } = req.body
 
     // 0. Sanitization and Normalization

@@ -2,6 +2,7 @@ import { createRouter, createWebHashHistory } from 'vue-router'
 import { isSuperAdmin } from '../../../admin/middleware/adminGuard'
 
 const routes = [
+  { path: '/maintenance', name: 'Maintenance', component: () => import('../views/MaintenanceView.vue') },
   { path: '/login', name: 'Login', component: () => import('../views/Login.vue') },
   { path: '/register', name: 'Register', component: () => import('../views/Register.vue') },
   {
@@ -346,8 +347,15 @@ const router = createRouter({
 })
 
 router.beforeEach(async (to) => {
+  const isAppPubliclyEnabled = import.meta.env.VITE_PUBLIC_APP_ENABLED !== 'false'
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
 
+  // If public portal is temporarily disabled, redirect unauthenticated public visitors to maintenance
+  if (!isAppPubliclyEnabled && !isLoggedIn) {
+    if (to.path !== '/maintenance') {
+      return '/maintenance'
+    }
+  }
   if (to.meta.requiresAuth && !isLoggedIn) {
     return '/login'
   }
