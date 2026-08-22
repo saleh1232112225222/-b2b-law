@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="mobile-sessions-container rtl">
+  <div ref="containerRef" class="mobile-sessions-container rtl pa-2">
     <!-- Pull to refresh indicator -->
     <div v-if="isRefreshing" class="mobile-pull-indicator mobile-pull-indicator--active">
       <v-progress-circular indeterminate color="accent" :size="20" :width="2" class="me-2" />
@@ -8,17 +8,17 @@
 
     <!-- Loading state when no items yet -->
     <div v-if="loading && (!items || items.length === 0)" class="d-flex justify-center pa-8">
-      <v-progress-circular indeterminate color="accent" :size="40" />
+      <v-progress-circular indeterminate color="primary" :size="40" />
     </div>
 
     <!-- Empty state -->
     <div
       v-else-if="!loading && (!items || items.length === 0)"
-      class="text-center pa-8 glass-card rounded-2xl mx-1 my-4"
+      class="text-center pa-8 client-style-card rounded-2xl mx-1 my-4"
     >
       <v-icon icon="mdi-calendar-blank-outline" :size="56" color="accent" class="mb-3 opacity-60" />
-      <div class="text-subtitle-1 text-gold font-weight-black mb-1">لا توجد جلسات مجدولة</div>
-      <div class="text-caption text-medium-emphasis mb-4">
+      <div class="text-subtitle-1 font-weight-black text-slate-800 mb-1">لا توجد جلسات مجدولة</div>
+      <div class="text-caption text-slate-500 mb-4">
         لم يتم العثور على أي جلسات ضمن التصفية المحددة
       </div>
       <v-btn
@@ -38,52 +38,39 @@
         <v-card
           v-for="item in items"
           :key="item.id"
-          class="session-mobile-card mb-3 rounded-2xl overflow-hidden glass-card"
-          variant="outlined"
-          :class="getCardBorderClass(item.status)"
+          class="client-style-card mb-3 rounded-2xl overflow-hidden"
+          elevation="0"
           @click="emit('edit', item)"
         >
-          <div class="pa-3 pa-sm-4">
-            <!-- Header: Case Number + Session Type + Status Badge -->
-            <div class="d-flex justify-space-between align-center mb-2 pb-2 border-b-subtle gap-2">
-              <div class="d-flex align-center gap-1 min-w-0">
-                <v-icon icon="mdi-briefcase-outline" size="18" color="accent" class="flex-shrink-0" />
-                <span class="text-subtitle-2 font-weight-black text-gold text-truncate">
-                  قضية: {{ item.case_number || 'بدون رقم' }}
-                </span>
-              </div>
-
-              <div class="d-flex align-center gap-1 flex-shrink-0">
-                <v-chip
-                  v-if="item.type"
-                  size="x-small"
-                  variant="outlined"
-                  color="accent"
-                  class="font-weight-bold"
-                >
-                  {{ item.type }}
-                </v-chip>
-                <v-chip
-                  size="x-small"
-                  :color="getStatusColor(item.status)"
-                  variant="flat"
-                  class="font-weight-black"
-                >
-                  {{ item.status || 'قادمة' }}
-                </v-chip>
-              </div>
+          <!-- 1. Header Row -->
+          <div class="card-header d-flex justify-space-between align-center px-4 py-3">
+            <div class="d-flex align-center gap-2">
+              <v-icon icon="mdi-briefcase-outline" size="20" color="accent" />
+              <span class="card-title text-subtitle-1 font-weight-black text-slate-800">
+                قضية: {{ item.case_number || 'بدون رقم' }}
+              </span>
             </div>
 
-            <!-- Client Info + Client Capacity (مدعي / مدعى عليه) -->
-            <div class="client-section mb-2 d-flex align-center justify-space-between flex-wrap gap-2">
+            <div class="d-flex align-center gap-1.5">
+              <span v-if="item.type" class="badge-type">
+                {{ item.type }}
+              </span>
+              <span class="badge-status" :class="getStatusBadgeClass(item.status)">
+                {{ item.status || 'قادمة' }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Body Details -->
+          <div class="card-body px-4 py-3">
+            <!-- Client Name & Capacity -->
+            <div class="d-flex align-center justify-space-between mb-2">
               <div class="d-flex align-center gap-1 min-w-0">
-                <v-icon icon="mdi-account-tie" size="18" class="text-gold opacity-80 flex-shrink-0" />
-                <span class="text-body-2 font-weight-black text-white text-truncate">
+                <span class="label-text">الموكل:</span>
+                <span class="value-text font-weight-black text-slate-900 text-truncate">
                   {{ item.client_name || 'بدون موكل' }}
                 </span>
               </div>
-
-              <!-- Client Role Chip -->
               <v-chip
                 v-if="item.client_role"
                 size="x-small"
@@ -95,13 +82,13 @@
               </v-chip>
             </div>
 
-            <!-- Date & Time Box (Gregorian, Hijri, Time) -->
-            <div class="session-datetime-box rounded-xl pa-2 mb-2">
+            <!-- Date & Time Box -->
+            <div class="session-datetime-box rounded-xl pa-2.5 mb-2">
               <v-row dense class="align-center">
                 <!-- Gregorian Date -->
                 <v-col cols="6" class="d-flex align-center">
                   <v-icon icon="mdi-calendar" size="15" color="accent" class="me-1 flex-shrink-0" />
-                  <span class="text-caption font-weight-bold text-high-emphasis text-truncate">
+                  <span class="text-caption font-weight-bold text-slate-800 text-truncate">
                     {{ item.date || '---' }} م
                   </span>
                 </v-col>
@@ -109,7 +96,7 @@
                 <!-- Time -->
                 <v-col cols="6" class="d-flex align-center justify-end">
                   <v-icon icon="mdi-clock-outline" size="15" color="accent" class="me-1 flex-shrink-0" />
-                  <span class="text-caption font-weight-black text-gold">
+                  <span class="text-caption font-weight-black text-amber-800">
                     {{ item.time || '--:--' }}
                   </span>
                 </v-col>
@@ -117,7 +104,7 @@
                 <!-- Hijri Date -->
                 <v-col cols="12" class="d-flex align-center mt-1">
                   <v-icon icon="mdi-calendar-star" size="15" color="accent" class="me-1 flex-shrink-0" />
-                  <span class="text-caption font-weight-bold text-gold opacity-90 text-truncate">
+                  <span class="text-caption font-weight-bold text-amber-800 opacity-90 text-truncate">
                     {{ formatHijri(item.date_hijri) }}
                   </span>
                 </v-col>
@@ -127,68 +114,53 @@
             <!-- Court / Chamber / Room if present -->
             <div
               v-if="item.court_room"
-              class="d-flex align-center text-caption text-medium-emphasis mb-2 px-1"
+              class="d-flex align-center text-caption text-slate-600 mb-1"
             >
               <v-icon icon="mdi-gavel" size="14" color="accent" class="me-1 opacity-70 flex-shrink-0" />
               <span class="text-truncate">{{ item.court_room }}</span>
             </div>
+          </div>
 
-            <!-- Actions Row -->
-            <div class="d-flex align-center justify-space-between pt-2 border-t-subtle flex-wrap gap-2">
-              <!-- Left: Najiz Join Link + Session Room -->
-              <div class="d-flex align-center gap-2 flex-wrap">
-                <!-- Direct Najiz Video Link Button -->
-                <v-btn
-                  v-if="item.meeting_link"
-                  color="accent"
-                  size="small"
-                  variant="flat"
-                  class="font-weight-black rounded-lg premium-btn-gold-gradient px-3"
-                  @click.stop="openNajizLink(item.meeting_link)"
-                >
-                  <v-icon icon="mdi-video" size="16" class="me-1" />
-                  انضمام للجلسة (ناجز)
-                </v-btn>
-
-                <!-- Operations Room -->
-                <v-btn
-                  color="primary"
-                  size="small"
-                  variant="tonal"
-                  class="font-weight-bold rounded-lg px-2"
-                  @click.stop="emit('open-session-room', item)"
-                >
-                  <v-icon icon="mdi-sword-cross" size="15" class="me-1" />
-                  غرفة العمليات
-                </v-btn>
-              </div>
-
-              <!-- Right: Edit & Delete Icons -->
-              <div class="d-flex align-center gap-1 ms-auto">
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="gold"
-                  class="opacity-80 hover-opacity-100"
-                  @click.stop="emit('edit', item)"
-                >
-                  <v-icon icon="mdi-pencil-outline" size="18" />
-                  <v-tooltip activator="parent" location="top">تعديل الجلسة</v-tooltip>
-                </v-btn>
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="error"
-                  class="opacity-80 hover-opacity-100"
-                  @click.stop="emit('delete', item)"
-                >
-                  <v-icon icon="mdi-trash-can-outline" size="18" />
-                  <v-tooltip activator="parent" location="top">حذف الجلسة</v-tooltip>
-                </v-btn>
-              </div>
+          <!-- 3. Footer Row -->
+          <div class="card-footer d-flex align-center justify-space-between px-4 py-2.5 flex-wrap gap-2">
+            <!-- Left Actions (Delete, Edit, Ops Room) -->
+            <div class="d-flex align-center gap-2">
+              <button
+                type="button"
+                class="action-btn-icon btn-delete"
+                title="حذف الجلسة"
+                @click.stop="emit('delete', item)"
+              >
+                <v-icon icon="mdi-trash-can-outline" size="18" />
+              </button>
+              <button
+                type="button"
+                class="action-btn-icon btn-edit"
+                title="تعديل الجلسة"
+                @click.stop="emit('edit', item)"
+              >
+                <v-icon icon="mdi-pencil-outline" size="18" />
+              </button>
+              <button
+                type="button"
+                class="action-btn-icon btn-ops"
+                title="غرفة العمليات"
+                @click.stop="emit('open-session-room', item)"
+              >
+                <v-icon icon="mdi-sword-cross" size="16" />
+              </button>
             </div>
+
+            <!-- Right Action: Najiz Video Join Link -->
+            <button
+              v-if="item.meeting_link"
+              type="button"
+              class="najiz-join-btn d-flex align-center gap-1 font-weight-black"
+              @click.stop="openNajizLink(item.meeting_link)"
+            >
+              <v-icon icon="mdi-video" size="16" class="text-amber-800" />
+              <span class="text-amber-900">انضمام للجلسة (ناجز)</span>
+            </button>
           </div>
         </v-card>
       </div>
@@ -220,35 +192,19 @@ const { isRefreshing } = usePullToRefresh(containerRef, async () => {
   emit('refresh')
 })
 
-const getStatusColor = (status: string): string => {
+const getStatusBadgeClass = (status: string): string => {
   switch (status) {
     case 'قادمة':
-      return 'accent'
+      return 'badge-status-active'
     case 'منعقدة':
     case 'تمت':
-      return 'success'
+      return 'badge-status-success'
     case 'مؤجلة':
-      return 'warning'
+      return 'badge-status-warning'
     case 'ملغاة':
-      return 'error'
+      return 'badge-status-danger'
     default:
-      return 'grey'
-  }
-}
-
-const getCardBorderClass = (status: string): string => {
-  switch (status) {
-    case 'قادمة':
-      return 'border-s-accent'
-    case 'منعقدة':
-    case 'تمت':
-      return 'border-s-success'
-    case 'مؤجلة':
-      return 'border-s-warning'
-    case 'ملغاة':
-      return 'border-s-error'
-    default:
-      return 'border-s-gold'
+      return 'badge-status-default'
   }
 }
 
@@ -295,57 +251,154 @@ const openNajizLink = (link: string): void => {
   -webkit-overflow-scrolling: touch;
 }
 
-.session-mobile-card {
+/* Client-style Card Container matching the client card */
+.client-style-card {
+  background: #ffffff !important;
+  border: 1.5px solid #c5a028 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(197, 160, 40, 0.08) !important;
   cursor: pointer;
-  background: rgba(22, 27, 34, 0.7) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(197, 160, 40, 0.2) !important;
-  border-inline-start-width: 4px !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.session-mobile-card:active {
+.client-style-card:active {
   transform: scale(0.985);
 }
 
-.border-s-accent {
-  border-inline-start-color: rgb(233, 195, 73) !important;
+/* Card Header */
+.card-header {
+  border-bottom: 1px solid rgba(197, 160, 40, 0.35);
 }
 
-.border-s-success {
-  border-inline-start-color: rgb(16, 185, 129) !important;
+.card-title {
+  color: #1e293b;
+  font-size: 0.95rem;
 }
 
-.border-s-warning {
-  border-inline-start-color: rgb(245, 158, 11) !important;
+/* Badges */
+.badge-type {
+  background: rgba(197, 160, 40, 0.15);
+  color: #854d0e;
+  border: 1px solid rgba(197, 160, 40, 0.4);
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.border-s-error {
-  border-inline-start-color: rgb(239, 68, 68) !important;
+.badge-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.border-s-gold {
-  border-inline-start-color: rgba(197, 160, 40, 0.8) !important;
+.badge-status-active {
+  background: #1e293b;
+  color: #ffffff;
 }
 
-.border-b-subtle {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.badge-status-success {
+  background: #059669;
+  color: #ffffff;
 }
 
-.border-t-subtle {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.badge-status-warning {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.badge-status-danger {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.badge-status-default {
+  background: #475569;
+  color: #ffffff;
+}
+
+/* Card Body */
+.card-body {
+  background: #ffffff;
+}
+
+.label-text {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.value-text {
+  color: #0f172a;
+  font-size: 0.85rem;
 }
 
 .session-datetime-box {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(197, 160, 40, 0.12);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.text-amber-800 {
+  color: #92400e !important;
+}
+
+.text-amber-900 {
+  color: #78350f !important;
+}
+
+/* Card Footer */
+.card-footer {
+  border-top: 1px solid rgba(197, 160, 40, 0.35);
+  background: #fafaf9;
+}
+
+.action-btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.action-btn-icon:active {
+  transform: scale(0.92);
+}
+
+.btn-delete {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.btn-edit {
+  background: #e2e8f0;
+  color: #334155;
+}
+
+.btn-ops {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.najiz-join-btn {
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 6px 12px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: opacity 0.15s ease;
+}
+
+.najiz-join-btn:active {
+  opacity: 0.7;
 }
 
 .min-w-0 {
   min-width: 0;
-}
-
-.hover-opacity-100:hover {
-  opacity: 1 !important;
 }
 </style>

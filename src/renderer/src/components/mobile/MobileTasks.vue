@@ -24,17 +24,17 @@
 
     <!-- Loading State -->
     <div v-if="loading && (!items || items.length === 0)" class="d-flex justify-center pa-8">
-      <v-progress-circular indeterminate color="accent" :size="40" />
+      <v-progress-circular indeterminate color="primary" :size="40" />
     </div>
 
     <!-- Empty State -->
     <div
       v-else-if="!loading && filteredItems.length === 0"
-      class="text-center pa-8 glass-card rounded-2xl mx-1 my-4"
+      class="text-center pa-8 client-style-card rounded-2xl mx-1 my-4"
     >
       <v-icon icon="mdi-clipboard-check-outline" :size="56" color="accent" class="mb-3 opacity-60" />
-      <div class="text-subtitle-1 text-gold font-weight-black mb-1">لا توجد مهام</div>
-      <div class="text-caption text-medium-emphasis mb-4">
+      <div class="text-subtitle-1 font-weight-black text-slate-800 mb-1">لا توجد مهام</div>
+      <div class="text-caption text-slate-500 mb-4">
         لم يتم العثور على مهام ضمن التصفية الحالية
       </div>
       <v-btn
@@ -54,59 +54,44 @@
         <v-card
           v-for="task in filteredItems"
           :key="task.id"
-          class="task-mobile-card mb-3 rounded-2xl overflow-hidden glass-card"
-          variant="outlined"
-          :class="getCardBorderClass(task)"
+          class="client-style-card mb-3 rounded-2xl overflow-hidden"
+          elevation="0"
           @click="emit('edit', task)"
         >
-          <div class="pa-3 pa-sm-4">
-            <!-- 1. Header: Title + Priority + Status -->
-            <div class="d-flex justify-space-between align-start mb-2 pb-2 border-b-subtle gap-2">
-              <div class="d-flex align-start gap-2 min-w-0">
-                <v-icon
-                  :icon="task.status === 'completed' ? 'mdi-checkbox-marked-circle' : 'mdi-clipboard-text-outline'"
-                  :color="task.status === 'completed' ? 'success' : 'accent'"
-                  size="20"
-                  class="mt-0.5 flex-shrink-0"
-                />
-                <div class="d-flex flex-column min-w-0">
-                  <span
-                    class="text-subtitle-2 font-weight-black text-gold text-truncate-2"
-                    :class="{ 'text-decoration-line-through opacity-60': task.status === 'completed' }"
-                  >
-                    {{ task.title || 'مهمة بدون عنوان' }}
-                  </span>
-                </div>
-              </div>
-
-              <!-- Badges -->
-              <div class="d-flex align-center gap-1 flex-shrink-0">
-                <v-chip
-                  v-if="task.priority"
-                  size="x-small"
-                  :color="getPriorityColor(task.priority)"
-                  variant="flat"
-                  class="font-weight-black"
-                >
-                  {{ task.priority }}
-                </v-chip>
-                <v-chip
-                  size="x-small"
-                  :color="getStatusColor(task.status)"
-                  variant="tonal"
-                  class="font-weight-bold"
-                >
-                  {{ getStatusLabel(task.status) }}
-                </v-chip>
-              </div>
+          <!-- 1. Header Row -->
+          <div class="card-header d-flex justify-space-between align-center px-4 py-3">
+            <div class="d-flex align-center gap-2 min-w-0">
+              <v-icon
+                :icon="task.status === 'completed' ? 'mdi-checkbox-marked-circle' : 'mdi-clipboard-text-outline'"
+                :color="task.status === 'completed' ? 'success' : 'accent'"
+                size="20"
+                class="flex-shrink-0"
+              />
+              <span
+                class="card-title text-subtitle-1 font-weight-black text-slate-800 text-truncate"
+                :class="{ 'text-decoration-line-through opacity-60': task.status === 'completed' }"
+              >
+                {{ task.title || 'مهمة بدون عنوان' }}
+              </span>
             </div>
 
-            <!-- 2. Related Entities (قضية / موكل / سياق) -->
+            <div class="d-flex align-center gap-1.5 flex-shrink-0">
+              <span v-if="task.priority" class="badge-priority" :class="getPriorityBadgeClass(task.priority)">
+                {{ task.priority }}
+              </span>
+              <span class="badge-status" :class="getStatusBadgeClass(task.status)">
+                {{ getStatusLabel(task.status) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- 2. Body Details -->
+          <div class="card-body px-4 py-3">
+            <!-- Related Entities (Pills) -->
             <div
               v-if="task.case_number || task.client_name || task.context_label"
-              class="d-flex flex-wrap align-center gap-1 mb-2"
+              class="d-flex flex-wrap align-center gap-1.5 mb-2"
             >
-              <!-- Clickable Case Pill -->
               <v-chip
                 v-if="task.case_number"
                 size="small"
@@ -119,7 +104,6 @@
                 <span>قضية: {{ task.case_number }}</span>
               </v-chip>
 
-              <!-- Client Pill -->
               <v-chip
                 v-if="task.client_name"
                 size="small"
@@ -131,7 +115,6 @@
                 <span>موكل: {{ task.client_name }}</span>
               </v-chip>
 
-              <!-- Context Pill -->
               <v-chip
                 v-if="task.context_label"
                 size="small"
@@ -144,160 +127,143 @@
               </v-chip>
             </div>
 
-            <!-- 3. Task Description / Notes (الوصف وتفاصيل التنفيذ) -->
+            <!-- Task Description / Notes -->
             <div class="task-description-box rounded-xl pa-2.5 mb-2">
-              <div class="d-flex align-start gap-1.5">
-                <v-icon icon="mdi-text-box-outline" size="16" color="accent" class="mt-0.5 flex-shrink-0 opacity-80" />
-                <p class="text-caption font-weight-medium text-white mb-0 leading-relaxed text-wrap">
-                  {{ task.description || 'لا يوجد وصف تشغيلي متاح' }}
-                </p>
-              </div>
+              <p class="text-caption font-weight-medium text-slate-700 mb-0 leading-relaxed text-wrap">
+                {{ task.description || 'لا يوجد وصف تشغيلي متاح' }}
+              </p>
             </div>
 
-            <!-- 4. Meta Row: Assignee & Due Date -->
-            <div class="d-flex align-center justify-space-between text-caption pt-1 pb-1 flex-wrap gap-2">
-              <!-- Assignee -->
-              <div class="d-flex align-center gap-1 text-medium-emphasis">
-                <v-icon icon="mdi-account-check-outline" size="15" color="accent" />
-                <span class="font-weight-bold">المسؤول:</span>
-                <span class="font-weight-black text-gold">{{ task.responsible_name || 'غير محدد' }}</span>
+            <!-- Assignee & Due Date Row -->
+            <div class="d-flex align-center justify-space-between text-caption pt-1 flex-wrap gap-2">
+              <div class="d-flex align-center gap-1">
+                <span class="label-text">المسؤول:</span>
+                <span class="value-text font-weight-bold text-slate-800">{{ task.responsible_name || 'غير محدد' }}</span>
               </div>
 
-              <!-- Due Date with Overdue Indicator -->
               <div
                 v-if="task.due_date"
                 class="d-flex align-center gap-1 font-weight-black"
-                :class="isOverdue(task.due_date, task.status) ? 'text-error' : 'text-accent'"
+                :class="isOverdue(task.due_date, task.status) ? 'text-red-600' : 'text-slate-700'"
               >
                 <v-icon
                   :icon="isOverdue(task.due_date, task.status) ? 'mdi-clock-alert-outline' : 'mdi-calendar-clock'"
                   size="15"
+                  :color="isOverdue(task.due_date, task.status) ? 'error' : 'accent'"
                 />
-                <span>مستحق: {{ formatDate(task.due_date) }}</span>
-                <v-chip
-                  v-if="isOverdue(task.due_date, task.status)"
-                  size="x-small"
-                  color="error"
-                  variant="flat"
-                  class="font-weight-black px-1.5 ms-1"
-                >
+                <span>الموعد: {{ formatDate(task.due_date) }}</span>
+                <span v-if="isOverdue(task.due_date, task.status)" class="badge-overdue ms-1">
                   متأخرة
-                </v-chip>
+                </span>
               </div>
             </div>
+          </div>
 
-            <!-- 5. Actions Bar -->
-            <div class="d-flex align-center justify-space-between pt-2 mt-1 border-t-subtle gap-2 flex-wrap">
-              <div class="d-flex align-center gap-1">
-                <!-- Direct Session Screen Shortcut if task relates to session -->
-                <v-btn
-                  v-if="isSessionRelated(task)"
-                  size="small"
-                  variant="tonal"
-                  color="accent"
-                  class="rounded-lg font-weight-bold px-2.5"
-                  @click.stop="goToSessions"
+          <!-- 3. Footer Row -->
+          <div class="card-footer d-flex align-center justify-space-between px-4 py-2.5">
+            <!-- Left Actions -->
+            <div class="d-flex align-center gap-2">
+              <!-- Edit Button -->
+              <button
+                type="button"
+                class="action-btn-icon btn-edit"
+                title="تعديل المهمة"
+                @click.stop="emit('edit', task)"
+              >
+                <v-icon icon="mdi-pencil-outline" size="18" />
+              </button>
+
+              <!-- Complete Button (if not completed) -->
+              <v-btn
+                v-if="task.status !== 'completed' && task.status !== 'cancelled' && task.status !== 'closed'"
+                size="small"
+                color="success"
+                variant="flat"
+                class="rounded-lg font-weight-black px-3"
+                @click.stop="emit('complete', task)"
+              >
+                <v-icon icon="mdi-check" size="16" class="me-1" />
+                إكمال المهمة
+              </v-btn>
+
+              <!-- Session Screen Button if applicable -->
+              <v-btn
+                v-if="isSessionRelated(task)"
+                size="small"
+                variant="tonal"
+                color="accent"
+                class="rounded-lg font-weight-bold px-2"
+                @click.stop="goToSessions"
+              >
+                <v-icon icon="mdi-gavel" size="14" class="me-1" />
+                الجلسات
+              </v-btn>
+            </div>
+
+            <!-- More Actions Menu -->
+            <v-menu location="bottom end">
+              <template #activator="{ props: menuProps }">
+                <button
+                  v-bind="menuProps"
+                  type="button"
+                  class="action-btn-icon btn-edit"
+                  @click.stop
                 >
-                  <v-icon icon="mdi-gavel" size="14" class="me-1" />
-                  شاشة الجلسات
-                </v-btn>
-
-                <!-- Mark Complete Button -->
-                <v-btn
+                  <v-icon icon="mdi-dots-vertical" size="18" />
+                </button>
+              </template>
+              <v-list density="compact" class="rounded-xl border shadow-sm">
+                <v-list-item
                   v-if="task.status !== 'completed' && task.status !== 'cancelled' && task.status !== 'closed'"
-                  size="small"
-                  color="success"
-                  variant="flat"
-                  class="rounded-lg font-weight-black px-3"
-                  @click.stop="emit('complete', task)"
+                  @click="emit('complete', task)"
                 >
-                  <v-icon icon="mdi-check" size="16" class="me-1" />
-                  إكمال المهمة
-                </v-btn>
-              </div>
-
-              <!-- Edit & More Actions Menu -->
-              <div class="d-flex align-center gap-1 ms-auto">
-                <v-btn
-                  icon
-                  variant="text"
-                  size="small"
-                  color="gold"
-                  class="opacity-80 hover-opacity-100"
-                  @click.stop="emit('edit', task)"
-                >
-                  <v-icon icon="mdi-pencil-outline" size="18" />
-                  <v-tooltip activator="parent" location="top">تعديل المهمة</v-tooltip>
-                </v-btn>
-
-                <v-menu location="bottom end">
-                  <template #activator="{ props: menuProps }">
-                    <v-btn
-                      v-bind="menuProps"
-                      icon
-                      variant="text"
-                      size="small"
-                      color="white"
-                      class="opacity-80 hover-opacity-100"
-                      @click.stop
-                    >
-                      <v-icon icon="mdi-dots-vertical" size="18" />
-                    </v-btn>
+                  <template #prepend>
+                    <v-icon icon="mdi-check-circle-outline" size="18" color="success" class="me-2" />
                   </template>
-                  <v-list density="compact" class="rounded-xl glass-card border">
-                    <v-list-item
-                      v-if="task.status !== 'completed' && task.status !== 'cancelled' && task.status !== 'closed'"
-                      @click="emit('complete', task)"
-                    >
-                      <template #prepend>
-                        <v-icon icon="mdi-check-circle-outline" size="18" color="success" class="me-2" />
-                      </template>
-                      <v-list-item-title class="font-weight-black">إكمال المهمة</v-list-item-title>
-                    </v-list-item>
+                  <v-list-item-title class="font-weight-black">إكمال المهمة</v-list-item-title>
+                </v-list-item>
 
-                    <v-list-item
-                      v-if="canCancel && task.status !== 'cancelled' && task.status !== 'closed'"
-                      @click="emit('cancel', task)"
-                    >
-                      <template #prepend>
-                        <v-icon icon="mdi-close-circle-outline" size="18" color="error" class="me-2" />
-                      </template>
-                      <v-list-item-title class="font-weight-black">إلغاء المهمة</v-list-item-title>
-                    </v-list-item>
+                <v-list-item
+                  v-if="canCancel && task.status !== 'cancelled' && task.status !== 'closed'"
+                  @click="emit('cancel', task)"
+                >
+                  <template #prepend>
+                    <v-icon icon="mdi-close-circle-outline" size="18" color="error" class="me-2" />
+                  </template>
+                  <v-list-item-title class="font-weight-black">إلغاء المهمة</v-list-item-title>
+                </v-list-item>
 
-                    <v-list-item
-                      v-if="canClose && task.status !== 'closed'"
-                      @click="emit('close', task)"
-                    >
-                      <template #prepend>
-                        <v-icon icon="mdi-lock-outline" size="18" color="warning" class="me-2" />
-                      </template>
-                      <v-list-item-title class="font-weight-black">إقفال المهمة</v-list-item-title>
-                    </v-list-item>
+                <v-list-item
+                  v-if="canClose && task.status !== 'closed'"
+                  @click="emit('close', task)"
+                >
+                  <template #prepend>
+                    <v-icon icon="mdi-lock-outline" size="18" color="warning" class="me-2" />
+                  </template>
+                  <v-list-item-title class="font-weight-black">إقفال المهمة</v-list-item-title>
+                </v-list-item>
 
-                    <v-list-item
-                      v-if="canArchive"
-                      @click="emit('archive', task)"
-                    >
-                      <template #prepend>
-                        <v-icon icon="mdi-archive-outline" size="18" color="info" class="me-2" />
-                      </template>
-                      <v-list-item-title class="font-weight-black">أرشفة المهمة</v-list-item-title>
-                    </v-list-item>
+                <v-list-item
+                  v-if="canArchive"
+                  @click="emit('archive', task)"
+                >
+                  <template #prepend>
+                    <v-icon icon="mdi-archive-outline" size="18" color="info" class="me-2" />
+                  </template>
+                  <v-list-item-title class="font-weight-black">أرشفة المهمة</v-list-item-title>
+                </v-list-item>
 
-                    <v-list-item
-                      v-if="canReopen && task.status === 'completed'"
-                      @click="emit('reopen', task)"
-                    >
-                      <template #prepend>
-                        <v-icon icon="mdi-refresh" size="18" color="accent" class="me-2" />
-                      </template>
-                      <v-list-item-title class="font-weight-black">إعادة فتح المهمة</v-list-item-title>
-                    </v-list-item>
-                  </v-list>
-                </v-menu>
-              </div>
-            </div>
+                <v-list-item
+                  v-if="canReopen && task.status === 'completed'"
+                  @click="emit('reopen', task)"
+                >
+                  <template #prepend>
+                    <v-icon icon="mdi-refresh" size="18" color="accent" class="me-2" />
+                  </template>
+                  <v-list-item-title class="font-weight-black">إعادة فتح المهمة</v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
           </div>
         </v-card>
       </div>
@@ -392,37 +358,32 @@ const filteredItems = computed(() => {
   }
 })
 
-const getPriorityColor = (priority?: string): string => {
+const getPriorityBadgeClass = (priority?: string): string => {
   switch (priority) {
     case 'عالية':
-      return 'error'
+      return 'badge-priority-high'
     case 'متوسطة':
-      return 'warning'
+      return 'badge-priority-medium'
     case 'منخفضة':
-      return 'info'
+      return 'badge-priority-low'
     default:
-      return 'grey'
+      return 'badge-priority-medium'
   }
 }
 
-const getStatusColor = (status?: string): string => {
+const getStatusBadgeClass = (status?: string): string => {
   switch (status) {
     case 'completed':
-      return 'success'
+      return 'badge-status-success'
     case 'in_progress':
-      return 'accent'
+      return 'badge-status-active'
     case 'scheduled':
-      return 'info'
-    case 'draft':
-      return 'grey'
+      return 'badge-status-study'
     case 'waiting':
     case 'blocked':
-      return 'warning'
-    case 'cancelled':
-    case 'closed':
-      return 'grey-darken-1'
+      return 'badge-status-warning'
     default:
-      return 'primary'
+      return 'badge-status-default'
   }
 }
 
@@ -447,15 +408,6 @@ const getStatusLabel = (status?: string): string => {
     default:
       return status || 'قيد التنفيذ'
   }
-}
-
-const getCardBorderClass = (task: any): string => {
-  if (task.status === 'completed') return 'border-s-success'
-  if (isOverdue(task.due_date, task.status)) return 'border-s-error'
-  if (task.priority === 'عالية') return 'border-s-error'
-  if (task.priority === 'متوسطة') return 'border-s-warning'
-  if (task.priority === 'منخفضة') return 'border-s-info'
-  return 'border-s-gold'
 }
 
 const formatDate = (dateStr?: string): string => {
@@ -490,50 +442,147 @@ const goToSessions = (): void => {
   -webkit-overflow-scrolling: touch;
 }
 
-.task-mobile-card {
+/* Client-style Card Container matching the client card */
+.client-style-card {
+  background: #ffffff !important;
+  border: 1.5px solid #c5a028 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(197, 160, 40, 0.08) !important;
   cursor: pointer;
-  background: rgba(22, 27, 34, 0.7) !important;
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(197, 160, 40, 0.2) !important;
-  border-inline-start-width: 4px !important;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-.task-mobile-card:active {
+.client-style-card:active {
   transform: scale(0.985);
 }
 
-.border-s-error {
-  border-inline-start-color: rgb(239, 68, 68) !important;
+/* Card Header */
+.card-header {
+  border-bottom: 1px solid rgba(197, 160, 40, 0.35);
 }
 
-.border-s-warning {
-  border-inline-start-color: rgb(245, 158, 11) !important;
+.card-title {
+  color: #1e293b;
+  font-size: 0.95rem;
 }
 
-.border-s-info {
-  border-inline-start-color: rgb(59, 130, 246) !important;
+/* Badges */
+.badge-priority {
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-weight: 800;
 }
 
-.border-s-success {
-  border-inline-start-color: rgb(16, 185, 129) !important;
+.badge-priority-high {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fca5a5;
 }
 
-.border-s-gold {
-  border-inline-start-color: rgba(197, 160, 40, 0.8) !important;
+.badge-priority-medium {
+  background: #fef3c7;
+  color: #b45309;
+  border: 1px solid #fde68a;
 }
 
-.border-b-subtle {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+.badge-priority-low {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
 }
 
-.border-t-subtle {
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+.badge-status {
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.badge-status-active {
+  background: #1e293b;
+  color: #ffffff;
+}
+
+.badge-status-study {
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.badge-status-success {
+  background: #059669;
+  color: #ffffff;
+}
+
+.badge-status-warning {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.badge-status-default {
+  background: #475569;
+  color: #ffffff;
+}
+
+.badge-overdue {
+  background: #dc2626;
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 900;
+}
+
+/* Card Body */
+.card-body {
+  background: #ffffff;
 }
 
 .task-description-box {
-  background: rgba(0, 0, 0, 0.28);
-  border: 1px solid rgba(197, 160, 40, 0.12);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.label-text {
+  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.value-text {
+  color: #0f172a;
+  font-size: 0.85rem;
+}
+
+.text-red-600 {
+  color: #dc2626 !important;
+}
+
+/* Card Footer */
+.card-footer {
+  border-top: 1px solid rgba(197, 160, 40, 0.35);
+  background: #fafaf9;
+}
+
+.action-btn-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.action-btn-icon:active {
+  transform: scale(0.92);
+}
+
+.btn-edit {
+  background: #e2e8f0;
+  color: #334155;
 }
 
 .clickable-pill {
@@ -547,17 +596,6 @@ const goToSessions = (): void => {
 
 .min-w-0 {
   min-width: 0;
-}
-
-.text-truncate-2 {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.hover-opacity-100:hover {
-  opacity: 1 !important;
 }
 
 .leading-relaxed {
