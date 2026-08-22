@@ -4,8 +4,19 @@
       v-if="isMobile"
       :items="mobileTasks"
       :loading="store.loading"
+      :can-cancel="canCancel"
+      :can-close="canClose"
+      :can-archive="canArchive"
+      :can-reopen="canReopen"
       @edit="openEditDialog"
       @add="openAddDialog"
+      @complete="confirmComplete"
+      @cancel="(t: any) => openActionDialog('cancel', t)"
+      @close="(t: any) => openActionDialog('close', t)"
+      @archive="archiveTask"
+      @reopen="(t: any) => openActionDialog('reopen', t)"
+      @view-case="viewCase"
+      @refresh="store.refresh"
     />
     <template v-else>
       <v-fade-transition hide-on-leave>
