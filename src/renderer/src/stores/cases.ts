@@ -16,6 +16,7 @@ export const useCasesStore = defineStore('cases', () => {
   const status = ref('الكل')
   const priority = ref('الكل')
   const responsibleUserId = ref('')
+  const stage = ref('الكل')
 
   const fetchCases = async (): Promise<void> => {
     loading.value = true
@@ -26,7 +27,8 @@ export const useCasesStore = defineStore('cases', () => {
         q: q.value,
         status: status.value,
         priority: priority.value,
-        responsible_user_id: responsibleUserId.value || undefined
+        responsible_user_id: responsibleUserId.value || undefined,
+        stage: stage.value !== 'الكل' ? stage.value : undefined
       }
       total.value = await window.api.cases.count(params)
       cases.value = await window.api.cases.list(params)
@@ -101,6 +103,7 @@ export const useCasesStore = defineStore('cases', () => {
     status,
     priority,
     responsibleUserId,
+    stage,
     fetchCases,
     fetchAllCases,
     addCase,

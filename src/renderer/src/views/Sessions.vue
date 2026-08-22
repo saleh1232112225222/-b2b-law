@@ -80,6 +80,9 @@
           @edit="openEditDialog"
           @add="openAddDialog"
           @delete="confirmDelete"
+          @open-najiz="openNajiz"
+          @open-session-room="openSessionRoom"
+          @refresh="loadItems(serverOptions)"
         />
       </div>
 
@@ -138,6 +141,7 @@ import { useCasesStore } from '../stores/cases'
 import { useIntegrationsStore } from '../stores/integrations'
 import { useSearch } from '../composables/useSearch'
 import { safeArray, safeLength, valWithDefault } from '../utils/safe'
+import { convertToHijri } from '../utils/hijri'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import LucideIcon from '../components/common/LucideIcon.vue'
@@ -172,11 +176,28 @@ async function triggerGoogleCalendarSync() {
 const { isMobile } = useMobileLayout()
 
 const mobileSessions = computed(() =>
-  safeArray(store.sessions).map((s) => ({
-    ...s,
-    date: s.date ? s.date.split('T')[0] : s.date,
-    google_sync_status_text: s.google_event_id ? 'مزامَن 🟢' : 'غير مزامن'
-  }))
+  safeArray(store.sessions).map((s) => {
+    const matchedCase = safeArray(casesStore.cases).find(
+      (c) => c.id === s.case_id || (c.case_number && c.case_number === s.case_number)
+    )
+    const clientRole = (s as any).client_role || matchedCase?.client_role || ''
+
+    let hijri = s.date_hijri || ''
+    if (!hijri && s.date) {
+      try {
+        hijri = convertToHijri(new Date(s.date))
+      } catch {
+        hijri = ''
+      }
+    }
+
+    return {
+      ...s,
+      date: s.date ? s.date.split('T')[0] : s.date,
+      date_hijri: hijri,
+      client_role: clientRole
+    }
+  })
 )
 
 const pageLoading = ref(true)

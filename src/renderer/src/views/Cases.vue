@@ -14,11 +14,13 @@
           v-model="search"
           :status="store.status"
           :priority="store.priority"
+          :stage="store.stage"
           :responsible-user-id="store.responsibleUserId"
           :assignable-users="safeArray(assignableUsers)"
           :loading="store.loading"
           @update:status="onStatusChange"
           @update:priority="onPriorityChange"
+          @update:stage="onStageChange"
           @update:responsible-user-id="onResponsibleChange"
           @refresh="store.fetchCases"
         />
@@ -292,6 +294,12 @@ const onPriorityChange = (val: string): void => {
   store.fetchCases()
   refreshCompletionRate()
 }
+const onStageChange = (val: string): void => {
+  store.stage = val
+  store.page = 1
+  store.fetchCases()
+  refreshCompletionRate()
+}
 const onResponsibleChange = (val: string): void => {
   store.responsibleUserId = val
   store.page = 1
@@ -314,7 +322,8 @@ const refreshCompletionRate = async (): Promise<void> => {
     const baseParams: any = {
       q: store.q || undefined,
       priority: store.priority && store.priority !== 'الكل' ? store.priority : undefined,
-      responsible_user_id: store.responsibleUserId || undefined
+      responsible_user_id: store.responsibleUserId || undefined,
+      stage: store.stage && store.stage !== 'الكل' ? store.stage : undefined
     }
     const [total, closed, archived, finished, finalJudgment, asIfNever] = await Promise.all([
       api.cases.count({ ...baseParams, status: 'الكل' }),
@@ -582,6 +591,11 @@ onMounted((): void => {
   defendantsStore.fetchAllDefendants()
   loadAssignableUsers()
   refreshCompletionRate()
+  if (route.query.stage || route.query.phase) {
+    store.stage = String(route.query.stage || route.query.phase)
+    store.page = 1
+    store.fetchCases()
+  }
   if (route.query.new === '1') {
     openAddDialog()
     router.replace({ path: route.path, query: {} })
@@ -602,8 +616,22 @@ onMounted((): void => {
   setFabAction('mdi-file-plus', openAddDialog, route.path)
 })
 
+watch(
+  () => [route.query.stage, route.query.phase],
+  ([stageVal, phaseVal]) => {
+    const val = stageVal || phaseVal
+    if (val) {
+      store.stage = String(val)
+      store.page = 1
+      store.fetchCases()
+      refreshCompletionRate()
+    }
+  }
+)
+
 onUnmounted(() => {
   store.q = ''
+  store.stage = 'الكل'
   if (search) search.value = ''
   clearFabAction()
 })

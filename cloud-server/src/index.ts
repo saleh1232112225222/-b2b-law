@@ -523,7 +523,7 @@ app.get(
 
       // Today sessions: sessions scheduled for today (regardless of status)
       const todaySessionsRes = await dbQuery(
-        `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+        `SELECT s.*, c.case_number, c.client_role, c.id as case_id, cl.name as client_name
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -534,7 +534,7 @@ app.get(
 
       // Action required: past sessions that are not closed (overdue)
       const actionRequiredRes = await dbQuery(
-        `SELECT s.*, c.case_number, c.id as case_id, cl.name as client_name
+        `SELECT s.*, c.case_number, c.client_role, c.id as case_id, cl.name as client_name
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id

@@ -112,13 +112,73 @@ export const JUDGMENT_STATUSES = ['منطوق', 'تحت التنفيذ', 'مكت
 export const PRIORITIES = ['عالية', 'متوسطة', 'منخفضة']
 
 export const CASE_PHASES = [
+  'الاستشارة والدراسة',
+  'التحضير والقيد',
+  'المرافعة والجلسات',
+  'صدور الحكم',
+  'التنفيذ',
   'ابتدائية',
   'استئناف',
   'نقض (المحكمة العليا)',
-  'تنفيذ',
   'صلح / تسوية',
   'أخرى'
 ]
+
+export const PIPELINE_STAGES = [
+  { key: 'الكل', label: 'كافة المراحل', countKey: 'all' },
+  { key: 'استشارة', label: 'الاستشارة', countKey: 'consultation' },
+  { key: 'تحضير', label: 'التحضير', countKey: 'preparation' },
+  { key: 'مرافعة', label: 'المرافعة', countKey: 'pleading' },
+  { key: 'حكم', label: 'الحكم', countKey: 'judgment' },
+  { key: 'تنفيذ', label: 'التنفيذ', countKey: 'enforcement' }
+]
+
+export const getCasePipelineStage = (
+  c: any
+): 'استشارة' | 'تحضير' | 'مرافعة' | 'حكم' | 'تنفيذ' => {
+  const stage = String(c?.stage || '').trim()
+  const phase = String(c?.phase || '').trim()
+  const status = String(c?.status || '').trim()
+  const court = String(c?.court || '').trim()
+  const type = String(c?.case_type || '').trim()
+
+  if (
+    stage.includes('استشارة') ||
+    phase.includes('استشارة') ||
+    phase.includes('دراسة') ||
+    status === 'تحت الدراسة' ||
+    status.includes('استشارة')
+  ) {
+    return 'استشارة'
+  }
+  if (
+    stage.includes('تنفيذ') ||
+    phase.includes('تنفيذ') ||
+    court.includes('تنفيذ') ||
+    type.includes('تنفيذ') ||
+    status.includes('تنفيذ')
+  ) {
+    return 'تنفيذ'
+  }
+  if (
+    stage.includes('حكم') ||
+    phase.includes('حكم') ||
+    status.includes('محكوم') ||
+    status.includes('حكم')
+  ) {
+    return 'حكم'
+  }
+  if (
+    stage.includes('مرافعة') ||
+    phase.includes('مرافعة') ||
+    phase.includes('استئناف') ||
+    phase.includes('نقض') ||
+    status === 'قيد النظر'
+  ) {
+    return 'مرافعة'
+  }
+  return 'تحضير'
+}
 
 export const CLIENT_ROLES = [
   'مدعي',

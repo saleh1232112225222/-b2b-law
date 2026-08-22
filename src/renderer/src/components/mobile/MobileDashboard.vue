@@ -512,6 +512,7 @@ import { useFinanceStore } from '../../stores/finance'
 import { useTasksStore } from '../../stores/tasks'
 import LucideIcon from '../common/LucideIcon.vue'
 import { safeArray } from '../../utils/safe'
+import { getCasePipelineStage } from '../../utils/legalConstants'
 
 const router = useRouter()
 const clientsStore = useClientsStore()
@@ -679,12 +680,12 @@ const pipelineStages = computed(() => {
   const cases = safeArray(casesStore.cases)
   const c = { consultation: 0, preparation: 0, pleading: 0, judgment: 0, enforcement: 0 }
   cases.forEach((item: any) => {
-    const s = String(item.stage || item.status || '')
-    if (s.includes('استشارة')) c.consultation++
-    else if (s.includes('تحضير')) c.preparation++
-    else if (s.includes('مرافعة')) c.pleading++
-    else if (s.includes('حكم')) c.judgment++
-    else if (s.includes('تنفيذ')) c.enforcement++
+    const stage = getCasePipelineStage(item)
+    if (stage === 'استشارة') c.consultation++
+    else if (stage === 'تحضير') c.preparation++
+    else if (stage === 'مرافعة') c.pleading++
+    else if (stage === 'حكم') c.judgment++
+    else if (stage === 'تنفيذ') c.enforcement++
     else c.preparation++
   })
   return c

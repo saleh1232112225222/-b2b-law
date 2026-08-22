@@ -149,7 +149,7 @@ casesRouter.delete(
 casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
-    const { q, status, priority, responsible_user_id } = req.query
+    const { q, status, priority, responsible_user_id, stage, phase } = req.query
 
     let whereClause = 'WHERE company_id = $1'
     const params: any[] = [companyId]
@@ -166,6 +166,23 @@ casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, 
     if (responsible_user_id) {
       whereClause += ` AND responsible_user_id = $${paramIndex++}`
       params.push(responsible_user_id)
+    }
+    const stageVal = String(stage || phase || '').trim()
+    if (stageVal && stageVal !== 'الكل') {
+      if (stageVal.includes('استشارة') || stageVal.includes('دراسة')) {
+        whereClause += ` AND (phase ILIKE '%استشارة%' OR phase ILIKE '%دراسة%' OR status = 'تحت الدراسة')`
+      } else if (stageVal.includes('تنفيذ')) {
+        whereClause += ` AND (phase ILIKE '%تنفيذ%' OR court ILIKE '%تنفيذ%' OR case_type ILIKE '%تنفيذ%' OR status ILIKE '%تنفيذ%')`
+      } else if (stageVal.includes('حكم')) {
+        whereClause += ` AND (phase ILIKE '%حكم%' OR status ILIKE '%محكوم%' OR status ILIKE '%حكم%')`
+      } else if (stageVal.includes('مرافعة')) {
+        whereClause += ` AND (phase ILIKE '%مرافعة%' OR phase IN ('استئناف', 'نقض (المحكمة العليا)') OR status = 'قيد النظر')`
+      } else if (stageVal.includes('تحضير')) {
+        whereClause += ` AND (phase ILIKE '%تحضير%' OR (phase = 'ابتدائية' AND status != 'محكومة بحكم غير نهائي' AND status != 'محكومة بحكم نهائي') OR (phase IS NULL AND status = 'قيد النظر'))`
+      } else {
+        whereClause += ` AND phase ILIKE $${paramIndex++}`
+        params.push(`%${stageVal}%`)
+      }
     }
     if (q) {
       whereClause += ` AND (case_number LIKE $${paramIndex} OR subject LIKE $${paramIndex} OR opponent_name LIKE $${paramIndex})`
@@ -267,7 +284,7 @@ casesRouter.get('/:id', requirePermission('view_cases'), async (req: Request, re
 casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
-    const { page = '1', pageSize = '25', q, status, priority, responsible_user_id } = req.query
+    const { page = '1', pageSize = '25', q, status, priority, responsible_user_id, stage, phase } = req.query
     const offset = (parseInt(page as string) - 1) * parseInt(pageSize as string)
     const limit = parseInt(pageSize as string)
 
@@ -286,6 +303,23 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
     if (responsible_user_id) {
       whereClause += ` AND c.responsible_user_id = $${paramIndex++}`
       params.push(responsible_user_id)
+    }
+    const stageVal = String(stage || phase || '').trim()
+    if (stageVal && stageVal !== 'الكل') {
+      if (stageVal.includes('استشارة') || stageVal.includes('دراسة')) {
+        whereClause += ` AND (c.phase ILIKE '%استشارة%' OR c.phase ILIKE '%دراسة%' OR c.status = 'تحت الدراسة')`
+      } else if (stageVal.includes('تنفيذ')) {
+        whereClause += ` AND (c.phase ILIKE '%تنفيذ%' OR c.court ILIKE '%تنفيذ%' OR c.case_type ILIKE '%تنفيذ%' OR c.status ILIKE '%تنفيذ%')`
+      } else if (stageVal.includes('حكم')) {
+        whereClause += ` AND (c.phase ILIKE '%حكم%' OR c.status ILIKE '%محكوم%' OR c.status ILIKE '%حكم%')`
+      } else if (stageVal.includes('مرافعة')) {
+        whereClause += ` AND (c.phase ILIKE '%مرافعة%' OR c.phase IN ('استئناف', 'نقض (المحكمة العليا)') OR c.status = 'قيد النظر')`
+      } else if (stageVal.includes('تحضير')) {
+        whereClause += ` AND (c.phase ILIKE '%تحضير%' OR (c.phase = 'ابتدائية' AND c.status != 'محكومة بحكم غير نهائي' AND c.status != 'محكومة بحكم نهائي') OR (c.phase IS NULL AND c.status = 'قيد النظر'))`
+      } else {
+        whereClause += ` AND c.phase ILIKE $${paramIndex++}`
+        params.push(`%${stageVal}%`)
+      }
     }
     if (q) {
       whereClause += ` AND (c.case_number ILIKE $${paramIndex} OR c.subject ILIKE $${paramIndex} OR c.opponent_name ILIKE $${paramIndex})`

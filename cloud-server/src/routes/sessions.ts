@@ -145,7 +145,7 @@ sessionsRouter.get('/', requirePermission('view_sessions'), async (req: Request,
     const direction = sortDir === 'desc' ? 'DESC' : 'ASC'
 
     const dataResult = await query(
-      `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+      `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -170,7 +170,7 @@ sessionsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -194,7 +194,7 @@ sessionsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -218,7 +218,7 @@ sessionsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -243,7 +243,7 @@ sessionsRouter.get(
       const companyId = getCompanyId(req)
       const { caseId } = req.params
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -300,7 +300,7 @@ sessionsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
@@ -325,7 +325,7 @@ sessionsRouter.get(
       const companyId = getCompanyId(req)
       const { id } = req.params
       const result = await query(
-        `SELECT s.*, c.case_number, cl.name as client_name, cl.id as client_id
+        `SELECT s.*, c.case_number, c.client_role, cl.name as client_name, cl.id as client_id
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id

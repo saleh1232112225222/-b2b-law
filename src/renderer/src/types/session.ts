@@ -15,5 +15,6 @@ export interface Session {
   updated_at?: string
   case_number?: string
   client_name?: string
+  client_role?: string
   meeting_link?: string
 }
