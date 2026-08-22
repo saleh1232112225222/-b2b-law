@@ -1457,8 +1457,15 @@ onMounted(async () => {
 :global([data-theme='dark']) .pipeline-stage-pill,
 :global([data-theme='dark']) .stage-count,
 :global([data-theme='dark']) .priority-item,
-:global([data-theme='dark']) .logo-icon-bg {
+:global([data-theme='dark']) .logo-icon-bg,
+:global([data-theme='dark']) .selected-day-agenda {
   background-color: #111f31 !important;
+  border-color: #26364a !important;
+  color: #f3f6fa !important;
+}
+
+:global([data-theme='dark']) .selected-day-agenda .bg-surface {
+  background-color: #0D1929 !important;
   border-color: #26364a !important;
   color: #f3f6fa !important;
 }

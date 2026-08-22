@@ -601,4 +601,41 @@ const goToSessions = (): void => {
 .leading-relaxed {
   line-height: 1.6;
 }
+
+/* Dark Mode Contrast Overrides */
+:global([data-theme='dark']) .client-style-card {
+  background: #0D1929 !important;
+  border-color: #c5a028 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+:global([data-theme='dark']) .card-header,
+:global([data-theme='dark']) .card-body {
+  background: #0D1929 !important;
+}
+
+:global([data-theme='dark']) .card-footer {
+  background: #111F31 !important;
+  border-top-color: rgba(197, 160, 40, 0.35) !important;
+}
+
+:global([data-theme='dark']) .task-description-box {
+  background: #111F31 !important;
+  border-color: #26364A !important;
+  color: #F3F6FA !important;
+}
+
+:global([data-theme='dark']) .card-title,
+:global([data-theme='dark']) .value-text {
+  color: #F3F6FA !important;
+}
+
+:global([data-theme='dark']) .label-text {
+  color: #9EACBD !important;
+}
+
+:global([data-theme='dark']) .btn-edit {
+  background: #1e293b !important;
+  color: #F3F6FA !important;
+}
 </style>

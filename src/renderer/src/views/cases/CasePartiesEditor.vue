@@ -497,4 +497,18 @@ const onDefendantChange = (index: number, val: any): void => {
 .party-card-opponent {
   border-right: 4px solid #D97706 !important;
 }
+
+/* Dark Mode Contrast Overrides */
+:global([data-theme='dark']) .party-card-box {
+  background: #0D1929 !important;
+  border-color: #26364A !important;
+}
+
+:global([data-theme='dark']) .party-card-client {
+  border-right: 4px solid #E5B52B !important;
+}
+
+:global([data-theme='dark']) .party-card-opponent {
+  border-right: 4px solid #F59E0B !important;
+}
 </style>

@@ -401,4 +401,56 @@ const openNajizLink = (link: string): void => {
 .min-w-0 {
   min-width: 0;
 }
+
+/* Dark Mode Contrast Overrides */
+:global([data-theme='dark']) .client-style-card {
+  background: #0D1929 !important;
+  border-color: #c5a028 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+:global([data-theme='dark']) .card-header,
+:global([data-theme='dark']) .card-body {
+  background: #0D1929 !important;
+}
+
+:global([data-theme='dark']) .card-footer {
+  background: #111F31 !important;
+  border-top-color: rgba(197, 160, 40, 0.35) !important;
+}
+
+:global([data-theme='dark']) .session-datetime-box {
+  background: #111F31 !important;
+  border-color: #26364A !important;
+}
+
+:global([data-theme='dark']) .card-title,
+:global([data-theme='dark']) .value-text {
+  color: #F3F6FA !important;
+}
+
+:global([data-theme='dark']) .label-text {
+  color: #9EACBD !important;
+}
+
+:global([data-theme='dark']) .text-amber-800,
+:global([data-theme='dark']) .text-amber-900 {
+  color: #E5B52B !important;
+}
+
+:global([data-theme='dark']) .btn-edit {
+  background: #1e293b !important;
+  color: #F3F6FA !important;
+}
+
+:global([data-theme='dark']) .btn-ops {
+  background: #1e3a8a !important;
+  color: #93c5fd !important;
+}
+
+:global([data-theme='dark']) .najiz-join-btn {
+  background: rgba(197, 160, 40, 0.2) !important;
+  border-color: #c5a028 !important;
+  color: #F3F6FA !important;
+}
 </style>
