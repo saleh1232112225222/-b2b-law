@@ -347,24 +347,65 @@
         </div>
       </div>
 
-      <!-- 3. MINI CALENDAR WIDGET (DYNAMIC BASED ON REAL DATES) -->
+      <!-- 3. MINI CALENDAR WIDGET (ACCURATE & FULLY INTERACTIVE) -->
       <div class="section-card pa-4 rounded-xl">
-        <div class="d-flex align-center justify-space-between mb-3">
+        <!-- Calendar Header -->
+        <div class="d-flex align-center justify-space-between mb-3 flex-wrap gap-2">
           <div class="d-flex align-center gap-2">
             <LucideIcon name="calendar" :size="18" class="text-primary" />
             <h3 class="section-title font-weight-bold text-subtitle-1">
               {{ currentMonthYearLabel }}
             </h3>
           </div>
-          <span class="text-caption text-medium-emphasis font-weight-bold"
-            >اليوم {{ todayDayNum }}</span
-          >
+
+          <div class="d-flex align-center gap-1.5 flex-wrap">
+            <!-- View Mode Switch -->
+            <v-btn-toggle
+              v-model="calendarView"
+              mandatory
+              density="compact"
+              class="border rounded-lg overflow-hidden"
+              color="accent"
+            >
+              <v-btn value="week" size="x-small" class="font-weight-bold px-2">أسبوع</v-btn>
+              <v-btn value="month" size="x-small" class="font-weight-bold px-2">شهر</v-btn>
+            </v-btn-toggle>
+
+            <v-btn
+              variant="tonal"
+              size="x-small"
+              class="font-weight-bold px-2 rounded-lg"
+              color="accent"
+              @click="resetToToday"
+            >
+              اليوم
+            </v-btn>
+
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              color="grey-darken-1"
+              @click="prevCalendarPeriod"
+            >
+              <LucideIcon name="chevron-right" :size="16" />
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              size="x-small"
+              color="grey-darken-1"
+              @click="nextCalendarPeriod"
+            >
+              <LucideIcon name="chevron-left" :size="16" />
+            </v-btn>
+          </div>
         </div>
 
-        <!-- 7 Days Grid Header -->
+        <!-- 7 Days Grid Header (Saturday to Friday) -->
         <div class="calendar-days-header d-grid text-center mb-2">
           <span
-            v-for="d in ['أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة', 'سبت']"
+            v-for="d in weekDayNames"
             :key="d"
             class="text-caption text-medium-emphasis font-weight-bold"
           >
@@ -372,14 +413,21 @@
           </span>
         </div>
 
-        <!-- Calendar Dates Row -->
-        <div class="calendar-dates-grid d-grid text-center mb-3">
+        <!-- Calendar Dates Grid (Week or Month) -->
+        <div
+          class="calendar-dates-grid d-grid text-center mb-3"
+          :class="{ 'calendar-month-grid': calendarView === 'month' }"
+        >
           <div
-            v-for="cell in calendarRow"
-            :key="cell.day"
+            v-for="cell in activeCalendarCells"
+            :key="cell.iso"
             class="calendar-date-cell pa-2 rounded-lg cursor-pointer"
-            :class="{ 'cell-today': cell.isToday }"
-            @click="cell.iso && router.push(`/sessions?date=${cell.iso}`)"
+            :class="{
+              'cell-today': cell.isToday,
+              'cell-selected': cell.isSelected,
+              'cell-muted': cell.inMonth === false
+            }"
+            @click="selectCalendarDate(cell.iso)"
           >
             <span class="date-num font-weight-bold">{{ cell.day }}</span>
             <div class="dots-indicator d-flex justify-center gap-1 mt-1">
@@ -392,7 +440,7 @@
 
         <!-- Calendar Legend -->
         <div
-          class="calendar-legend d-flex align-center justify-center gap-4 text-caption border-top pt-2"
+          class="calendar-legend d-flex align-center justify-center gap-4 text-caption border-top pt-2 mb-3"
         >
           <div class="d-flex align-center gap-1">
             <span class="dot dot-red"></span> <span>موعد نهائي</span>
@@ -402,6 +450,108 @@
           </div>
           <div class="d-flex align-center gap-1">
             <span class="dot dot-yellow"></span> <span>مهمة</span>
+          </div>
+        </div>
+
+        <!-- Selected Day Interactive Schedule Box (الأجندة التفاعلية) -->
+        <div class="selected-day-agenda rounded-xl pa-3 bg-surface-variant border">
+          <!-- Selected Date Title -->
+          <div class="d-flex align-center justify-space-between mb-2 pb-1 border-b">
+            <div class="d-flex align-center gap-1">
+              <LucideIcon name="calendar-check" :size="15" class="text-accent" />
+              <span class="font-weight-black text-body-2 text-gold">
+                {{ selectedDateLabel.greg }}
+              </span>
+            </div>
+            <span v-if="selectedDateLabel.hijri" class="text-caption font-weight-bold text-medium-emphasis">
+              {{ selectedDateLabel.hijri }}
+            </span>
+          </div>
+
+          <!-- Selected Day Sessions -->
+          <div v-if="selectedDaySessions.length > 0" class="mb-2">
+            <div class="text-caption font-weight-black text-primary mb-1 d-flex align-center gap-1">
+              <LucideIcon name="gavel" :size="13" />
+              جلسات هذا اليوم ({{ selectedDaySessions.length }}):
+            </div>
+            <div class="d-flex flex-column gap-1.5">
+              <div
+                v-for="s in selectedDaySessions"
+                :key="s.id"
+                class="pa-2 rounded-lg bg-surface border d-flex align-center justify-space-between cursor-pointer"
+                @click="router.push(`/sessions?id=${s.id}`)"
+              >
+                <div class="min-w-0">
+                  <div class="text-caption font-weight-black text-truncate">
+                    قضية: {{ s.case_number || 'بدون رقم' }} - {{ s.client_name || 'بدون موكل' }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    {{ s.time || '10:00' }} {{ s.court_room ? `· ${s.court_room}` : '' }}
+                  </div>
+                </div>
+                <v-btn size="x-small" variant="tonal" color="accent" class="font-weight-bold ms-2">
+                  عرض
+                </v-btn>
+              </div>
+            </div>
+          </div>
+
+          <!-- Selected Day Tasks -->
+          <div v-if="selectedDayTasks.length > 0" class="mb-2">
+            <div class="text-caption font-weight-black text-warning mb-1 d-flex align-center gap-1">
+              <LucideIcon name="clipboard-check" :size="13" />
+              مهام مستحقة ({{ selectedDayTasks.length }}):
+            </div>
+            <div class="d-flex flex-column gap-1.5">
+              <div
+                v-for="t in selectedDayTasks"
+                :key="t.id"
+                class="pa-2 rounded-lg bg-surface border d-flex align-center justify-space-between cursor-pointer"
+                @click="router.push(`/tasks?edit=${t.id}`)"
+              >
+                <div class="min-w-0">
+                  <div class="text-caption font-weight-black text-truncate">
+                    {{ t.title }}
+                  </div>
+                  <div class="text-caption text-medium-emphasis">
+                    الأولوية: {{ t.priority || 'متوسطة' }}
+                  </div>
+                </div>
+                <v-btn size="x-small" variant="tonal" color="warning" class="font-weight-bold ms-2">
+                  عرض
+                </v-btn>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State for Selected Day -->
+          <div
+            v-if="selectedDaySessions.length === 0 && selectedDayTasks.length === 0"
+            class="text-center py-2"
+          >
+            <div class="text-caption text-medium-emphasis font-weight-bold mb-2">
+              لا توجد جلسات أو مهام مجدولة لهذا اليوم
+            </div>
+            <div class="d-flex justify-center gap-2">
+              <v-btn
+                size="x-small"
+                variant="outlined"
+                color="primary"
+                class="rounded-lg"
+                @click="router.push(`/sessions?new=1&date=${selectedDate}`)"
+              >
+                + جلسة جديدة
+              </v-btn>
+              <v-btn
+                size="x-small"
+                variant="outlined"
+                color="secondary"
+                class="rounded-lg"
+                @click="router.push(`/tasks?new=1&due_date=${selectedDate}`)"
+              >
+                + مهمة جديدة
+              </v-btn>
+            </div>
           </div>
         </div>
       </div>
@@ -513,6 +663,7 @@ import { useTasksStore } from '../../stores/tasks'
 import LucideIcon from '../common/LucideIcon.vue'
 import { safeArray } from '../../utils/safe'
 import { getCasePipelineStage } from '../../utils/legalConstants'
+import { gregorianIsoToHijriIso } from '../../utils/hijriIso'
 
 const router = useRouter()
 const clientsStore = useClientsStore()
@@ -542,12 +693,6 @@ const currentDateFormatted = computed(() => {
     month: 'long',
     day: 'numeric'
   })
-})
-
-const todayDayNum = computed(() => new Date().getDate())
-
-const currentMonthYearLabel = computed(() => {
-  return new Date().toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })
 })
 
 // Active Cases Count (100% REAL DB)
@@ -804,41 +949,156 @@ const displaySessions = computed(() => {
   })
 })
 
-// Calendar Row Generation (100% REAL DATES)
-const calendarRow = computed(() => {
-  const today = new Date()
-  const todayNum = today.getDate()
+// Interactive Calendar Logic & Real Date Calculations
+const calendarAnchor = ref(new Date())
+const selectedDate = ref(new Date().toLocaleDateString('en-CA'))
+const calendarView = ref<'week' | 'month'>('week')
 
-  const daysAround = [
-    todayNum - 1,
-    todayNum,
-    todayNum + 1,
-    todayNum + 2,
-    todayNum + 3,
-    todayNum + 4,
-    todayNum + 5
-  ]
+const weekDayNames = ['سبت', 'أحد', 'إثنين', 'ثلاثاء', 'أربعاء', 'خميس', 'جمعة']
+
+const currentMonthYearLabel = computed(() => {
+  return calendarAnchor.value.toLocaleDateString('ar-SA', { month: 'long', year: 'numeric' })
+})
+
+const selectedDateLabel = computed(() => {
+  try {
+    const parts = selectedDate.value.split('-')
+    if (parts.length === 3) {
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
+      const greg = d.toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      const hijri = gregorianIsoToHijriIso(selectedDate.value)
+      return { greg, hijri: hijri ? `${hijri} هـ` : '' }
+    }
+    return { greg: selectedDate.value, hijri: '' }
+  } catch {
+    return { greg: selectedDate.value, hijri: '' }
+  }
+})
+
+// Current Week Cells (Saturday to Friday)
+const weekCells = computed(() => {
+  const anchor = new Date(calendarAnchor.value)
+  const todayIso = new Date().toLocaleDateString('en-CA')
+  const dayOfWeek = (anchor.getDay() + 1) % 7 // 0=Sat, 1=Sun, 2=Mon, 3=Tue, 4=Wed, 5=Thu, 6=Fri
+  const start = new Date(anchor)
+  start.setDate(start.getDate() - dayOfWeek)
+
   const realSessions = safeArray(sessionsStore.sessions)
   const realTasks = safeArray(tasksStore.pendingTasks)
 
-  return daysAround.map((day) => {
-    const dayStr = String(day > 31 ? day - 31 : day).padStart(2, '0')
+  const cells = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
     const hasSession = realSessions.some(
-      (s: any) => s.session_date && s.session_date.includes(`-${dayStr}`)
+      (s: any) => (s.session_date || s.date || '').split('T')[0] === iso
     )
-    const hasTask = realTasks.some((t: any) => t.due_date && t.due_date.includes(`-${dayStr}`))
+    const hasTask = realTasks.some(
+      (t: any) => (t.due_date || '').split('T')[0] === iso
+    )
 
-    return {
-      day: day > 31 ? day - 31 : day,
-      isToday: day === todayNum,
-      hasDeadline: hasTask,
-      hasSession: hasSession,
-      hasTask: hasTask,
-      iso: `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${dayStr}`
-    }
-  })
+    cells.push({
+      day: d.getDate(),
+      iso,
+      inMonth: d.getMonth() === calendarAnchor.value.getMonth(),
+      isToday: iso === todayIso,
+      isSelected: iso === selectedDate.value,
+      hasSession,
+      hasTask,
+      hasDeadline: hasTask
+    })
+  }
+  return cells
 })
+
+// Month View Cells (Full Month Grid)
+const monthCells = computed(() => {
+  const anchor = calendarAnchor.value
+  const year = anchor.getFullYear()
+  const month = anchor.getMonth()
+  const firstDayOfMonth = new Date(year, month, 1)
+  const startDow = (firstDayOfMonth.getDay() + 1) % 7 // 0=Sat, 1=Sun, ...
+  const start = new Date(firstDayOfMonth)
+  start.setDate(start.getDate() - startDow)
+
+  const todayIso = new Date().toLocaleDateString('en-CA')
+  const realSessions = safeArray(sessionsStore.sessions)
+  const realTasks = safeArray(tasksStore.pendingTasks)
+
+  const cells = []
+  for (let i = 0; i < 35; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const inMonth = d.getMonth() === month
+
+    const hasSession = realSessions.some(
+      (s: any) => (s.session_date || s.date || '').split('T')[0] === iso
+    )
+    const hasTask = realTasks.some(
+      (t: any) => (t.due_date || '').split('T')[0] === iso
+    )
+
+    cells.push({
+      day: d.getDate(),
+      iso,
+      inMonth,
+      isToday: iso === todayIso,
+      isSelected: iso === selectedDate.value,
+      hasSession,
+      hasTask,
+      hasDeadline: hasTask
+    })
+  }
+  return cells
+})
+
+const activeCalendarCells = computed(() => {
+  return calendarView.value === 'month' ? monthCells.value : weekCells.value
+})
+
+const selectedDaySessions = computed(() => {
+  return safeArray(sessionsStore.sessions).filter(
+    (s: any) => (s.session_date || s.date || '').split('T')[0] === selectedDate.value
+  )
+})
+
+const selectedDayTasks = computed(() => {
+  return safeArray(tasksStore.pendingTasks).filter(
+    (t: any) => (t.due_date || '').split('T')[0] === selectedDate.value
+  )
+})
+
+const prevCalendarPeriod = () => {
+  const d = new Date(calendarAnchor.value)
+  if (calendarView.value === 'month') {
+    d.setMonth(d.getMonth() - 1)
+  } else {
+    d.setDate(d.getDate() - 7)
+  }
+  calendarAnchor.value = d
+}
+
+const nextCalendarPeriod = () => {
+  const d = new Date(calendarAnchor.value)
+  if (calendarView.value === 'month') {
+    d.setMonth(d.getMonth() + 1)
+  } else {
+    d.setDate(d.getDate() + 7)
+  }
+  calendarAnchor.value = d
+}
+
+const selectCalendarDate = (iso: string) => {
+  selectedDate.value = iso
+}
+
+const resetToToday = () => {
+  calendarAnchor.value = new Date()
+  selectedDate.value = new Date().toLocaleDateString('en-CA')
+}
 
 const openDirections = (courtName: string) => {
   const query = encodeURIComponent(courtName || 'المحكمة')
@@ -1117,10 +1377,23 @@ onMounted(async () => {
   font-size: 0.85rem;
 }
 .cell-today {
-  background-color: var(--primary, #e9c349) !important;
-  color: #000000 !important;
+  background-color: rgba(233, 195, 73, 0.25) !important;
+  color: var(--text-primary, #1e293b) !important;
   font-weight: 800 !important;
-  border: 1.5px solid var(--primary, #e9c349) !important;
+  border: 2px solid #e9c349 !important;
+}
+.cell-selected {
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  font-weight: 900 !important;
+  border: 2px solid #e9c349 !important;
+  box-shadow: 0 0 8px rgba(233, 195, 73, 0.4);
+}
+.cell-muted {
+  opacity: 0.35;
+}
+.selected-day-agenda {
+  border-color: rgba(197, 160, 40, 0.25) !important;
 }
 .dot {
   width: 6px;
