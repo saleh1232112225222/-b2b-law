@@ -7,7 +7,7 @@
           <LucideIcon name="cpu" :size="24" class="text-primary" />
         </div>
         <div>
-          <h3 class="text-h6 font-weight-black d-flex align-center gap-2">
+          <h3 class="text-h6 font-weight-black d-flex align-center flex-wrap gap-2">
             التكامل والربط الخارجي (OpenConnector)
             <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
               Open-Source Gateway
@@ -85,7 +85,7 @@
                 </div>
                 <div>
                   <h4 class="text-subtitle-1 font-weight-black mb-0">{{ item.name }}</h4>
-                  <span class="text-caption text-secondary font-weight-bold">
+                  <span class="text-caption text-medium-emphasis font-weight-bold">
                     {{ item.provider }}
                   </span>
                 </div>
@@ -114,7 +114,7 @@
               <div class="text-caption text-primary font-weight-bold mb-1">
                 الحساب المعتمد عبر OAuth: {{ item.config.accountEmail }}
               </div>
-              <div v-if="item.id === 'google_calendar'" class="text-caption text-secondary font-weight-bold d-flex align-center gap-1">
+              <div v-if="item.id === 'google_calendar'" class="text-caption text-medium-emphasis font-weight-bold d-flex align-center gap-1">
                 <LucideIcon name="calendar" :size="13" class="text-primary" />
                 <span v-if="item.config?.selectedCalendarSummary">
                   التقويم المعتمد: {{ item.config.selectedCalendarSummary }}
@@ -126,13 +126,15 @@
             </div>
           </div>
 
-          <div class="d-flex align-center justify-space-between pt-3 border-top mt-2">
+          <div
+            class="connector-actions-row d-flex align-center justify-space-between pt-3 border-top mt-2"
+          >
             <span class="text-caption text-medium-emphasis">
               <span v-if="item.last_sync_at">آخر مزامنة: {{ formatDate(item.last_sync_at) }}</span>
               <span v-else>لم تتم المزامنة بعد</span>
             </span>
 
-            <div class="d-flex align-center gap-2">
+            <div class="connector-action-buttons d-flex align-center gap-2">
               <template v-if="item.status === 'connected'">
                 <v-btn
                   v-if="item.id === 'google_calendar'"
@@ -607,5 +609,55 @@ function formatDate(isoStr: string | null) {
 }
 .border-top {
   border-top: 1px solid #f3f4f6;
+}
+
+.connector-actions-row,
+.connector-action-buttons {
+  flex-wrap: wrap;
+}
+
+.connector-actions-row {
+  gap: 12px;
+}
+
+.connector-action-buttons {
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+:global([data-theme='dark'] .connector-card) {
+  background-color: var(--surface-variant, #111f31);
+  border-color: var(--border-card, #26364a) !important;
+  color: var(--text-main, #f3f6fa);
+}
+
+:global([data-theme='dark'] .connector-card.connected-border) {
+  background-color: #102720;
+  border-color: #10b981 !important;
+}
+
+:global([data-theme='dark'] .connector-icon-wrapper),
+:global([data-theme='dark'] .icon-header-bg) {
+  background-color: var(--surface-hover, #16263d) !important;
+}
+
+:global([data-theme='dark'] .connector-card .border-top) {
+  border-top-color: var(--divider, #26364a);
+}
+
+@media (max-width: 600px) {
+  .connector-actions-row {
+    align-items: stretch !important;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .connector-action-buttons {
+    width: 100%;
+  }
+
+  .connector-action-buttons :deep(.v-btn) {
+    flex: 1 1 140px;
+  }
 }
 </style>

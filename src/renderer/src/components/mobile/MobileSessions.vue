@@ -403,52 +403,57 @@ const openNajizLink = (link: string): void => {
 }
 
 /* Dark Mode Contrast Overrides */
-:global([data-theme='dark']) .client-style-card {
+:global([data-theme='dark'] .mobile-sessions-container .client-style-card) {
   background: #0D1929 !important;
   border-color: #c5a028 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
-:global([data-theme='dark']) .card-header,
-:global([data-theme='dark']) .card-body {
+:global([data-theme='dark'] .mobile-sessions-container .card-header),
+:global([data-theme='dark'] .mobile-sessions-container .card-body) {
   background: #0D1929 !important;
 }
 
-:global([data-theme='dark']) .card-footer {
+:global([data-theme='dark'] .mobile-sessions-container .card-footer) {
   background: #111F31 !important;
   border-top-color: rgba(197, 160, 40, 0.35) !important;
 }
 
-:global([data-theme='dark']) .session-datetime-box {
+:global([data-theme='dark'] .mobile-sessions-container .session-datetime-box) {
   background: #111F31 !important;
   border-color: #26364A !important;
 }
 
-:global([data-theme='dark']) .card-title,
-:global([data-theme='dark']) .value-text {
+:global([data-theme='dark'] .mobile-sessions-container .card-title),
+:global([data-theme='dark'] .mobile-sessions-container .value-text),
+:global([data-theme='dark'] .mobile-sessions-container .session-datetime-box .text-slate-800) {
   color: #F3F6FA !important;
 }
 
-:global([data-theme='dark']) .label-text {
-  color: #9EACBD !important;
-}
-
-:global([data-theme='dark']) .text-amber-800,
-:global([data-theme='dark']) .text-amber-900 {
+:global([data-theme='dark'] .mobile-sessions-container .label-text) {
   color: #E5B52B !important;
 }
 
-:global([data-theme='dark']) .btn-edit {
+:global([data-theme='dark'] .mobile-sessions-container .text-amber-800),
+:global([data-theme='dark'] .mobile-sessions-container .text-amber-900) {
+  color: #E5B52B !important;
+}
+
+:global([data-theme='dark'] .mobile-sessions-container .card-body .text-slate-600) {
+  color: #9EACBD !important;
+}
+
+:global([data-theme='dark'] .mobile-sessions-container .btn-edit) {
   background: #1e293b !important;
   color: #F3F6FA !important;
 }
 
-:global([data-theme='dark']) .btn-ops {
+:global([data-theme='dark'] .mobile-sessions-container .btn-ops) {
   background: #1e3a8a !important;
   color: #93c5fd !important;
 }
 
-:global([data-theme='dark']) .najiz-join-btn {
+:global([data-theme='dark'] .mobile-sessions-container .najiz-join-btn) {
   background: rgba(197, 160, 40, 0.2) !important;
   border-color: #c5a028 !important;
   color: #F3F6FA !important;

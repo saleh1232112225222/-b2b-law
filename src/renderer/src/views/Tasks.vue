@@ -1295,6 +1295,20 @@ onUnmounted(() => {
   color: #000000 !important;
 }
 
+:global([data-theme='dark'] .tasks-container .v-field__input),
+:global([data-theme='dark'] .tasks-container .v-field__display),
+:global([data-theme='dark'] .tasks-container .v-select__selection-text) {
+  color: var(--text-main, #f3f6fa) !important;
+}
+
+:global([data-theme='dark'] .tasks-container .v-label) {
+  color: var(--text-secondary, #9eacbd) !important;
+}
+
+:global([data-theme='dark'] .tasks-container .v-field__outline) {
+  color: var(--border-field, #26364a) !important;
+}
+
 /* ---- Mobile responsive ---- */
 @media (max-width: 768px) {
   .tasks-container {

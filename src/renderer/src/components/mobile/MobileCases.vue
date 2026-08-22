@@ -357,33 +357,33 @@ const openCase = (item: any): void => {
 }
 
 /* Dark Mode Contrast Overrides */
-:global([data-theme='dark']) .client-style-card {
+:global([data-theme='dark'] .mobile-cases-container .client-style-card) {
   background: #0D1929 !important;
   border-color: #c5a028 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
-:global([data-theme='dark']) .card-header,
-:global([data-theme='dark']) .card-body {
+:global([data-theme='dark'] .mobile-cases-container .card-header),
+:global([data-theme='dark'] .mobile-cases-container .card-body) {
   background: #0D1929 !important;
 }
 
-:global([data-theme='dark']) .card-footer {
+:global([data-theme='dark'] .mobile-cases-container .card-footer) {
   background: #111F31 !important;
   border-top-color: rgba(197, 160, 40, 0.35) !important;
 }
 
-:global([data-theme='dark']) .card-title,
-:global([data-theme='dark']) .value-text,
-:global([data-theme='dark']) .action-link-btn span {
+:global([data-theme='dark'] .mobile-cases-container .card-title),
+:global([data-theme='dark'] .mobile-cases-container .value-text),
+:global([data-theme='dark'] .mobile-cases-container .action-link-btn span) {
   color: #F3F6FA !important;
 }
 
-:global([data-theme='dark']) .label-text {
-  color: #9EACBD !important;
+:global([data-theme='dark'] .mobile-cases-container .label-text) {
+  color: #E5B52B !important;
 }
 
-:global([data-theme='dark']) .btn-edit {
+:global([data-theme='dark'] .mobile-cases-container .btn-edit) {
   background: #1e293b !important;
   color: #F3F6FA !important;
 }
