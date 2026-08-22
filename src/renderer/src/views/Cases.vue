@@ -389,7 +389,109 @@ const openAddDialog = (): void => {
 
 const openEditDialog = (item: Case): void => {
   isEditing.value = true
-  editItem.value = { ...item, parties: item.parties ? [...item.parties] : [] }
+
+  // Ensure defendants and clients are available
+  if (defendantsStore.defendants.length === 0) {
+    defendantsStore.fetchAllDefendants()
+  }
+  if (clientsStore.clients.length === 0) {
+    clientsStore.fetchAllClients()
+  }
+
+  let rawParties: any[] =
+    Array.isArray(item.parties) && item.parties.length > 0 ? [...item.parties] : []
+
+  if (rawParties.length === 0) {
+    if (item.client_id || item.client_name) {
+      rawParties.push({
+        party_type: 'client',
+        client_id: item.client_id || '',
+        name: item.client_name || '',
+        role: item.client_role || 'مدعي',
+        phone: (item as any).client_phone || ''
+      })
+    }
+    if (item.opponent_name || item.opponent_id) {
+      rawParties.push({
+        party_type: 'opponent',
+        defendant_id: item.opponent_id || '',
+        name: item.opponent_name || '',
+        role: 'مدعى عليه',
+        phone: (item as any).opponent_phone || '',
+        nationality: (item as any).opponent_nationality || 'سعودي'
+      })
+    }
+  } else {
+    const hasClient = rawParties.some((p) => p.party_type === 'client')
+    if (!hasClient && (item.client_id || item.client_name)) {
+      rawParties.unshift({
+        party_type: 'client',
+        client_id: item.client_id || '',
+        name: item.client_name || '',
+        role: item.client_role || 'مدعي',
+        phone: (item as any).client_phone || ''
+      })
+    }
+    const hasOpponent = rawParties.some((p) => p.party_type === 'opponent')
+    if (!hasOpponent && (item.opponent_name || item.opponent_id)) {
+      rawParties.push({
+        party_type: 'opponent',
+        defendant_id: item.opponent_id || '',
+        name: item.opponent_name || '',
+        role: 'مدعى عليه',
+        phone: (item as any).opponent_phone || '',
+        nationality: (item as any).opponent_nationality || 'سعودي'
+      })
+    }
+  }
+
+  // Populate defendant_id & name on opponent parties if missing
+  rawParties = rawParties.map((p) => {
+    if (p.party_type === 'opponent') {
+      const defName = p.name || p.defendant_linked_name || item.opponent_name || ''
+      let defId = p.defendant_id || item.opponent_id || ''
+      if (!defId && defName) {
+        const matched = defendantsStore.defendants.find(
+          (d) => d.name === defName || d.name?.trim() === defName?.trim()
+        )
+        if (matched) defId = matched.id
+      }
+      return {
+        ...p,
+        party_type: 'opponent',
+        defendant_id: defId,
+        name: defName,
+        role: p.role || 'مدعى عليه'
+      }
+    }
+    if (p.party_type === 'client') {
+      const clName = p.name || p.client_linked_name || item.client_name || ''
+      let clId = p.client_id || item.client_id || ''
+      if (!clId && clName) {
+        const matched = clientsStore.clients.find(
+          (c) => c.name === clName || c.name?.trim() === clName?.trim()
+        )
+        if (matched) clId = matched.id
+      }
+      return {
+        ...p,
+        party_type: 'client',
+        client_id: clId,
+        name: clName,
+        role: p.role || item.client_role || 'مدعي'
+      }
+    }
+    return p
+  })
+
+  // Ensure Clients first, Opponents second!
+  rawParties.sort((a, b) => {
+    if (a.party_type === 'client' && b.party_type !== 'client') return -1
+    if (a.party_type !== 'client' && b.party_type === 'client') return 1
+    return 0
+  })
+
+  editItem.value = { ...item, parties: rawParties }
   caseNumberError.value = ''
   loadAssignableUsers()
   showDialog.value = true
@@ -529,7 +631,11 @@ const handleSave = async (): Promise<void> => {
           const firstClient = data.parties.find((p) => p.party_type === 'client')
           const firstOpponent = data.parties.find((p) => p.party_type === 'opponent')
           if (firstClient?.client_id) data.client_id = firstClient.client_id
+          if (firstClient?.role) data.client_role = firstClient.role
+          if (firstOpponent?.defendant_id) data.opponent_id = firstOpponent.defendant_id
           if (firstOpponent?.name) data.opponent_name = firstOpponent.name
+          if (firstOpponent?.phone) data.opponent_phone = firstOpponent.phone
+          if (firstOpponent?.nationality) data.opponent_nationality = firstOpponent.nationality
         }
         if (data.registration_date)
           data.registration_date_hijri = convertToHijri(new Date(data.registration_date))

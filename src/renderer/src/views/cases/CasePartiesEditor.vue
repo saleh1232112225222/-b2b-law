@@ -8,7 +8,7 @@
         </div>
         <div>
           <h4 class="text-h6 font-weight-black text-navy mb-0">أطراف القضية (موكلين وخصوم) *</h4>
-          <span class="text-caption text-muted-gray">أضف الموكلين والخصوم المرتبطين بالقضية</span>
+          <span class="text-caption text-muted-gray">أضف الموكلين أولاً ثم الخصوم المرتبطين بالقضية</span>
         </div>
       </div>
       <div class="d-flex ga-3 align-center">
@@ -74,7 +74,7 @@
             <div>
               <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الموكل من القائمة*</label>
               <v-autocomplete
-                :model-value="party.client_id"
+                :model-value="getPartyClientValue(party)"
                 :items="clients"
                 item-title="name"
                 item-value="id"
@@ -84,7 +84,7 @@
                 hide-details="auto"
                 class="glass-input premium-select w-100"
                 :rules="[(v: any) => !!v || 'الموكل مطلوب']"
-                @update:model-value="(val: string) => onClientChange(idx, val)"
+                @update:model-value="(val: any) => onClientChange(idx, val)"
               >
                 <template #prepend-inner>
                   <LucideIcon name="user" :size="18" class="text-gold me-2" />
@@ -96,25 +96,26 @@
           <!-- Defendant Select -->
           <template v-else>
             <div>
-              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم من القائمة*</label>
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم من القائمة أو اكتب اسمه*</label>
               <div class="d-flex ga-2 align-center">
-                <v-autocomplete
-                  :model-value="party.defendant_id"
+                <v-combobox
+                  :model-value="getPartyDefendantValue(party)"
                   :items="defendants"
                   item-title="name"
                   item-value="id"
-                  placeholder="اختر الخصم..."
+                  :return-object="false"
+                  placeholder="اختر الخصم أو اكتب اسمه..."
                   variant="outlined"
                   density="comfortable"
                   hide-details="auto"
                   class="glass-input flex-grow-1 premium-select"
                   :rules="[(v: any) => !!v || 'الخصم مطلوب']"
-                  @update:model-value="(val: string) => $emit('defendantChange', { index: idx, value: val })"
+                  @update:model-value="(val: any) => onDefendantChange(idx, val)"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="user-x" :size="18" class="text-gold me-2" />
                   </template>
-                </v-autocomplete>
+                </v-combobox>
 
                 <v-btn
                   size="small"
@@ -199,7 +200,7 @@
             <v-col cols="12" md="4">
               <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الموكل من القائمة*</label>
               <v-autocomplete
-                :model-value="party.client_id"
+                :model-value="getPartyClientValue(party)"
                 :items="clients"
                 item-title="name"
                 item-value="id"
@@ -208,7 +209,7 @@
                 hide-details
                 class="glass-input premium-select"
                 :rules="[(v: any) => !!v || 'الموكل مطلوب']"
-                @update:model-value="(val: string) => onClientChange(idx, val)"
+                @update:model-value="(val: any) => onClientChange(idx, val)"
               >
                 <template #prepend-inner>
                   <LucideIcon name="user" :size="16" class="text-gold me-2" />
@@ -219,30 +220,31 @@
 
           <template v-else>
             <v-col cols="12" md="4">
-              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم من القائمة*</label>
+              <label class="text-caption font-weight-bold text-gold mb-1 d-block">اختر الخصم أو اكتب اسمه*</label>
               <div class="d-flex ga-2 align-center">
-                <v-autocomplete
-                  :model-value="party.defendant_id"
+                <v-combobox
+                  :model-value="getPartyDefendantValue(party)"
                   :items="defendants"
                   item-title="name"
                   item-value="id"
+                  :return-object="false"
+                  placeholder="اختر الخصم أو اكتب اسمه..."
                   variant="outlined"
                   density="compact"
                   hide-details
                   class="glass-input flex-grow-1 premium-select"
                   :rules="[(v: any) => !!v || 'الخصم مطلوب']"
-                  @update:model-value="
-                    (val: string) => $emit('defendantChange', { index: idx, value: val })
-                  "
+                  @update:model-value="(val: any) => onDefendantChange(idx, val)"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="user-x" :size="16" class="text-gold me-2" />
                   </template>
-                </v-autocomplete>
+                </v-combobox>
                 <v-btn
                   size="small"
                   variant="outlined"
                   class="btn-gold-outline rounded-lg h-40 px-2"
+                  title="إضافة خصم سريع"
                   @click="$emit('quickAddDefendant', idx)"
                 >
                   <LucideIcon name="user-plus" :size="18" />
@@ -329,19 +331,31 @@ const emit = defineEmits<{
 }>()
 
 const addParty = (type: 'client' | 'opponent'): void => {
-  const updated = [
-    ...props.parties,
-    {
-      party_type: type,
-      name: '',
-      client_id: '',
-      defendant_id: '',
-      phone: '',
-      id_number: '',
-      nationality: type === 'opponent' ? 'سعودي' : '',
-      role: type === 'client' ? 'مدعي' : 'مدعى عليه'
+  const newParty = {
+    party_type: type,
+    name: '',
+    client_id: '',
+    defendant_id: '',
+    phone: '',
+    id_number: '',
+    nationality: type === 'opponent' ? 'سعودي' : '',
+    role: type === 'client' ? 'مدعي' : 'مدعى عليه'
+  }
+
+  let updated = [...props.parties]
+  if (type === 'client') {
+    // Insert after the last existing client (before opponents)
+    const lastClientIdx = updated.map((p) => p.party_type).lastIndexOf('client')
+    if (lastClientIdx >= 0) {
+      updated.splice(lastClientIdx + 1, 0, newParty)
+    } else {
+      updated.unshift(newParty)
     }
-  ]
+  } else {
+    // Append opponents at bottom
+    updated.push(newParty)
+  }
+
   emit('update', updated)
 }
 
@@ -355,15 +369,116 @@ const updateParty = (index: number, partial: Partial<Party>): void => {
   emit('update', updated)
 }
 
-const onClientChange = (index: number, clientId: string): void => {
-  const client = props.clients.find((c) => c.id === clientId)
-  if (!client) return
+const getPartyClientValue = (party: Party) => {
+  if (!party) return ''
+  if (party.client_id) {
+    const matched = props.clients.find((c) => c.id === party.client_id)
+    if (matched) return matched.id
+  }
+  if (party.name) {
+    const matched = props.clients.find(
+      (c) => c.name === party.name || c.name?.trim() === party.name?.trim()
+    )
+    if (matched) return matched.id
+  }
+  return party.client_id || party.name || ''
+}
+
+const onClientChange = (index: number, val: any): void => {
+  let clientId = ''
+  let clientName = ''
+  let clientPhone = ''
+
+  if (typeof val === 'object' && val !== null) {
+    clientId = val.id || ''
+    clientName = val.name || ''
+    clientPhone = val.phone || ''
+  } else if (typeof val === 'string') {
+    const matched = props.clients.find(
+      (c) => c.id === val || c.name === val || c.name?.trim() === val.trim()
+    )
+    if (matched) {
+      clientId = matched.id
+      clientName = matched.name
+      clientPhone = matched.phone || ''
+    } else {
+      clientId = val
+      clientName = val
+    }
+  }
+
   const updated = props.parties.map((p, i) => {
     if (i !== index) return p
-    return { ...p, client_id: clientId, name: client.name, phone: client.phone || '' }
+    return {
+      ...p,
+      client_id: clientId,
+      name: clientName || p.name,
+      phone: clientPhone || p.phone
+    }
   })
   emit('update', updated)
   emit('clientChange', { index, value: clientId })
+}
+
+const getPartyDefendantValue = (party: Party) => {
+  if (!party) return ''
+  if (party.defendant_id) {
+    const matched = props.defendants.find((d) => d.id === party.defendant_id)
+    if (matched) return matched.id
+  }
+  if (party.name) {
+    const matched = props.defendants.find(
+      (d) => d.name === party.name || d.name?.trim() === party.name?.trim()
+    )
+    if (matched) return matched.id
+    return party.name
+  }
+  return party.defendant_id || ''
+}
+
+const onDefendantChange = (index: number, val: any): void => {
+  let defId = ''
+  let defName = ''
+  let defPhone = ''
+  let defIdNumber = ''
+  let defNat = 'سعودي'
+
+  if (typeof val === 'object' && val !== null) {
+    defId = val.id || ''
+    defName = val.name || ''
+    defPhone = val.phone || ''
+    defIdNumber = val.id_number || ''
+    defNat = val.nationality || 'سعودي'
+  } else if (typeof val === 'string') {
+    const trimmed = val.trim()
+    const matched = props.defendants.find(
+      (d) => d.id === trimmed || d.name === trimmed || d.name?.trim() === trimmed
+    )
+    if (matched) {
+      defId = matched.id
+      defName = matched.name
+      defPhone = matched.phone || ''
+      defIdNumber = matched.id_number || ''
+      defNat = matched.nationality || 'سعودي'
+    } else {
+      defId = ''
+      defName = trimmed
+    }
+  }
+
+  const updated = props.parties.map((p, i) => {
+    if (i !== index) return p
+    return {
+      ...p,
+      defendant_id: defId,
+      name: defName || p.name,
+      phone: defPhone || p.phone,
+      id_number: defIdNumber || p.id_number,
+      nationality: defNat || p.nationality
+    }
+  })
+  emit('update', updated)
+  emit('defendantChange', { index, value: defId || defName })
 }
 </script>
 
