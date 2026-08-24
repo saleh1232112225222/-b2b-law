@@ -334,6 +334,7 @@ export class GoogleCalendarService {
       startTime: string
       endTime?: string
       existingGoogleEventId?: string
+      sessionId?: string
     },
     userId?: string
   ): Promise<{ success: boolean; googleEventId?: string; reason?: string; error?: string }> {
@@ -362,16 +363,17 @@ export class GoogleCalendarService {
       return { success: true, googleEventId: mockEventId }
     }
 
+    // Determine clean custom event ID from sessionId (e.g. b2b523e5abbfcfa4f399035cc1ae91f1a09)
+    const deterministicId = eventData.sessionId
+      ? `b2b${eventData.sessionId.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().substring(0, 50)}`
+      : eventData.existingGoogleEventId
+
     // If existing event ID is present, attempt update first
-    if (eventData.existingGoogleEventId) {
-      const updateRes = await this.updateCalendarEvent(
-        companyId,
-        eventData.existingGoogleEventId,
-        eventData,
-        userId
-      )
+    if (eventData.existingGoogleEventId || deterministicId) {
+      const targetId = eventData.existingGoogleEventId || deterministicId!
+      const updateRes = await this.updateCalendarEvent(companyId, targetId, eventData, userId)
       if (updateRes.success) {
-        return { success: true, googleEventId: eventData.existingGoogleEventId }
+        return { success: true, googleEventId: targetId }
       }
     }
 
@@ -393,7 +395,7 @@ export class GoogleCalendarService {
         endIso = `${eventData.startTime}T10:00:00+03:00`
       }
 
-      const bodyPayload = {
+      const bodyPayload: any = {
         summary: eventData.summary,
         description: eventData.description || '',
         location: eventData.location || '',
@@ -405,6 +407,10 @@ export class GoogleCalendarService {
           dateTime: endIso,
           timeZone: 'Asia/Riyadh'
         }
+      }
+
+      if (deterministicId) {
+        bodyPayload.id = deterministicId
       }
 
       const res = await fetch(
@@ -420,6 +426,12 @@ export class GoogleCalendarService {
         }
       )
 
+      if (res.status === 409 && deterministicId) {
+        // Event with deterministic ID already exists in calendar -> update it!
+        await this.updateCalendarEvent(companyId, deterministicId, eventData, userId)
+        return { success: true, googleEventId: deterministicId }
+      }
+
       if (!res.ok) {
         const errText = await res.text().catch(() => '')
         console.error(
@@ -433,7 +445,7 @@ export class GoogleCalendarService {
       const data: any = await res.json()
       return {
         success: true,
-        googleEventId: data.id
+        googleEventId: data.id || deterministicId
       }
     } catch (err: any) {
       console.error('[GoogleCalendarService] Network error in createCalendarEvent:', err?.message || err)
@@ -599,6 +611,70 @@ export class GoogleCalendarService {
   }
 
   /**
+   * Cleans up duplicate events in the selected Google Calendar.
+   */
+  static async cleanupDuplicateEvents(
+    companyId: string,
+    userId?: string
+  ): Promise<{ cleanedCount: number }> {
+    const tokenInfo = await this.getValidAccessToken(companyId, userId)
+    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_')) {
+      return { cleanedCount: 0 }
+    }
+
+    const status = await this.getStatus(companyId, userId)
+    const calendarId = status.selectedCalendarId || 'primary'
+
+    try {
+      const timeMin = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const timeMax = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString()
+      const listUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&maxResults=2500&singleEvents=true`
+
+      const res = await fetch(listUrl, {
+        headers: {
+          Authorization: `Bearer ${tokenInfo.accessToken}`,
+          Accept: 'application/json'
+        }
+      })
+
+      if (!res.ok) return { cleanedCount: 0 }
+
+      const data: any = await res.json()
+      const events: any[] = data.items || []
+      const seen = new Map<string, string>()
+      let cleaned = 0
+
+      for (const evt of events) {
+        if (!evt.id || !evt.summary) continue
+        const dateKey = evt.start?.dateTime
+          ? evt.start.dateTime.substring(0, 16)
+          : evt.start?.date || ''
+        const key = `${evt.summary.trim()}|${dateKey}`
+
+        if (seen.has(key)) {
+          // Duplicate found -> Delete the duplicate extra copy from Google Calendar
+          try {
+            await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(evt.id)}`,
+              {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${tokenInfo.accessToken}` }
+              }
+            )
+            cleaned++
+          } catch (e) {}
+        } else {
+          seen.set(key, evt.id)
+        }
+      }
+
+      return { cleanedCount: cleaned }
+    } catch (e) {
+      return { cleanedCount: 0 }
+    }
+  }
+
+  /**
    * Syncs unsynced upcoming sessions to Google Calendar in batch.
    */
   static async syncUpcomingSessions(
@@ -611,6 +687,9 @@ export class GoogleCalendarService {
     }
 
     try {
+      // First clean up any duplicate events in Google Calendar
+      await this.cleanupDuplicateEvents(companyId, userId).catch(() => ({}))
+
       const sessionsRes = await query(
         `SELECT s.id, s.date, s.time, s.court_room, s.notes, s.google_event_id, c.case_number, c.subject as case_title
          FROM sessions s
@@ -648,7 +727,8 @@ export class GoogleCalendarService {
             description,
             location: sess.court_room || '',
             startTime: startTimeStr,
-            existingGoogleEventId: sess.google_event_id
+            existingGoogleEventId: sess.google_event_id,
+            sessionId: sess.id
           },
           userId
         )
