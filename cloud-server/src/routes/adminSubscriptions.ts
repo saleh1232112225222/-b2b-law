@@ -406,15 +406,19 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
     )
 
     if (subResult.rows.length === 0) {
-      return res.status(404).json({ error: 'لا يوجد اشتراك لهذه الشركة' })
+      await query(
+        `INSERT INTO subscriptions (id, company_id, status, suspended_at, suspend_reason, created_at)
+         VALUES (gen_random_uuid(), $1, 'past_due', NOW(), $2, NOW())`,
+        [companyId, reason || null]
+      )
+    } else {
+      await query(
+        `UPDATE subscriptions
+         SET status = 'past_due', suspended_at = NOW(), suspend_reason = $2, canceled_at = NULL, updated_at = NOW()
+         WHERE id = $1`,
+        [subResult.rows[0].id, reason || null]
+      )
     }
-
-    await query(
-      `UPDATE subscriptions
-       SET status = 'past_due', suspended_at = NOW(), suspend_reason = $2, canceled_at = NULL, updated_at = NOW()
-       WHERE id = $1`,
-      [subResult.rows[0].id, reason || null]
-    )
 
     // Deactivate all users in this company so they cannot log in
     await query(
@@ -424,7 +428,7 @@ adminSubscriptionRouter.post('/suspend', requireAdminRole, async (req: Request, 
 
     res.json({
       success: true,
-      message: 'تم تجميد الاشتراك بنجاح'
+      message: 'تم تجميد وتعليق الاشتراك بنجاح'
     })
   } catch (err) {
     console.error('[ADMIN] Failed to suspend subscription:', err)

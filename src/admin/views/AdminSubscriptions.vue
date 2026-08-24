@@ -592,8 +592,10 @@ async function apiRequest(method, path, body = null) {
   }
   if (body) opts.body = JSON.stringify(body)
   const res = await fetch(`${API_BASE}${path}`, opts)
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const data = await res.json()
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    throw new Error(data.error || data.message || `HTTP ${res.status}`)
+  }
   return { data }
 }
 
@@ -896,35 +898,37 @@ async function activateSubscription() {
 }
 
 async function suspendSubscription(company) {
-  if (!confirm('هل ترغب بتعليق الاشتراك لهذا المشترك؟')) {
+  const name = company.companyName || company.name || 'هذا المشترك'
+  if (!confirm(`هل ترغب بتعليق وتجميد الاشتراك للمشترك "${name}"؟`)) {
     return
   }
 
   try {
-    await apiRequest('POST', '/api/admin/subscriptions/suspend', {
+    const res = await apiRequest('POST', '/api/admin/subscriptions/suspend', {
       companyId: company.id,
       reason: 'تعليق من لوحة الإدارة'
     })
-    alert('تم تعليق الاشتراك بنجاح')
+    alert(res.data?.message || 'تم تعليق الاشتراك بنجاح')
     await fetchData()
   } catch (error) {
     console.error('Failed to suspend subscription:', error)
-    alert('حدث خطأ أثناء تعليق الاشتراك')
+    alert(error.message || 'حدث خطأ أثناء تعليق الاشتراك')
   }
 }
 
 async function cancelSubscription(company) {
-  if (!confirm('هل ترغب بنقل هذا المشترك إلى سلة المحذوفات؟\n(يمكن استعادته لاحقاً)')) {
+  const name = company.companyName || company.name || 'هذا المشترك'
+  if (!confirm(`هل ترغب بنقل المشترك "${name}" إلى سلة المحذوفات؟\n(يمكن استعادته لاحقاً)`)) {
     return
   }
 
   try {
-    await apiRequest('DELETE', `/api/admin/subscriptions/${company.id}`)
-    alert('تم نشر المشترك إلى سلة المحذوفات بنجاح')
+    const res = await apiRequest('DELETE', `/api/admin/subscriptions/${company.id}`)
+    alert(res.data?.message || 'تم نقل المشترك إلى سلة المحذوفات بنجاح')
     await fetchData()
   } catch (error) {
     console.error('Failed to cancel subscription:', error)
-    alert('حدث خطأ أثناء التنفيذ')
+    alert(error.message || 'حدث خطأ أثناء حذف المشترك')
   }
 }
 
