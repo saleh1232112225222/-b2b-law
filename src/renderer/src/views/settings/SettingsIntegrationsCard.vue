@@ -120,7 +120,7 @@
                   التقويم المعتمد: {{ item.config.selectedCalendarSummary }}
                 </span>
                 <span v-else class="text-warning">
-                  لم يتم اختيار تقويم افتراضي بعد
+                  التقويم الأساسي الافتراضي (Primary)
                 </span>
               </div>
             </div>
@@ -135,56 +135,6 @@
             </span>
 
             <div class="connector-action-buttons d-flex align-center gap-2">
-              <template v-if="item.status === 'connected'">
-                <v-btn
-                  v-if="item.id === 'google_calendar'"
-                  color="primary"
-                  variant="outlined"
-                  size="small"
-                  class="rounded-lg font-weight-bold"
-                  @click="openCalendarSelectModal()"
-                >
-                  <LucideIcon name="calendar" :size="14" class="me-1" />
-                  اختيار التقويم
-                </v-btn>
-
-                <v-btn
-                  v-if="item.id === 'google_calendar'"
-                  color="info"
-                  variant="outlined"
-                  size="small"
-                  class="rounded-lg font-weight-bold"
-                  :loading="integrationsStore.syncing"
-                  @click="triggerManualSync()"
-                >
-                  <LucideIcon name="refresh-cw" :size="14" class="me-1" />
-                  مزامنة الجلسات القادمة
-                </v-btn>
-
-                <v-btn
-                  color="success"
-                  variant="outlined"
-                  size="small"
-                  class="rounded-lg font-weight-bold"
-                  :loading="pingingId === item.id"
-                  @click="testConnection(item)"
-                >
-                  <LucideIcon name="activity" :size="14" class="me-1" />
-                  فحص الاتصال الفعلي
-                </v-btn>
-
-                <v-btn
-                  color="error"
-                  variant="text"
-                  size="small"
-                  class="rounded-lg font-weight-bold"
-                  :loading="actionLoading === item.id"
-                  @click="confirmDisconnect(item)"
-                >
-                  قطع الاتصال
-                </v-btn>
-              </template>
-
               <template v-if="item.status === 'connected'">
                 <v-btn
                   v-if="item.id === 'google_calendar'"
@@ -460,8 +410,14 @@ async function openCalendarSelectModal() {
 
   if (res.success && res.calendars) {
     userCalendars.value = res.calendars
-    const primaryCal = res.calendars.find((c) => c.primary)
-    selectedCalendarId.value = primaryCal ? primaryCal.id : res.calendars[0]?.id || null
+    const currentSavedId = integrationsStore.integrations.find((i) => i.id === 'google_calendar')?.config?.selectedCalendarId
+    const foundCal = res.calendars.find((c) => c.id === currentSavedId)
+    if (foundCal) {
+      selectedCalendarId.value = foundCal.id
+    } else {
+      const primaryCal = res.calendars.find((c) => c.primary)
+      selectedCalendarId.value = primaryCal ? primaryCal.id : res.calendars[0]?.id || null
+    }
   } else {
     calendarModalError.value = res.error || 'تعذر جلب تقاويم Google'
   }
@@ -477,9 +433,10 @@ async function saveCalendarSelection() {
 
   if (res.success) {
     showCalendarModal.value = false
+    await integrationsStore.fetchStatus()
     pingFeedback.value = {
       success: true,
-      message: 'تم حفظ وتوثيق التقويم الافتراضي وجاري مزامنة الجلسات بنجاح 🟢'
+      message: 'تم حفظ وتوثيق التقويم بنجاح وجاري مزامنة الجلسات 🟢'
     }
     await triggerManualSync()
   } else {
