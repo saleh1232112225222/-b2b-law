@@ -336,16 +336,12 @@ export class GoogleCalendarService {
     },
     userId?: string
   ): Promise<{ success: boolean; googleEventId?: string; reason?: string; error?: string }> {
-    if (eventData.existingGoogleEventId) {
-      return { success: true, googleEventId: eventData.existingGoogleEventId }
-    }
-
     const tokenInfo = await this.getValidAccessToken(companyId, userId)
     if (tokenInfo.needsReauth || !tokenInfo.accessToken) {
       return { success: false, reason: 'not_connected', error: tokenInfo.error || 'الخدمة غير متصلة' }
     }
 
-    const status = await this.getStatus(companyId)
+    const status = await this.getStatus(companyId, userId)
     if (!status.connected) {
       return { success: false, reason: 'not_connected', error: 'الخدمة غير متصلة' }
     }
@@ -353,32 +349,59 @@ export class GoogleCalendarService {
     const calendarId = status.selectedCalendarId || 'primary'
 
     // Demo / Mock OAuth token fallback
-    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
-      const mockEventId = eventData.existingGoogleEventId || `gcal_evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
+    if (
+      !tokenInfo.accessToken ||
+      tokenInfo.accessToken.startsWith('oauth_at_') ||
+      tokenInfo.accessToken.includes('MANUAL') ||
+      tokenInfo.accessToken.includes('DEMO')
+    ) {
+      const mockEventId =
+        eventData.existingGoogleEventId ||
+        `gcal_evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
       return { success: true, googleEventId: mockEventId }
     }
 
-    try {
-      const startTime = new Date(eventData.startTime as any)
-
-      if (isNaN(startTime.getTime())) {
-        return { success: false, reason: 'invalid_date', error: 'تاريخ الموعد غير صحيح' }
+    // If existing event ID is present, attempt update first
+    if (eventData.existingGoogleEventId) {
+      const updateRes = await this.updateCalendarEvent(
+        companyId,
+        eventData.existingGoogleEventId,
+        eventData,
+        userId
+      )
+      if (updateRes.success) {
+        return { success: true, googleEventId: eventData.existingGoogleEventId }
       }
+    }
 
-      const endTime = eventData.endTime
-        ? new Date(eventData.endTime)
-        : new Date(startTime.getTime() + 60 * 60 * 1000) // Default 1 hour duration
+    try {
+      let startIso = ''
+      let endIso = ''
+      if (eventData.startTime.includes('T')) {
+        const parts = eventData.startTime.split('T')
+        const d = parts[0]
+        let t = parts[1] || '09:00:00'
+        if (t.length === 5) t = `${t}:00`
+        t = t.substring(0, 8)
+        startIso = `${d}T${t}+03:00`
+        const [h, m, s] = t.split(':').map(Number)
+        const endH = String(Math.min(h + 1, 23)).padStart(2, '0')
+        endIso = `${d}T${endH}:${String(m || 0).padStart(2, '0')}:${String(s || 0).padStart(2, '0')}+03:00`
+      } else {
+        startIso = `${eventData.startTime}T09:00:00+03:00`
+        endIso = `${eventData.startTime}T10:00:00+03:00`
+      }
 
       const bodyPayload = {
         summary: eventData.summary,
         description: eventData.description || '',
         location: eventData.location || '',
         start: {
-          dateTime: startTime.toISOString(),
+          dateTime: startIso,
           timeZone: 'Asia/Riyadh'
         },
         end: {
-          dateTime: endTime.toISOString(),
+          dateTime: endIso,
           timeZone: 'Asia/Riyadh'
         }
       }
@@ -398,7 +421,11 @@ export class GoogleCalendarService {
 
       if (!res.ok) {
         const errText = await res.text().catch(() => '')
-        console.error('[GoogleCalendarService] Failed to create event:', res.status, errText)
+        console.error(
+          `[GoogleCalendarService] Failed to create event in calendar ${calendarId}:`,
+          res.status,
+          errText
+        )
         return { success: false, reason: 'api_error', error: `Google API Error HTTP ${res.status}` }
       }
 
@@ -437,7 +464,7 @@ export class GoogleCalendarService {
       return { success: false, reason: 'not_connected', error: tokenInfo.error || 'الخدمة غير متصلة' }
     }
 
-    const status = await this.getStatus(companyId)
+    const status = await this.getStatus(companyId, userId)
     if (!status.connected) {
       return { success: false, reason: 'not_connected', error: 'الخدمة غير متصلة' }
     }
@@ -445,26 +472,43 @@ export class GoogleCalendarService {
     const calendarId = status.selectedCalendarId || 'primary'
 
     // Demo / Mock OAuth token fallback
-    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
+    if (
+      !tokenInfo.accessToken ||
+      tokenInfo.accessToken.startsWith('oauth_at_') ||
+      tokenInfo.accessToken.includes('MANUAL') ||
+      tokenInfo.accessToken.includes('DEMO')
+    ) {
       return { success: true }
     }
 
     try {
-      const startTime = new Date(eventData.startTime)
-      const endTime = eventData.endTime
-        ? new Date(eventData.endTime)
-        : new Date(startTime.getTime() + 60 * 60 * 1000)
+      let startIso = ''
+      let endIso = ''
+      if (eventData.startTime.includes('T')) {
+        const parts = eventData.startTime.split('T')
+        const d = parts[0]
+        let t = parts[1] || '09:00:00'
+        if (t.length === 5) t = `${t}:00`
+        t = t.substring(0, 8)
+        startIso = `${d}T${t}+03:00`
+        const [h, m, s] = t.split(':').map(Number)
+        const endH = String(Math.min(h + 1, 23)).padStart(2, '0')
+        endIso = `${d}T${endH}:${String(m || 0).padStart(2, '0')}:${String(s || 0).padStart(2, '0')}+03:00`
+      } else {
+        startIso = `${eventData.startTime}T09:00:00+03:00`
+        endIso = `${eventData.startTime}T10:00:00+03:00`
+      }
 
       const bodyPayload = {
         summary: eventData.summary,
         description: eventData.description || '',
         location: eventData.location || '',
         start: {
-          dateTime: startTime.toISOString(),
+          dateTime: startIso,
           timeZone: 'Asia/Riyadh'
         },
         end: {
-          dateTime: endTime.toISOString(),
+          dateTime: endIso,
           timeZone: 'Asia/Riyadh'
         }
       }
@@ -512,7 +556,7 @@ export class GoogleCalendarService {
       return { success: false, reason: 'not_connected', error: tokenInfo.error || 'الخدمة غير متصلة' }
     }
 
-    const status = await this.getStatus(companyId)
+    const status = await this.getStatus(companyId, userId)
     if (!status.connected) {
       return { success: false, reason: 'not_connected', error: 'الخدمة غير متصلة' }
     }
@@ -520,7 +564,12 @@ export class GoogleCalendarService {
     const calendarId = status.selectedCalendarId || 'primary'
 
     // Demo / Mock OAuth token fallback
-    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
+    if (
+      !tokenInfo.accessToken ||
+      tokenInfo.accessToken.startsWith('oauth_at_') ||
+      tokenInfo.accessToken.includes('MANUAL') ||
+      tokenInfo.accessToken.includes('DEMO')
+    ) {
       return { success: true }
     }
 
@@ -555,14 +604,14 @@ export class GoogleCalendarService {
     companyId: string,
     userId?: string
   ): Promise<{ success: boolean; syncedCount: number; error?: string }> {
-    const status = await this.getStatus(companyId)
+    const status = await this.getStatus(companyId, userId)
     if (!status.connected) {
       return { success: false, syncedCount: 0, error: 'الخدمة غير متصلة' }
     }
 
     try {
       const sessionsRes = await query(
-        `SELECT s.id, s.date, s.time, s.court_room, s.notes, s.google_event_id, c.case_number, c.title as case_title
+        `SELECT s.id, s.date, s.time, s.court_room, s.notes, s.google_event_id, c.case_number, c.subject as case_title
          FROM sessions s
          LEFT JOIN cases c ON c.id = s.case_id
          WHERE s.company_id = $1 
@@ -588,7 +637,7 @@ export class GoogleCalendarService {
         const timeClean = sessionTime.length === 5 ? `${sessionTime}:00` : sessionTime
         const startTimeStr = `${dateStr}T${timeClean}`
         const summary = `جلسة قضائية: ${sess.case_title || sess.case_number || sess.court_room || 'جلسة محكمة'}`
-        const description = `جلسة قضائية\nرقم القضية: ${sess.case_number || 'غير محدد'}\nعنوان القضية: ${sess.case_title || 'غير محدد'}\nالقاعة/المحكمة: ${sess.court_room || 'غير محدد'}\nملاحظات: ${sess.notes || 'لا يوجد'}`
+        const description = `جلسة قضائية\nرقم القضية: ${sess.case_number || 'غير محدد'}\nموضوع الدعوى: ${sess.case_title || 'غير محدد'}\nالقاعة/المحكمة: ${sess.court_room || 'غير محدد'}\nملاحظات: ${sess.notes || 'لا يوجد'}`
 
         const createRes = await this.createCalendarEvent(
           companyId,
@@ -603,7 +652,7 @@ export class GoogleCalendarService {
         )
 
         if (createRes.success && createRes.googleEventId) {
-          if (!sess.google_event_id) {
+          if (!sess.google_event_id || sess.google_event_id !== createRes.googleEventId) {
             await query(`UPDATE sessions SET google_event_id = $1 WHERE id = $2 AND company_id = $3`, [
               createRes.googleEventId,
               sess.id,
