@@ -243,6 +243,8 @@ integrationsRouter.get('/oauth/callback', async (req: Request, res: Response) =>
       accessToken,
       refreshToken,
       verifiedViaOAuth: true,
+      selectedCalendarId: 'primary',
+      selectedCalendarSummary: 'التقويم الأساسي (Primary)',
       provider: service === 'outlook' ? 'Microsoft Graph API v1.0' : 'Google Calendar API v3',
       authorizedAt: now.toISOString()
     }
@@ -252,12 +254,20 @@ integrationsRouter.get('/oauth/callback', async (req: Request, res: Response) =>
        VALUES ($1, $2, $3, 'connected', $4, $5, $5)
        ON CONFLICT (company_id, service_name)
        DO UPDATE SET
+         user_id = EXCLUDED.user_id,
          status = 'connected',
          config_data = EXCLUDED.config_data,
          last_sync_at = EXCLUDED.last_sync_at,
          updated_at = EXCLUDED.updated_at`,
       [companyId, userId || null, service, JSON.stringify(config), now]
     )
+
+    // Auto-trigger sync immediately upon connecting
+    if (service === 'google_calendar') {
+      GoogleCalendarService.syncUpcomingSessions(companyId, userId).catch((syncErr) => {
+        console.error('[IntegrationsRouter] Auto-sync on OAuth connect failed:', syncErr?.message || syncErr)
+      })
+    }
 
     return res.redirect(
       `${FRONTEND_URL}/#/settings?oauth=success&service=${service}&email=${encodeURIComponent(verifiedEmail)}`
@@ -380,6 +390,7 @@ integrationsRouter.post('/ping/:service', authMiddleware, async (req: Request, r
 integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Response) => {
   try {
     const companyId = req.auth?.companyId
+    const userId = req.auth?.userId
     if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
 
     const now = new Date()
@@ -390,16 +401,20 @@ integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Respo
       [now, companyId]
     )
 
-    // Count sessions to sync
-    const sessionsRes = await query(
-      `SELECT COUNT(*)::int AS count FROM sessions WHERE company_id = $1`,
-      [companyId]
-    )
+    // Run Google Calendar sync if connected
+    const calStatus = await GoogleCalendarService.getStatus(companyId)
+    let syncedGoogleCount = 0
+    if (calStatus.connected) {
+      const gcalSync = await GoogleCalendarService.syncUpcomingSessions(companyId, userId)
+      if (gcalSync.success) {
+        syncedGoogleCount = gcalSync.syncedCount
+      }
+    }
 
     return res.json({
       success: true,
-      message: 'تمت المزامنة بنجاح مع الخدمات المربوطة',
-      synced_sessions_count: sessionsRes.rows[0]?.count || 0,
+      message: `تمت المزامنة بنجاح مع الخدمات المربوطة (${syncedGoogleCount} موعد تم رفعه لـ Google Calendar)`,
+      syncedCount: syncedGoogleCount,
       synced_at: now
     })
   } catch (err: any) {
@@ -454,33 +469,11 @@ integrationsRouter.post('/google_calendar/select', authMiddleware, async (req: R
 
     return res.json({
       message: 'تم حفظ التقويم الافتراضي بنجاح',
-      selectedCalendarId: result.selectedCalendarId
-    })
-  } catch (err: any) {
-    console.error('[IntegrationsRouter] Error selecting google_calendar calendar:', err.message)
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-})
-
-// 11. POST /api/integrations/sync - Batch Sync Unsynced Upcoming Sessions to Google Calendar
-integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const companyId = req.auth?.companyId
-    const userId = req.auth?.userId
-
-    if (!companyId) return res.status(400).json({ error: 'Company ID is required' })
-
-    const result = await GoogleCalendarService.syncUpcomingSessions(companyId, userId)
-    if (!result.success) {
-      return res.status(400).json({ error: result.error || 'فشلت المزامنة' })
-    }
-
-    return res.json({
-      message: 'تمت المزامنة بنجاح',
+      selectedCalendarId: result.selectedCalendarId,
       syncedCount: result.syncedCount
     })
   } catch (err: any) {
-    console.error('[IntegrationsRouter] Error syncing Google Calendar sessions:', err.message)
+    console.error('[IntegrationsRouter] Error selecting google_calendar calendar:', err.message)
     return res.status(500).json({ error: 'Internal server error' })
   }
 })

@@ -30,12 +30,24 @@ export class GoogleCalendarService {
    */
   static async getValidAccessToken(
     companyId: string,
-    _userId?: string
+    userId?: string
   ): Promise<{ accessToken: string | null; config: any; needsReauth: boolean; error?: string }> {
-    const dbRes = await query(
-      `SELECT config_data, status FROM office_integrations WHERE company_id = $1 AND service_name = 'google_calendar'`,
-      [companyId]
-    )
+    let dbRes = userId
+      ? await query(
+          `SELECT config_data, status FROM office_integrations 
+           WHERE company_id = $1 AND service_name = 'google_calendar' AND user_id = $2 AND status = 'connected'`,
+          [companyId, userId]
+        )
+      : { rows: [] }
+
+    if (dbRes.rows.length === 0) {
+      dbRes = await query(
+        `SELECT config_data, status FROM office_integrations 
+         WHERE company_id = $1 AND service_name = 'google_calendar' AND status = 'connected'
+         ORDER BY user_id NULLS LAST LIMIT 1`,
+        [companyId]
+      )
+    }
 
     if (dbRes.rows.length === 0 || dbRes.rows[0].status !== 'connected') {
       return {
@@ -266,11 +278,23 @@ export class GoogleCalendarService {
   /**
    * Retrieves sanitized integration status for the current user/company.
    */
-  static async getStatus(companyId: string): Promise<GoogleIntegrationStatus> {
-    const dbRes = await query(
-      `SELECT config_data, status FROM office_integrations WHERE company_id = $1 AND service_name = 'google_calendar'`,
-      [companyId]
-    )
+  static async getStatus(companyId: string, userId?: string): Promise<GoogleIntegrationStatus> {
+    let dbRes = userId
+      ? await query(
+          `SELECT config_data, status FROM office_integrations 
+           WHERE company_id = $1 AND service_name = 'google_calendar' AND user_id = $2 AND status = 'connected'`,
+          [companyId, userId]
+        )
+      : { rows: [] }
+
+    if (dbRes.rows.length === 0) {
+      dbRes = await query(
+        `SELECT config_data, status FROM office_integrations 
+         WHERE company_id = $1 AND service_name = 'google_calendar' AND status = 'connected'
+         ORDER BY user_id NULLS LAST LIMIT 1`,
+        [companyId]
+      )
+    }
 
     if (dbRes.rows.length === 0 || dbRes.rows[0].status !== 'connected') {
       return {
@@ -289,8 +313,8 @@ export class GoogleCalendarService {
     return {
       connected: true,
       googleEmail: config.accountEmail || null,
-      selectedCalendarId: config.selectedCalendarId || null,
-      selectedCalendarSummary: config.selectedCalendarSummary || null,
+      selectedCalendarId: config.selectedCalendarId || 'primary',
+      selectedCalendarSummary: config.selectedCalendarSummary || 'التقويم الأساسي الافتراضي (Primary)',
       tokenStatus: needsReauth ? 'expired' : 'valid',
       needsReauthorization: needsReauth
     }
@@ -542,7 +566,7 @@ export class GoogleCalendarService {
          FROM sessions s
          LEFT JOIN cases c ON c.id = s.case_id
          WHERE s.company_id = $1 
-           AND s.is_archived = FALSE
+           AND (s.is_archived = FALSE OR s.is_archived IS NULL)
          ORDER BY s.date ASC LIMIT 200`,
         [companyId]
       )

@@ -185,6 +185,56 @@
                 </v-btn>
               </template>
 
+              <template v-if="item.status === 'connected'">
+                <v-btn
+                  v-if="item.id === 'google_calendar'"
+                  color="primary"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  @click="openCalendarSelectModal()"
+                >
+                  <LucideIcon name="calendar" :size="14" class="me-1" />
+                  اختيار التقويم
+                </v-btn>
+
+                <v-btn
+                  v-if="item.id === 'google_calendar'"
+                  color="info"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="integrationsStore.syncing"
+                  @click="triggerManualSync()"
+                >
+                  <LucideIcon name="refresh-cw" :size="14" class="me-1" />
+                  مزامنة الجلسات القادمة
+                </v-btn>
+
+                <v-btn
+                  color="success"
+                  variant="outlined"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="pingingId === item.id"
+                  @click="testConnection(item)"
+                >
+                  <LucideIcon name="activity" :size="14" class="me-1" />
+                  فحص الاتصال الفعلي
+                </v-btn>
+
+                <v-btn
+                  color="error"
+                  variant="text"
+                  size="small"
+                  class="rounded-lg font-weight-bold"
+                  :loading="actionLoading === item.id"
+                  @click="confirmDisconnect(item)"
+                >
+                  قطع الاتصال
+                </v-btn>
+              </template>
+
               <v-btn
                 v-else
                 color="primary"
@@ -541,17 +591,23 @@ async function testConnection(item: IntegrationService) {
 }
 
 async function triggerManualSync() {
-  pingFeedback.value = {
-    success: true,
-    message: 'عزيزي المستخدم: ميزة التكامل والربط الخارجي قيد التطوير والترقية حالياً، وسوف تتاح بكامل خصائصها في الإصدارات القادمة بإذن الله 💡'
+  pingFeedback.value = null
+  const res = await integrationsStore.triggerSync()
+  if (res && res.success) {
+    pingFeedback.value = {
+      success: true,
+      message: res.message || `تمت مزامنة الجلسات بنجاح مع تقويم Google 🟢`
+    }
+  } else {
+    pingFeedback.value = {
+      success: false,
+      message: integrationsStore.error || 'تعذر إجراء المزامنة مع تقويم Google'
+    }
   }
 }
 
 async function handleSyncAll() {
-  pingFeedback.value = {
-    success: true,
-    message: 'عزيزي المستخدم: خدمات التكامل والربط الخارجي قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله 💡'
-  }
+  await triggerManualSync()
 }
 
 function formatDate(isoStr: string | null) {
