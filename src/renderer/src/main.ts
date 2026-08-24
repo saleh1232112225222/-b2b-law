@@ -18,6 +18,27 @@ app.use(createPinia())
 app.use(router)
 app.use(vuetify)
 
+// Auto-recover from chunk preload / dynamic import errors after new deployments
+if (typeof window !== 'undefined') {
+  window.addEventListener('vite:preloadError', () => {
+    console.warn('[Vite] Preload error detected after new deployment, reloading...')
+    window.location.reload()
+  })
+
+  window.addEventListener('error', (event) => {
+    const msg = String(event?.message || '')
+    if (
+      msg.includes('Failed to fetch dynamically imported module') ||
+      msg.includes('Importing a module script failed')
+    ) {
+      if (!sessionStorage.getItem('chunk_reload_done')) {
+        sessionStorage.setItem('chunk_reload_done', '1')
+        window.location.reload()
+      }
+    }
+  })
+}
+
 app.mount('#app')
 
 // Setup responsive data-label attributes for tables
