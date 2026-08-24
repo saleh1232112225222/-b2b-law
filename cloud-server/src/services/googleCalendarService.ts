@@ -691,13 +691,25 @@ export class GoogleCalendarService {
       await this.cleanupDuplicateEvents(companyId, userId).catch(() => ({}))
 
       const sessionsRes = await query(
-        `SELECT s.id, s.date, s.time, s.court_room, s.notes, s.google_event_id, c.case_number, c.subject as case_title
+        `SELECT 
+           s.id, 
+           s.date, 
+           s.time, 
+           s.court_room, 
+           s.notes, 
+           s.google_event_id, 
+           c.case_number, 
+           c.court as case_court, 
+           c.circuit as case_circuit, 
+           c.opponent_name,
+           cl.name as client_name
          FROM sessions s
          LEFT JOIN cases c ON c.id = s.case_id
+         LEFT JOIN clients cl ON cl.id = c.client_id
          WHERE s.company_id = $1 
            AND (s.is_archived = FALSE OR s.is_archived IS NULL)
            AND (s.date >= CURRENT_DATE - INTERVAL '30 days' OR s.date IS NULL)
-         ORDER BY s.date ASC LIMIT 100`,
+         ORDER BY s.date ASC LIMIT 150`,
         [companyId]
       )
 
@@ -714,18 +726,48 @@ export class GoogleCalendarService {
 
         if (!dateStr || !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) continue
 
-        const sessionTime = sess.time || '09:00'
+        const sessionTime = sess.time ? String(sess.time).substring(0, 5) : '09:00'
         const timeClean = sessionTime.length === 5 ? `${sessionTime}:00` : sessionTime
         const startTimeStr = `${dateStr}T${timeClean}`
-        const summary = `جلسة قضائية: ${sess.case_title || sess.case_number || sess.court_room || 'جلسة محكمة'}`
-        const description = `جلسة قضائية\nرقم القضية: ${sess.case_number || 'غير محدد'}\nموضوع الدعوى: ${sess.case_title || 'غير محدد'}\nالقاعة/المحكمة: ${sess.court_room || 'غير محدد'}\nملاحظات: ${sess.notes || 'لا يوجد'}`
+
+        const clientName = sess.client_name ? String(sess.client_name).trim() : ''
+        const opponentName = sess.opponent_name ? String(sess.opponent_name).trim() : ''
+        const courtName = sess.case_court ? String(sess.case_court).trim() : ''
+        const courtRoom = sess.court_room ? String(sess.court_room).trim() : ''
+        const fullCourt = [courtName, sess.case_circuit, courtRoom].filter(Boolean).join(' - ')
+
+        // Title format: جلسة: [الموكل] ضد [الخصم] - [المحكمة]
+        let summary = ''
+        if (clientName && opponentName) {
+          summary = `جلسة: ${clientName} ضد ${opponentName}`
+        } else if (clientName) {
+          summary = `جلسة: ${clientName}`
+        } else if (opponentName) {
+          summary = `جلسة ضد: ${opponentName}`
+        } else {
+          summary = `جلسة قضائية ${sess.case_number ? `(قضية ${sess.case_number})` : ''}`
+        }
+        if (courtName) {
+          summary += ` - ${courtName}`
+        }
+
+        // Clean structured description (Only Court, Time, Date, Client, Opponent)
+        const descriptionLines = [
+          `⚖️ تفاصيل الجلسة القضائية:`,
+          clientName ? `• الموكل: ${clientName}` : null,
+          opponentName ? `• الخصم: ${opponentName}` : null,
+          fullCourt ? `• المحكمة / القاعة: ${fullCourt}` : null,
+          `• التاريخ والساعة: ${dateStr} الساعة ${sessionTime}`,
+          sess.case_number ? `• رقم القضية: ${sess.case_number}` : null,
+          sess.notes ? `• ملاحظات: ${sess.notes}` : null
+        ].filter(Boolean).join('\n')
 
         const createRes = await this.createCalendarEvent(
           companyId,
           {
             summary,
-            description,
-            location: sess.court_room || '',
+            description: descriptionLines,
+            location: fullCourt || '',
             startTime: startTimeStr,
             existingGoogleEventId: sess.google_event_id,
             sessionId: sess.id

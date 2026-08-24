@@ -415,26 +415,59 @@ sessionsRouter.post(
       // PHASE 2-A: Async Google Calendar Event Creation (Graceful Fallback)
       try {
         let caseNumber = ''
-        let caseTitle = ''
+        let clientName = ''
+        let opponentName = ''
+        let courtName = ''
+        let circuit = ''
         if (body.case_id) {
           const caseRes = await query(
-            `SELECT case_number, title FROM cases WHERE id = $1 AND company_id = $2`,
+            `SELECT c.case_number, c.court, c.circuit, c.opponent_name, cl.name as client_name 
+             FROM cases c 
+             LEFT JOIN clients cl ON cl.id = c.client_id
+             WHERE c.id = $1 AND c.company_id = $2`,
             [body.case_id, companyId]
           )
           if (caseRes.rows.length > 0) {
             caseNumber = caseRes.rows[0].case_number || ''
-            caseTitle = caseRes.rows[0].title || ''
+            clientName = caseRes.rows[0].client_name || ''
+            opponentName = caseRes.rows[0].opponent_name || ''
+            courtName = caseRes.rows[0].court || ''
+            circuit = caseRes.rows[0].circuit || ''
           }
         }
 
         const sessionDate = body.date
-        const sessionTime = body.time || '09:00'
+        const sessionTime = body.time ? String(body.time).substring(0, 5) : '09:00'
         if (sessionDate) {
           const timeClean = sessionTime.length === 5 ? `${sessionTime}:00` : sessionTime
           const startTimeStr = `${sessionDate}T${timeClean}`
-          const summary = `جلسة قضائية: ${caseTitle || caseNumber || body.court_room || 'جلسة محكمة'}`
-          const description = `جلسة قضائية محليّة\nرقم القضية: ${caseNumber || 'غير محدد'}\nعنوان القضية: ${caseTitle || 'غير محدد'}\nالقاعة/المحكمة: ${body.court_room || 'غير محدد'}\nملاحظات: ${body.notes || 'لا يوجد'}`
-          const location = body.court_room || ''
+          const fullCourt = [courtName, circuit, body.court_room].filter(Boolean).join(' - ')
+
+          let summary = ''
+          if (clientName && opponentName) {
+            summary = `جلسة: ${clientName} ضد ${opponentName}`
+          } else if (clientName) {
+            summary = `جلسة: ${clientName}`
+          } else if (opponentName) {
+            summary = `جلسة ضد: ${opponentName}`
+          } else {
+            summary = `جلسة قضائية ${caseNumber ? `(قضية ${caseNumber})` : ''}`
+          }
+          if (courtName) {
+            summary += ` - ${courtName}`
+          }
+
+          const description = [
+            `⚖️ تفاصيل الجلسة القضائية:`,
+            clientName ? `• الموكل: ${clientName}` : null,
+            opponentName ? `• الخصم: ${opponentName}` : null,
+            fullCourt ? `• المحكمة / القاعة: ${fullCourt}` : null,
+            `• التاريخ والساعة: ${sessionDate} الساعة ${sessionTime}`,
+            caseNumber ? `• رقم القضية: ${caseNumber}` : null,
+            body.notes ? `• ملاحظات: ${body.notes}` : null
+          ].filter(Boolean).join('\n')
+
+          const location = fullCourt || ''
 
           const calRes = await GoogleCalendarService.createCalendarEvent(
             companyId,
@@ -443,7 +476,8 @@ sessionsRouter.post(
               description,
               location,
               startTime: startTimeStr,
-              existingGoogleEventId: body.google_event_id
+              existingGoogleEventId: body.google_event_id,
+              sessionId: id
             },
             req.auth?.userId
           )
