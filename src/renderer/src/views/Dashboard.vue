@@ -4,6 +4,16 @@
     <v-container fluid class="dashboard-viewport">
       <DashboardKpiCards :stats="stats" :is-mobile="isMobile" @navigate="$router.push($event)" />
 
+      <ActivationJourneyCard
+        v-if="showActivationJourney"
+        class="mt-3"
+        :clients="activationClientsCount"
+        :cases="activationCasesCount"
+        :sessions="sessionsStore.totalSessions"
+        :days-remaining="licensingStore.daysRemaining"
+        @navigate="$router.push($event)"
+      />
+
       <v-row v-if="loading" class="mt-3">
         <v-col cols="12" lg="8">
           <v-skeleton-loader type="list-item-avatar-two-line@3, table@2" class="rounded-xl mb-4" />
@@ -175,6 +185,7 @@ import { useTasksStore } from '../stores/tasks'
 import { useLegalStore } from '../stores/legal'
 import { useAgenciesStore } from '../stores/agencies'
 import { useSyncStore } from '../stores/sync'
+import { useLicensingStore } from '../stores/licensing'
 import { safeArray, safeLength } from '../utils/safe'
 import { useMobileLayout } from '../composables/useMobileLayout'
 import { setFabAction, clearFabAction } from '../composables/useFabAction'
@@ -193,6 +204,7 @@ import DashboardBottomStrip from './dashboard/DashboardBottomStrip.vue'
 import DashboardQuickActions from './dashboard/DashboardQuickActions.vue'
 import DashboardAgencyDialog from './dashboard/DashboardAgencyDialog.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import ActivationJourneyCard from '../components/subscription/ActivationJourneyCard.vue'
 import PieChart from '../components/charts/PieChart.vue'
 import TimeSeriesLineChart from '../components/charts/TimeSeriesLineChart.vue'
 import { computeImportantDates, getSixMonthKeys, getMonthRange } from '../utils/dashboardAnalytics'
@@ -206,10 +218,25 @@ const tasksStore = useTasksStore()
 const legalStore = useLegalStore()
 const agenciesStore = useAgenciesStore()
 const syncStore = useSyncStore()
+const licensingStore = useLicensingStore()
 
 const { isMobile } = useMobileLayout()
 const route = useRoute()
 const router = useRouter()
+
+const showActivationJourney = computed(() => {
+  if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    return licensingStore.subscriptionStatus?.status === 'trial'
+  }
+  if (licensingStore.subscriptionStatus) return licensingStore.subscriptionStatus.status === 'trial'
+  return Boolean(licensingStore.trialInfo && !licensingStore.trialInfo.isActivated)
+})
+const activationClientsCount = computed(() =>
+  Math.max(safeLength(clientsStore.clients), clientsStore.total || 0)
+)
+const activationCasesCount = computed(() =>
+  Math.max(safeLength(casesStore.cases), casesStore.total || 0)
+)
 
 const handleQuickAction = async (action: string) => {
   if (action === 'sync') {
@@ -718,6 +745,8 @@ const fetchData = async () => {
     safeCall('الخدمات القانونية', () => legalStore.fetchServices({ page: 1, pageSize: 1 }), 4500),
     safeCall('جلسات اليوم', () => sessionsStore.fetchTodaySessions(25), 8000),
     safeCall('جلسات الغد', () => sessionsStore.fetchTomorrowSessions(25), 8000),
+    safeCall('إجمالي الجلسات', () => sessionsStore.countSessions(), 8000),
+    safeCall('حالة الاشتراك', () => licensingStore.refreshStatus(), 8000),
     safeCall('المهام المعلقة', () => tasksStore.fetchPendingTasks(), 8000),
     safeCall('تنبيهات الوكالات', () => fetchAgencyAlerts(), 8000),
     safeCall(

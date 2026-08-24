@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
     base: '/',
     build: {
       outDir: isCapacitorBuild ? resolve('dist/capacitor') : resolve('dist/web'),
-      emptyOutDir: true,
+      emptyOutDir: false,
       rollupOptions: {
         output: {
           manualChunks: (id) => {

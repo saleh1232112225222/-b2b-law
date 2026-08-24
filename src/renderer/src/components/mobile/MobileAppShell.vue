@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useFabAction } from '../../composables/useFabAction'
 import '../../assets/mobile.css'
@@ -54,6 +54,7 @@ import MobileHeader from './MobileHeader.vue'
 import MobileDrawer from './MobileDrawer.vue'
 import MobileBottomNav from './MobileBottomNav.vue'
 import MobileErrorBoundary from './MobileErrorBoundary.vue'
+import { resetMobileScroll } from '../../utils/mobileScroll'
 
 defineProps<{
   isDark: boolean
@@ -87,6 +88,15 @@ const showFab = computed(() => {
   ]
   return fabRoutes.includes(route.path)
 })
+
+watch(
+  () => route.fullPath,
+  async () => {
+    await nextTick()
+    resetMobileScroll()
+  },
+  { flush: 'post' }
+)
 
 const handleScroll = () => {
   const currentY = window.scrollY

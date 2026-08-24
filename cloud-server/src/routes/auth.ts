@@ -284,8 +284,14 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       userQuery += ` AND u.company_id = $${params.length}`
     }
 
-    // Order by most recently created first — ensures admin login picks the latest seed
-    userQuery += ` ORDER BY u.created_at DESC`
+    // Prioritize super admin 'admin' user in owner company (00000000-0000-0000-0000-000000000000)
+    userQuery += ` ORDER BY 
+      CASE 
+        WHEN u.username = 'admin' AND u.company_id = '00000000-0000-0000-0000-000000000000' THEN 0
+        WHEN u.company_id = '00000000-0000-0000-0000-000000000000' THEN 1
+        ELSE 2
+      END,
+      u.created_at DESC`
 
     const result = await query(userQuery, params)
     if (result.rows.length === 0) {
@@ -761,8 +767,14 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
               c.is_deleted, c.is_verified, c.trial_expires_at
        FROM users u
        JOIN companies c ON c.id = u.company_id
-       WHERE u.google_user_id = $1 OR u.recovery_email = $2
-       ORDER BY u.created_at DESC LIMIT 1`,
+       WHERE u.google_user_id = $1 OR LOWER(u.recovery_email) = LOWER($2)
+       ORDER BY 
+         CASE 
+           WHEN u.username = 'admin' AND u.company_id = '00000000-0000-0000-0000-000000000000' THEN 0
+           WHEN u.company_id = '00000000-0000-0000-0000-000000000000' THEN 1
+           ELSE 2
+         END,
+         u.created_at DESC LIMIT 1`,
       [googleSub, googleEmail]
     )
 

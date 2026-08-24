@@ -135,6 +135,16 @@
       </v-row>
     </div>
 
+    <div v-if="showActivationJourney" class="px-4 mb-4">
+      <ActivationJourneyCard
+        :clients="totalClientsCount"
+        :cases="Math.max(safeArray(casesStore.cases).length, casesStore.total || 0)"
+        :sessions="sessionsStore.totalSessions"
+        :days-remaining="licensingStore.daysRemaining"
+        @navigate="router.push($event)"
+      />
+    </div>
+
     <!-- CASE PIPELINE (100% REAL DATABASE COUNTS) -->
     <div class="px-4 mb-4">
       <div class="section-card pa-3 rounded-xl">
@@ -660,7 +670,9 @@ import { useCasesStore } from '../../stores/cases'
 import { useSessionsStore } from '../../stores/sessions'
 import { useFinanceStore } from '../../stores/finance'
 import { useTasksStore } from '../../stores/tasks'
+import { useLicensingStore } from '../../stores/licensing'
 import LucideIcon from '../common/LucideIcon.vue'
+import ActivationJourneyCard from '../subscription/ActivationJourneyCard.vue'
 import { safeArray } from '../../utils/safe'
 import { getCasePipelineStage } from '../../utils/legalConstants'
 import { gregorianIsoToHijriIso } from '../../utils/hijriIso'
@@ -671,8 +683,16 @@ const casesStore = useCasesStore()
 const sessionsStore = useSessionsStore()
 const financeStore = useFinanceStore()
 const tasksStore = useTasksStore()
+const licensingStore = useLicensingStore()
 
 const loading = ref(true)
+const showActivationJourney = computed(() => {
+  if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
+    return licensingStore.subscriptionStatus?.status === 'trial'
+  }
+  if (licensingStore.subscriptionStatus) return licensingStore.subscriptionStatus.status === 'trial'
+  return Boolean(licensingStore.trialInfo && !licensingStore.trialInfo.isActivated)
+})
 
 const userInitial = computed(() => {
   try {
@@ -1112,7 +1132,8 @@ onMounted(async () => {
       casesStore.fetchAllCases(),
       sessionsStore.listSessions({}),
       financeStore.fetchFinanceData(),
-      tasksStore.fetchTasks()
+      tasksStore.fetchTasks(),
+      licensingStore.refreshStatus()
     ])
   } catch (err) {
     console.error('MobileDashboard load error:', err)
