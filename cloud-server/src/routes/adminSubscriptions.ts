@@ -468,6 +468,74 @@ adminSubscriptionRouter.post('/cancel', requireAdminRole, async (req: Request, r
 })
 
 /**
+ * DELETE /api/admin/subscriptions/:companyId
+ * نقل مشترك إلى سلة المحذوفات (Soft Delete)
+ */
+adminSubscriptionRouter.delete(
+  '/:companyId',
+  requireAdminRole,
+  async (req: Request, res: Response) => {
+    try {
+      const { companyId } = req.params
+      const auth = req.auth as AuthPayload
+
+      if (!companyId) {
+        return res.status(400).json({ error: 'معرف الشركة مطلوب' })
+      }
+
+      if (
+        companyId ===
+        (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')
+      ) {
+        return res.status(403).json({ error: 'لا يمكن حذف الشركة المالكة للنظام' })
+      }
+
+      await ensureSoftDeleteColumns()
+
+      const companyCheck = await query(
+        'SELECT id, name, is_deleted FROM companies WHERE id = $1',
+        [companyId]
+      )
+      if (companyCheck.rows.length === 0) {
+        return res.status(404).json({ error: 'المشترك غير موجود' })
+      }
+
+      // Soft delete company
+      await query(
+        `UPDATE companies 
+         SET is_deleted = TRUE, deleted_at = NOW(), deleted_by = $1, updated_at = NOW()
+         WHERE id = $2`,
+        [auth.userId || null, companyId]
+      )
+
+      // Suspend & deactivate users in this company
+      await query(
+        `UPDATE users 
+         SET is_active = FALSE, is_suspended = TRUE, updated_at = NOW() 
+         WHERE company_id = $1`,
+        [companyId]
+      )
+
+      // Cancel subscription
+      await query(
+        `UPDATE subscriptions 
+         SET status = 'canceled', canceled_at = NOW(), updated_at = NOW() 
+         WHERE company_id = $1`,
+        [companyId]
+      )
+
+      res.json({
+        success: true,
+        message: `تم نقل المشترك "${companyCheck.rows[0].name}" إلى سلة المحذوفات بنجاح`
+      })
+    } catch (err) {
+      console.error('[ADMIN] Failed to soft delete company:', err)
+      res.status(500).json({ error: 'فشل حذف المشترك' })
+    }
+  }
+)
+
+/**
  * GET /api/admin/subscriptions/deleted
  * جلب جميع المشتركين المحذوفين (سلة المحذوفات)
  */
