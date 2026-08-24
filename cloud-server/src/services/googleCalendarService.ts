@@ -611,7 +611,7 @@ export class GoogleCalendarService {
   }
 
   /**
-   * Cleans up duplicate events in the selected Google Calendar.
+   * Cleans up duplicate and legacy events in the selected Google Calendar.
    */
   static async cleanupDuplicateEvents(
     companyId: string,
@@ -626,7 +626,7 @@ export class GoogleCalendarService {
     const calendarId = status.selectedCalendarId || 'primary'
 
     try {
-      const timeMin = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+      const timeMin = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString()
       const timeMax = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString()
       const listUrl = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&maxResults=2500&singleEvents=true`
 
@@ -645,11 +645,34 @@ export class GoogleCalendarService {
       let cleaned = 0
 
       for (const evt of events) {
-        if (!evt.id || !evt.summary) continue
+        if (!evt.id) continue
+        const desc = evt.description || ''
+        const summary = evt.summary || ''
+
+        // Purge old legacy format events that contain "موضوع الدعوى" or old title prefix
+        const isLegacyOldFormat =
+          desc.includes('موضوع الدعوى:') ||
+          desc.includes('جلسة قضائية محليّة') ||
+          summary.startsWith('جلسة قضائية:')
+
+        if (isLegacyOldFormat) {
+          try {
+            await fetch(
+              `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encodeURIComponent(evt.id)}`,
+              {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${tokenInfo.accessToken}` }
+              }
+            )
+            cleaned++
+            continue
+          } catch (e) {}
+        }
+
         const dateKey = evt.start?.dateTime
           ? evt.start.dateTime.substring(0, 16)
           : evt.start?.date || ''
-        const key = `${evt.summary.trim()}|${dateKey}`
+        const key = `${summary.trim()}|${dateKey}`
 
         if (seen.has(key)) {
           // Duplicate found -> Delete the duplicate extra copy from Google Calendar
