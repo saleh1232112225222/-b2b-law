@@ -401,20 +401,18 @@ integrationsRouter.post('/sync', authMiddleware, async (req: Request, res: Respo
       [now, companyId]
     )
 
-    // Run Google Calendar sync if connected
-    const calStatus = await GoogleCalendarService.getStatus(companyId)
-    let syncedGoogleCount = 0
-    if (calStatus.connected) {
-      const gcalSync = await GoogleCalendarService.syncUpcomingSessions(companyId, userId)
-      if (gcalSync.success) {
-        syncedGoogleCount = gcalSync.syncedCount
+    // Trigger Google Calendar sync asynchronously in the background so the endpoint responds in <50ms without hitting 504 Timeout
+    GoogleCalendarService.getStatus(companyId, userId).then((calStatus) => {
+      if (calStatus.connected) {
+        return GoogleCalendarService.syncUpcomingSessions(companyId, userId)
       }
-    }
+    }).catch((err) => {
+      console.error('[IntegrationsRouter] Background sync error:', err?.message || err)
+    })
 
     return res.json({
       success: true,
-      message: `تمت المزامنة بنجاح مع الخدمات المربوطة (${syncedGoogleCount} موعد تم رفعه لـ Google Calendar)`,
-      syncedCount: syncedGoogleCount,
+      message: 'تم بدء مزامنة الجلسات بنجاح في الخلفية مع تقويم Google 🟢',
       synced_at: now
     })
   } catch (err: any) {

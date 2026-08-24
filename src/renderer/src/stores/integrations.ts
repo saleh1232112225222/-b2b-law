@@ -67,11 +67,11 @@ export const useIntegrationsStore = defineStore('integrations', () => {
   }
 
   async function startOAuthFlow(serviceId: string, demo = false) {
+    error.value = null
     try {
       const endpoint = `/api/integrations/oauth/authorize/${serviceId}${demo ? '?demo=true' : ''}`
       const data = await apiFetch<{ authUrl: string; redirectUri: string }>(endpoint)
       if (data.authUrl) {
-        // Redirect browser to Microsoft / Google OAuth consent screen or Demo Callback
         window.location.href = data.authUrl
         return true
       }
@@ -85,6 +85,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
 
   async function connectService(serviceId: string, config?: Record<string, any>) {
     loading.value = true
+    error.value = null
     try {
       await apiFetch(`/api/integrations/connect/${serviceId}`, {
         method: 'POST',
@@ -103,6 +104,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
 
   async function disconnectService(serviceId: string) {
     loading.value = true
+    error.value = null
     try {
       await apiFetch(`/api/integrations/disconnect/${serviceId}`, {
         method: 'POST'
@@ -131,6 +133,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
   }
 
   async function triggerSync() {
+    error.value = null
     syncing.value = true
     try {
       const res = await apiFetch<{ success: boolean; message: string }>('/api/integrations/sync', {
@@ -169,6 +172,7 @@ export const useIntegrationsStore = defineStore('integrations', () => {
   }
 
   async function selectGoogleCalendar(calendarId: string) {
+    error.value = null
     try {
       const res = await apiFetch<{ success: boolean; selectedCalendarId?: string; message?: string }>(
         '/api/integrations/google_calendar/select',
