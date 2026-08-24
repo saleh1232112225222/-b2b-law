@@ -265,13 +265,14 @@ export class GoogleCalendarService {
       [JSON.stringify(updatedConfig), companyId]
     )
 
-    // Automatically trigger batch sync for upcoming sessions to the newly selected calendar
-    const syncRes = await this.syncUpcomingSessions(companyId, userId)
+    // Trigger batch sync in background asynchronously so HTTP response is instant (<100ms) and never hits 504 Gateway Timeout
+    this.syncUpcomingSessions(companyId, userId).catch((err) => {
+      console.error('[GoogleCalendarService] Background sync error after calendar selection:', err)
+    })
 
     return {
       success: true,
-      selectedCalendarId: targetCal.id,
-      syncedCount: syncRes.syncedCount
+      selectedCalendarId: targetCal.id
     }
   }
 
@@ -616,7 +617,8 @@ export class GoogleCalendarService {
          LEFT JOIN cases c ON c.id = s.case_id
          WHERE s.company_id = $1 
            AND (s.is_archived = FALSE OR s.is_archived IS NULL)
-         ORDER BY s.date ASC LIMIT 200`,
+           AND (s.date >= CURRENT_DATE - INTERVAL '30 days' OR s.date IS NULL)
+         ORDER BY s.date ASC LIMIT 100`,
         [companyId]
       )
 
