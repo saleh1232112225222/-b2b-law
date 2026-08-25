@@ -42,7 +42,7 @@
             {{ task.context_label }}
           </v-chip>
 
-          <div v-if="task.case_number || task.client_name" class="mt-3 d-flex flex-wrap gap-2">
+          <div v-if="task.case_number || task.client_name" class="mt-3 d-flex flex-wrap align-center gap-2">
             <v-chip
               v-if="task.case_number"
               size="small"
@@ -52,7 +52,8 @@
               style="cursor: pointer"
               @click.stop="emit('view-case', task.case_id)"
             >
-              قضية: {{ task.case_number }}
+              <LucideIcon name="gavel" :size="14" class="me-1 text-primary" />
+              <span>قضية: {{ task.case_number }}</span>
             </v-chip>
             <v-chip
               v-if="task.client_name"
@@ -61,7 +62,8 @@
               variant="tonal"
               class="font-weight-bold rounded-lg"
             >
-              موكل: {{ task.client_name }}
+              <LucideIcon name="user" :size="14" class="me-1 text-success" />
+              <span>الموكل: {{ task.client_name }}</span>
             </v-chip>
           </div>
 

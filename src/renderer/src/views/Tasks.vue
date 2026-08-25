@@ -126,7 +126,7 @@
                     v-for="task in safeArray(getTasksByPriority(priority))"
                     v-else
                     :key="task.id"
-                    :task="task"
+                    :task="resolveTaskClientAndCase(task)"
                     :can-cancel="canCancel"
                     :can-close="canClose"
                     :can-archive="canArchive"
@@ -162,27 +162,30 @@
 
     <!-- Dialogs -->
     <v-dialog v-model="showDialog" width="90%" max-width="800" persistent scrollable>
-      <v-card class="rounded-xl elevation-24 overflow-hidden modal-card glass-card">
-        <v-toolbar color="rgba(15, 23, 42, 0.95)" class="px-6 border-b text-white" height="72">
-          <div class="pa-2 rounded-lg bg-accent-alpha me-4">
-            <LucideIcon :name="isEditing ? 'pencil' : 'list-plus'" :size="24" class="text-accent" />
+      <v-card class="session-dialog-card overflow-hidden rounded-xl">
+        <div class="session-dialog-header d-flex align-center py-4 px-6 border-b">
+          <div class="icon-circle-gold me-3">
+            <LucideIcon :name="isEditing ? 'edit-3' : 'list-plus'" :size="20" />
           </div>
-          <v-toolbar-title class="font-weight-black text-white">
-            {{ isEditing ? 'تعديل تفاصيل المهمة التشغيلية' : 'إسناد مهمة قانونية أو إدارية جديدة' }}
-          </v-toolbar-title>
+          <div>
+            <h3 class="text-h6 font-weight-black text-navy mb-0">
+              {{ isEditing ? 'تعديل تفاصيل المهمة التشغيلية' : 'إسناد مهمة قانونية أو إدارية جديدة' }}
+            </h3>
+            <span class="text-caption text-muted-gray">
+              {{ isEditing ? 'تعديل بيانات وإسناد المهمة ومخرجاتها' : 'إسناد مهمة جديدة لفريق العمل ومتابعة إنجازها' }}
+            </span>
+          </div>
           <v-spacer></v-spacer>
           <v-btn
-            class="premium-btn-gold-gradient"
             icon
             variant="text"
-            color="white"
+            class="rounded-circle close-btn"
             @click="showDialog = false"
           >
-            <LucideIcon name="x" :size="24" />
+            <LucideIcon name="x" :size="20" />
           </v-btn>
-        </v-toolbar>
-
-        <v-card-text class="pa-8 modal-scrollable glass-card">
+        </div>
+        <v-card-text class="pa-8 modal-scrollable bg-app">
           <v-form ref="formRef" v-model="formValid">
             <v-row>
               <v-col cols="12">
@@ -502,21 +505,21 @@
           </v-form>
         </v-card-text>
 
-        <v-divider></v-divider>
-        <v-card-actions class="pa-8 modal-footer-solid modal-footer-sticky glass-card">
+        <v-divider class="flex-shrink-0" />
+        <v-card-actions class="pa-4 session-dialog-footer d-flex align-center flex-wrap ga-3">
           <v-btn
             variant="outlined"
             size="large"
-            class="px-12 font-weight-black rounded-lg text-white btn-secondary"
+            class="pill-btn-cancel px-6"
             @click="showDialog = false"
-            >إلغاء</v-btn
           >
-          <v-spacer></v-spacer>
+            إلغاء
+          </v-btn>
+          <v-spacer />
           <v-btn
-            variant="outlined"
-            color="gold"
+            variant="flat"
             size="large"
-            class="px-12 font-weight-black btn1-unified action-btn-unified h-56 premium-btn-gold-gradient"
+            class="pill-btn-gold-filled px-8"
             :disabled="!formValid"
             :loading="saving"
             @click="handleSave"
@@ -592,12 +595,36 @@ const { isMobile } = useMobileLayout()
 const { session } = usePermissions()
 const clientOptions = computed(() => safeArray(clientsStore.clients))
 
+const resolveTaskClientAndCase = (task: any) => {
+  if (!task) return task
+  let clientName = task.client_name
+  let caseNumber = task.case_number
+  if ((!clientName || !caseNumber) && task.case_id) {
+    const foundCase = casesStore.cases?.find((c: any) => c.id === task.case_id)
+    if (foundCase) {
+      if (!clientName) clientName = foundCase.client_name
+      if (!caseNumber) caseNumber = foundCase.case_number
+    }
+  }
+  if (!clientName && task.client_id) {
+    const foundClient = clientsStore.clients?.find((c: any) => c.id === task.client_id)
+    if (foundClient) {
+      clientName = foundClient.name
+    }
+  }
+  return {
+    ...task,
+    client_name: clientName,
+    case_number: caseNumber
+  }
+}
+
 const mobileTasks = computed(() => {
   const all: any[] = []
   for (const p of ['عالية', 'متوسطة', 'منخفضة'] as const) {
     all.push(...safeArray((store.itemsByPriority as any)[p]))
   }
-  return all
+  return all.map(resolveTaskClientAndCase)
 })
 
 const { search } = useSearch((val) => {
@@ -809,6 +836,8 @@ onMounted(() => {
   store.setStatusFilter(filterStatus.value as any)
   store.refresh()
   loadAssignableUsers()
+  if (!safeLength(casesStore.cases) && !casesStore.loading) casesStore.fetchAllCases()
+  if (!safeLength(clientsStore.clients) && !clientsStore.loading) clientsStore.fetchAllClients()
 
   if (route.query.new === '1') {
     setTimeout(() => {
@@ -1238,12 +1267,6 @@ onUnmounted(() => {
   transform: translateY(-2px) !important;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
   border-color: rgba(233, 195, 73, 0.8) !important;
-}
-
-.modal-footer-solid {
-  background: rgba(15, 23, 42, 0.95) !important;
-  opacity: 1 !important;
-  border-top: 1px solid rgba(233, 195, 73, 0.2) !important;
 }
 
 .action-btn-unified {

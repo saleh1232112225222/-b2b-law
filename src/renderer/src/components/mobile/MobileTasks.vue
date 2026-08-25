@@ -111,8 +111,8 @@
                 variant="tonal"
                 class="font-weight-bold rounded-lg"
               >
-                <v-icon icon="mdi-account-tie" size="14" class="me-1" />
-                <span>موكل: {{ task.client_name }}</span>
+                <v-icon icon="mdi-account-tie" size="14" class="me-1 text-success" />
+                <span>الموكل: {{ task.client_name }}</span>
               </v-chip>
 
               <v-chip
