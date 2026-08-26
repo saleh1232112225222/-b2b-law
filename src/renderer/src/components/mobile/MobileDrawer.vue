@@ -56,8 +56,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { computed } from 'vue'
 import LucideIcon from '../common/LucideIcon.vue'
+import { usePermissions } from '../../composables/usePermissions'
 
 const props = defineProps<{
   modelValue: boolean
@@ -72,6 +73,8 @@ const emit = defineEmits<{
   'toggle-theme': []
 }>()
 
+const { session } = usePermissions()
+
 const localDrawer = computed({
   get: () => props.modelValue,
   set: (val: boolean) => emit('update:modelValue', val)
@@ -82,18 +85,34 @@ const handleLogout = () => {
   emit('logout')
 }
 
-const moreItems = [
-  { title: 'المهام', icon: 'mdi-clipboard-list', to: '/tasks' },
-  { title: 'المالية', icon: 'mdi-bank', to: '/finance' },
-  { title: 'الخدمات القانونية', icon: 'mdi-scale-balance', to: '/legal-services' },
-  { title: 'المستندات', icon: 'mdi-file-document', to: '/documents' },
-  { title: 'المذكرات', icon: 'mdi-file-document-edit', to: '/memoranda' },
-  { title: 'العقود', icon: 'mdi-file-sign', to: '/contracts' },
-  { title: 'التنفيذ', icon: 'mdi-gavel', to: '/enforcement' },
-  { title: 'الملفات', icon: 'mdi-folder-lock', to: '/vault' },
-  { title: 'التقارير', icon: 'mdi-chart-box', to: '/reports' },
-  { title: 'الأرشيف', icon: 'mdi-archive', to: '/archive' },
-  { title: 'الملف الشخصي', icon: 'mdi-account', to: '/profile' },
-  { title: 'الإعدادات', icon: 'mdi-cog', to: '/settings' }
-]
+const isSuperAdminUser = computed(() => {
+  return (session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000'
+})
+
+const moreItems = computed(() => {
+  const items = [
+    { title: 'المهام', icon: 'mdi-clipboard-list', to: '/tasks' },
+    { title: 'المالية', icon: 'mdi-bank', to: '/finance' },
+    { title: 'الخدمات القانونية', icon: 'mdi-scale-balance', to: '/legal-services' },
+    { title: 'المستندات', icon: 'mdi-file-document', to: '/documents' },
+    { title: 'المذكرات', icon: 'mdi-file-document-edit', to: '/memoranda' },
+    { title: 'العقود', icon: 'mdi-file-sign', to: '/contracts' },
+    { title: 'التنفيذ', icon: 'mdi-gavel', to: '/enforcement' },
+    { title: 'الملفات', icon: 'mdi-folder-lock', to: '/vault' },
+    { title: 'التقارير', icon: 'mdi-chart-box', to: '/reports' },
+    { title: 'الأرشيف', icon: 'mdi-archive', to: '/archive' },
+    { title: 'الملف الشخصي', icon: 'mdi-account', to: '/profile' },
+    { title: 'الإعدادات', icon: 'mdi-cog', to: '/settings' }
+  ]
+
+  if (isSuperAdminUser.value) {
+    items.unshift({
+      title: 'إدارة الاشتراكات',
+      icon: 'mdi-crown',
+      to: '/admin/subscriptions'
+    })
+  }
+
+  return items
+})
 </script>

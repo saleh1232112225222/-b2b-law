@@ -2,24 +2,24 @@
   <div class="admin-subscriptions-page">
     <!-- Vuetify Header -->
     <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
-      <v-card-text class="d-flex align-center justify-space-between pa-6">
+      <v-card-text class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between pa-4 pa-md-6 gap-4">
         <div class="d-flex align-center">
           <v-avatar color="gold-lighten-4" size="56" class="me-4">
             <v-icon icon="mdi-crown" class="text-gold" size="32"></v-icon>
           </v-avatar>
           <div>
-            <h1 class="text-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
-            <div class="text-subtitle-1 text-medium-emphasis">
+            <h1 class="text-h5 text-md-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
+            <div class="text-subtitle-2 text-md-subtitle-1 text-medium-emphasis">
               إدارة اشتراكات العملاء وتفعيل الخطط
             </div>
           </div>
         </div>
 
-        <div class="d-flex gap-4">
+        <div class="d-flex flex-wrap gap-2 gap-md-4 w-100 w-md-auto justify-start justify-md-end">
           <v-btn
             color="error"
             size="x-large"
-            class="font-weight-bold rounded-lg mr-4"
+            class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
             elevation="2"
             prepend-icon="mdi-delete-restore"
             @click="$router.push('/admin/recycle-bin')"
@@ -29,7 +29,7 @@
           <v-btn
             color="secondary"
             size="x-large"
-            class="font-weight-bold rounded-lg mr-4"
+            class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
             elevation="2"
             prepend-icon="mdi-file-chart"
             @click="openReportDialog"
@@ -39,7 +39,7 @@
           <v-btn
             color="gold"
             size="x-large"
-            class="font-weight-bold rounded-lg text-ebony"
+            class="font-weight-bold rounded-lg text-ebony flex-grow-1 flex-md-grow-0"
             elevation="2"
             prepend-icon="mdi-plus"
             @click="openAddSubscriberDialog"
