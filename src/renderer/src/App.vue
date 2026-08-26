@@ -247,6 +247,14 @@
 
     <!-- Global Quick View Drawer -->
     <QuickViewDrawer />
+
+    <!-- Inactivity / Idle Timeout Modal -->
+    <IdleTimeoutModal
+      :model-value="isWarningVisible"
+      :countdown="countdown"
+      @extend="extendSession"
+      @logout="handleManualLogout"
+    />
   </v-app>
 </template>
 
@@ -257,7 +265,9 @@ import { usePermissions } from './composables/usePermissions'
 import { useLicensingStore } from './stores/licensing'
 import { useAppStore } from './stores/app'
 import { useMobileLayout } from './composables/useMobileLayout'
+import { useIdleTimeout } from './composables/useIdleTimeout'
 import QuickViewDrawer from './components/common/QuickViewDrawer.vue'
+import IdleTimeoutModal from './components/common/IdleTimeoutModal.vue'
 import appLogo from './assets/app-logo.png'
 
 const route = useRoute()
@@ -266,6 +276,10 @@ const { can, session } = usePermissions()
 const licensingStore = useLicensingStore()
 const appStore = useAppStore()
 const { isMobile } = useMobileLayout()
+
+const { isWarningVisible, countdown, extendSession, handleManualLogout } = useIdleTimeout(() => {
+  handleLogout(true)
+})
 
 const isDark = ref(localStorage.getItem('theme') === 'dark')
 
