@@ -1,11 +1,5 @@
 <template>
   <div class="mobile-legal-services w-100 h-100 d-flex flex-column rtl">
-    <MobileHeader
-      title="الخدمات القانونية"
-      :is-dark="true"
-      @toggle-drawer="emit('toggle-drawer')"
-    />
-
     <!-- Search & Filter -->
     <div class="pa-4 pb-0">
       <v-text-field
@@ -175,7 +169,6 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import MobileHeader from './MobileHeader.vue'
 import MobilePaymentDialog from './MobilePaymentDialog.vue'
 import LucideIcon from '../common/LucideIcon.vue'
 import { useLegalStore } from '../../stores/legal'
