@@ -87,6 +87,18 @@
               <LucideIcon name="crown" :size="18" class="me-2" />
               {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
             </v-btn>
+
+            <v-btn
+              v-if="isSuperAdmin"
+              block
+              color="primary"
+              variant="outlined"
+              class="font-weight-black rounded-xl mt-3 btn-gold-outline"
+              @click="$router.push('/admin/subscriptions')"
+            >
+              <LucideIcon name="crown" :size="18" class="me-2 text-gold" />
+              لوحة إدارة اشتراكات العملاء (Super Admin)
+            </v-btn>
           </div>
         </v-card>
       </v-col>
@@ -639,6 +651,10 @@ import SettingsOfficeCard from './settings/SettingsOfficeCard.vue'
 import SettingsLicensingCard from './settings/SettingsLicensingCard.vue'
 import SettingsSecurityCard from './settings/SettingsSecurityCard.vue'
 import SettingsIntegrationsCard from './settings/SettingsIntegrationsCard.vue'
+import { usePermissions } from '../composables/usePermissions'
+
+const { session } = usePermissions()
+const isSuperAdmin = computed(() => (session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000')
 
 interface AppSettings {
   officeName: string
