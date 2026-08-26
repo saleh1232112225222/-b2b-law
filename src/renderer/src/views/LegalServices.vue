@@ -1,6 +1,5 @@
 <template>
-  <MobileLegalServices v-if="isMobile && isEnabled" />
-  <v-container v-else-if="!isEnabled" fluid class="pa-6 pb-12 rtl text-center">
+  <v-container v-if="!isEnabled" fluid class="pa-6 pb-12 rtl text-center">
     <v-row justify="center" class="mt-12">
       <v-col cols="12" md="6">
         <v-card class="glass-card pa-8 border-gold">
@@ -17,9 +16,17 @@
     </v-row>
   </v-container>
 
-  <v-container v-else fluid class="pa-6 pb-12 rtl">
-    <!-- Header -->
-    <v-row dense class="mb-8 align-center">
+  <template v-else>
+    <!-- Mobile View -->
+    <MobileLegalServices
+      v-if="isMobile"
+      @add-engagement="openCreate"
+    />
+
+    <!-- Desktop View -->
+    <v-container v-else fluid class="pa-6 pb-12 rtl">
+      <!-- Header -->
+      <v-row dense class="mb-8 align-center">
       <v-col>
         <div class="d-flex align-center">
           <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
@@ -301,8 +308,9 @@
         </div>
       </div>
     </v-card>
+  </v-container>
 
-    <!-- Add/Edit Dialog -->
+  <!-- Add/Edit Dialog -->
     <v-dialog v-model="showDialog" max-width="850" persistent scrollable>
       <v-card class="modal-card overflow-hidden">
         <v-card-title class="pa-6 modal-header-solid d-flex align-center">
@@ -1001,7 +1009,7 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
     </v-snackbar>
-  </v-container>
+  </template>
 </template>
 
 <script setup lang="ts">
