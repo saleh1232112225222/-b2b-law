@@ -1,200 +1,398 @@
 <template>
-  <div class="admin-subscriptions-page">
-    <!-- Vuetify Header -->
-    <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
-      <v-card-text class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between pa-4 pa-md-6 gap-4">
-        <div class="d-flex align-center">
-          <v-avatar color="gold-lighten-4" size="56" class="me-4">
-            <v-icon icon="mdi-crown" class="text-gold" size="32"></v-icon>
-          </v-avatar>
-          <div>
-            <h1 class="text-h5 text-md-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
-            <div class="text-subtitle-2 text-md-subtitle-1 text-medium-emphasis">
-              إدارة اشتراكات العملاء وتفعيل الخطط
+  <div class="admin-subscriptions-page" :class="{ 'pa-2': isMobile, 'pa-6': !isMobile }">
+    <!-- MOBILE VIEW (When browser shrinks or on mobile devices) -->
+    <div v-if="isMobile" class="mobile-admin-subscriptions">
+      <!-- Mobile Header Card -->
+      <v-card class="mb-3 rounded-2xl border-gold border-1 bg-surface" elevation="0">
+        <v-card-text class="pa-4">
+          <div class="d-flex align-center mb-3">
+            <v-avatar color="gold-lighten-4" size="44" class="me-3">
+              <v-icon icon="mdi-crown" class="text-gold" size="24"></v-icon>
+            </v-avatar>
+            <div>
+              <h1 class="text-subtitle-1 font-weight-black text-primary mb-0">إدارة الاشتراكات</h1>
+              <div class="text-caption text-medium-emphasis">
+                إدارة اشتراكات العملاء وتفعيل الخطط
+              </div>
             </div>
           </div>
+
+          <!-- Mobile Action Buttons -->
+          <div class="d-flex flex-wrap gap-2">
+            <v-btn
+              color="gold"
+              size="small"
+              class="font-weight-bold rounded-lg text-ebony flex-grow-1"
+              elevation="1"
+              prepend-icon="mdi-plus"
+              @click="openAddSubscriberDialog"
+            >
+              إضافة مشترك
+            </v-btn>
+            <v-btn
+              color="secondary"
+              size="small"
+              class="font-weight-bold rounded-lg flex-grow-1"
+              elevation="1"
+              prepend-icon="mdi-file-chart"
+              @click="openReportDialog"
+            >
+              التقرير
+            </v-btn>
+            <v-btn
+              color="error"
+              size="small"
+              class="font-weight-bold rounded-lg flex-grow-1"
+              elevation="1"
+              prepend-icon="mdi-delete-restore"
+              @click="$router.push('/admin/recycle-bin')"
+            >
+              المحذوفات
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Mobile Stats Grid -->
+      <div class="mobile-stats-grid mb-3">
+        <div class="mobile-stat-card active-stat">
+          <div class="mobile-stat-num text-success">{{ stats.activeCount || 0 }}</div>
+          <div class="mobile-stat-title">نشط</div>
+        </div>
+        <div class="mobile-stat-card trial-stat">
+          <div class="mobile-stat-num text-warning">{{ stats.trialCount || 0 }}</div>
+          <div class="mobile-stat-title">تجربة</div>
+        </div>
+        <div class="mobile-stat-card expired-stat">
+          <div class="mobile-stat-num text-error">{{ stats.expiredCount || 0 }}</div>
+          <div class="mobile-stat-title">منتهية</div>
+        </div>
+        <div class="mobile-stat-card canceled-stat">
+          <div class="mobile-stat-num text-grey">{{ stats.canceledCount || 0 }}</div>
+          <div class="mobile-stat-title">ملغاة</div>
+        </div>
+        <div class="mobile-stat-card none-stat">
+          <div class="mobile-stat-num text-medium-emphasis">{{ stats.noSubscriptionCount || 0 }}</div>
+          <div class="mobile-stat-title">بدون اشتراك</div>
+        </div>
+      </div>
+
+      <!-- Mobile Subscribers Cards List -->
+      <div class="mobile-subscribers-list d-flex flex-column gap-3">
+        <div
+          v-if="companies.length === 0"
+          class="text-center pa-6 text-medium-emphasis bg-surface rounded-2xl border-gold border-1"
+        >
+          <v-icon icon="mdi-account-off" size="36" class="mb-2 opacity-50" />
+          <div class="text-body-2 font-weight-bold">لا يوجد مشتركون حالياً</div>
         </div>
 
-        <div class="d-flex flex-wrap gap-2 gap-md-4 w-100 w-md-auto justify-start justify-md-end">
-          <v-btn
-            color="error"
-            size="x-large"
-            class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
-            elevation="2"
-            prepend-icon="mdi-delete-restore"
-            @click="$router.push('/admin/recycle-bin')"
-          >
-            سلة المحذوفات
-          </v-btn>
-          <v-btn
-            color="secondary"
-            size="x-large"
-            class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
-            elevation="2"
-            prepend-icon="mdi-file-chart"
-            @click="openReportDialog"
-          >
-            توليد التقرير
-          </v-btn>
-          <v-btn
-            color="gold"
-            size="x-large"
-            class="font-weight-bold rounded-lg text-ebony flex-grow-1 flex-md-grow-0"
-            elevation="2"
-            prepend-icon="mdi-plus"
-            @click="openAddSubscriberDialog"
-          >
-            إضافة مشترك جديد
-          </v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+        <v-card
+          v-for="company in companies"
+          :key="company.id"
+          class="rounded-2xl border-gold border-1 bg-surface mb-2"
+          elevation="0"
+        >
+          <v-card-text class="pa-4">
+            <!-- Header: Company Name & Status Badge -->
+            <div class="d-flex justify-space-between align-center mb-3">
+              <div class="d-flex align-center gap-2">
+                <v-avatar color="primary" size="32" class="text-white font-weight-bold text-caption">
+                  {{ (company.companyName || 'C').charAt(0) }}
+                </v-avatar>
+                <div>
+                  <a
+                    v-if="company.userId"
+                    href="#"
+                    class="text-subtitle-2 font-weight-black text-primary text-decoration-none"
+                    @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
+                  >
+                    {{ company.companyName }}
+                  </a>
+                  <span v-else class="text-subtitle-2 font-weight-black text-primary">
+                    {{ company.companyName }}
+                  </span>
+                  <div class="text-caption text-medium-emphasis">
+                    @{{ company.username || '-' }}
+                  </div>
+                </div>
+              </div>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon active"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ stats.activeCount }}</div>
-          <div class="stat-label">نشط</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon trial"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ stats.trialCount }}</div>
-          <div class="stat-label">تجربة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon expired"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ stats.expiredCount }}</div>
-          <div class="stat-label">منتهية</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon canceled"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ stats.canceledCount }}</div>
-          <div class="stat-label">ملغاة</div>
-        </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon none"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ stats.noSubscriptionCount }}</div>
-          <div class="stat-label">بدون اشتراك</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="table-container">
-      <table class="subscriptions-table">
-        <thead>
-          <tr>
-            <th>اسم الشركة</th>
-            <th>اسم المستخدم</th>
-            <th>البريد الإلكتروني</th>
-            <th>الهاتف</th>
-            <th>الحالة</th>
-            <th>الخطة</th>
-            <th>الأيام المتبقية</th>
-            <th>تاريخ الانتهاء</th>
-            <th>الإجراءات</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="company in companies" :key="company.id">
-            <td>
-              <a
-                v-if="company.userId"
-                href="#"
-                class="text-primary font-weight-bold text-decoration-underline"
-                style="cursor: pointer"
-                @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
-                >{{ company.companyName }}</a
-              >
-              <span v-else>{{ company.companyName }}</span>
-            </td>
-            <td>
-              <a
-                v-if="company.userId"
-                href="#"
-                class="text-primary font-weight-bold text-decoration-underline"
-                style="cursor: pointer"
-                @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
-                >{{ company.username || '-' }}</a
-              >
-              <span v-else>{{ company.username || '-' }}</span>
-            </td>
-            <td>{{ company.email }}</td>
-            <td>{{ company.phone }}</td>
-            <td>
               <span class="status-badge" :class="getStatusClass(company.effectiveStatus)">
                 {{ getStatusText(company.effectiveStatus) }}
               </span>
-            </td>
-            <td>{{ translatePlanName(company.planName) }}</td>
-            <td>{{ company.daysRemaining }}</td>
-            <td>{{ formatDate(company.expiryDate) }}</td>
-            <td class="actions">
-              <button class="btn-icon" title="تفعيل الاشتراك" @click="openActivateDialog(company)">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              <button class="btn-icon" title="تمديد الاشتراك" @click="openExtendDialog(company)">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M4 4v5h.01M20 14v5h-5M14 14l-5 5m0-5l5-5" />
-                </svg>
-              </button>
-              <button
-                class="btn-icon danger"
-                title="تعليق الاشتراك"
-                @click="suspendSubscription(company)"
+            </div>
+
+            <!-- Details Grid -->
+            <div class="mobile-details-box pa-3 rounded-xl mb-3 bg-surface-variant bg-opacity-30">
+              <div class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">الخطة:</span>
+                <span class="font-weight-bold text-primary">{{ translatePlanName(company.planName) }}</span>
+              </div>
+              <div class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">الأيام المتبقية:</span>
+                <span class="font-weight-black" :class="company.daysRemaining > 7 ? 'text-success' : 'text-error'">
+                  {{ company.daysRemaining }} يوم
+                </span>
+              </div>
+              <div class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">تاريخ الانتهاء:</span>
+                <span class="font-weight-medium">{{ formatDate(company.expiryDate) }}</span>
+              </div>
+              <div v-if="company.email" class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">البريد:</span>
+                <span class="font-weight-medium text-truncate" style="max-width: 180px">{{ company.email }}</span>
+              </div>
+              <div v-if="company.phone" class="d-flex justify-space-between align-center text-caption">
+                <span class="text-medium-emphasis">الهاتف:</span>
+                <span class="font-weight-medium" dir="ltr">{{ company.phone }}</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 justify-end pt-1">
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="success"
+                class="rounded-lg font-weight-bold flex-grow-1"
+                prepend-icon="mdi-check-circle"
+                @click="openActivateDialog(company)"
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M10 11l-4 4m0 0l4-4m-4 4V7m8 14l4-4m-4 0l4 4" />
-                </svg>
-              </button>
-              <button class="btn-icon" title="إلغاء الاشتراك" @click="cancelSubscription(company)">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
+                تفعيل
+              </v-btn>
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="primary"
+                class="rounded-lg font-weight-bold flex-grow-1"
+                prepend-icon="mdi-clock-fast"
+                @click="openExtendDialog(company)"
+              >
+                تمديد
+              </v-btn>
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="warning"
+                class="rounded-lg font-weight-bold"
+                icon="mdi-pause-circle"
+                title="تعليق"
+                @click="suspendSubscription(company)"
+              />
+              <v-btn
+                size="small"
+                variant="tonal"
+                color="error"
+                class="rounded-lg font-weight-bold"
+                icon="mdi-close-circle"
+                title="إلغاء"
+                @click="cancelSubscription(company)"
+              />
+            </div>
+          </v-card-text>
+        </v-card>
+      </div>
     </div>
+
+    <!-- DESKTOP VIEW (When browser is large - 100% UNTOUCHED) -->
+    <template v-else>
+      <!-- Vuetify Header -->
+      <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
+        <v-card-text class="d-flex flex-column flex-md-row align-start align-md-center justify-space-between pa-4 pa-md-6 gap-4">
+          <div class="d-flex align-center">
+            <v-avatar color="gold-lighten-4" size="56" class="me-4">
+              <v-icon icon="mdi-crown" class="text-gold" size="32"></v-icon>
+            </v-avatar>
+            <div>
+              <h1 class="text-h5 text-md-h4 font-weight-bold text-primary mb-1">إدارة الاشتراكات</h1>
+              <div class="text-subtitle-2 text-md-subtitle-1 text-medium-emphasis">
+                إدارة اشتراكات العملاء وتفعيل الخطط
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap gap-2 gap-md-4 w-100 w-md-auto justify-start justify-md-end">
+            <v-btn
+              color="error"
+              size="x-large"
+              class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
+              elevation="2"
+              prepend-icon="mdi-delete-restore"
+              @click="$router.push('/admin/recycle-bin')"
+            >
+              سلة المحذوفات
+            </v-btn>
+            <v-btn
+              color="secondary"
+              size="x-large"
+              class="font-weight-bold rounded-lg mr-0 mr-md-4 flex-grow-1 flex-md-grow-0"
+              elevation="2"
+              prepend-icon="mdi-file-chart"
+              @click="openReportDialog"
+            >
+              توليد التقرير
+            </v-btn>
+            <v-btn
+              color="gold"
+              size="x-large"
+              class="font-weight-bold rounded-lg text-ebony flex-grow-1 flex-md-grow-0"
+              elevation="2"
+              prepend-icon="mdi-plus"
+              @click="openAddSubscriberDialog"
+            >
+              إضافة مشترك جديد
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon active"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.activeCount }}</div>
+            <div class="stat-label">نشط</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon trial"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.trialCount }}</div>
+            <div class="stat-label">تجربة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon expired"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.expiredCount }}</div>
+            <div class="stat-label">منتهية</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon canceled"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.canceledCount }}</div>
+            <div class="stat-label">ملغاة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon none"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ stats.noSubscriptionCount }}</div>
+            <div class="stat-label">بدون اشتراك</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="table-container">
+        <table class="subscriptions-table">
+          <thead>
+            <tr>
+              <th>اسم الشركة</th>
+              <th>اسم المستخدم</th>
+              <th>البريد الإلكتروني</th>
+              <th>الهاتف</th>
+              <th>الحالة</th>
+              <th>الخطة</th>
+              <th>الأيام المتبقية</th>
+              <th>تاريخ الانتهاء</th>
+              <th>الإجراءات</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="company in companies" :key="company.id">
+              <td>
+                <a
+                  v-if="company.userId"
+                  href="#"
+                  class="text-primary font-weight-bold text-decoration-underline"
+                  style="cursor: pointer"
+                  @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
+                  >{{ company.companyName }}</a
+                >
+                <span v-else>{{ company.companyName }}</span>
+              </td>
+              <td>
+                <a
+                  v-if="company.userId"
+                  href="#"
+                  class="text-primary font-weight-bold text-decoration-underline"
+                  style="cursor: pointer"
+                  @click.prevent="$router.push(`/admin/subscriber/${company.userId}`)"
+                  >{{ company.username || '-' }}</a
+                >
+                <span v-else>{{ company.username || '-' }}</span>
+              </td>
+              <td>{{ company.email }}</td>
+              <td>{{ company.phone }}</td>
+              <td>
+                <span class="status-badge" :class="getStatusClass(company.effectiveStatus)">
+                  {{ getStatusText(company.effectiveStatus) }}
+                </span>
+              </td>
+              <td>{{ translatePlanName(company.planName) }}</td>
+              <td>{{ company.daysRemaining }}</td>
+              <td>{{ formatDate(company.expiryDate) }}</td>
+              <td class="actions">
+                <button class="btn-icon" title="تفعيل الاشتراك" @click="openActivateDialog(company)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+                <button class="btn-icon" title="تمديد الاشتراك" @click="openExtendDialog(company)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M4 4v5h.01M20 14v5h-5M14 14l-5 5m0-5l5-5" />
+                  </svg>
+                </button>
+                <button
+                  class="btn-icon danger"
+                  title="تعليق الاشتراك"
+                  @click="suspendSubscription(company)"
+                >
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M10 11l-4 4m0 0l4-4m-4 4V7m8 14l4-4m-4 0l4 4" />
+                  </svg>
+                </button>
+                <button class="btn-icon" title="إلغاء الاشتراك" @click="cancelSubscription(company)">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </template>
 
     <!-- Add Subscriber Vuetify Dialog -->
     <v-dialog v-model="showAddSubscriberDialog" max-width="650px" persistent>
@@ -565,6 +763,9 @@
 <script setup lang="ts">
 // @ts-nocheck
 import { ref, reactive, onMounted, watch } from 'vue'
+import { useMobileLayout } from '../../renderer/src/composables/useMobileLayout'
+
+const { isMobile } = useMobileLayout()
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -1392,7 +1593,60 @@ async function printReport() {
   cursor: pointer;
 }
 
+.mobile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+}
+
+.mobile-stat-card {
+  background: var(--surface, #ffffff);
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 12px;
+  padding: 10px 8px;
+  text-align: center;
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.05));
+}
+
+.mobile-stat-num {
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.mobile-stat-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-secondary, #64748b);
+  margin-top: 2px;
+}
+
+.active-stat {
+  border-top: 3px solid #10b981;
+}
+.trial-stat {
+  border-top: 3px solid #f59e0b;
+}
+.expired-stat {
+  border-top: 3px solid #ef4444;
+}
+.canceled-stat {
+  border-top: 3px solid #94a3b8;
+}
+.none-stat {
+  border-top: 3px solid #64748b;
+}
+
+.mobile-details-box {
+  background: var(--surface-variant, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
 @media (max-width: 768px) {
+  .admin-subscriptions-page {
+    padding: 8px !important;
+  }
+
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
