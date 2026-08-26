@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
 
   return {
     root: resolve('src/renderer'),
+    cacheDir: resolve('node_modules/.vite_cache'),
     base: '/',
     build: {
       outDir: isCapacitorBuild ? resolve('dist/capacitor') : resolve('dist/web'),
