@@ -1,10 +1,15 @@
 <template>
-  <v-container fluid class="pa-6 rtl">
+  <v-container fluid :class="{ 'pa-2': isMobile, 'pa-6': !isMobile }" class="rtl">
     <MobileMemoranda
       v-if="isMobile"
       :items="safeArray(filteredMemos)"
       :loading="memorandaStore.loading"
       @add="openAddDialog"
+      @edit="openEditDialog"
+      @preview="openPreviewDialog"
+      @delete="confirmDelete"
+      @print="printSingle"
+      @refresh="fetchData"
     />
     <template v-else>
       <!-- Header -->
@@ -626,8 +631,12 @@ const filteredMemos = computed(() => {
   )
 })
 
-onMounted(async () => {
+const fetchData = async () => {
   await Promise.all([memorandaStore.fetchAll(), casesStore.fetchAllCases()])
+}
+
+onMounted(async () => {
+  await fetchData()
 })
 
 const onCaseChange = (caseId: any) => {
