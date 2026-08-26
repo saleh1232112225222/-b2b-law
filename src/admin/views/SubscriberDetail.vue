@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="pa-6 rtl">
+  <v-container fluid :class="{ 'pa-2': isMobile, 'pa-6': !isMobile }" class="rtl">
     <!-- Loading -->
     <div v-if="loading" class="d-flex justify-center py-16">
       <v-progress-circular indeterminate color="gold" :size="48" />
@@ -360,6 +360,9 @@
 // @ts-nocheck
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { useMobileLayout } from '../../renderer/src/composables/useMobileLayout'
+
+const { isMobile } = useMobileLayout()
 
 const route = useRoute()
 const userId = route.params.userId as string

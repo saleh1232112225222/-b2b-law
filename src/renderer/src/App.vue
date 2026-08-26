@@ -324,6 +324,8 @@ const currentRouteName = computed(() => {
     LegalServices: 'الخدمات القانونية',
     LegalServicesReport: 'تقرير الخدمات القانونية',
     AdminSubscriptions: 'إدارة الاشتراكات',
+    AdminRecycleBin: 'سلة المحذوفات',
+    SubscriberDetail: 'تفاصيل المشترك',
     AdminDashboard: 'لوحة تحكم المشرف',
     Briefing: 'المتابعة الشاملة',
     SessionRoom: 'غرفة عمليات الجلسة',

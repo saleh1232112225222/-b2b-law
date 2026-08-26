@@ -1,134 +1,266 @@
 <template>
-  <div class="admin-recycle-bin-page">
-    <!-- Header -->
-    <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
-      <v-card-text class="d-flex align-center justify-space-between pa-6">
-        <div class="d-flex align-center">
-          <v-avatar color="error-lighten-4" size="56" class="me-4">
-            <v-icon icon="mdi-delete-restore" class="text-error" size="32"></v-icon>
-          </v-avatar>
-          <div>
-            <h1 class="text-h4 font-weight-bold text-primary mb-1">سلة المحذوفات</h1>
-            <div class="text-subtitle-1 text-medium-emphasis">
-              المشتركون المحذوفون - يمكن استعادتهم في أي وقت
+  <div class="admin-recycle-bin-page" :class="{ 'pa-2': isMobile, 'pa-6': !isMobile }">
+    <!-- MOBILE VIEW -->
+    <div v-if="isMobile" class="mobile-admin-recycle-bin">
+      <!-- Mobile Header Card -->
+      <v-card class="mb-3 rounded-2xl border-gold border-1 bg-surface" elevation="0">
+        <v-card-text class="pa-4">
+          <div class="d-flex align-center justify-space-between mb-3">
+            <div class="d-flex align-center">
+              <v-avatar color="error-lighten-4" size="44" class="me-3">
+                <v-icon icon="mdi-delete-restore" class="text-error" size="24"></v-icon>
+              </v-avatar>
+              <div>
+                <h1 class="text-subtitle-1 font-weight-black text-primary mb-0">سلة المحذوفات</h1>
+                <div class="text-caption text-medium-emphasis">
+                  المشتركون المحذوفون ({{ deletedCompanies.length }})
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="d-flex gap-4">
           <v-btn
+            block
             color="secondary"
-            size="large"
-            class="font-weight-bold rounded-lg mr-4"
-            elevation="2"
+            size="small"
+            class="font-weight-bold rounded-lg"
+            elevation="1"
             prepend-icon="mdi-arrow-right"
             @click="$router.push('/admin/subscriptions')"
           >
             العودة لإدارة الاشتراكات
           </v-btn>
-        </div>
-      </v-card-text>
-    </v-card>
+        </v-card-text>
+      </v-card>
 
-    <!-- Stats -->
-    <div class="stats-grid mb-6">
-      <div class="stat-card">
-        <div class="stat-icon deleted"></div>
-        <div class="stat-info">
-          <div class="stat-value">{{ deletedCompanies.length }}</div>
-          <div class="stat-label">مشترك محذوف</div>
-        </div>
+      <!-- Loading State -->
+      <v-card v-if="isLoading" class="rounded-2xl border-gold border-1 mb-3" elevation="0">
+        <v-card-text class="text-center pa-8">
+          <v-progress-circular indeterminate color="gold" size="36" class="mb-2"></v-progress-circular>
+          <div class="text-caption text-medium-emphasis">جارٍ تحميل البيانات...</div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Empty State -->
+      <v-card
+        v-else-if="deletedCompanies.length === 0"
+        class="rounded-2xl border-gold border-1 mb-3"
+        elevation="0"
+      >
+        <v-card-text class="text-center pa-8">
+          <v-avatar color="success-lighten-4" size="64" class="mb-3">
+            <v-icon icon="mdi-check-circle" class="text-success" size="36"></v-icon>
+          </v-avatar>
+          <h3 class="text-subtitle-1 font-weight-bold text-primary mb-1">سلة المحذوفات فارغة</h3>
+          <div class="text-caption text-medium-emphasis">لا يوجد مشتركون محذوفون حالياً</div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Mobile Deleted Subscribers Cards List -->
+      <div v-else class="mobile-deleted-list d-flex flex-column gap-3">
+        <v-card
+          v-for="company in deletedCompanies"
+          :key="company.id"
+          class="rounded-2xl border-gold border-1 bg-surface mb-2"
+          elevation="0"
+        >
+          <v-card-text class="pa-4">
+            <!-- Header: Company Name & Status Badge -->
+            <div class="d-flex justify-space-between align-center mb-3">
+              <div>
+                <div class="text-subtitle-2 font-weight-black text-primary">
+                  {{ company.companyName }}
+                </div>
+                <div class="text-caption text-medium-emphasis">
+                  @{{ company.username || '-' }}
+                </div>
+              </div>
+              <span class="status-badge" :class="getStatusClass(company.subscriptionStatus)">
+                {{ getStatusText(company.subscriptionStatus) }}
+              </span>
+            </div>
+
+            <!-- Details Grid -->
+            <div class="mobile-details-box pa-3 rounded-xl mb-3 bg-surface-variant bg-opacity-30">
+              <div class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">نوع الاشتراك:</span>
+                <span class="font-weight-bold text-primary">{{ company.planName || '-' }}</span>
+              </div>
+              <div v-if="company.email" class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">البريد:</span>
+                <span class="font-weight-medium text-truncate" style="max-width: 180px">{{ company.email }}</span>
+              </div>
+              <div class="d-flex justify-space-between align-center mb-1.5 text-caption">
+                <span class="text-medium-emphasis">تم الحذف بواسطة:</span>
+                <span class="font-weight-medium">{{ company.deletedBy || '-' }}</span>
+              </div>
+              <div class="d-flex justify-space-between align-center text-caption">
+                <span class="text-medium-emphasis">تاريخ الحذف:</span>
+                <span class="font-weight-medium">{{ formatDate(company.deletedAt) }}</span>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex gap-2 justify-end pt-1">
+              <v-btn
+                color="success"
+                variant="tonal"
+                size="small"
+                class="rounded-lg font-weight-bold flex-grow-1"
+                prepend-icon="mdi-restore"
+                :loading="restoringId === company.id"
+                @click="restoreCompany(company)"
+              >
+                استعادة
+              </v-btn>
+              <v-btn
+                color="error"
+                variant="outlined"
+                size="small"
+                class="rounded-lg font-weight-bold flex-grow-1"
+                prepend-icon="mdi-delete-forever"
+                @click="confirmPermanentDelete(company)"
+              >
+                حذف دائم
+              </v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
       </div>
     </div>
 
-    <!-- Loading -->
-    <v-card v-if="isLoading" class="rounded-xl border-gold border-1" elevation="0">
-      <v-card-text class="text-center pa-12">
-        <v-progress-circular
-          indeterminate
-          color="gold"
-          size="48"
-          class="mb-4"
-        ></v-progress-circular>
-        <div class="text-subtitle-1 text-medium-emphasis">جارٍ تحميل البيانات...</div>
-      </v-card-text>
-    </v-card>
+    <!-- DESKTOP VIEW (100% UNTOUCHED) -->
+    <template v-else>
+      <!-- Header -->
+      <v-card class="mb-6 rounded-xl border-gold border-1 bg-surface" elevation="0">
+        <v-card-text class="d-flex align-center justify-space-between pa-6">
+          <div class="d-flex align-center">
+            <v-avatar color="error-lighten-4" size="56" class="me-4">
+              <v-icon icon="mdi-delete-restore" class="text-error" size="32"></v-icon>
+            </v-avatar>
+            <div>
+              <h1 class="text-h4 font-weight-bold text-primary mb-1">سلة المحذوفات</h1>
+              <div class="text-subtitle-1 text-medium-emphasis">
+                المشتركون المحذوفون - يمكن استعادتهم في أي وقت
+              </div>
+            </div>
+          </div>
 
-    <!-- Empty State -->
-    <v-card
-      v-else-if="deletedCompanies.length === 0"
-      class="rounded-xl border-gold border-1"
-      elevation="0"
-    >
-      <v-card-text class="text-center pa-12">
-        <v-avatar color="success-lighten-4" size="80" class="mb-4">
-          <v-icon icon="mdi-check-circle" class="text-success" size="48"></v-icon>
-        </v-avatar>
-        <h3 class="text-h5 font-weight-bold text-primary mb-2">سلة المحذوفات فارغة</h3>
-        <div class="text-subtitle-1 text-medium-emphasis">لا يوجد مشتركون محذوفون حالياً</div>
-      </v-card-text>
-    </v-card>
+          <div class="d-flex gap-4">
+            <v-btn
+              color="secondary"
+              size="large"
+              class="font-weight-bold rounded-lg mr-4"
+              elevation="2"
+              prepend-icon="mdi-arrow-right"
+              @click="$router.push('/admin/subscriptions')"
+            >
+              العودة لإدارة الاشتراكات
+            </v-btn>
+          </div>
+        </v-card-text>
+      </v-card>
 
-    <!-- Deleted Companies Table -->
-    <v-card v-else class="rounded-xl border-gold border-1" elevation="0">
-      <v-card-text class="pa-0">
-        <div class="table-container">
-          <table class="subscriptions-table">
-            <thead>
-              <tr>
-                <th>اسم الشركة</th>
-                <th>اسم المستخدم</th>
-                <th>نوع الاشتراك</th>
-                <th>الحالة قبل الحذف</th>
-                <th>بواسطة من تم الحذف</th>
-                <th>تاريخ الحذف</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="company in deletedCompanies" :key="company.id">
-                <td>
-                  <div class="font-weight-bold">{{ company.companyName }}</div>
-                  <div class="text-caption text-medium-emphasis">{{ company.email }}</div>
-                </td>
-                <td>{{ company.username || '-' }}</td>
-                <td>{{ company.planName || '-' }}</td>
-                <td>
-                  <span class="status-badge" :class="getStatusClass(company.subscriptionStatus)">
-                    {{ getStatusText(company.subscriptionStatus) }}
-                  </span>
-                </td>
-                <td>{{ company.deletedBy }}</td>
-                <td>{{ formatDate(company.deletedAt) }}</td>
-                <td class="actions">
-                  <v-btn
-                    color="success"
-                    variant="tonal"
-                    size="small"
-                    class="font-weight-bold me-2"
-                    prepend-icon="mdi-restore"
-                    :loading="restoringId === company.id"
-                    @click="restoreCompany(company)"
-                  >
-                    استعادة
-                  </v-btn>
-                  <v-btn
-                    color="error"
-                    variant="outlined"
-                    size="small"
-                    class="font-weight-bold"
-                    prepend-icon="mdi-delete-forever"
-                    @click="confirmPermanentDelete(company)"
-                  >
-                    حذف دائم
-                  </v-btn>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Stats -->
+      <div class="stats-grid mb-6">
+        <div class="stat-card">
+          <div class="stat-icon deleted"></div>
+          <div class="stat-info">
+            <div class="stat-value">{{ deletedCompanies.length }}</div>
+            <div class="stat-label">مشترك محذوف</div>
+          </div>
         </div>
-      </v-card-text>
-    </v-card>
+      </div>
+
+      <!-- Loading -->
+      <v-card v-if="isLoading" class="rounded-xl border-gold border-1" elevation="0">
+        <v-card-text class="text-center pa-12">
+          <v-progress-circular
+            indeterminate
+            color="gold"
+            size="48"
+            class="mb-4"
+          ></v-progress-circular>
+          <div class="text-subtitle-1 text-medium-emphasis">جارٍ تحميل البيانات...</div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Empty State -->
+      <v-card
+        v-else-if="deletedCompanies.length === 0"
+        class="rounded-xl border-gold border-1"
+        elevation="0"
+      >
+        <v-card-text class="text-center pa-12">
+          <v-avatar color="success-lighten-4" size="80" class="mb-4">
+            <v-icon icon="mdi-check-circle" class="text-success" size="48"></v-icon>
+          </v-avatar>
+          <h3 class="text-h5 font-weight-bold text-primary mb-2">سلة المحذوفات فارغة</h3>
+          <div class="text-subtitle-1 text-medium-emphasis">لا يوجد مشتركون محذوفون حالياً</div>
+        </v-card-text>
+      </v-card>
+
+      <!-- Deleted Companies Table -->
+      <v-card v-else class="rounded-xl border-gold border-1" elevation="0">
+        <v-card-text class="pa-0">
+          <div class="table-container">
+            <table class="subscriptions-table">
+              <thead>
+                <tr>
+                  <th>اسم الشركة</th>
+                  <th>اسم المستخدم</th>
+                  <th>نوع الاشتراك</th>
+                  <th>الحالة قبل الحذف</th>
+                  <th>بواسطة من تم الحذف</th>
+                  <th>تاريخ الحذف</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="company in deletedCompanies" :key="company.id">
+                  <td>
+                    <div class="font-weight-bold">{{ company.companyName }}</div>
+                    <div class="text-caption text-medium-emphasis">{{ company.email }}</div>
+                  </td>
+                  <td>{{ company.username || '-' }}</td>
+                  <td>{{ company.planName || '-' }}</td>
+                  <td>
+                    <span class="status-badge" :class="getStatusClass(company.subscriptionStatus)">
+                      {{ getStatusText(company.subscriptionStatus) }}
+                    </span>
+                  </td>
+                  <td>{{ company.deletedBy }}</td>
+                  <td>{{ formatDate(company.deletedAt) }}</td>
+                  <td class="actions">
+                    <v-btn
+                      color="success"
+                      variant="tonal"
+                      size="small"
+                      class="font-weight-bold me-2"
+                      prepend-icon="mdi-restore"
+                      :loading="restoringId === company.id"
+                      @click="restoreCompany(company)"
+                    >
+                      استعادة
+                    </v-btn>
+                    <v-btn
+                      color="error"
+                      variant="outlined"
+                      size="small"
+                      class="font-weight-bold"
+                      prepend-icon="mdi-delete-forever"
+                      @click="confirmPermanentDelete(company)"
+                    >
+                      حذف دائم
+                    </v-btn>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </v-card-text>
+      </v-card>
+    </template>
 
     <!-- Permanent Delete Confirmation Dialog -->
     <v-dialog v-model="showPermanentDeleteDialog" max-width="500px" persistent>
@@ -189,6 +321,9 @@
 <script setup lang="ts">
 // @ts-nocheck
 import { ref, onMounted } from 'vue'
+import { useMobileLayout } from '../../renderer/src/composables/useMobileLayout'
+
+const { isMobile } = useMobileLayout()
 
 const API_BASE =
   import.meta.env.VITE_API_URL ||
@@ -452,5 +587,16 @@ function formatDate(date) {
   display: flex;
   gap: 8px;
   align-items: center;
+}
+
+.mobile-details-box {
+  background: var(--surface-variant, #f8fafc);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+@media (max-width: 768px) {
+  .admin-recycle-bin-page {
+    padding: 8px !important;
+  }
 }
 </style>
