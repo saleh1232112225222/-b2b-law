@@ -682,33 +682,39 @@ const runDisasterExport = async () => {
   }
   disasterBusy.value = true
   try {
-    const token = localStorage.getItem('token') || ''
-    const response = await fetch('http://127.0.0.1:8080/api/tenant/export', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? ('Bearer ' + token) : ''
-      },
-      body: JSON.stringify({ recoveryPassphrase: disasterPassphrase.value })
-    })
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}))
-      throw new Error(errData.error || errData.message || ('فشل التصدير من الخادم: ' + response.status))
+    const backupApi = (window as any).api?.backup
+    if (backupApi?.exportDisasterRecovery) {
+      await backupApi.exportDisasterRecovery(disasterMfa.value, disasterPassphrase.value)
+    } else {
+      const token = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token') || ''
+      const apiBase = (window as any).__API_BASE_URL__ || import.meta.env.VITE_API_URL || '/api'
+      const response = await fetch(`${apiBase}/tenant/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? ('Bearer ' + token) : ''
+        },
+        body: JSON.stringify({ recoveryPassphrase: disasterPassphrase.value })
+      })
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}))
+        throw new Error(errData.error || errData.message || ('فشل التصدير من الخادم: ' + response.status))
+      }
+      const blob = await response.blob()
+      const downloadUrl = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = downloadUrl
+      a.download = 'b2b_backup_' + new Date().toISOString().slice(0, 10) + '.b2btenant'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(downloadUrl)
     }
-    const blob = await response.blob()
-    const downloadUrl = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = downloadUrl
-    a.download = 'b2b_backup_' + new Date().toISOString().slice(0, 10) + '.b2btenant'
-    document.body.appendChild(a)
-    a.click()
-    a.remove()
-    window.URL.revokeObjectURL(downloadUrl)
     showSnackbar('تم تصدير وتحميل حزمة التعافي المشفرة بنجاح بنسبة 100%', 'success')
     showDisasterDialog.value = false
     resetDisaster()
   } catch (error) {
-    showSnackbar((error as Error).message, 'error')
+    showSnackbar((error as Error).message || 'تعذر تصدير حزمة التعافي', 'error')
   } finally {
     disasterBusy.value = false
   }
