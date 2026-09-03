@@ -149,7 +149,7 @@ app.use(requestId)
 app.use(csrfProtection)
 
 // Encrypted archives bypass JSON parsing and are consumed as bounded streams.
-const isTenantBackupEnabled = process.env.ENABLE_TENANT_BACKUP === 'true'
+const isTenantBackupEnabled = process.env.ENABLE_TENANT_BACKUP !== 'false'
 if (isTenantBackupEnabled) {
   app.use('/api/tenant-stream', tenantStreamRouter)
 }
