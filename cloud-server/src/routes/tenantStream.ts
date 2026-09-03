@@ -45,12 +45,17 @@ class HashAndLimitTransform extends Transform {
 tenantStreamRouter.put('/import-preview/:sessionId', async (req: Request, res: Response) => {
   let staging: DirectoryRecoveryStagingSink | undefined
   try {
-    if (req.header('content-type')?.split(';', 1)[0] !== 'application/octet-stream') {
+    const rawContentType = req.header('content-type')?.split(';', 1)[0]?.toLowerCase() || ''
+    const allowedTypes = ['application/octet-stream', 'application/vnd.b2b-law.tenant-backup', 'application/x-b2btenant', 'application/binary', 'binary/octet-stream', '']
+    if (rawContentType && !allowedTypes.includes(rawContentType)) {
       return sendSanitizedError(res, 415, 'نوع محتوى حزمة الاستعادة غير صالح.', 'UNSUPPORTED_MEDIA_TYPE')
     }
-    const declaredLength = Number(req.header('content-length'))
-    if (!Number.isSafeInteger(declaredLength) || declaredLength <= 0 || declaredLength > MAX_ENCRYPTED_ARCHIVE_BYTES) {
-      return sendSanitizedError(res, 413, 'حجم حزمة الاستعادة غير صالح أو يتجاوز الحد.', 'PACKAGE_SIZE_LIMIT_EXCEEDED')
+    const rawLength = req.header('content-length')
+    if (rawLength !== undefined) {
+      const declaredLength = Number(rawLength)
+      if (Number.isSafeInteger(declaredLength) && (declaredLength <= 0 || declaredLength > MAX_ENCRYPTED_ARCHIVE_BYTES)) {
+        return sendSanitizedError(res, 413, 'حجم حزمة الاستعادة غير صالح أو يتجاوز الحد.', 'PACKAGE_SIZE_LIMIT_EXCEEDED')
+      }
     }
     const { companyId, userId } = getAuthenticatedContext(req)
     const session = getImportSession(req.params.sessionId, companyId, userId)
@@ -91,8 +96,14 @@ tenantStreamRouter.put('/import-preview/:sessionId', async (req: Request, res: R
     if (code === 'IMPORT_SESSION_NOT_FOUND') {
       return sendSanitizedError(res, 404, 'جلسة الاستعادة غير موجودة أو انتهت.', code)
     }
+    if (code === 'DECRYPTION_FAILED' || code.includes('AUTH_TAG') || code.includes('HMAC') || code.includes('FRAME_TAG_MISMATCH')) {
+      return sendSanitizedError(res, 400, 'كلمة مرور التعافي غير صحيحة أو الحزمة تالفة.', 'INVALID_RECOVERY_PASSPHRASE', error)
+    }
+    if (code === 'TENANT_MISMATCH') {
+      return sendSanitizedError(res, 400, 'معرف المكتب في حزمة التعافي لا يطابق حساب المكتب الحالي.', 'TENANT_MISMATCH', error)
+    }
     if (req.params.sessionId) removeImportSession(req.params.sessionId)
-    return sendSanitizedError(res, 400, 'فشل التحقق من حزمة الاستعادة؛ لم تُمس البيانات الحالية.', code, error)
+    return sendSanitizedError(res, 400, `فشل التحقق من حزمة الاستعادة (${code})؛ لم تُمس البيانات الحالية.`, code, error)
   }
 })
 

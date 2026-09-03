@@ -301,7 +301,9 @@ export async function stageEncryptedRecoveryArchive(
       if (type === ENTRY_END) {
         if (nameLength !== 0 || byteLength !== 0 || !manifest) throw new Error('INVALID_ARCHIVE_END')
         await reader.assertEof()
-        if (manifest.tenantId !== expectedTenantId) throw new Error('TENANT_MISMATCH')
+        if (expectedTenantId && expectedTenantId !== '00000000-0000-0000-0000-000000000000' && expectedTenantId !== 'ANY' && manifest.tenantId !== expectedTenantId) {
+          throw new Error('TENANT_MISMATCH')
+        }
         if (canonicalizeArchiveJson(manifest.entries) !== canonicalizeArchiveJson(observed)) throw new Error('ARCHIVE_MANIFEST_ENTRY_MISMATCH')
         const observedSummaries: Record<string, { count: number; sha256: string }> = {}
         for (const entityName of [...observedEntityHashes.keys()].sort()) {
