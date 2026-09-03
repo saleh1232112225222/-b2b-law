@@ -459,6 +459,18 @@ declare global {
           errors?: string[]
           restored?: { dbBytes: number; vaultFiles: number }
         }>
+        exportDisasterRecovery: (mfaCode: string, recoveryPassphrase: string) => Promise<boolean>
+        prepareDisasterRecovery: (
+          file: File,
+          mfaCode: string,
+          recoveryPassphrase: string,
+          onProgress?: (percent: number) => void
+        ) => Promise<any>
+        executeDisasterRecovery: (
+          sessionId: string,
+          confirmationToken: string,
+          stepUpToken: string
+        ) => Promise<any>
         onRestoreProgress: (cb: (p: any) => void) => () => void
       }
       settings: {

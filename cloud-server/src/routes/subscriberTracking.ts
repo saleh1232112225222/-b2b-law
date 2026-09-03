@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware, AuthPayload } from '../middleware/auth'
 
@@ -10,7 +10,7 @@ subscriberTrackingRouter.use(authMiddleware)
 /**
  * Middleware to require admin role of the main company
  */
-const requireAdminRole = async (req: Request, res: Response, next: Function) => {
+const requireAdminRole = async (req: Request, res: Response, next: NextFunction) => {
   const auth = req.auth as AuthPayload
   if (
     auth.companyId !== (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000')

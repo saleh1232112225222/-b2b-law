@@ -75,7 +75,10 @@ import officeAccountsRouter from './routes/office_accounts'
 import officeManagementRouter from './routes/office_management'
 import { archiveRouter } from './routes/archive'
 import { timeTrackingRouter } from './routes/time_tracking'
-import { syncRouter } from './routes/sync'
+import { initSyncTables, syncRouter } from './routes/sync'
+import { syncAttachmentsRouter } from './routes/syncAttachments'
+import { tenantBackupRouter } from './routes/tenantBackup'
+import { tenantStreamRouter } from './routes/tenantStream'
 import { sendMarketingReport } from './services/marketing.service'
 import { runExtraMigrations } from './db/migrate_extra'
 
@@ -115,11 +118,9 @@ app.use(
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-XSRF-TOKEN']
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID', 'X-XSRF-TOKEN', 'X-Backup-Step-Up-Token']
   })
 )
-app.use(express.json({ limit: '10mb' }))
-app.use(sanitizeInput)
 app.use(
   helmet({
     contentSecurityPolicy: {
@@ -128,7 +129,13 @@ app.use(
         scriptSrc: ["'self'"],
         styleSrc: ["'self'", "'unsafe-inline'"],
         imgSrc: ["'self'", 'data:', 'https:'],
-        connectSrc: ["'self'", 'https://app.saleh-lawyer.com', 'https://saleh-lawyer.com', 'https://lawer496.com', process.env.FRONTEND_URL || 'https://b2b-law.netlify.app']
+        connectSrc: [
+          "'self'",
+          'https://app.saleh-lawyer.com',
+          'https://saleh-lawyer.com',
+          'https://lawer496.com',
+          process.env.FRONTEND_URL || 'https://b2b-law.netlify.app'
+        ]
       }
     },
     hsts: { maxAge: 31536000, includeSubDomains: true, preload: true }
@@ -140,6 +147,15 @@ app.use(requestId)
 
 // CSRF protection — skips safe methods; validates X-XSRF-TOKEN header on mutations
 app.use(csrfProtection)
+
+// Encrypted archives bypass JSON parsing and are consumed as bounded streams.
+const isTenantBackupEnabled = process.env.ENABLE_TENANT_BACKUP === 'true'
+if (isTenantBackupEnabled) {
+  app.use('/api/tenant-stream', tenantStreamRouter)
+}
+
+app.use(express.json({ limit: '10mb' }))
+app.use(sanitizeInput)
 
 // Catch JSON parse errors so they don't bubble to the generic handler
 app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
@@ -256,7 +272,20 @@ app.use('/api/office-accounts', officeAccountsRouter)
 app.use('/api/office-management', officeManagementRouter)
 app.use('/api/archive', archiveRouter)
 app.use('/api/time-tracking', timeTrackingRouter)
+// R1.1 Immediate Containment: Tenant backup/restore is disabled by default for security
+if (isTenantBackupEnabled) {
+  app.use('/api/tenant', tenantBackupRouter)
+} else {
+  app.use('/api/tenant', (_req, res) => {
+    res.status(503).json({
+      error: 'FeatureDisabled',
+      message: 'خدمة النسخ الاحتياطي والاستعادة معطلة حالياً لأسباب أمنية وقيد التحديث.',
+      code: 'TENANT_BACKUP_DISABLED'
+    })
+  })
+}
 app.use('/api/sync', syncRouter)
+app.use('/api/sync/attachments', syncAttachmentsRouter)
 app.use('/api/documents', documentsRouter)
 // Exact financial routes must be mounted before the generic entity routers.
 app.use('/api', financialOperationsRouter)
@@ -623,6 +652,7 @@ app.use((err: any, _req: express.Request, res: express.Response, _next: express.
 
 import * as fs from 'fs'
 import { runMigrations, query as dbQuery } from './db/connection'
+import { startAfterDatabaseReady } from './startup/startupPolicy'
 
 async function seedSuperAdmin() {
   try {
@@ -666,10 +696,7 @@ async function seedSuperAdmin() {
              is_active = TRUE,
              is_suspended = FALSE
          WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000'`,
-        [
-          ADMIN_EMAIL,
-          'ماهو رقم جوالك الثاني'
-        ]
+        [ADMIN_EMAIL, 'ماهو رقم جوالك الثاني']
       )
       console.log('[SEED] Super Admin user credentials updated/synchronized')
     }
@@ -689,34 +716,21 @@ async function seedSuperAdmin() {
     }
   } catch (err) {
     console.error('[SEED] Failed to seed super admin:', err)
+    throw err
   }
 }
 
 async function autoMigrate() {
-  try {
-    await runMigrations()
-  } catch {
-    console.warn('[DB] Migration skipped (tables likely already exist)')
-  }
-  try {
-    await runExtraMigrations()
-  } catch {
-    console.warn('[DB] Extra migrations skipped')
-  }
+  await runMigrations()
+  await runExtraMigrations()
 }
 
-app.listen(PORT, '0.0.0.0', async () => {
+void startAfterDatabaseReady(
+  [autoMigrate, initSyncTables, seedSuperAdmin],
+  () => new Promise<void>((resolve) => app.listen(PORT, '0.0.0.0', () => {
   console.log(`B2B-LAW Cloud Server running on port ${PORT}`)
   console.log(`Health check: http://0.0.0.0:${PORT}/health`)
-
-  // Run migrations BEFORE accepting traffic
-  try {
-    await autoMigrate()
-    await seedSuperAdmin()
-    console.log('[DB] Startup tasks completed')
-  } catch (err) {
-    console.error('[DB] Startup tasks failed:', err)
-  }
+  console.log('[DB] Startup tasks completed before accepting traffic')
 
   // Marketing report once daily at 7 AM Saudi time
   let lastReportDate = ''
@@ -736,6 +750,11 @@ app.listen(PORT, '0.0.0.0', async () => {
     lastReportDate = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Riyadh' })
     sendMarketingReport().catch((e) => console.error('[MARKETING] Startup report error:', e))
   }, 30_000)
+  resolve()
+  }))
+).catch((err) => {
+  console.error('[STARTUP] Fatal database initialization failure:', err)
+  process.exitCode = 1
 })
 
 export default app

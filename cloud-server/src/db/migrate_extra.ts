@@ -1,7 +1,26 @@
 import { query } from './connection'
+import fs from 'fs'
+import path from 'path'
 
 export async function runExtraMigrations() {
   console.log('[MIGRATE_EXTRA] Running extra migrations...')
+
+  const parityMigration = path.join(__dirname, 'migrations', '0009_portable_entity_parity.sql')
+  if (!fs.existsSync(parityMigration)) throw new Error('PORTABLE_ENTITY_PARITY_MIGRATION_MISSING')
+  await query(fs.readFileSync(parityMigration, 'utf8'))
+  console.log('[MIGRATE_EXTRA] Portable Web/Windows entity parity tables ensured')
+
+  // Keep legacy databases compatible with the canonical tenant contract.
+  // Fresh databases receive this column from schema.sql; this reconciliation is
+  // deliberately additive so an existing Docker volume is never rebuilt.
+  try {
+    await query(`ALTER TABLE agencies ADD COLUMN IF NOT EXISTS court TEXT`)
+    await query(`ALTER TABLE agencies ADD COLUMN IF NOT EXISTS created_by UUID`)
+    await query(`ALTER TABLE agencies ADD COLUMN IF NOT EXISTS updated_by UUID`)
+    console.log('[MIGRATE_EXTRA] agencies canonical columns ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] agencies.court reconciliation warning:', err.message)
+  }
 
   // Soft delete columns for companies table
   try {
@@ -17,6 +36,43 @@ export async function runExtraMigrations() {
     console.log('[MIGRATE_EXTRA] Soft delete columns ensured for companies table')
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] Soft delete columns migration warning:', err.message)
+  }
+
+  // The tracking DDL originally shipped outside Drizzle's journal. Execute it
+  // idempotently here so both fresh and legacy databases expose the same audit
+  // contract and indexes.
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS user_login_logs (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        login_time TIMESTAMPTZ DEFAULT NOW(), logout_time TIMESTAMPTZ,
+        ip_address TEXT, user_agent TEXT, device_info TEXT, browser_info TEXT,
+        is_successful BOOLEAN DEFAULT TRUE, failure_reason TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `)
+    await query(`
+      CREATE TABLE IF NOT EXISTS user_activity_logs (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        company_id UUID NOT NULL REFERENCES companies(id) ON DELETE CASCADE,
+        activity_type TEXT NOT NULL, activity_description TEXT,
+        entity_type TEXT, entity_id UUID, ip_address TEXT,
+        created_at TIMESTAMPTZ DEFAULT NOW()
+      )
+    `)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_user_id ON user_login_logs(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_company_id ON user_login_logs(company_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_login_logs_created_at ON user_login_logs(created_at DESC)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_user_activity_logs_user_id ON user_activity_logs(user_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_user_activity_logs_company_id ON user_activity_logs(company_id)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_user_activity_logs_created_at ON user_activity_logs(created_at DESC)`)
+    await query(`CREATE INDEX IF NOT EXISTS idx_user_activity_logs_type ON user_activity_logs(activity_type)`)
+    console.log('[MIGRATE_EXTRA] User login/activity audit tables ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] User tracking reconciliation warning:', err.message)
   }
 
   // Google User ID column for users table
@@ -205,12 +261,24 @@ export async function runExtraMigrations() {
       CREATE TABLE IF NOT EXISTS legal_service_timeline (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
         engagement_id UUID NOT NULL REFERENCES legal_engagements(id) ON DELETE CASCADE,
+        event_type TEXT,
         event_title TEXT NOT NULL,
         event_description TEXT,
+        actor TEXT,
         event_date TIMESTAMPTZ DEFAULT NOW(),
-        created_by UUID
+        created_by UUID,
+        created_at TIMESTAMPTZ DEFAULT NOW()
       )
     `)
+  // Reconcile deployments which created the first legal-services draft before
+  // the portable Web/Windows contract was finalized. Legacy columns are kept.
+  await query(`ALTER TABLE litigation_service_details ADD COLUMN IF NOT EXISTS court_level TEXT`)
+  await query(`ALTER TABLE litigation_service_details ADD COLUMN IF NOT EXISTS opponent_details TEXT`)
+  await query(`ALTER TABLE contract_service_details ADD COLUMN IF NOT EXISTS contract_scope TEXT`)
+  await query(`ALTER TABLE contract_service_details ADD COLUMN IF NOT EXISTS drafting_language TEXT`)
+  await query(`ALTER TABLE legal_service_timeline ADD COLUMN IF NOT EXISTS event_type TEXT`)
+  await query(`ALTER TABLE legal_service_timeline ADD COLUMN IF NOT EXISTS actor TEXT`)
+  await query(`ALTER TABLE legal_service_timeline ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW()`)
   console.log('[MIGRATE_EXTRA] Legal services tables created if not exists')
 
   // Ensure Legal engagement relations
@@ -247,6 +315,7 @@ export async function runExtraMigrations() {
   await query(`
       ALTER TABLE finances ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending'
     `)
+  await query(`ALTER TABLE finances ADD COLUMN IF NOT EXISTS finance_status TEXT`)
   console.log('[MIGRATE_EXTRA] Legal engagement relations ensured for tasks and finances')
 
   // ═══════════════════════════════════════════════════
@@ -471,7 +540,7 @@ export async function runExtraMigrations() {
   for (const [catName, subServices] of Object.entries(classificationSeed)) {
     const catKey = catName
     // Check category
-    let catRes = await query('SELECT id FROM legal_service_categories WHERE key = $1', [catKey])
+    const catRes = await query('SELECT id FROM legal_service_categories WHERE key = $1', [catKey])
     let catId = catRes.rows[0]?.id
     if (!catId) {
       catId = `cat_${Math.random().toString(36).substring(2, 10)}`
@@ -483,7 +552,7 @@ export async function runExtraMigrations() {
 
     for (const subName of subServices) {
       const typeKey = `${catKey}_${subName}`
-      let typeRes = await query('SELECT id FROM legal_service_types WHERE key = $1', [typeKey])
+      const typeRes = await query('SELECT id FROM legal_service_types WHERE key = $1', [typeKey])
       if (typeRes.rows.length === 0) {
         const typeId = `type_${Math.random().toString(36).substring(2, 10)}`
         await query(

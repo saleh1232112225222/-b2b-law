@@ -3,6 +3,7 @@ import { drizzle } from 'drizzle-orm/node-postgres'
 import { migrate } from 'drizzle-orm/node-postgres/migrator'
 import * as fs from 'fs'
 import * as path from 'path'
+import { createHash } from 'crypto'
 
 // Return PostgreSQL DATE columns (OID 1082) as plain string 'YYYY-MM-DD' instead of Date object (prevents T00:00:00.000Z)
 types.setTypeParser(1082, (val: string) => val)
@@ -55,6 +56,29 @@ import * as drizzleSchema from './schema'
 
 export const db = drizzle(pool, { schema: drizzleSchema })
 
+async function reconcileLegacy0004(migrationsFolder: string): Promise<void> {
+  const artifact = await query(`SELECT
+    to_regclass('public.notifications') IS NOT NULL AND
+    to_regclass('public.permission_audit_logs') IS NOT NULL AND
+    to_regclass('public.time_logs') IS NOT NULL AND
+    (SELECT COUNT(*)::int FROM information_schema.columns WHERE table_schema='public' AND (table_name,column_name) IN (
+      ('clients','direct_notes'),('companies','is_deleted'),('companies','deleted_at'),('companies','deleted_by'),
+      ('users','google_user_id'),('users','two_factor_secret'),('users','two_factor_enabled'),
+      ('finances','legal_engagement_id'),('finances','paid_amount'),('finances','remaining_amount'),('finances','payment_method'),('finances','status'),
+      ('subscriptions','suspended_at'),('subscriptions','suspend_reason'))) = 14 AND
+    (SELECT COUNT(*)::int FROM pg_constraint WHERE conname IN (
+      'notifications_user_id_users_id_fk','permission_audit_logs_actor_user_id_users_id_fk',
+      'permission_audit_logs_target_user_id_users_id_fk','time_logs_user_id_users_id_fk',
+      'time_logs_case_id_cases_id_fk','time_logs_task_id_tasks_v2_id_fk')) = 6 AS complete`)
+  if (artifact.rows[0]?.complete !== true) return
+  const createdAt = 1783464841175
+  const sqlPath = path.join(migrationsFolder, '0004_light_medusa.sql')
+  const hash = createHash('sha256').update(fs.readFileSync(sqlPath)).digest('hex')
+  await query(`INSERT INTO "drizzle"."__drizzle_migrations"(hash,created_at)
+    SELECT $1,$2 WHERE NOT EXISTS (SELECT 1 FROM "drizzle"."__drizzle_migrations" WHERE created_at=$2)`, [hash, createdAt])
+  console.log('[DB] Reconciled complete legacy schema with migration 0004 tracking')
+}
+
 export async function runMigrations(): Promise<void> {
   console.log('[DB] Running Drizzle migrations...')
 
@@ -68,21 +92,25 @@ export async function runMigrations(): Promise<void> {
         created_at bigint
       )
     `)
-    // Check if 0000_dear_domino is already there
+    // Only legacy databases created before Drizzle tracking may skip the
+    // baseline. A genuinely empty database must execute 0000 in full.
     const check = await query('SELECT id FROM "drizzle"."__drizzle_migrations" WHERE id = 1')
-    if (check.rows.length === 0) {
+    const legacySchema = await query(`SELECT to_regclass('public.companies') IS NOT NULL AS present`)
+    if (check.rows.length === 0 && legacySchema.rows[0]?.present === true) {
       await query(`
         INSERT INTO "drizzle"."__drizzle_migrations" (id, hash, created_at)
         VALUES (1, '741d7b0b95cace6bb95e285a97c2c05c5b24329deccf0050947710d116922bee', 1781016214198)
       `)
-      console.log('[DB] Pre-seeded drizzle migration table with 0000_dear_domino')
+      console.log('[DB] Reconciled legacy database with 0000_dear_domino tracking')
     }
+    await query(`SELECT setval(pg_get_serial_sequence('drizzle.__drizzle_migrations','id'), GREATEST(COALESCE((SELECT MAX(id) FROM "drizzle"."__drizzle_migrations"),1),1), true)`)
   } catch (err: any) {
     console.warn('[DB] Pre-seeding drizzle migration table failed:', err.message)
   }
 
   const migrationsFolder = path.join(__dirname, 'migrations')
   if (fs.existsSync(migrationsFolder)) {
+    await reconcileLegacy0004(migrationsFolder)
     await migrate(db, { migrationsFolder })
     console.log('[DB] Migrations applied successfully')
   } else {

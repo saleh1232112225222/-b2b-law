@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { query, getClient } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
 import { getCompanyId } from '../middleware/tenant'
@@ -7,7 +7,7 @@ export const systemRouter = Router()
 
 systemRouter.use(authMiddleware)
 
-const requireAdminRole = (req: Request, res: Response, next: Function) => {
+const requireAdminRole = (req: Request, res: Response, next: NextFunction) => {
   if (req.auth?.roleKey !== 'admin') {
     return res.status(403).json({ error: 'الوصول مخصص للمسؤولين' })
   }

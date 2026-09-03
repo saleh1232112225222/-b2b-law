@@ -2218,6 +2218,85 @@ const api = {
             }
             input.click()
           }),
+    exportDisasterRecovery: async (mfaCode: string, recoveryPassphrase: string) => {
+      if (mode === 'desktop') {
+        const result = await window.ipcRenderer?.invoke('backup:tenantExport', mfaCode, recoveryPassphrase)
+        return result?.success === true
+      }
+      if (!cloudClient) throw new Error('Cloud base URL not configured')
+      const step = await cloudRequest<{ stepUpToken: string }>({
+        method: 'POST',
+        url: '/tenant/step-up',
+        data: { scope: 'backup_export', code: mfaCode }
+      })
+      const response = await cloudClient.request<Blob>({
+        method: 'POST',
+        url: '/tenant/export-v3',
+        data: { recoveryPassphrase },
+        responseType: 'blob',
+        timeout: 0,
+        headers: { 'X-Backup-Step-Up-Token': step.stepUpToken }
+      })
+      const url = URL.createObjectURL(response.data)
+      try {
+        const anchor = document.createElement('a')
+        anchor.href = url
+        anchor.download = `b2b-disaster-recovery-${new Date().toISOString().slice(0, 10)}.b2btenant`
+        anchor.click()
+      } finally {
+        URL.revokeObjectURL(url)
+      }
+      return true
+    },
+    prepareDisasterRecovery: async (
+      file: File,
+      mfaCode: string,
+      recoveryPassphrase: string,
+      onProgress?: (percent: number) => void
+    ) => {
+      if (mode === 'desktop') {
+        onProgress?.(5)
+        const result = await window.ipcRenderer?.invoke('backup:tenantPrepare', mfaCode, recoveryPassphrase)
+        onProgress?.(100)
+        return result
+      }
+      if (!cloudClient) throw new Error('Cloud base URL not configured')
+      const step = await cloudRequest<{ stepUpToken: string }>({
+        method: 'POST',
+        url: '/tenant/step-up',
+        data: { scope: 'backup_restore', code: mfaCode }
+      })
+      const session = await cloudRequest<{ sessionId: string; uploadUrl: string }>({
+        method: 'POST',
+        url: '/tenant/import-v3/session',
+        data: { recoveryPassphrase },
+        headers: { 'X-Backup-Step-Up-Token': step.stepUpToken }
+      })
+      const preview = await cloudClient.request({
+        method: 'PUT',
+        url: session.uploadUrl.replace(/^\/api/, ''),
+        data: file,
+        timeout: 0,
+        headers: { 'Content-Type': 'application/octet-stream' },
+        onUploadProgress: (event) => {
+          if (event.total) onProgress?.(Math.round((event.loaded / event.total) * 100))
+        }
+      })
+      return { ...preview.data, sessionId: session.sessionId, stepUpToken: step.stepUpToken }
+    },
+    executeDisasterRecovery: (sessionId: string, confirmationToken: string, stepUpToken: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('backup:tenantExecute', sessionId, confirmationToken, stepUpToken)
+        : cloudRequest({
+        method: 'POST',
+        url: '/tenant/import-execute-v3',
+        data: { sessionId, confirmationToken },
+        headers: { 'X-Backup-Step-Up-Token': stepUpToken }
+      }),
+    cancelDisasterRecovery: (sessionId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('backup:tenantCancel', sessionId)
+        : cloudRequest({ method: 'DELETE', url: `/tenant-stream/import-preview/${encodeURIComponent(sessionId)}` }),
     onRestoreProgress: (cb: any) => {
       restoreProgressCallback = cb
       return () => {
@@ -2402,46 +2481,35 @@ const api = {
     getStatus: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:status') ||
-          Promise.resolve({ status: 'synced', unresolvedConflicts: 0 })
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
         : !localStorage.getItem('b2b_cloud_token')
-          ? Promise.resolve({ status: 'synced', unresolvedConflicts: 0 })
-          : cloudRequest({ method: 'GET', url: '/sync/status' }).catch(() => ({
-              status: 'synced',
-              unresolvedConflicts: 0,
-              pendingQueue: 0,
-              lastSyncAt: new Date().toISOString()
-            })),
+          ? Promise.reject(new Error('يجب تسجيل الدخول قبل استخدام المزامنة'))
+          : cloudRequest({ method: 'GET', url: '/sync/status' }),
     pull: (data: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:pull', data) || Promise.resolve({ changes: {} })
-        : cloudRequest({ method: 'POST', url: '/sync/pull', data }).catch(() => ({
-            pulledAt: new Date().toISOString(),
-            changes: {}
-          })),
+        ? window.ipcRenderer?.invoke('sync:pull', data) ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'POST', url: '/sync/pull', data }),
     push: (data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:push', data) ||
-          Promise.resolve({ success: true, processed: 0, results: [] })
-        : cloudRequest({ method: 'POST', url: '/sync/push', data }).catch(() => ({
-            success: true,
-            processed: 0,
-            results: []
-          })),
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'POST', url: '/sync/push', data }),
     getConflicts: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:conflicts') || Promise.resolve([])
-        : cloudRequest({ method: 'GET', url: '/sync/conflicts' }).catch(() => []),
+        ? window.ipcRenderer?.invoke('sync:conflicts') ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'GET', url: '/sync/conflicts' }),
     resolveConflict: (data: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:resolve-conflict', data) ||
-          Promise.resolve({ success: true })
-        : cloudRequest({ method: 'POST', url: '/sync/resolve-conflict', data }).catch(() => ({
-            success: true
-          })),
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'POST', url: '/sync/resolve-conflict', data }),
     getLogs: (params?: any) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:logs', params) || Promise.resolve([])
-        : cloudRequest({ method: 'GET', url: '/sync/logs', params }).catch(() => [])
+        ? window.ipcRenderer?.invoke('sync:logs', params) ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'GET', url: '/sync/logs', params })
   }
 }
 

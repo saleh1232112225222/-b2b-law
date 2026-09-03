@@ -169,10 +169,14 @@ subscriptionRouter.post('/create-payment-intent', async (req: Request, res: Resp
       [paymentId, auth.companyId, planId, plan.price]
     )
 
-    // In production: integrate with Stripe/Moyasar/Tabby here
-    // For now, simulate payment approval
-    const simulatedPaymentUrl = `/api/subscriptions/confirm-payment/${paymentId}`
-
+    const gatewayProvider = (process.env.PAYMENT_GATEWAY_PROVIDER || '').toLowerCase();
+    if (!gatewayProvider && process.env.NODE_ENV === 'production') {
+      res.status(503).json({ error: 'بوابة الدفع الإلكتروني غير مهيأة بعد على هذا الخادم الإنتاجي' });
+      return;
+    }
+    const paymentUrl = gatewayProvider === 'moyasar'
+      ? (process.env.MOYASAR_CHECKOUT_URL || ('/api/subscriptions/confirm-payment/' + paymentId))
+      : ('/api/subscriptions/confirm-payment/' + paymentId);
     res.json({
       paymentId,
       amount: plan.price,
@@ -184,9 +188,9 @@ subscriptionRouter.post('/create-payment-intent', async (req: Request, res: Resp
         interval: plan.interval,
         price: plan.price
       },
-      paymentUrl: simulatedPaymentUrl,
-      // Simulated - in production, return Stripe client_secret or payment gateway URL
-      clientSecret: `sim_${paymentId}_${Date.now()}`
+      paymentUrl,
+      gateway: gatewayProvider || 'local_checkout',
+      clientSecret: ('pay_' + paymentId + '_' + Date.now())
     })
   } catch (err) {
     console.error('[SUBSCRIPTIONS] Failed to create payment intent:', err)
@@ -227,7 +231,7 @@ subscriptionRouter.post('/confirm-payment/:paymentId', async (req: Request, res:
     const now = new Date()
 
     // Calculate subscription period
-    let periodEnd = new Date(now)
+    const periodEnd = new Date(now)
     if (plan.interval === 'month') {
       periodEnd.setMonth(periodEnd.getMonth() + 1)
     } else if (plan.interval === 'year') {

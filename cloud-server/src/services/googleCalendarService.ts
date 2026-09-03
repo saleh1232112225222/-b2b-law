@@ -60,7 +60,7 @@ export class GoogleCalendarService {
 
     const row = dbRes.rows[0]
     const config = row.config_data || {}
-    let accessToken: string | null = config.accessToken || null
+    const accessToken: string | null = config.accessToken || null
     const refreshToken: string | null = config.refreshToken || null
     const authorizedAt: string | null = config.authorizedAt || null
 
@@ -350,17 +350,8 @@ export class GoogleCalendarService {
 
     const calendarId = status.selectedCalendarId || 'primary'
 
-    // Demo / Mock OAuth token fallback
-    if (
-      !tokenInfo.accessToken ||
-      tokenInfo.accessToken.startsWith('oauth_at_') ||
-      tokenInfo.accessToken.includes('MANUAL') ||
-      tokenInfo.accessToken.includes('DEMO')
-    ) {
-      const mockEventId =
-        eventData.existingGoogleEventId ||
-        `gcal_evt_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`
-      return { success: true, googleEventId: mockEventId }
+    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
+      return { success: false, reason: 'invalid_token', error: 'رمز الدخول التجريبي غير مسموح به في عمليات التقويم الحية' }
     }
 
     // Determine clean custom event ID from sessionId (e.g. b2b523e5abbfcfa4f399035cc1ae91f1a09)
@@ -484,14 +475,8 @@ export class GoogleCalendarService {
 
     const calendarId = status.selectedCalendarId || 'primary'
 
-    // Demo / Mock OAuth token fallback
-    if (
-      !tokenInfo.accessToken ||
-      tokenInfo.accessToken.startsWith('oauth_at_') ||
-      tokenInfo.accessToken.includes('MANUAL') ||
-      tokenInfo.accessToken.includes('DEMO')
-    ) {
-      return { success: true }
+    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
+      return { success: false, reason: 'invalid_token', error: 'رمز الدخول التجريبي غير مسموح به في عمليات التقويم الحية' }
     }
 
     try {
@@ -576,14 +561,8 @@ export class GoogleCalendarService {
 
     const calendarId = status.selectedCalendarId || 'primary'
 
-    // Demo / Mock OAuth token fallback
-    if (
-      !tokenInfo.accessToken ||
-      tokenInfo.accessToken.startsWith('oauth_at_') ||
-      tokenInfo.accessToken.includes('MANUAL') ||
-      tokenInfo.accessToken.includes('DEMO')
-    ) {
-      return { success: true }
+    if (!tokenInfo.accessToken || tokenInfo.accessToken.startsWith('oauth_at_') || tokenInfo.accessToken.includes('MANUAL') || tokenInfo.accessToken.includes('DEMO')) {
+      return { success: false, reason: 'invalid_token', error: 'رمز الدخول التجريبي غير مسموح به في عمليات التقويم الحية' }
     }
 
     try {

@@ -1,4 +1,4 @@
-import { Router, Request, Response } from 'express'
+import { Router, Request, Response, NextFunction } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware, AuthPayload } from '../middleware/auth'
 import { v4 as uuidv4 } from 'uuid'
@@ -11,7 +11,7 @@ export const adminSubscriptionRouter = Router()
  */
 const reportSendAttempts = new Map<string, { count: number; resetTime: number }>()
 
-const reportSendRateLimiter = (req: Request, res: Response, next: Function) => {
+const reportSendRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   const auth = req.auth as AuthPayload
   const key = auth.userId
   const now = Date.now()
@@ -87,7 +87,7 @@ async function ensureSoftDeleteColumns() {
 /**
  * Middleware للتحقق من صلاحيات الأدمن
  */
-const requireAdminRole = async (req: Request, res: Response, next: Function) => {
+const requireAdminRole = async (req: Request, res: Response, next: NextFunction) => {
   const auth = req.auth as AuthPayload
 
   try {
@@ -246,7 +246,7 @@ adminSubscriptionRouter.post('/activate', requireAdminRole, async (req: Request,
     }
 
     const now = new Date()
-    let periodEnd = new Date(now)
+    const periodEnd = new Date(now)
 
     if (lifetime) {
       periodEnd.setFullYear(2099, 11, 31)
@@ -1435,7 +1435,7 @@ adminSubscriptionRouter.post(
         const planResult = await query('SELECT id, interval FROM plans WHERE id = $1', [planId])
         if (planResult.rows.length > 0) {
           const now = new Date()
-          let periodEnd = new Date(now)
+          const periodEnd = new Date(now)
           if (lifetime) {
             periodEnd.setFullYear(2099, 11, 31)
           } else if (durationYears && durationYears > 0) {

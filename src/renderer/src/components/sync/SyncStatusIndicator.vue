@@ -98,8 +98,9 @@ const statusInfo = computed(() => {
     case 'failed':
       return { text: 'فشل التزامن', color: 'error', icon: 'x-circle' }
     case 'synced':
-    default:
       return { text: 'متزامنة', color: 'success', icon: 'check-circle' }
+    default:
+      return { text: 'غير متصل', color: 'grey', icon: 'wifi-off' }
   }
 })
 
@@ -113,8 +114,8 @@ const handleBadgeClick = () => {
 
 const triggerSync = async () => {
   const res = await syncStore.syncNow()
-  snackbarText.value = res.message || 'عزيزي المستخدم: خدمة المزامنة قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله.'
-  snackbarColor.value = 'info'
+  snackbarText.value = res.message || (res.success ? 'تمت المزامنة بنجاح' : 'فشلت عملية المزامنة')
+  snackbarColor.value = res.success ? 'success' : 'error'
   snackbar.value = true
 }
 </script>

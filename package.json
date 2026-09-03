@@ -15,7 +15,11 @@
     "server:start": "npm --prefix cloud-server start",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "contracts:build": "node scripts/build-contracts.js",
+    "contracts:sync": "node scripts/sync-shared.js",
+    "contracts:check": "node scripts/check-contracts.js"
+    ,"r7:gate": "node scripts/r7-gate.mjs"
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
@@ -64,5 +68,8 @@
     "vitest": "^4.1.8",
     "vue-eslint-parser": "^10.2.0",
     "vue-tsc": "^3.1.6"
+  },
+  "overrides": {
+    "esbuild": "0.28.1"
   }
 }

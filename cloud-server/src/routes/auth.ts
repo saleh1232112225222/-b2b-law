@@ -762,7 +762,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
     const googleSub = payload.sub // Google's unique user ID
 
     // STEP 1: Find existing user by google_user_id OR recovery_email
-    let userResult = await query(
+    const userResult = await query(
       `SELECT u.id, u.username, u.role_key, u.company_id, u.is_active, u.is_suspended, u.google_user_id,
               c.is_deleted, c.is_verified, c.trial_expires_at
        FROM users u

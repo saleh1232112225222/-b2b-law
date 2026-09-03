@@ -9,9 +9,11 @@ export const useSyncStore = defineStore('sync', () => {
   const conflicts = ref<SyncConflict[]>([])
   const pendingQueue = ref<SyncQueueItem[]>(SyncEngineService.getPendingQueue())
   const errorMessage = ref<string | null>(null)
+  const attachmentProgress = ref<{ total: number; completed: number; currentFileName?: string } | null>(null)
 
   const pendingCount = computed(() => pendingQueue.value.length)
   const conflictCount = computed(() => conflicts.value.length)
+  const hasAttachmentTransfers = computed(() => !!attachmentProgress.value && attachmentProgress.value.total > attachmentProgress.value.completed)
 
   const checkStatus = async (): Promise<void> => {
     pendingQueue.value = SyncEngineService.getPendingQueue()
@@ -21,7 +23,12 @@ export const useSyncStore = defineStore('sync', () => {
     }
 
     try {
-      const res = await (window as any).api.sync?.getStatus?.() || { status: 'synced', unresolvedConflicts: 0 }
+      const syncApi = (window as any).api?.sync;
+      if (!syncApi || typeof syncApi.getStatus !== 'function') {
+        syncStatus.value = 'offline';
+        return;
+      }
+      const res = await syncApi.getStatus();
       if (res.unresolvedConflicts > 0) {
         syncStatus.value = 'conflict'
         await fetchConflicts()
@@ -33,12 +40,9 @@ export const useSyncStore = defineStore('sync', () => {
       if (res.lastSyncAt) {
         lastSyncAt.value = res.lastSyncAt
       }
-    } catch {
-      if (pendingQueue.value.length > 0) {
-        syncStatus.value = 'push_required'
-      } else {
-        syncStatus.value = 'synced'
-      }
+    } catch (error) {
+      syncStatus.value = 'failed'
+      errorMessage.value = error instanceof Error ? error.message : 'تعذر التحقق من حالة المزامنة'
     }
   }
 
@@ -63,34 +67,51 @@ export const useSyncStore = defineStore('sync', () => {
     errorMessage.value = null
 
     try {
+      const transport = (window as any).api?.sync
+      if (!transport || typeof transport.push !== 'function' || typeof transport.pull !== 'function') {
+        throw new Error('خدمة المزامنة غير متاحة على هذا الجهاز')
+      }
+
+      const deviceId = SyncEngineService.getDeviceId()
+
       // 1. Push Pending Operations
       const currentQueue = SyncEngineService.getPendingQueue()
       if (currentQueue.length > 0) {
-        try {
-          const pushRes = await (window as any).api?.sync?.push?.({
-            operations: currentQueue,
-            device_id: SyncEngineService.getDeviceId()
-          })
+        const pushRes = await transport.push({
+          operations: currentQueue.map((item) => ({
+            operationId: item.operation_id,
+            entityType: item.entity_type,
+            entityId: item.entity_id,
+            operation: item.operation,
+            baseRevision: Number(item.base_revision ?? 0),
+            payload: item.payload
+          })),
+          deviceId
+        })
 
-          if (pushRes?.results) {
-            const remainingQueue = currentQueue.filter((item) => {
-              const res = pushRes.results.find((r: any) => r.operation_id === item.operation_id)
-              return res && res.status === 'failed'
-            })
-            SyncEngineService.savePendingQueue(remainingQueue)
-            pendingQueue.value = remainingQueue
-          }
-        } catch (pushErr) {
-          console.warn('[SyncStore] Push operations deferred:', pushErr)
+        if (!pushRes || !Array.isArray(pushRes.results)) {
+          throw new Error('استجابة رفع المزامنة غير صالحة')
         }
+        const remainingQueue = currentQueue.filter((item) => {
+          const result = pushRes.results.find((candidate: any) => candidate.operationId === item.operation_id)
+          return !result || result.status !== 'synced'
+        })
+        SyncEngineService.savePendingQueue(remainingQueue)
+        pendingQueue.value = remainingQueue
       }
 
       // 2. Pull Updates Since Last Sync
-      const lastSync = SyncEngineService.getLastSync()
-      try {
-        await (window as any).api?.sync?.pull?.({ since: lastSync })
-      } catch (pullErr) {
-        console.warn('[SyncStore] Pull updates deferred:', pullErr)
+      const pullResult = await transport.pull({
+        afterCursor: 0,
+        deviceId
+      })
+      if (
+        !pullResult ||
+        !Array.isArray(pullResult.changes) ||
+        !Number.isSafeInteger(pullResult.nextCursor) ||
+        typeof pullResult.hasMore !== 'boolean'
+      ) {
+        throw new Error('استجابة تنزيل المزامنة غير صالحة')
       }
 
       const now = new Date().toISOString()
@@ -100,17 +121,17 @@ export const useSyncStore = defineStore('sync', () => {
       // 3. Refresh Status
       await checkStatus()
       isSyncing.value = false
-      syncStatus.value = 'synced'
       return {
         success: true,
-        message: 'عزيزي المستخدم: خدمة المزامنة السحابية قيد التطوير والترقية حالياً، وسوف تتاح بكامل مميزاتها في الإصدارات القادمة بإذن الله.'
+        message: 'تمت المزامنة بنجاح'
       }
     } catch (err: any) {
       isSyncing.value = false
-      syncStatus.value = 'synced'
+      syncStatus.value = 'failed'
+      errorMessage.value = err?.message || 'فشلت عملية المزامنة'
       return {
-        success: true,
-        message: 'عزيزي المستخدم: خدمة المزامنة السحابية قيد التطوير والترقية حالياً، وسوف تتاح بكامل مميزاتها في الإصدارات القادمة بإذن الله.'
+        success: false,
+        message: errorMessage.value || 'فشلت عملية المزامنة'
       }
     }
   }

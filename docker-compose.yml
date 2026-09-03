@@ -5,7 +5,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: b2b_law
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-change-me-in-production}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
       POSTGRES_DB: b2b_law_db
     ports:
       - '127.0.0.1:5433:5432'
@@ -26,15 +26,23 @@ services:
     ports:
       - '8080:8080'
     environment:
-      DATABASE_URL: postgresql://b2b_law:${DB_PASSWORD:-change-me-in-production}@db:5432/b2b_law_db
+      DATABASE_URL: postgresql://b2b_law:${DB_PASSWORD:?DB_PASSWORD must be set in .env}@db:5432/b2b_law_db
       NODE_ENV: production
       PORT: 8080
-      JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in .env}
       ADMIN_BOOTSTRAP_HASH: ${ADMIN_BOOTSTRAP_HASH:-}
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@b2blaw.local}
     depends_on:
       db:
         condition: service_healthy
+    volumes:
+      - backend_uploads:/app/uploads
+      - backend_logs:/app/logs
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:8080/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
 
   frontend:
     build:
@@ -47,7 +55,10 @@ services:
     ports:
       - '80:80'
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
 
 volumes:
   pgdata:
+  backend_uploads:
+  backend_logs:

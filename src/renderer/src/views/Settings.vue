@@ -106,6 +106,7 @@
       <!-- Column 2: Security & Local Data Backup -->
       <v-col cols="12" md="6">
         <SettingsSecurityCard class="mb-4" />
+        <SettingsDeviceManagementCard class="mb-4" />
 
         <v-card
           elevation="0"
@@ -140,6 +141,21 @@
                   @click="importBackup"
                   >استيراد نسخة</v-btn
                 >
+              </v-col>
+            </v-row>
+            <v-alert type="warning" variant="tonal" density="compact" class="mb-3" role="status">
+              حزمة التعافي مشفرة ومخصصة للطوارئ. احتفظ بكلمة المرور في مكان مستقل.
+            </v-alert>
+            <v-row dense class="mb-4">
+              <v-col cols="12" sm="6">
+                <v-btn block color="primary" variant="tonal" :loading="disasterBusy" @click="openDisasterExport">
+                  تصدير حزمة تعافٍ مشفرة
+                </v-btn>
+              </v-col>
+              <v-col cols="12" sm="6">
+                <v-btn block color="warning" variant="tonal" :loading="disasterBusy" @click="chooseDisasterPackage">
+                  فحص واستعادة حزمة طوارئ
+                </v-btn>
               </v-col>
             </v-row>
             <v-row dense class="mb-4">
@@ -340,64 +356,6 @@
             اتصال
           </v-btn>
         </div>
-      </v-card>
-    </v-dialog>
-
-    <!-- Google Apps Script Instructions Dialog -->
-    <v-dialog v-model="showGasInstructions" max-width="700">
-      <v-card class="glass-card overflow-hidden border-gold border-2 glass-card">
-        <div class="pa-6 d-flex align-center bg-gold-gradient text-ebony">
-          <LucideIcon name="globe" :size="24" class="me-3" />
-          <span class="text-h6 font-weight-black">تعليمات إعداد مزامنة قوقل</span>
-          <v-spacer />
-          <v-btn
-            class="premium-btn-gold-gradient"
-            icon
-            variant="text"
-            color="ebony"
-            @click="showGasInstructions = false"
-          >
-            <LucideIcon name="x" :size="24" />
-          </v-btn>
-        </div>
-
-        <v-card-text class="pa-8">
-          <div class="mb-6 glass-panel-light pa-4 rounded-lg border border-gold border-opacity-20">
-            <div class="text-subtitle-1 font-weight-black text-gold mb-3">
-              طريقة الإعداد السريع:
-            </div>
-            <ol class="text-body-2 text-white leading-relaxed ps-4">
-              <li class="mb-3">
-                افتح
-                <a
-                  href="https://script.google.com/"
-                  target="_blank"
-                  class="text-accent font-weight-black"
-                  >Google Apps Script</a
-                >
-                وأنشئ مشروعاً جديداً.
-              </li>
-              <li class="mb-3">امسح أي كود قديم ثم <b>الصق الكود</b> الذي تم نسخ الآن.</li>
-              <li class="mb-3">اضغط <b>نشر (Deploy)</b> > نشر جديد > تطبيق ويب.</li>
-              <li class="mb-3">اختر الوصول "للجميع" ثم انسخ الرابط وضعه في خانة الإعدادات.</li>
-            </ol>
-          </div>
-          <div class="text-caption text-gold opacity-60 text-center">
-            * تأكد من استخدام نفس حساب Gmail الخاص بجدول البيانات.
-          </div>
-        </v-card-text>
-
-        <v-card-actions class="pa-8 pt-0">
-          <v-btn
-            color="gold"
-            variant="flat"
-            block
-            size="large"
-            class="font-weight-black premium-lift premium-btn-gold-gradient"
-            @click="showGasInstructions = false"
-            >فهمت، سأقوم بالإعداد الآن</v-btn
-          >
-        </v-card-actions>
       </v-card>
     </v-dialog>
 
@@ -634,6 +592,27 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    <v-dialog v-model="showDisasterDialog" max-width="680" persistent>
+      <v-card rounded="xl" aria-labelledby="disaster-title">
+        <v-card-title id="disaster-title">{{ disasterMode === 'export' ? 'تصدير حزمة التعافي' : 'مراجعة الاستعادة المرحلية' }}</v-card-title>
+        <v-card-text>
+          <v-text-field v-model="disasterMfa" label="رمز التحقق الثنائي / كلمة مرور حساب Windows" autocomplete="current-password" type="password" />
+          <v-text-field v-model="disasterPassphrase" label="كلمة مرور التعافي" type="password" autocomplete="new-password" />
+          <v-progress-linear v-if="disasterBusy" :model-value="disasterPercent" height="8" rounded class="mb-3" />
+          <v-alert v-if="disasterPreview" type="warning" variant="tonal" role="alert">
+            سيتم استعادة {{ disasterPreview.totalRows }} سجل و{{ disasterPreview.attachmentCount }} مرفق.
+            لا يمكن الإلغاء بعد بدء التفعيل. أُنشئت نسخة أمان مستقلة قبل التفعيل.
+          </v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn :disabled="disasterBusy" @click="closeDisasterDialog">إلغاء</v-btn>
+          <v-btn v-if="disasterMode === 'export'" color="primary" :loading="disasterBusy" @click="runDisasterExport">تصدير</v-btn>
+          <v-btn v-else-if="!disasterPreview" color="warning" :loading="disasterBusy" @click="prepareDisasterImport">فحص الحزمة</v-btn>
+          <v-btn v-else color="error" :loading="disasterBusy" @click="executeDisasterImport">تأكيد وبدء الاستعادة</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </v-container>
 </template>
 
@@ -650,11 +629,105 @@ import SettingsWipeDialog from './settings/SettingsWipeDialog.vue'
 import SettingsOfficeCard from './settings/SettingsOfficeCard.vue'
 import SettingsLicensingCard from './settings/SettingsLicensingCard.vue'
 import SettingsSecurityCard from './settings/SettingsSecurityCard.vue'
+import SettingsDeviceManagementCard from './settings/SettingsDeviceManagementCard.vue'
 import SettingsIntegrationsCard from './settings/SettingsIntegrationsCard.vue'
 import { usePermissions } from '../composables/usePermissions'
 
 const { session } = usePermissions()
 const isSuperAdmin = computed(() => (session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000')
+
+const showDisasterDialog = ref(false)
+const disasterMode = ref<'export' | 'import'>('export')
+const disasterMfa = ref('')
+const disasterPassphrase = ref('')
+const disasterFile = ref<File | null>(null)
+const disasterPreview = ref<any>(null)
+const disasterBusy = ref(false)
+const disasterPercent = ref(0)
+const resetDisaster = () => {
+  disasterMfa.value = ''
+  disasterPassphrase.value = ''
+  disasterFile.value = null
+  disasterPreview.value = null
+  disasterPercent.value = 0
+}
+const openDisasterExport = () => { resetDisaster(); disasterMode.value = 'export'; showDisasterDialog.value = true }
+const closeDisasterDialog = async () => {
+  if (disasterBusy.value) return
+  const sessionId = disasterPreview.value?.sessionId
+  if (sessionId) {
+    try { await (window as any).api.backup.cancelDisasterRecovery(sessionId) } catch {}
+  }
+  showDisasterDialog.value = false
+  resetDisaster()
+}
+const chooseDisasterPackage = () => {
+  if (window.ipcRenderer) {
+    resetDisaster(); disasterFile.value = new File([new Uint8Array()], 'desktop-dialog.b2btenant'); disasterMode.value = 'import'; showDisasterDialog.value = true
+    return
+  }
+  const input = document.createElement('input')
+  input.type = 'file'; input.accept = '.b2btenant'
+  input.onchange = () => {
+    const file = input.files?.[0]
+    if (!file) return
+    resetDisaster(); disasterFile.value = file; disasterMode.value = 'import'; showDisasterDialog.value = true
+  }
+  input.click()
+}
+const runDisasterExport = async () => {
+  if (!disasterPassphrase.value || disasterPassphrase.value.length < 12) {
+    showSnackbar('كلمة مرور التعافي يجب ألا تقل عن 12 خانة', 'warning')
+    return
+  }
+  disasterBusy.value = true
+  try {
+    const token = localStorage.getItem('token') || ''
+    const response = await fetch('http://127.0.0.1:8080/api/tenant/export', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? ('Bearer ' + token) : ''
+      },
+      body: JSON.stringify({ recoveryPassphrase: disasterPassphrase.value })
+    })
+    if (!response.ok) {
+      const errData = await response.json().catch(() => ({}))
+      throw new Error(errData.error || errData.message || ('فشل التصدير من الخادم: ' + response.status))
+    }
+    const blob = await response.blob()
+    const downloadUrl = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = downloadUrl
+    a.download = 'b2b_backup_' + new Date().toISOString().slice(0, 10) + '.b2btenant'
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(downloadUrl)
+    showSnackbar('تم تصدير وتحميل حزمة التعافي المشفرة بنجاح بنسبة 100%', 'success')
+    showDisasterDialog.value = false
+    resetDisaster()
+  } catch (error) {
+    showSnackbar((error as Error).message, 'error')
+  } finally {
+    disasterBusy.value = false
+  }
+}
+const prepareDisasterImport = async () => {
+  if (!disasterFile.value) return
+  disasterBusy.value = true
+  try { disasterPreview.value = await (window as any).api.backup.prepareDisasterRecovery(disasterFile.value, disasterMfa.value, disasterPassphrase.value, (percent: number) => { disasterPercent.value = percent }) }
+  catch (error) { showSnackbar((error as Error).message, 'error') }
+  finally { disasterBusy.value = false }
+}
+const executeDisasterImport = async () => {
+  disasterBusy.value = true
+  try {
+    await (window as any).api.backup.executeDisasterRecovery(disasterPreview.value.sessionId, disasterPreview.value.confirmationToken, disasterPreview.value.stepUpToken)
+    showSnackbar('اكتملت الاستعادة والتحقق اللاحق بنجاح', 'success'); showDisasterDialog.value = false; resetDisaster()
+  } catch (error) { showSnackbar((error as Error).message, 'error') }
+  finally { disasterBusy.value = false }
+}
 
 interface AppSettings {
   officeName: string

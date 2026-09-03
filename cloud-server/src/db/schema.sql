@@ -18,7 +18,10 @@ CREATE TABLE IF NOT EXISTS companies (
     verification_code TEXT,
     trial_expires_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    is_deleted BOOLEAN DEFAULT FALSE,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID
 );
 
 -- ============================================================
@@ -32,6 +35,7 @@ CREATE TABLE agencies (
     agency_number TEXT NOT NULL,
     date DATE,
     expiry_date DATE,
+    court TEXT,
     notes TEXT,
     created_by UUID,
     updated_by UUID,
@@ -946,4 +950,3 @@ CREATE INDEX IF NOT EXISTS idx_time_logs_user ON time_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_time_logs_case ON time_logs(case_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_permission_audit_actor ON permission_audit_logs(actor_user_id);
-
