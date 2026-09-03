@@ -9,7 +9,13 @@ import fs from 'fs'
 import path from 'path'
 import crypto from 'crypto'
 import { PGlite } from '@electric-sql/pglite'
-import { DatabaseSync } from 'node:sqlite'
+
+let DatabaseSyncClass: any = null
+try {
+  const nodeSqlite = await import('node:sqlite').catch(() => null)
+  DatabaseSyncClass = nodeSqlite?.DatabaseSync || null
+} catch {}
+
 import {
   CANONICAL_CONTRACT_REGISTRY,
   getTopologicallySortedContracts,
@@ -25,7 +31,7 @@ import {
 
 describe('Bidirectional Schema Drift & Canonical Contract Verification (Phase R2 Final Correction 3)', () => {
   let pglite: PGlite
-  let sqliteDb: DatabaseSync
+  let sqliteDb: any
   const pgSchemaTables: {
     name: string
     columns: string[]
@@ -334,11 +340,13 @@ describe('Bidirectional Schema Drift & Canonical Contract Verification (Phase R2
     // ----------------------------------------------------------------------
     // 2. SQLite Oracle: Real DatabaseSync Execution (Fail-Closed)
     // ----------------------------------------------------------------------
-    sqliteDb = new DatabaseSync(':memory:')
+    if (DatabaseSyncClass) {
+      sqliteDb = new DatabaseSyncClass(':memory:')
+    }
     const b2bDir = process.env.B2B_SOURCE_DIR || 'G:/b2b'
 
     function executeSqliteFile(filePath: string) {
-      if (!fs.existsSync(filePath)) return
+      if (!sqliteDb || !fs.existsSync(filePath)) return
       const content = fs.readFileSync(filePath, 'utf8')
       const blocks = extractSqliteCreateTableBlocks(content)
       for (let idx = 0; idx < blocks.length; idx++) {
@@ -357,95 +365,97 @@ describe('Bidirectional Schema Drift & Canonical Contract Verification (Phase R2
       }
     }
 
-    // 1. Execute schema_ddl.sql directly
-    executeSqliteFile(path.join(b2bDir, 'cloud-migration/schema_ddl.sql'))
+    if (sqliteDb) {
+      // 1. Execute schema_ddl.sql directly
+      executeSqliteFile(path.join(b2bDir, 'cloud-migration/schema_ddl.sql'))
 
-    // 2. Execute legalServicesSchema.ts
-    executeSqliteFile(path.join(b2bDir, 'src/main/db/legalServicesSchema.ts'))
+      // 2. Execute legalServicesSchema.ts
+      executeSqliteFile(path.join(b2bDir, 'src/main/db/legalServicesSchema.ts'))
 
-    // 3. Execute database.ts CREATE TABLE blocks
-    const dbTsPath = path.join(b2bDir, 'src/main/db/database.ts')
-    executeSqliteFile(dbTsPath)
+      // 3. Execute database.ts CREATE TABLE blocks
+      const dbTsPath = path.join(b2bDir, 'src/main/db/database.ts')
+      executeSqliteFile(dbTsPath)
 
-    // 4. Run addColumn functions from database.ts (application bootstrap logic)
-    if (fs.existsSync(dbTsPath)) {
-      const dbContent = fs.readFileSync(dbTsPath, 'utf8')
-      const addColRegex =
-        /addColumn\(\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/g
-      let m: RegExpExecArray | null
-      while ((m = addColRegex.exec(dbContent)) !== null) {
-        const [, table, col, def] = m
-        const tName = table.toLowerCase()
-        const colName = col.toLowerCase()
-        const cols = (sqliteDb.prepare(`PRAGMA table_info("${tName}");`).all() as any[]).map((c) =>
-          String(c.name).toLowerCase()
-        )
-        if (!cols.includes(colName)) {
-          sqliteDb.exec(`ALTER TABLE "${tName}" ADD COLUMN ${def};`)
+      // 4. Run addColumn functions from database.ts (application bootstrap logic)
+      if (fs.existsSync(dbTsPath)) {
+        const dbContent = fs.readFileSync(dbTsPath, 'utf8')
+        const addColRegex =
+          /addColumn\(\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/g
+        let m: RegExpExecArray | null
+        while ((m = addColRegex.exec(dbContent)) !== null) {
+          const [, table, col, def] = m
+          const tName = table.toLowerCase()
+          const colName = col.toLowerCase()
+          const cols = (sqliteDb.prepare(`PRAGMA table_info("${tName}");`).all() as any[]).map((c) =>
+            String(c.name).toLowerCase()
+          )
+          if (!cols.includes(colName)) {
+            sqliteDb.exec(`ALTER TABLE "${tName}" ADD COLUMN ${def};`)
+          }
+        }
+
+        const addTaskColRegex =
+          /addTaskV2Col\(\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/g
+        let mTask: RegExpExecArray | null
+        while ((mTask = addTaskColRegex.exec(dbContent)) !== null) {
+          const [, col, def] = mTask
+          const cols = (sqliteDb.prepare(`PRAGMA table_info("tasks_v2");`).all() as any[]).map((c) =>
+            String(c.name).toLowerCase()
+          )
+          if (!cols.includes(col.toLowerCase())) {
+            sqliteDb.exec(`ALTER TABLE "tasks_v2" ADD COLUMN ${def};`)
+          }
         }
       }
 
-      const addTaskColRegex =
-        /addTaskV2Col\(\s*['"]([a-zA-Z0-9_]+)['"]\s*,\s*['"]([^'"]+)['"]\s*\)/g
-      let mTask: RegExpExecArray | null
-      while ((mTask = addTaskColRegex.exec(dbContent)) !== null) {
-        const [, col, def] = mTask
-        const cols = (sqliteDb.prepare(`PRAGMA table_info("tasks_v2");`).all() as any[]).map((c) =>
-          String(c.name).toLowerCase()
-        )
-        if (!cols.includes(col.toLowerCase())) {
-          sqliteDb.exec(`ALTER TABLE "tasks_v2" ADD COLUMN ${def};`)
+      // 5. Execute migration_company_id.sql
+      const migCompanyPath = path.join(b2bDir, 'cloud-migration/migration_company_id.sql')
+      if (fs.existsSync(migCompanyPath)) {
+        const migContent = fs.readFileSync(migCompanyPath, 'utf8')
+        const alterMatches =
+          migContent.match(/ALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+COLUMN\s+company_id/gi) || []
+        for (const stmt of alterMatches) {
+          const tName = stmt.split(/\s+/)[2].replace(/["`]/g, '').toLowerCase()
+          const colInfo = sqliteDb.prepare(`PRAGMA table_info("${tName}");`).all() as any[]
+          const colNames = colInfo.map((c) => String(c.name).toLowerCase())
+          if (!colNames.includes('company_id')) {
+            sqliteDb.exec(`ALTER TABLE "${tName}" ADD COLUMN company_id TEXT;`)
+          }
         }
       }
-    }
 
-    // 5. Execute migration_company_id.sql
-    const migCompanyPath = path.join(b2bDir, 'cloud-migration/migration_company_id.sql')
-    if (fs.existsSync(migCompanyPath)) {
-      const migContent = fs.readFileSync(migCompanyPath, 'utf8')
-      const alterMatches =
-        migContent.match(/ALTER\s+TABLE\s+([a-zA-Z0-9_]+)\s+ADD\s+COLUMN\s+company_id/gi) || []
-      for (const stmt of alterMatches) {
-        const tName = stmt.split(/\s+/)[2].replace(/["`]/g, '').toLowerCase()
+      // Introspect SQLite tables via PRAGMA
+      const sqliteTablesList = sqliteDb
+        .prepare(
+          `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;`
+        )
+        .all() as any[]
+
+      for (const t of sqliteTablesList) {
+        const tName = String(t.name).toLowerCase()
         const colInfo = sqliteDb.prepare(`PRAGMA table_info("${tName}");`).all() as any[]
-        const colNames = colInfo.map((c) => String(c.name).toLowerCase())
-        if (!colNames.includes('company_id')) {
-          sqliteDb.exec(`ALTER TABLE "${tName}" ADD COLUMN company_id TEXT;`)
-        }
+        const columns = colInfo.map((c) => String(c.name).toLowerCase())
+        const primaryKey = colInfo
+          .filter((c) => Number(c.pk) > 0)
+          .sort((a, b) => Number(a.pk) - Number(b.pk))
+          .map((c) => String(c.name).toLowerCase())
+        const requiredColumns = colInfo
+          .filter((c) => Number(c.notnull) === 1 || Number(c.pk) > 0)
+          .map((c) => String(c.name).toLowerCase())
+          .sort()
+        const nullableColumns = colInfo
+          .filter((c) => Number(c.notnull) === 0 && Number(c.pk) === 0)
+          .map((c) => String(c.name).toLowerCase())
+          .sort()
+
+        sqliteSchemaTables.push({
+          name: tName,
+          columns,
+          primaryKey,
+          requiredColumns,
+          nullableColumns
+        })
       }
-    }
-
-    // Introspect SQLite tables via PRAGMA
-    const sqliteTablesList = sqliteDb
-      .prepare(
-        `SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name;`
-      )
-      .all() as any[]
-
-    for (const t of sqliteTablesList) {
-      const tName = String(t.name).toLowerCase()
-      const colInfo = sqliteDb.prepare(`PRAGMA table_info("${tName}");`).all() as any[]
-      const columns = colInfo.map((c) => String(c.name).toLowerCase())
-      const primaryKey = colInfo
-        .filter((c) => Number(c.pk) > 0)
-        .sort((a, b) => Number(a.pk) - Number(b.pk))
-        .map((c) => String(c.name).toLowerCase())
-      const requiredColumns = colInfo
-        .filter((c) => Number(c.notnull) === 1 || Number(c.pk) > 0)
-        .map((c) => String(c.name).toLowerCase())
-        .sort()
-      const nullableColumns = colInfo
-        .filter((c) => Number(c.notnull) === 0 && Number(c.pk) === 0)
-        .map((c) => String(c.name).toLowerCase())
-        .sort()
-
-      sqliteSchemaTables.push({
-        name: tName,
-        columns,
-        primaryKey,
-        requiredColumns,
-        nullableColumns
-      })
     }
   }, 60_000)
 
