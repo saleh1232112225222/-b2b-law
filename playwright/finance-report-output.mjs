@@ -18,12 +18,18 @@ try {
   await inputs.nth(1).fill(password)
   await page.getByRole('button', { name: 'تسجيل الدخول', exact: true }).click()
   await page.waitForTimeout(1000)
-  assert.ok(await page.evaluate(() => localStorage.getItem('b2b_cloud_token')), 'real login must complete')
+  assert.ok(
+    await page.evaluate(() => localStorage.getItem('b2b_cloud_token')),
+    'real login must complete'
+  )
   await page.goto(`${baseUrl}/#/finance`, { waitUntil: 'networkidle' })
 
   await page.locator('.v-tab').filter({ hasText: 'حسابات المكتب' }).click({ timeout: 5000 })
   await page.waitForTimeout(800)
-  assert.ok(await page.getByText('الإجمالي:', { exact: false }).count(), 'mobile office rows must render')
+  assert.ok(
+    await page.getByText('الإجمالي:', { exact: false }).count(),
+    'mobile office rows must render'
+  )
   await page.screenshot({
     path: 'playwright/qa-screenshots/finance-mobile-office-report.png',
     fullPage: true
@@ -32,16 +38,27 @@ try {
   await page.evaluate(() => {
     window.__financePrintCalled = false
     window.__financeDownloadName = ''
-    window.print = () => { window.__financePrintCalled = true }
+    window.print = () => {
+      window.__financePrintCalled = true
+    }
     HTMLAnchorElement.prototype.click = function () {
       window.__financeDownloadName = this.download
     }
   })
-  await page.locator('button').filter({ has: page.locator('.mdi-printer') }).click({ timeout: 5000 })
-  assert.equal(await page.evaluate(() => window.__financePrintCalled), true, 'mobile print control must call print')
+  await page
+    .locator('button')
+    .filter({ has: page.locator('.mdi-printer') })
+    .click({ timeout: 5000 })
+  assert.equal(
+    await page.evaluate(() => window.__financePrintCalled),
+    true,
+    'mobile print control must call print'
+  )
 
   await page.getByRole('button', { name: 'CSV', exact: true }).click({ timeout: 5000 })
-  await page.waitForFunction(() => window.__financeDownloadName.endsWith('.csv'), null, { timeout: 10000 })
+  await page.waitForFunction(() => window.__financeDownloadName.endsWith('.csv'), null, {
+    timeout: 10000
+  })
   assert.ok(
     (await page.evaluate(() => window.__financeDownloadName)).endsWith('.csv'),
     'mobile export must produce a CSV file'

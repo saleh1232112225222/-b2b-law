@@ -67,7 +67,8 @@ try {
     const expectedStats = finances.reduce(
       (totals, finance) => {
         if (finance.status === 'cancelled') return totals
-        if (finance.type === 'expense') totals.expense += Number(finance.total ?? finance.amount ?? 0)
+        if (finance.type === 'expense')
+          totals.expense += Number(finance.total ?? finance.amount ?? 0)
         if (finance.type === 'income') totals.income += Number(finance.total ?? finance.amount ?? 0)
         if (finance.type === 'receivable') totals.income += Number(finance.paid_amount || 0)
         return totals
@@ -94,8 +95,16 @@ try {
     apiResult.profiles.every(({ status }) => status === 200),
     `full financial profiles must succeed: ${JSON.stringify(apiResult.profiles)}`
   )
-  assert.equal(apiResult.creditNotesAdapterOk, true, 'credit notes adapter must use the server route')
-  assert.deepEqual(apiResult.missingFinanceLinks, [], 'paid legal services must be linked to finance ledger')
+  assert.equal(
+    apiResult.creditNotesAdapterOk,
+    true,
+    'credit notes adapter must use the server route'
+  )
+  assert.deepEqual(
+    apiResult.missingFinanceLinks,
+    [],
+    'paid legal services must be linked to finance ledger'
+  )
   assert.equal(apiResult.officeReport.status, 200, 'office accounts report must succeed')
   assert.equal(apiResult.financeStats.status, 200, 'finance stats must succeed')
   assert.equal(Number(apiResult.financeStats.body.income), apiResult.expectedStats.income)
@@ -103,7 +112,8 @@ try {
   const reportSummary = apiResult.officeReport.body?.summary || {}
   assert.ok(
     Math.abs(
-      Number(reportSummary.total_revenue || 0) - Number(reportSummary.total_collected || 0) -
+      Number(reportSummary.total_revenue || 0) -
+        Number(reportSummary.total_collected || 0) -
         Number(reportSummary.total_outstanding || 0)
     ) < 0.02,
     `office report totals must reconcile: ${JSON.stringify(reportSummary)}`

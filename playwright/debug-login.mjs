@@ -15,7 +15,9 @@ for (const btn of buttons) {
   const text = await btn.textContent()
   const cls = await btn.getAttribute('class')
   const type = await btn.getAttribute('type')
-  console.log(`Button: text="${text.trim().substring(0,50)}" class="${cls?.substring(0,60)}" type="${type}"`)
+  console.log(
+    `Button: text="${text.trim().substring(0, 50)}" class="${cls?.substring(0, 60)}" type="${type}"`
+  )
 }
 
 // Find all inputs
@@ -27,7 +29,9 @@ for (const inp of inputs) {
   const placeholder = await inp.getAttribute('placeholder')
   const autocomplete = await inp.getAttribute('autocomplete')
   const id = await inp.getAttribute('id')
-  console.log(`Input: type="${type}" name="${name}" placeholder="${placeholder}" autocomplete="${autocomplete}" id="${id}"`)
+  console.log(
+    `Input: type="${type}" name="${name}" placeholder="${placeholder}" autocomplete="${autocomplete}" id="${id}"`
+  )
 }
 
 // Check if there's a form

@@ -43,7 +43,7 @@ if (!isDisabledAfter) {
   await page.waitForTimeout(1000)
   const isDisabled2 = await btnAfter.isDisabled()
   console.log('Button disabled with email:', isDisabled2)
-  
+
   if (!isDisabled2) {
     await btnAfter.click()
     await page.waitForTimeout(3000)
@@ -58,7 +58,7 @@ if (!isDisabledAfter) {
     }
     await allInputs[0].fill('OpenCode')
     await allInputs[1].fill('OpenCode@111')
-    
+
     // Try typing slowly
     await page.waitForTimeout(500)
     await allInputs[0].click()
@@ -68,7 +68,7 @@ if (!isDisabledAfter) {
     await page.keyboard.up('Shift')
     await page.keyboard.press('Delete')
     await allInputs[0].type('OpenCode', { delay: 50 })
-    
+
     await page.waitForTimeout(500)
     await allInputs[1].click()
     await allInputs[1].press('End')
@@ -77,7 +77,7 @@ if (!isDisabledAfter) {
     await page.keyboard.up('Shift')
     await page.keyboard.press('Delete')
     await allInputs[1].type('OpenCode@111', { delay: 50 })
-    
+
     await page.waitForTimeout(1000)
     const isDisabled3 = await btnAfter.isDisabled()
     console.log('Button disabled after typing:', isDisabled3)

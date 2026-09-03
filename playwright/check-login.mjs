@@ -25,13 +25,13 @@ if (btnExists > 0) {
   await page.waitForLoadState('networkidle').catch(() => {})
   const url = page.url()
   console.log('After login URL:', url)
-  
+
   if (url.includes('dashboard')) {
     console.log('✅ LOGIN SUCCESSFUL')
   } else if (url.includes('login')) {
     console.log('❌ STILL ON LOGIN PAGE')
   }
-  
+
   // Take screenshot
   await page.screenshot({ path: 'playwright/qa-screenshots/login-test.png' })
   console.log('Screenshot saved')
