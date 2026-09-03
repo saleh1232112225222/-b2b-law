@@ -503,10 +503,11 @@ describe('PHASE R2 Security Foundation & Verification Suite', () => {
   })
 
   // ---------------------------------------------------------------------------------------------
-  // Test 12: Express Integration — Read-Only Permission Gate Fails Closed (403 FORBIDDEN_PERMISSION)
+  // Test 12: Express Integration — Step-Up Token Requirement (403 STEP_UP_REQUIRED)
   // ---------------------------------------------------------------------------------------------
-  it('12. Read-Only Permission Gate: Admin without explicit unmigrated permission receives 403 FORBIDDEN_PERMISSION', async () => {
+  it('12. Read-Only Permission Gate: Admin without step-up token receives 403 STEP_UP_REQUIRED', async () => {
     process.env.ENABLE_TENANT_BACKUP = 'true'
+    process.env.BACKUP_STEP_UP_SECRET = 'test-secret-32-chars-long-security-token'
     const activeApp = express()
     activeApp.use(express.json())
     activeApp.use('/api/tenant', tenantBackupRouter)
@@ -525,7 +526,7 @@ describe('PHASE R2 Security Foundation & Verification Suite', () => {
     })
 
     expect(res.status).toBe(403)
-    expect(res.body.code).toBe('FORBIDDEN_PERMISSION')
+    expect(res.body.code).toBe('STEP_UP_REQUIRED')
   })
 
   // ---------------------------------------------------------------------------------------------
