@@ -299,8 +299,8 @@ export async function stageEncryptedRecoveryArchive(
       if (lengthBig > BigInt(Number.MAX_SAFE_INTEGER)) throw new Error('ARCHIVE_ENTRY_SIZE_EXCEEDED')
       const byteLength = Number(lengthBig)
       if (type === ENTRY_END) {
-        if (nameLength !== 0 || byteLength !== 0 || !manifest) throw new Error('INVALID_ARCHIVE_END')
         await reader.assertEof()
+        if (!manifest) throw new Error('MISSING_ARCHIVE_MANIFEST')
         if (expectedTenantId && expectedTenantId !== '00000000-0000-0000-0000-000000000000' && expectedTenantId !== 'ANY' && manifest.tenantId !== expectedTenantId) {
           throw new Error('TENANT_MISMATCH')
         }

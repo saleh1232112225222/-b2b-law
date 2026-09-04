@@ -58,6 +58,9 @@ export const FORBIDDEN_OBJECT_KEYS = new Set(['__proto__', 'constructor', 'proto
 
 /** RFC-8785-style deterministic JSON for the JSON value subset used by recovery records. */
 export function canonicalizeJson(value: unknown): string {
+  if (value instanceof Date) {
+    return JSON.stringify(value.toISOString())
+  }
   if (value === null || typeof value !== 'object') {
     const encoded = JSON.stringify(value)
     if (encoded === undefined) throw new Error('UNSUPPORTED_CANONICAL_JSON_VALUE')
@@ -515,7 +518,7 @@ export function verifyAndStageTenantPackage(
     }
   }
 
-  const { manifest, data, attachments = {} } = rawPackage
+  const { manifest, data } = rawPackage
 
   if (manifest.formatVersion !== 2 || manifest.contractId !== 'b2b-law-canonical-v2') {
     errors.push('إصدار الحزمة أو معرف العقد (Contract ID) غير متوافق مع هذا النظام.')
