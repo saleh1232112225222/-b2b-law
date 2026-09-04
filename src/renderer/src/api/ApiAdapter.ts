@@ -2282,7 +2282,16 @@ const api = {
           if (event.total) onProgress?.(Math.round((event.loaded / event.total) * 100))
         }
       })
-      return { ...preview.data, sessionId: session.sessionId, stepUpToken: step.stepUpToken }
+      const rawPreview = (preview.data as any)?.preview || preview.data
+      return {
+        ...rawPreview,
+        ...preview.data,
+        totalRows: rawPreview?.totalRows ?? (preview.data as any)?.totalRows ?? 0,
+        attachmentCount: rawPreview?.attachmentCount ?? (preview.data as any)?.attachmentCount ?? 0,
+        confirmationToken: (preview.data as any)?.confirmationToken || rawPreview?.confirmationToken,
+        sessionId: session.sessionId,
+        stepUpToken: step.stepUpToken
+      }
     },
     executeDisasterRecovery: (sessionId: string, confirmationToken: string, stepUpToken: string) =>
       mode === 'desktop'

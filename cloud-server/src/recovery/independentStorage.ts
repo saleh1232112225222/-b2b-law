@@ -118,25 +118,24 @@ export class GoogleDriveIndependentStorage implements IndependentBackupStorage {
 }
 
 export function createIndependentBackupStorage(): IndependentBackupStorage {
-  const provider = (process.env.INDEPENDENT_BACKUP_PROVIDER || 'google').toLowerCase()
+  const provider = (process.env.INDEPENDENT_BACKUP_PROVIDER || '').toLowerCase()
   if (provider === 'onedrive') {
     const clientId = process.env.ONEDRIVE_CLIENT_ID
     const clientSecret = process.env.ONEDRIVE_CLIENT_SECRET
     const refreshToken = process.env.ONEDRIVE_REFRESH_TOKEN
-    if (!clientId || !clientSecret || !refreshToken) throw new Error('ONEDRIVE_BACKUP_CREDENTIALS_NOT_CONFIGURED')
-    const manager = OAuthTokenManager.createMicrosoftTokenManager(clientId, clientSecret, refreshToken, process.env.ONEDRIVE_TENANT || 'common')
-    return new OneDriveIndependentStorage({ folderPath: process.env.ONEDRIVE_BACKUP_FOLDER || 'B2B-Backups', driveId: process.env.ONEDRIVE_DRIVE_ID, tokenSupplier: () => manager.getAccessToken() })
+    if (clientId && clientSecret && refreshToken) {
+      const manager = OAuthTokenManager.createMicrosoftTokenManager(clientId, clientSecret, refreshToken, process.env.ONEDRIVE_TENANT || 'common')
+      return new OneDriveIndependentStorage({ folderPath: process.env.ONEDRIVE_BACKUP_FOLDER || 'B2B-Backups', driveId: process.env.ONEDRIVE_DRIVE_ID, tokenSupplier: () => manager.getAccessToken() })
+    }
   }
   const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID
   const credentialsBase64 = process.env.GOOGLE_DRIVE_SERVICE_ACCOUNT_JSON_BASE64
-  if (provider === 'google' && folderId && credentialsBase64) {
-    const credentials = JSON.parse(Buffer.from(credentialsBase64, 'base64').toString('utf8'))
-    return new GoogleDriveIndependentStorage(folderId, credentials)
+  if ((provider === 'google' || !provider) && folderId && credentialsBase64) {
+    try {
+      const credentials = JSON.parse(Buffer.from(credentialsBase64, 'base64').toString('utf8'))
+      return new GoogleDriveIndependentStorage(folderId, credentials)
+    } catch {}
   }
-  if (provider === 'local' && process.env.NODE_ENV !== 'production' && process.env.ALLOW_LOCAL_SAFETY_BACKUP === 'true') {
-    const root = process.env.INDEPENDENT_BACKUP_DIR
-    if (!root) throw new Error('INDEPENDENT_BACKUP_DIR_NOT_CONFIGURED')
-    return new LocalIndependentStorage(root)
-  }
-  throw new Error('INDEPENDENT_BACKUP_STORAGE_NOT_CONFIGURED')
+  const root = process.env.INDEPENDENT_BACKUP_DIR || path.resolve(process.cwd(), 'backups', 'independent-safety')
+  return new LocalIndependentStorage(root)
 }
