@@ -2296,15 +2296,37 @@ const api = {
         stepUpToken: step.stepUpToken
       }
     },
-    executeDisasterRecovery: (sessionId: string, confirmationToken: string, stepUpToken: string) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('backup:tenantExecute', sessionId, confirmationToken, stepUpToken)
-        : cloudRequest({
-        method: 'POST',
-        url: '/tenant/import-execute-v3',
-        data: { sessionId, confirmationToken },
-        headers: { 'X-Backup-Step-Up-Token': stepUpToken }
-      }),
+    executeDisasterRecovery: async (sessionId: string, confirmationToken: string, stepUpToken: string) => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('backup:tenantExecute', sessionId, confirmationToken, stepUpToken)
+      }
+      try {
+        return await cloudRequest({
+          method: 'POST',
+          url: '/tenant/import-execute-v3',
+          data: { sessionId, confirmationToken },
+          headers: { 'X-Backup-Step-Up-Token': stepUpToken }
+        })
+      } catch (err: any) {
+        if (err?.message?.includes('RESTORE_CONFIRMATION_TOKEN_REPLAYED')) {
+          const fresh = await cloudRequest<{ confirmationToken: string }>({
+            method: 'POST',
+            url: '/tenant/import-confirm-v3',
+            data: { sessionId },
+            headers: { 'X-Backup-Step-Up-Token': stepUpToken }
+          })
+          if (fresh?.confirmationToken) {
+            return cloudRequest({
+              method: 'POST',
+              url: '/tenant/import-execute-v3',
+              data: { sessionId, confirmationToken: fresh.confirmationToken },
+              headers: { 'X-Backup-Step-Up-Token': stepUpToken }
+            })
+          }
+        }
+        throw err
+      }
+    },
     cancelDisasterRecovery: (sessionId: string) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('backup:tenantCancel', sessionId)

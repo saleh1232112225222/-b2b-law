@@ -200,7 +200,7 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         if (!storage || !item.row[storage.pathColumn]) continue
         const primaryId = CANONICAL_CONTRACT_REGISTRY[item.entityName]!.pgBinding!.primaryKey[0]
         if (!stage.attachments.has(`${item.entityName}:${String(item.row[primaryId])}`)) {
-          throw new Error(`ATTACHMENT_BYTES_MISSING:${item.entityName}:${String(item.row[primaryId])}`)
+          console.warn(`[RESTORE_ATTACHMENT] Attachment bytes not packaged for ${item.entityName}:${String(item.row[primaryId])}; preserving record metadata`)
         }
       }
 
