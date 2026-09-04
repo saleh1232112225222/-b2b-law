@@ -206,7 +206,14 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
 
       for (const item of ordered) {
         const statement = this.buildUpsert(item.entityName, item.row, context.tenantId)
-        const result = await client.query(statement.sql, statement.values)
+        let result
+        try {
+          result = await client.query(statement.sql, statement.values)
+        } catch (queryErr: any) {
+          const table = CANONICAL_CONTRACT_REGISTRY[item.entityName]?.pgBinding?.tableName || item.entityName
+          console.error(`[RESTORE_ERROR] Entity "${item.entityName}" (table: "${table}") upsert failed: ${queryErr.message}\nSQL: ${statement.sql}`)
+          throw new Error(`RESTORE_QUERY_FAILED:${item.entityName}:${queryErr.message}`)
+        }
         if ((result.rowCount || 0) > 0) activation.importedRows++
         else activation.conflictIgnoredRows++
         const contract = CANONICAL_CONTRACT_REGISTRY[item.entityName]!

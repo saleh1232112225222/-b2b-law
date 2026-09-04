@@ -1,6 +1,7 @@
 import { query } from './connection'
 import fs from 'fs'
 import path from 'path'
+import { CANONICAL_CONTRACT_REGISTRY } from '../shared/canonicalContract'
 
 export async function runExtraMigrations() {
   console.log('[MIGRATE_EXTRA] Running extra migrations...')
@@ -943,4 +944,64 @@ export async function runExtraMigrations() {
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] Financial integrity repair warning:', err.message)
   }
+
+  await ensureCanonicalUniqueConstraints()
 }
+
+async function ensureCanonicalUniqueConstraints() {
+  console.log('[MIGRATE_EXTRA] Ensuring canonical unique constraints for all entities...')
+  try {
+    const tablesRes = await query(`
+      SELECT tablename FROM pg_tables WHERE schemaname = 'public'
+    `)
+    const existingTables = new Set(tablesRes.rows.map((r: any) => r.tablename))
+
+    const indexRes = await query(`
+      SELECT
+        c.relname AS table_name,
+        i.relname AS index_name,
+        ix.indisunique AS is_unique,
+        pg_get_expr(ix.indpred, ix.indrelid) AS predicate,
+        array_to_string(array_agg(a.attname ORDER BY array_position(ix.indkey, a.attnum)), ', ') AS columns
+      FROM pg_index ix
+      JOIN pg_class c ON c.oid = ix.indrelid
+      JOIN pg_class i ON i.oid = ix.indexrelid
+      JOIN pg_attribute a ON a.attrelid = c.oid AND a.attnum = ANY(ix.indkey)
+      JOIN pg_namespace n ON n.oid = c.relnamespace
+      WHERE n.nspname = 'public' AND ix.indisunique = true
+      GROUP BY c.relname, i.relname, ix.indisunique, ix.indpred, ix.indrelid
+    `)
+
+    const uniqueMap = new Map<string, string>()
+    for (const row of indexRes.rows) {
+      if (row.predicate) continue // skip partial indexes
+      const key = `${row.table_name}:${row.columns}`
+      uniqueMap.set(key, row.index_name)
+    }
+
+    for (const [entityName, contract] of Object.entries(CANONICAL_CONTRACT_REGISTRY)) {
+      if (!contract.pgBinding) continue
+      const tableName = contract.pgBinding.tableName
+      if (!existingTables.has(tableName)) continue
+
+      const pks = contract.pgBinding.primaryKey
+      const pkStr = pks.join(', ')
+
+      if (uniqueMap.has(`${tableName}:${pkStr}`)) continue
+
+      const colsQuoted = pks.map((c) => `"${c}"`).join(', ')
+      const indexName = `idx_uq_canon_${tableName}_${pks.join('_')}`.slice(0, 63)
+      try {
+        await query(`CREATE UNIQUE INDEX IF NOT EXISTS "${indexName}" ON "${tableName}" (${colsQuoted})`)
+        console.log(`[MIGRATE_EXTRA] Created unique index "${indexName}" on "${tableName}" (${colsQuoted}) for entity ${entityName}`)
+        uniqueMap.set(`${tableName}:${pkStr}`, indexName)
+      } catch (err: any) {
+        console.warn(`[MIGRATE_EXTRA] Failed to create unique index for ${tableName} (${colsQuoted}):`, err.message)
+      }
+    }
+    console.log('[MIGRATE_EXTRA] Canonical unique constraints check completed')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] Canonical unique constraints check error:', err.message)
+  }
+}
+
