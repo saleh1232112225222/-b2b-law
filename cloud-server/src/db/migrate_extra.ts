@@ -22,6 +22,14 @@ export async function runExtraMigrations() {
     console.warn('[MIGRATE_EXTRA] agencies.court reconciliation warning:', err.message)
   }
 
+  // Ensure memoranda canonical columns for tenant backup & restore
+  try {
+    await query(`ALTER TABLE memoranda ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE`)
+    console.log('[MIGRATE_EXTRA] memoranda canonical columns ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] memoranda reconciliation warning:', err.message)
+  }
+
   // Soft delete columns for companies table
   try {
     await query(`

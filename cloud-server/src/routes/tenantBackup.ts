@@ -723,9 +723,15 @@ export function postgresRecoverySchemaHash(): string {
 
 export function buildTenantScopedSelect(
   config: ServerEntityConfig,
-  paginated = true
+  paginated = true,
+  availableColumns?: Set<string>
 ): string {
-  const selectCols = config.exportColumns.map((column) => `tenant_row."${column}"`).join(', ')
+  const selectedColsList = availableColumns
+    ? config.exportColumns.filter((column) => availableColumns.has(column))
+    : config.exportColumns
+  const selectCols = (selectedColsList.length > 0 ? selectedColsList : config.exportColumns)
+    .map((column) => `tenant_row."${column}"`)
+    .join(', ')
   const orderClause = config.primaryKey.map((column) => `tenant_row."${column}" ASC`).join(', ')
   let fromAndScope: string
   const scope = config.tenantScope
@@ -790,16 +796,30 @@ export async function* streamTenantArchiveEntries(companyId: string): AsyncGener
   }> = []
   try {
     await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY')
+    const actualColumns = new Map<string, Set<string>>()
     try {
+      const tableNames = [...new Set(Object.values(SERVER_ENTITY_ALLOWLIST).map((config) => config.tableName))]
+      const colResult = await client.query(
+        `SELECT table_name, column_name FROM information_schema.columns
+         WHERE table_schema = 'public' AND table_name = ANY($1::text[])`,
+        [tableNames]
+      )
+      for (const row of colResult.rows) {
+        const tableName = String(row.table_name)
+        const columns = actualColumns.get(tableName) || new Set<string>()
+        columns.add(String(row.column_name))
+        actualColumns.set(tableName, columns)
+      }
       await assertPostgresRecoveryContract(client)
     } catch (contractErr: any) {
       console.warn('[ARCHIVE_STREAM] Postgres recovery contract drift warning:', contractErr?.message)
     }
     for (const [entityName, config] of Object.entries(SERVER_ENTITY_ALLOWLIST)) {
     let offset = 0
+    const available = actualColumns.get(config.tableName)
     while (true) {
       const result = await client.query(
-        buildTenantScopedSelect(config),
+        buildTenantScopedSelect(config, true, available),
         [companyId, pageSize, offset]
       )
       const rows = result.rows || []

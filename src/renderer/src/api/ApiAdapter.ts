@@ -45,7 +45,10 @@ export function setCloudBaseUrl(url: string) {
     (res) => res,
     async (error) => {
       if (error.response?.data?.error) {
-        error.message = error.response.data.error
+        const code = error.response.data.code
+        error.message = code && !error.response.data.error.includes(code)
+          ? `${error.response.data.error} (${code})`
+          : error.response.data.error
       }
       if (error.response?.status === 401 && mode === 'cloud') {
         if (isMockMode()) {
