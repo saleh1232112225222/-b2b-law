@@ -31,6 +31,7 @@ export interface PgActivation {
   conflictIgnoredRows: number
   checkedRows: number
   attachmentDirectory?: string
+  missingAttachmentsCount?: number
   commitOutcome: 'open' | 'committed' | 'unknown' | 'rolled_back'
   verificationQueries: Array<{ sql: string; values: unknown[] }>
 }
@@ -195,14 +196,17 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         }
       }
 
+      let missingAttachmentsCount = 0
       for (const item of ordered) {
         const storage = CANONICAL_CONTRACT_REGISTRY[item.entityName]?.attachmentStorage
         if (!storage || !item.row[storage.pathColumn]) continue
         const primaryId = CANONICAL_CONTRACT_REGISTRY[item.entityName]!.pgBinding!.primaryKey[0]
         if (!stage.attachments.has(`${item.entityName}:${String(item.row[primaryId])}`)) {
+          missingAttachmentsCount++
           console.warn(`[RESTORE_ATTACHMENT] Attachment bytes not packaged for ${item.entityName}:${String(item.row[primaryId])}; preserving record metadata`)
         }
       }
+      activation.missingAttachmentsCount = missingAttachmentsCount
 
       for (const item of ordered) {
         const statement = this.buildUpsert(item.entityName, item.row, context.tenantId)
