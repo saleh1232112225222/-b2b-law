@@ -144,12 +144,12 @@
               </v-col>
             </v-row>
             <v-alert type="warning" variant="tonal" density="compact" class="mb-3" role="status">
-              حزمة التعافي مشفرة ومخصصة للطوارئ. احتفظ بكلمة المرور في مكان مستقل.
+              حزمة الطوارئ مشفرة ومخصصة للطوارئ. احتفظ بكلمة المرور في مكان مستقل.
             </v-alert>
             <v-row dense class="mb-4">
               <v-col cols="12" sm="6">
                 <v-btn block color="primary" variant="tonal" :loading="disasterBusy" @click="openDisasterExport">
-                  تصدير حزمة تعافٍ مشفرة
+                  تصدير حزمة طوارئ مشفرة
                 </v-btn>
               </v-col>
               <v-col cols="12" sm="6">
@@ -594,10 +594,10 @@
     </v-dialog>
     <v-dialog v-model="showDisasterDialog" max-width="680" persistent>
       <v-card rounded="xl" aria-labelledby="disaster-title">
-        <v-card-title id="disaster-title">{{ disasterMode === 'export' ? 'تصدير حزمة التعافي' : 'مراجعة الاستعادة المرحلية' }}</v-card-title>
+        <v-card-title id="disaster-title">{{ disasterMode === 'export' ? 'تصدير حزمة الطوارئ' : 'مراجعة الاستعادة المرحلية' }}</v-card-title>
         <v-card-text>
           <v-text-field v-model="disasterMfa" label="رمز التحقق الثنائي / كلمة مرور حساب Windows" autocomplete="current-password" type="password" />
-          <v-text-field v-model="disasterPassphrase" label="كلمة مرور التعافي" type="password" autocomplete="new-password" />
+          <v-text-field v-model="disasterPassphrase" label="كلمة مرور الطوارئ" type="password" autocomplete="new-password" />
           <v-progress-linear v-if="disasterBusy" :model-value="disasterPercent" height="8" rounded class="mb-3" />
           <v-alert v-if="disasterPreview" type="warning" variant="tonal" role="alert">
             سيتم استعادة {{ disasterPreview.totalRows }} سجل و{{ disasterPreview.attachmentCount }} مرفق.
@@ -677,7 +677,7 @@ const chooseDisasterPackage = () => {
 }
 const runDisasterExport = async () => {
   if (!disasterPassphrase.value || disasterPassphrase.value.length < 12) {
-    showSnackbar('كلمة مرور التعافي يجب ألا تقل عن 12 خانة', 'warning')
+    showSnackbar('كلمة مرور الطوارئ يجب ألا تقل عن 12 خانة', 'warning')
     return
   }
   disasterBusy.value = true
@@ -710,11 +710,11 @@ const runDisasterExport = async () => {
       a.remove()
       window.URL.revokeObjectURL(downloadUrl)
     }
-    showSnackbar('تم تصدير وتحميل حزمة التعافي المشفرة بنجاح بنسبة 100%', 'success')
+    showSnackbar('تم تصدير وتحميل حزمة الطوارئ المشفرة بنجاح بنسبة 100%', 'success')
     showDisasterDialog.value = false
     resetDisaster()
   } catch (error) {
-    showSnackbar((error as Error).message || 'تعذر تصدير حزمة التعافي', 'error')
+    showSnackbar((error as Error).message || 'تعذر تصدير حزمة الطوارئ', 'error')
   } finally {
     disasterBusy.value = false
   }
