@@ -2543,7 +2543,22 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:logs', params) ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
-        : cloudRequest({ method: 'GET', url: '/sync/logs', params })
+        : cloudRequest({ method: 'GET', url: '/sync/logs', params }),
+    getRegisteredDevices: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sync:get-devices') ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'GET', url: '/sync/devices' }),
+    getLatestVerifiedBackup: () =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sync:latest-backup') ||
+          Promise.reject(new Error('خدمة الكتالوج الموثق غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'GET', url: '/sync/backups/latest' }),
+    revokeDevice: (deviceId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sync:revoke-device', deviceId) ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'POST', url: `/sync/devices/${deviceId}/revoke` })
   }
 }
 
