@@ -93,6 +93,20 @@ syncRouter.get('/devices', async (req, res) => {
   } catch (e) { res.status(401).json({ error: (e as Error).message }) }
 })
 
+syncRouter.get('/pairing-info', async (req, res) => {
+  try {
+    const { companyId } = requireSyncIdentity(req)
+    if (!isAdmin(req)) return void res.status(403).json({ error: 'SYNC_ADMIN_REQUIRED' })
+    const token = req.headers.authorization?.replace(/^Bearer\s+/i, '') || ''
+    res.json({
+      baseUrl: 'https://b2b-law-g2qr.onrender.com/api',
+      tenantId: companyId,
+      accessToken: token,
+      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+    })
+  } catch (e) { res.status(401).json({ error: (e as Error).message }) }
+})
+
 syncRouter.post('/devices/:id/revoke', async (req, res) => {
   try {
     const { companyId } = requireSyncIdentity(req)

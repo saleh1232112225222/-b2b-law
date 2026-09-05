@@ -4,6 +4,9 @@
       <LucideIcon name="laptop" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">إدارة الأجهزة وحالة النسخ الموثق</span>
       <v-spacer />
+      <v-btn size="small" variant="flat" color="primary" class="font-weight-black me-2" :loading="pairingLoading" @click="openPairingDialog">
+        <LucideIcon name="link" :size="14" class="me-1" /> بيانات إقران سطح المكتب
+      </v-btn>
       <v-btn size="small" variant="outlined" color="gold" class="font-weight-black" :loading="loading" @click="loadData">
         <LucideIcon name="refresh-cw" :size="14" class="me-1" /> تحديث
       </v-btn>
@@ -85,6 +88,82 @@
         </v-list-item>
       </v-list>
     </v-card-text>
+
+    <!-- Desktop Pairing Dialog -->
+    <v-dialog v-model="showPairingDialog" max-width="560">
+      <v-card class="glass-card border-gold border-2 pa-6">
+        <div class="d-flex align-center mb-4">
+          <LucideIcon name="laptop" :size="24" class="text-primary me-2" />
+          <span class="text-h6 font-weight-black text-primary">بيانات إقران تطبيق سطح المكتب</span>
+          <v-spacer />
+          <v-btn icon variant="text" @click="showPairingDialog = false">
+            <LucideIcon name="x" :size="20" />
+          </v-btn>
+        </div>
+
+        <div class="text-caption text-grey mb-4">
+          انسخ هذه البيانات وضعها في بطاقة <strong>«مزامنة المكتب الآمنة»</strong> بتطبيق سطح المكتب ثم اضغط <strong>«إقران الجهاز بأمان»</strong>:
+        </div>
+
+        <v-text-field
+          label="عنوان خادم API"
+          :model-value="pairingInfo.baseUrl"
+          readonly
+          variant="outlined"
+          density="compact"
+          class="mb-3 font-mono"
+        >
+          <template #append-inner>
+            <v-btn size="x-small" variant="tonal" color="primary" @click="copyField(pairingInfo.baseUrl, 'عنوان الخادم')">
+              نسخ
+            </v-btn>
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          label="معرّف المكتب (Tenant UUID)"
+          :model-value="pairingInfo.tenantId"
+          readonly
+          variant="outlined"
+          density="compact"
+          class="mb-3 font-mono"
+        >
+          <template #append-inner>
+            <v-btn size="x-small" variant="tonal" color="primary" @click="copyField(pairingInfo.tenantId, 'معرّف المكتب')">
+              نسخ
+            </v-btn>
+          </template>
+        </v-text-field>
+
+        <v-text-field
+          label="رمز الدخول المؤقت (Access Token)"
+          :model-value="pairingInfo.accessToken"
+          type="password"
+          readonly
+          variant="outlined"
+          density="compact"
+          class="mb-4 font-mono"
+        >
+          <template #append-inner>
+            <v-btn size="x-small" variant="tonal" color="primary" @click="copyField(pairingInfo.accessToken, 'رمز الدخول')">
+              نسخ
+            </v-btn>
+          </template>
+        </v-text-field>
+
+        <v-alert v-if="copiedMessage" type="success" variant="tonal" density="compact" class="mb-3">
+          {{ copiedMessage }}
+        </v-alert>
+
+        <v-alert type="info" variant="tonal" density="compact" class="mb-4">
+          بعد لصق معرّف المكتب ورمز الدخول في تطبيق سطح المكتب، اضغط على زر <strong>«إقران الجهاز بأمان»</strong> وسيتحول جهازك إلى «مقترن» بنجاح!
+        </v-alert>
+
+        <v-btn block color="primary" class="font-weight-black" @click="showPairingDialog = false">
+          إغلاق النافذة
+        </v-btn>
+      </v-card>
+    </v-dialog>
   </v-card>
 </template>
 
@@ -114,6 +193,64 @@ const devices = ref<DeviceItem[]>([])
 const latestBackup = ref<LatestBackupItem | null>(null)
 const loading = ref(false)
 const revokingId = ref<string | null>(null)
+
+const showPairingDialog = ref(false)
+const pairingLoading = ref(false)
+const copiedMessage = ref('')
+const pairingInfo = ref({
+  baseUrl: 'https://b2b-law-g2qr.onrender.com/api',
+  tenantId: '',
+  accessToken: '',
+  expiresAt: ''
+})
+
+const openPairingDialog = async () => {
+  pairingLoading.value = true
+  copiedMessage.value = ''
+  try {
+    const api = (window as any).api?.sync
+    if (api?.getPairingInfo) {
+      const res = await api.getPairingInfo()
+      pairingInfo.value = {
+        baseUrl: res?.baseUrl || 'https://b2b-law-g2qr.onrender.com/api',
+        tenantId: res?.tenantId || '',
+        accessToken: res?.accessToken || '',
+        expiresAt: res?.expiresAt || ''
+      }
+    }
+  } catch {
+    const rawSession = localStorage.getItem('web_currentUserSession')
+    let parsedTenant = ''
+    try { parsedTenant = JSON.parse(rawSession || '{}')?.companyId || '' } catch {}
+    pairingInfo.value = {
+      baseUrl: 'https://b2b-law-g2qr.onrender.com/api',
+      tenantId: parsedTenant,
+      accessToken: localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token') || '',
+      expiresAt: ''
+    }
+  } finally {
+    if (!pairingInfo.value.tenantId) {
+      const rawSession = localStorage.getItem('web_currentUserSession')
+      try { pairingInfo.value.tenantId = JSON.parse(rawSession || '{}')?.companyId || '' } catch {}
+    }
+    if (!pairingInfo.value.accessToken) {
+      pairingInfo.value.accessToken = localStorage.getItem('b2b_cloud_token') || localStorage.getItem('token') || ''
+    }
+    pairingLoading.value = false
+    showPairingDialog.value = true
+  }
+}
+
+const copyField = async (text: string, label: string) => {
+  if (!text) return
+  try {
+    await navigator.clipboard.writeText(text)
+    copiedMessage.value = `تم نسخ ${label} إلى الحافظة بنجاح!`
+    setTimeout(() => { copiedMessage.value = '' }, 3000)
+  } catch {
+    copiedMessage.value = `تعذر النسخ التلقائي؛ يمكنك تحديد النص ونسخه يدوياً.`
+  }
+}
 
 const formatDate = (isoStr?: string) => {
   if (!isoStr) return '—'

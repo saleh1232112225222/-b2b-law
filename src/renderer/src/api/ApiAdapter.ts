@@ -2558,7 +2558,11 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:revoke-device', deviceId) ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
-        : cloudRequest({ method: 'POST', url: `/sync/devices/${deviceId}/revoke` })
+        : cloudRequest({ method: 'POST', url: `/sync/devices/${deviceId}/revoke` }),
+    getPairingInfo: () =>
+      mode === 'desktop'
+        ? Promise.reject(new Error('هذه الميزة متاحة في تطبيق الويب'))
+        : cloudRequest({ method: 'GET', url: '/sync/pairing-info' })
   }
 }
 
