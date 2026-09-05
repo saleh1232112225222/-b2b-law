@@ -89,7 +89,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
 
 interface DeviceItem {
@@ -165,5 +165,10 @@ const revokeDevice = async (deviceId: string) => {
 
 onMounted(() => {
   loadData()
+  window.addEventListener('backup-catalog-updated', loadData)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('backup-catalog-updated', loadData)
 })
 </script>

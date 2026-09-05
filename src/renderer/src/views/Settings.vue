@@ -713,6 +713,7 @@ const runDisasterExport = async () => {
     showSnackbar('تم تصدير وتحميل حزمة الطوارئ المشفرة بنجاح بنسبة 100%', 'success')
     showDisasterDialog.value = false
     resetDisaster()
+    window.dispatchEvent(new CustomEvent('backup-catalog-updated'))
   } catch (error) {
     showSnackbar((error as Error).message || 'تعذر تصدير حزمة الطوارئ', 'error')
   } finally {

@@ -1038,5 +1038,26 @@ async function ensureCanonicalUniqueConstraints() {
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] Canonical unique constraints check error:', err.message)
   }
+
+  // 4. Ensure backup_catalog table exists for verified backup tracking
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS backup_catalog(
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        company_id UUID NOT NULL,
+        export_id UUID NOT NULL,
+        content_hash TEXT NOT NULL,
+        byte_size BIGINT NOT NULL,
+        destination TEXT NOT NULL,
+        status TEXT NOT NULL,
+        last_verified_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        UNIQUE(company_id,export_id,destination)
+      )
+    `)
+    console.log('[MIGRATE_EXTRA] backup_catalog table checked/ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] backup_catalog check error:', err.message)
+  }
 }
 

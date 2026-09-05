@@ -10,6 +10,7 @@ import fs from 'fs'
 import path from 'path'
 import bcrypt from 'bcryptjs'
 import { pipeline } from 'stream/promises'
+import { Transform } from 'stream'
 import { authMiddleware } from '../middleware/auth'
 import { query, getClient } from '../db/connection'
 import {
@@ -1005,8 +1006,31 @@ tenantBackupRouter.post(['/export', '/export-v3'], async (req: Request, res: Res
     )
     res.status(200)
     res.setHeader('Content-Type', 'application/vnd.b2b-law.tenant-backup')
-    res.setHeader('Content-Disposition', `attachment; filename="b2b_backup_${new Date().toISOString().slice(0, 10)}.b2btenant"`)
-    await pipeline(archive, res)
+    const hash = crypto.createHash('sha256')
+    let byteSize = 0
+    const passThrough = new Transform({
+      transform(chunk, _encoding, callback) {
+        hash.update(chunk)
+        byteSize += chunk.length
+        callback(null, chunk)
+      }
+    })
+
+    await pipeline(archive, passThrough, res)
+
+    const sha256 = hash.digest('hex')
+    const exportId = crypto.randomUUID()
+    try {
+      await query(
+        `INSERT INTO backup_catalog(company_id, export_id, content_hash, byte_size, destination, status, last_verified_at)
+         VALUES($1, $2, $3, $4, $5, 'verified', NOW())
+         ON CONFLICT (company_id, export_id, destination)
+         DO UPDATE SET content_hash=EXCLUDED.content_hash, byte_size=EXCLUDED.byte_size, status=EXCLUDED.status, last_verified_at=EXCLUDED.last_verified_at`,
+        [companyId, exportId, sha256, byteSize, 'تصدير حزمة طوارئ مشفرة']
+      )
+    } catch (catalogErr) {
+      console.error('[TenantBackup] Failed to record in backup_catalog:', catalogErr)
+    }
   } catch (error) {
     if (!res.headersSent) return sendSanitizedError(res, 500, 'فشل تصدير الحزمة المتدفقة.', 'STREAM_EXPORT_FAILED', error)
     res.destroy(error instanceof Error ? error : new Error(String(error)))

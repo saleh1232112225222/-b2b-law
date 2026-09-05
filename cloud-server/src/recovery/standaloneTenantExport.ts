@@ -64,7 +64,7 @@ export async function createStandaloneTenantExport(input: StandaloneTenantExport
     fs.appendFileSync(path.join(outputDir, 'verified-tenant-catalog.jsonl'), `${JSON.stringify(result)}\n`, { encoding: 'utf8', mode: 0o600 })
     try {
       await query(
-        'INSERT INTO backup_catalog(company_id, export_id, content_hash, byte_size, destination, status, last_verified_at) VALUES(, , , , , , ) ON CONFLICT (company_id, export_id, destination) DO UPDATE SET content_hash=EXCLUDED.content_hash, byte_size=EXCLUDED.byte_size, status=EXCLUDED.status, last_verified_at=EXCLUDED.last_verified_at',
+        'INSERT INTO backup_catalog(company_id, export_id, content_hash, byte_size, destination, status, last_verified_at) VALUES($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (company_id, export_id, destination) DO UPDATE SET content_hash=EXCLUDED.content_hash, byte_size=EXCLUDED.byte_size, status=EXCLUDED.status, last_verified_at=EXCLUDED.last_verified_at',
         [input.tenantId, exportId, sha256, result.byteLength, stored.location, 'verified', verifiedAt]
       )
     } catch {}
