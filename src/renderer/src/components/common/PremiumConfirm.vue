@@ -1,39 +1,62 @@
 <template>
-  <v-dialog v-model="visible" max-width="580" persistent>
-    <v-card class="overflow-hidden rounded-xl confirm-dialog-card elevation-24">
+  <v-dialog
+    v-model="visible"
+    :max-width="isMobile ? '95vw' : '560px'"
+    scrollable
+    persistent
+    class="premium-confirm-dialog"
+  >
+    <v-card class="rounded-xl confirm-dialog-card elevation-24 d-flex flex-column">
       <!-- Top Decorative Accent -->
-      <div class="decorative-accent" :style="{ backgroundColor: `var(--${color})` }"></div>
+      <div class="decorative-accent" :style="{ backgroundColor: `var(--${color}, #735c00)` }"></div>
 
-      <!-- Header -->
-      <v-card-title
-        class="d-flex flex-column align-center modal-header border-b pa-5 pa-sm-6"
-      >
-        <div
-          class="icon-wrapper rounded-xl mb-3 pa-3 pa-sm-4"
-          style="background: rgba(115, 92, 0, 0.08); border: 1px solid rgba(208, 198, 175, 0.5);"
-        >
-          <LucideIcon
-            :name="icon || 'brain'"
-            :size="isMobile ? 28 : 36"
-            class="text-gold"
-          />
+      <!-- Header (Sticky / Fixed at Top) -->
+      <v-card-title class="modal-header border-b pa-4 pa-sm-5 d-flex align-center justify-space-between flex-shrink-0">
+        <div class="d-flex align-center gap-3">
+          <div
+            class="icon-wrapper rounded-xl pa-2 pa-sm-3"
+            style="background: rgba(115, 92, 0, 0.08); border: 1px solid rgba(208, 198, 175, 0.5);"
+          >
+            <LucideIcon
+              :name="icon || 'brain'"
+              :size="isMobile ? 22 : 28"
+              class="text-gold"
+            />
+          </div>
+          <h3 class="font-weight-black text-gold mb-0" :class="isMobile ? 'text-subtitle-1' : 'text-h6'">
+            {{ title }}
+          </h3>
         </div>
-        <h3 class="font-weight-black text-center text-gold" :class="isMobile ? 'text-h6' : 'text-h5'">
-          {{ title }}
-        </h3>
+        <v-btn
+          icon
+          variant="text"
+          density="comfortable"
+          size="small"
+          class="rounded-lg text-medium-emphasis"
+          :disabled="loading"
+          @click="handleCancel"
+        >
+          <LucideIcon name="x" :size="18" />
+        </v-btn>
       </v-card-title>
 
-      <!-- Message Content -->
-      <v-card-text class="pa-4 pa-sm-6 confirm-body-box">
-        <div class="confirm-message-inner">{{ message }}</div>
+      <!-- Scrollable Message Body -->
+      <v-card-text class="pa-4 pa-sm-5 confirm-body-box flex-grow-1 overflow-y-auto">
+        <div class="confirm-message-inner">
+          <div class="message-text">{{ message }}</div>
+          <div v-if="debugInfo" class="mt-4 pa-3 bg-grey-lighten-4 rounded text-caption text-left font-mono">
+            <pre>{{ debugInfo }}</pre>
+          </div>
+        </div>
       </v-card-text>
 
-      <!-- Actions Footer -->
-      <v-card-actions class="modal-footer-solid border-t d-flex align-center gap-3 pa-4 pa-sm-6">
+      <!-- Actions Footer (Pinned & Always Visible at Bottom) -->
+      <v-card-actions class="modal-footer-solid border-t d-flex align-center gap-3 pa-4 pa-sm-5 flex-shrink-0">
         <v-btn
           variant="outlined"
           class="rounded-lg flex-grow-1 font-weight-black btn-secondary"
-          :height="isMobile ? 44 : 52"
+          :height="isMobile ? 44 : 50"
+          :disabled="loading"
           @click="handleCancel"
         >
           {{ cancelText }}
@@ -41,7 +64,7 @@
         <v-btn
           variant="flat"
           class="rounded-lg flex-grow-1 font-weight-black btn-gold-outline"
-          :height="isMobile ? 44 : 52"
+          :height="isMobile ? 44 : 50"
           :loading="loading"
           @click="handleConfirm"
         >
@@ -67,6 +90,7 @@ interface Props {
   confirmButtonColor?: string
   icon?: string
   loading?: boolean
+  debugInfo?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -77,7 +101,8 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
   confirmButtonColor: '',
   icon: 'alert-circle',
-  loading: false
+  loading: false,
+  debugInfo: ''
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
@@ -103,12 +128,17 @@ const handleCancel = () => {
 .decorative-accent {
   height: 4px;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .confirm-dialog-card {
   background: var(--surface, #ffffff) !important;
   color: var(--text-primary, #1f1b13) !important;
   border: 1.5px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
+  max-height: min(88vh, 88dvh) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
 }
 
 .modal-header {
@@ -118,6 +148,18 @@ const handleCancel = () => {
 
 .confirm-body-box {
   background: var(--surface, #ffffff) !important;
+  overflow-y: auto !important;
+  max-height: calc(88vh - 160px) !important;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(115, 92, 0, 0.3) transparent;
+}
+
+.confirm-body-box::-webkit-scrollbar {
+  width: 6px;
+}
+.confirm-body-box::-webkit-scrollbar-thumb {
+  background: rgba(115, 92, 0, 0.3);
+  border-radius: 4px;
 }
 
 .confirm-message-inner {
@@ -125,13 +167,17 @@ const handleCancel = () => {
   background: var(--surface-variant, #fcf8f2) !important;
   border: 1px solid var(--border, rgba(208, 198, 175, 0.6)) !important;
   border-radius: 14px !important;
-  padding: 18px !important;
+  padding: 16px !important;
+}
+
+.message-text {
   font-size: 0.95rem !important;
-  font-weight: 800 !important;
+  font-weight: 700 !important;
   line-height: 1.8 !important;
   white-space: pre-wrap !important;
   text-align: right !important;
   direction: rtl !important;
+  word-break: break-word !important;
 }
 
 .modal-footer-solid {
@@ -143,5 +189,19 @@ const handleCancel = () => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.text-gold {
+  color: #735c00 !important;
+}
+
+.btn-secondary {
+  border-color: rgba(208, 198, 175, 0.8) !important;
+  color: #4f4539 !important;
+}
+
+.btn-gold-outline {
+  background: #735c00 !important;
+  color: #ffffff !important;
 }
 </style>

@@ -9,6 +9,7 @@
     :confirm-button-color="confirmButtonColor"
     :icon="icon"
     :loading="loading"
+    :debug-info="debugInfo"
     @confirm="emit('confirm')"
     @cancel="emit('cancel')"
   />
@@ -28,6 +29,7 @@ interface Props {
   confirmButtonColor?: string
   icon?: string
   loading?: boolean
+  debugInfo?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -38,7 +40,8 @@ const props = withDefaults(defineProps<Props>(), {
   color: 'primary',
   confirmButtonColor: '',
   icon: 'alert-circle',
-  loading: false
+  loading: false,
+  debugInfo: ''
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm', 'cancel'])
