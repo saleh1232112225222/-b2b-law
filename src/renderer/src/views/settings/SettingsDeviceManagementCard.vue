@@ -41,40 +41,43 @@
         الأجهزة المقترنة والمرخصة للمزامنة
       </div>
 
-      <div v-if="devices.length === 0" class="text-center py-4 text-grey text-caption">
-        لا توجد أي أجهزة مسجلة حالياً
+      <div v-if="activeDevices.length === 0 && revokedDevices.length === 0" class="text-center py-4 text-grey text-caption">
+        لا توجد أجهزة مسجلة حالياً
       </div>
 
-      <v-list v-else density="compact" class="bg-transparent pa-0">
+      <div v-else-if="activeDevices.length === 0" class="text-center py-3 text-grey text-caption">
+        لا توجد أجهزة نشطة حالياً
+      </div>
+
+      <v-list v-if="activeDevices.length > 0" density="compact" class="bg-transparent pa-0">
         <v-list-item
-          v-for="device in devices"
+          v-for="device in activeDevices"
           :key="device.id"
           class="mb-2 pa-3 rounded-lg border border-gold border-opacity-10 glass-card"
         >
           <template #prepend>
             <LucideIcon
-              :name="device.revoked_at ? 'laptop-minimal' : 'laptop'"
+              name="laptop"
               :size="20"
-              :class="device.revoked_at ? 'text-grey me-3' : 'text-primary me-3'"
+              class="text-primary me-3"
             />
           </template>
 
           <v-list-item-title class="text-body-2 font-weight-black">
             {{ device.name }}
-            <v-chip :color="device.revoked_at ? 'error' : 'success'" size="x-small" class="ms-2 font-weight-bold">
-              {{ device.revoked_at ? 'ملغي الترخيص' : 'نشط' }}
+            <v-chip color="success" size="x-small" class="ms-2 font-weight-bold">
+              نشط
             </v-chip>
           </v-list-item-title>
 
           <v-list-item-subtitle class="text-caption text-grey mt-1">
             <div>معرّف الجهاز: <span class="font-mono">{{ device.id.slice(0, 8) }}...</span></div>
             <div>تاريخ الإقران: {{ formatDate(device.paired_at) }}</div>
-            <div v-if="device.last_seen_at">آخر ظهور: {{ formatDate(device.last_seen_at) }}</div>
+            <div v-if="device.last_seen_at">آخر اتصال: {{ formatDate(device.last_seen_at) }}</div>
           </v-list-item-subtitle>
 
           <template #append>
             <v-btn
-              v-if="!device.revoked_at"
               color="error"
               variant="tonal"
               size="x-small"
@@ -87,6 +90,54 @@
           </template>
         </v-list-item>
       </v-list>
+
+      <!-- Collapsible Revoked Devices -->
+      <div v-if="revokedDevices.length > 0" class="mt-2">
+        <v-btn
+          variant="text"
+          density="compact"
+          size="small"
+          color="grey-darken-1"
+          class="text-caption px-2 font-weight-bold d-flex align-center"
+          @click="showRevoked = !showRevoked"
+        >
+          <LucideIcon :name="showRevoked ? 'chevron-down' : 'chevron-left'" :size="14" class="me-1" />
+          <span>الأجهزة ملغاة الترخيص ({{ revokedDevices.length }})</span>
+        </v-btn>
+
+        <v-expand-transition>
+          <div v-if="showRevoked" class="mt-2">
+            <v-list density="compact" class="bg-transparent pa-0">
+              <v-list-item
+                v-for="device in revokedDevices"
+                :key="device.id"
+                class="mb-2 pa-3 rounded-lg border border-gold border-opacity-10 glass-card opacity-60"
+              >
+                <template #prepend>
+                  <LucideIcon
+                    name="laptop-minimal"
+                    :size="20"
+                    class="text-grey me-3"
+                  />
+                </template>
+
+                <v-list-item-title class="text-body-2 font-weight-black">
+                  {{ device.name }}
+                  <v-chip color="error" size="x-small" class="ms-2 font-weight-bold" variant="tonal">
+                    ملغي الترخيص
+                  </v-chip>
+                </v-list-item-title>
+
+                <v-list-item-subtitle class="text-caption text-grey mt-1">
+                  <div>معرّف الجهاز: <span class="font-mono">{{ device.id.slice(0, 8) }}...</span></div>
+                  <div>تاريخ الإقران: {{ formatDate(device.paired_at) }}</div>
+                  <div v-if="device.last_seen_at">آخر اتصال: {{ formatDate(device.last_seen_at) }}</div>
+                </v-list-item-subtitle>
+              </v-list-item>
+            </v-list>
+          </div>
+        </v-expand-transition>
+      </div>
     </v-card-text>
 
     <!-- Desktop Pairing Dialog -->
@@ -168,7 +219,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
 
 interface DeviceItem {
@@ -193,6 +244,10 @@ const devices = ref<DeviceItem[]>([])
 const latestBackup = ref<LatestBackupItem | null>(null)
 const loading = ref(false)
 const revokingId = ref<string | null>(null)
+const showRevoked = ref(false)
+const activeDevices = computed(() => devices.value.filter((d) => !d.revoked_at))
+const revokedDevices = computed(() => devices.value.filter((d) => Boolean(d.revoked_at)))
+
 
 const showPairingDialog = ref(false)
 const pairingLoading = ref(false)
