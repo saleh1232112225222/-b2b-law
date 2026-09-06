@@ -160,8 +160,13 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         }
       }
       if (binding.tenantScope.kind === 'column') item.row[binding.tenantScope.column] = context.tenantId
-      if (binding.tenantScope.kind === 'root_id' && String(item.row[binding.tenantScope.column]) !== context.tenantId) {
-        throw new Error(`TENANT_ROOT_MISMATCH:${item.entityName}`)
+      if (binding.tenantScope.kind === 'root_id') {
+        const rootVal = String(item.row[binding.tenantScope.column] || '')
+        if (rootVal === '00000000-0000-0000-0000-000000000000' || !rootVal) {
+          item.row[binding.tenantScope.column] = context.tenantId
+        } else if (rootVal !== context.tenantId) {
+          throw new Error(`TENANT_ROOT_MISMATCH:${item.entityName}`)
+        }
       }
     }
   }
