@@ -221,6 +221,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
+import api from '../../api/ApiAdapter'
 
 interface DeviceItem {
   id: string
@@ -323,14 +324,33 @@ const formatBytes = (bytes: number) => {
 const loadData = async () => {
   loading.value = true
   try {
-    const api = (window as any).api?.sync
-    if (api?.getRegisteredDevices) {
-      const res = await api.getRegisteredDevices()
-      devices.value = res?.devices || []
+    const electronSync = (window as any).api?.sync
+    const adapterSync = (api as any)?.sync
+
+    // 1. Load registered devices
+    try {
+      if (adapterSync?.getRegisteredDevices) {
+        const res = await adapterSync.getRegisteredDevices()
+        devices.value = res?.devices || []
+      } else if (electronSync?.devices?.list) {
+        const res = await electronSync.devices.list()
+        devices.value = res?.devices || []
+      }
+    } catch (e) {
+      console.warn('[DeviceManagement] Could not load devices:', e)
     }
-    if (api?.getLatestVerifiedBackup) {
-      const bRes = await api.getLatestVerifiedBackup()
-      latestBackup.value = bRes?.backup || null
+
+    // 2. Load latest verified backup
+    try {
+      if (adapterSync?.getLatestVerifiedBackup) {
+        const bRes = await adapterSync.getLatestVerifiedBackup()
+        latestBackup.value = bRes?.backup || null
+      } else if (electronSync?.backups?.latestVerified) {
+        const bRes = await electronSync.backups.latestVerified()
+        latestBackup.value = bRes?.backup || null
+      }
+    } catch (e) {
+      console.warn('[DeviceManagement] Could not load backup:', e)
     }
   } catch (err) {
     console.error('[DeviceManagement] Failed to load devices or backup state:', err)
@@ -343,11 +363,14 @@ const revokeDevice = async (deviceId: string) => {
   if (!confirm('هل أنت متأكد من رغبتك في إلغاء ترخيص هذا الجهاز؟ سيتم حظر المزامنة منه فوراً.')) return
   revokingId.value = deviceId
   try {
-    const api = (window as any).api?.sync
-    if (api?.revokeDevice) {
-      await api.revokeDevice(deviceId)
-      await loadData()
+    const electronSync = (window as any).api?.sync
+    const adapterSync = (api as any)?.sync
+    if (adapterSync?.revokeDevice) {
+      await adapterSync.revokeDevice(deviceId)
+    } else if (electronSync?.devices?.revoke) {
+      await electronSync.devices.revoke(deviceId)
     }
+    await loadData()
   } catch (err) {
     console.error('[DeviceManagement] Failed to revoke device:', err)
   } finally {

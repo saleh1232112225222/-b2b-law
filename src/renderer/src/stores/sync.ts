@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { SyncEngineService, SyncQueueItem, SyncConflict } from '../services/syncEngine.service'
+import api from '../api/ApiAdapter'
 
 export const useSyncStore = defineStore('sync', () => {
   const isSyncing = ref(false)
@@ -23,21 +24,24 @@ export const useSyncStore = defineStore('sync', () => {
     }
 
     try {
-      const syncApi = (window as any).api?.sync;
-      if (!syncApi || typeof syncApi.getStatus !== 'function') {
-        syncStatus.value = 'offline';
-        return;
+      const syncApi = (window as any).api?.sync
+      let res: any = null
+      if (syncApi && typeof syncApi.getStatus === 'function') {
+        res = await syncApi.getStatus()
+      } else if (api?.sync?.getStatus) {
+        res = await api.sync.getStatus()
       }
-      const res = await syncApi.getStatus();
-      if (res.unresolvedConflicts > 0) {
+
+      if (res && res.unresolvedConflicts > 0) {
         syncStatus.value = 'conflict'
+        conflicts.value = new Array(res.unresolvedConflicts).fill({})
         await fetchConflicts()
       } else if (pendingQueue.value.length > 0) {
         syncStatus.value = 'push_required'
       } else {
-        syncStatus.value = res.status || 'synced'
+        syncStatus.value = res?.status || 'synced'
       }
-      if (res.lastSyncAt) {
+      if (res?.lastSyncAt) {
         lastSyncAt.value = res.lastSyncAt
       }
     } catch (error) {
@@ -48,7 +52,12 @@ export const useSyncStore = defineStore('sync', () => {
 
   const fetchConflicts = async (): Promise<void> => {
     try {
-      const data = await (window as any).api.sync?.getConflicts?.()
+      let data: any = null
+      if ((window as any).api?.sync?.getConflicts) {
+        data = await (window as any).api.sync.getConflicts()
+      } else if (api?.sync?.getConflicts) {
+        data = await api.sync.getConflicts()
+      }
       conflicts.value = Array.isArray(data) ? data : []
     } catch (err: any) {
       console.error('[SyncStore] Failed to fetch conflicts:', err)
@@ -67,7 +76,7 @@ export const useSyncStore = defineStore('sync', () => {
     errorMessage.value = null
 
     try {
-      const transport = (window as any).api?.sync
+      const transport = (window as any).api?.sync || api?.sync
       if (!transport || typeof transport.push !== 'function' || typeof transport.pull !== 'function') {
         throw new Error('خدمة المزامنة غير متاحة على هذا الجهاز')
       }
@@ -118,21 +127,17 @@ export const useSyncStore = defineStore('sync', () => {
       SyncEngineService.setLastSync(now)
       lastSyncAt.value = now
 
-      // 3. Refresh Status
       await checkStatus()
-      isSyncing.value = false
-      return {
-        success: true,
-        message: 'تمت المزامنة بنجاح'
-      }
+      return { success: true, message: 'تمت المزامنة بنجاح' }
     } catch (err: any) {
-      isSyncing.value = false
       syncStatus.value = 'failed'
       errorMessage.value = err?.message || 'فشلت عملية المزامنة'
       return {
         success: false,
         message: errorMessage.value || 'فشلت عملية المزامنة'
       }
+    } finally {
+      isSyncing.value = false
     }
   }
 
@@ -142,16 +147,42 @@ export const useSyncStore = defineStore('sync', () => {
     mergedPayload?: Record<string, any>
   ): Promise<boolean> => {
     try {
-      await (window as any).api.sync?.resolveConflict?.({
-        conflict_id: conflictId,
-        strategy,
-        merged_payload: mergedPayload
-      })
+      if ((window as any).api?.sync?.resolveConflict) {
+        await (window as any).api.sync.resolveConflict({
+          conflictId,
+          strategy,
+          mergedPayload
+        })
+      } else if (api?.sync?.resolveConflict) {
+        await api.sync.resolveConflict({
+          conflictId,
+          strategy,
+          mergedPayload
+        })
+      }
       conflicts.value = conflicts.value.filter((c) => c.id !== conflictId)
       await checkStatus()
       return true
     } catch (err) {
       console.error('[SyncStore] Failed to resolve conflict:', err)
+      return false
+    }
+  }
+
+  const resolveAllConflicts = async (
+    strategy: 'accept_remote' | 'accept_local'
+  ): Promise<boolean> => {
+    try {
+      if ((window as any).api?.sync?.resolveAllConflicts) {
+        await (window as any).api.sync.resolveAllConflicts(strategy)
+      } else if (api?.sync?.resolveAllConflicts) {
+        await api.sync.resolveAllConflicts(strategy)
+      }
+      conflicts.value = []
+      await checkStatus()
+      return true
+    } catch (err) {
+      console.error('[SyncStore] Failed to resolve all conflicts:', err)
       return false
     }
   }
@@ -168,6 +199,7 @@ export const useSyncStore = defineStore('sync', () => {
     checkStatus,
     fetchConflicts,
     syncNow,
-    resolveConflict
+    resolveConflict,
+    resolveAllConflicts
   }
 })

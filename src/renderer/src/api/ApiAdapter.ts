@@ -2514,9 +2514,10 @@ const api = {
   sync: {
     getStatus: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:status') ||
+        ? (window as any).api?.sync?.getStatus?.() ||
+          window.ipcRenderer?.invoke('sync:getStatus') ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
-        : !localStorage.getItem('b2b_cloud_token')
+        : !localStorage.getItem('b2b_cloud_token') && !localStorage.getItem('token')
           ? Promise.reject(new Error('يجب تسجيل الدخول قبل استخدام المزامنة'))
           : cloudRequest({ method: 'GET', url: '/sync/status' }),
     pull: (data: any) =>
@@ -2539,6 +2540,11 @@ const api = {
         ? window.ipcRenderer?.invoke('sync:resolve-conflict', data) ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
         : cloudRequest({ method: 'POST', url: '/sync/resolve-conflict', data }),
+    resolveAllConflicts: (strategy: 'accept_remote' | 'accept_local') =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sync:resolve-all-conflicts', strategy) ||
+          Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
+        : cloudRequest({ method: 'POST', url: '/sync/resolve-all-conflicts', data: { strategy } }),
     getLogs: (params?: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sync:logs', params) ||
@@ -2546,17 +2552,20 @@ const api = {
         : cloudRequest({ method: 'GET', url: '/sync/logs', params }),
     getRegisteredDevices: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:get-devices') ||
+        ? (window as any).api?.sync?.devices?.list?.() ||
+          window.ipcRenderer?.invoke('sync:devices:list') ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
         : cloudRequest({ method: 'GET', url: '/sync/devices' }),
     getLatestVerifiedBackup: () =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:latest-backup') ||
+        ? (window as any).api?.sync?.backups?.latestVerified?.() ||
+          window.ipcRenderer?.invoke('sync:backups:latest') ||
           Promise.reject(new Error('خدمة الكتالوج الموثق غير متاحة على هذا الجهاز'))
         : cloudRequest({ method: 'GET', url: '/sync/backups/latest' }),
     revokeDevice: (deviceId: string) =>
       mode === 'desktop'
-        ? window.ipcRenderer?.invoke('sync:revoke-device', deviceId) ||
+        ? (window as any).api?.sync?.devices?.revoke?.(deviceId) ||
+          window.ipcRenderer?.invoke('sync:devices:revoke', deviceId) ||
           Promise.reject(new Error('خدمة المزامنة غير متاحة على هذا الجهاز'))
         : cloudRequest({ method: 'POST', url: `/sync/devices/${deviceId}/revoke` }),
     getPairingInfo: () =>

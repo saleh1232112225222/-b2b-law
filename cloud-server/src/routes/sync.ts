@@ -244,3 +244,36 @@ syncRouter.post('/resolve-conflict', async (req, res) => {
     res.status(code.startsWith('SYNC_') ? 400 : 500).json({ error: code })
   } finally { client.release() }
 })
+
+syncRouter.post('/resolve-all-conflicts', async (req, res) => {
+  const client = await getClient()
+  try {
+    const { companyId, userId } = requireSyncIdentity(req)
+    const deviceId = await activeDevice(companyId, req.body?.deviceId)
+    const strategy = req.body?.strategy
+    if (!['accept_remote', 'accept_local'].includes(strategy)) return void res.status(400).json({ error: 'SYNC_RESOLUTION_INVALID' })
+    await client.query('BEGIN')
+    await client.query("SET LOCAL b2b.sync_capture = 'off'")
+    const conflicts = await client.query(`SELECT * FROM sync_conflicts WHERE company_id=$1 AND status='unresolved' FOR UPDATE`, [companyId])
+    for (const conflict of conflicts.rows) {
+      const adapter = getSyncEntityAdapter(conflict.entity_type)
+      if (strategy === 'accept_local') {
+        const applied = validateSyncPayload(adapter, conflict.local_value)
+        assertSyncOperationAllowed(adapter, 'update')
+        const fields = Object.keys(applied).filter(key => key !== adapter.primaryKey && key !== adapter.tenantColumn && !adapter.immutableFields.has(key))
+        if (fields.length) {
+          await client.query(`UPDATE ${q(adapter.tableName)} SET ${fields.map((key, index) => `${q(key)}=$${index + 3}`).join(',')} WHERE ${q(adapter.primaryKey)}=$1 AND ${q(adapter.tenantColumn)}=$2`, [conflict.entity_id, companyId, ...fields.map(key => applied[key])])
+          const revision = Number(conflict.remote_revision) + 1
+          await client.query(`INSERT INTO tenant_change_log(company_id,entity_type,entity_id,operation,revision,payload,device_id,user_id) VALUES($1,$2,$3,'update',$4,$5,$6,$7)`, [companyId, adapter.canonicalName, conflict.entity_id, revision, applied, deviceId, userId])
+        }
+      }
+      await client.query(`UPDATE sync_conflicts SET status='resolved',resolved_by=$1,resolution_strategy=$2,resolved_at=NOW() WHERE id=$3 AND company_id=$4`, [userId, strategy, conflict.id, companyId])
+    }
+    await client.query('COMMIT')
+    res.json({ success: true, resolvedCount: conflicts.rowCount, strategy })
+  } catch (error) {
+    try { await client.query('ROLLBACK') } catch {}
+    const code = (error as Error).message
+    res.status(code.startsWith('SYNC_') ? 400 : 500).json({ error: code })
+  } finally { client.release() }
+})

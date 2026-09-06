@@ -19,8 +19,37 @@
         </div>
 
         <div v-else>
+          <div class="d-flex flex-wrap align-center justify-space-between gap-3 pa-4 mb-4 rounded-lg bg-surface border border-gold border-opacity-20">
+            <div>
+              <div class="font-weight-black text-body-2 text-gold">إجمالي التعارضات المعلقة: {{ conflicts.length }}</div>
+              <div class="text-caption text-grey">يمكنك تسوية كافة التعارضات دفعة واحدة أو مراجعة واعتماد كل سجل على حدة:</div>
+            </div>
+            <div class="d-flex gap-2">
+              <v-btn
+                color="primary"
+                variant="flat"
+                size="small"
+                class="font-weight-black"
+                :loading="resolvingAll"
+                @click="applyResolveAll('accept_remote')"
+              >
+                اعتماد كافة النسخ السحابية
+              </v-btn>
+              <v-btn
+                color="warning"
+                variant="outlined"
+                size="small"
+                class="font-weight-black"
+                :loading="resolvingAll"
+                @click="applyResolveAll('accept_local')"
+              >
+                اعتماد كافة النسخ المحلية
+              </v-btn>
+            </div>
+          </div>
+
           <div class="text-body-2 text-gold opacity-80 mb-4 font-weight-black">
-            تم اكتشاف تعديل متزامن على نفس السجل بين جهازين مختلفين. يرجى اختيار النسخة المعتمدة لمنع الكتابة العشوائية:
+            تفاصيل السجلات المتعارضة:
           </div>
 
           <v-card
@@ -128,6 +157,7 @@ const isOpen = computed({
 const syncStore = useSyncStore()
 const { conflicts } = storeToRefs(syncStore)
 const resolvingId = ref<string | null>(null)
+const resolvingAll = ref(false)
 
 const cleanEntity = (obj: any) => {
   if (!obj || typeof obj !== 'object') return {}
@@ -147,6 +177,16 @@ const applyResolution = async (conflictId: string, strategy: 'accept_local' | 'a
     await syncStore.resolveConflict(conflictId, strategy)
   } finally {
     resolvingId.value = null
+  }
+}
+
+const applyResolveAll = async (strategy: 'accept_local' | 'accept_remote') => {
+  if (!confirm(`هل أنت متأكد من رغبتك في ${strategy === 'accept_remote' ? 'اعتماد كافة النسخ السحابية' : 'اعتماد كافة النسخ المحلية'} لجميع التعارضات؟`)) return
+  resolvingAll.value = true
+  try {
+    await syncStore.resolveAllConflicts(strategy)
+  } finally {
+    resolvingAll.value = false
   }
 }
 
