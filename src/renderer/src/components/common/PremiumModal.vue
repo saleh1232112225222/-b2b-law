@@ -18,12 +18,17 @@
         </div>
         <v-spacer></v-spacer>
         <v-btn
-          :icon="ICONS.UI.CLOSE"
+          icon
           variant="tonal"
           color="error"
-          class="rounded-lg"
+          density="comfortable"
+          class="rounded-lg close-btn"
+          aria-label="إغلاق"
+          title="إغلاق"
           @click="close"
-        ></v-btn>
+        >
+          <LucideIcon name="x" :size="20" class="text-error" />
+        </v-btn>
       </div>
 
       <!-- Body -->
@@ -43,8 +48,8 @@
         </v-btn>
         <v-spacer></v-spacer>
         <v-btn
-          variant="flat"
-          class="btn-gold-outline px-8 font-weight-black"
+          variant="outlined"
+          class="btn-confirm-action px-8 font-weight-black"
           :loading="loading"
           @click="$emit('save')"
         >
@@ -126,5 +131,88 @@ function close() {
 
 .tracking-tight {
   letter-spacing: -0.02em;
+}
+
+/* Close Button */
+.close-btn {
+  transition: all 0.2s ease-in-out !important;
+}
+
+.close-btn:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+  transform: scale(1.05);
+}
+
+.close-btn :deep(.v-btn__content),
+.close-btn .v-btn__content {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Secondary (Cancel) Button */
+.btn-secondary {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(208, 198, 175, 0.8) !important;
+  color: #4f4539 !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+.btn-secondary :deep(.v-btn__content),
+.btn-secondary .v-btn__content,
+.btn-secondary span {
+  color: #4f4539 !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+.btn-secondary:hover:not(.v-btn--disabled) {
+  background: #fbf8f2 !important;
+  border-color: #735c00 !important;
+}
+
+/* Primary Confirm / Save Button */
+.btn-confirm-action {
+  background: #fdfbf7 !important;
+  border: 1.5px solid #d4af37 !important;
+  color: #735c00 !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(115, 92, 0, 0.12) !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+.btn-confirm-action :deep(.v-btn__content),
+.btn-confirm-action .v-btn__content,
+.btn-confirm-action span {
+  color: #735c00 !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+}
+
+.btn-confirm-action:hover:not(.v-btn--disabled) {
+  background: #ffffff !important;
+  border-color: #bfa035 !important;
+  box-shadow: 0 4px 16px rgba(233, 195, 73, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-confirm-action:hover:not(.v-btn--disabled) :deep(.v-btn__content),
+.btn-confirm-action:hover:not(.v-btn--disabled) .v-btn__content,
+.btn-confirm-action:hover:not(.v-btn--disabled) span {
+  color: #735c00 !important;
+}
+
+[data-theme='dark'] .btn-confirm-action,
+.v-theme--dark .btn-confirm-action {
+  background: #1e293b !important;
+  border-color: #e5b52b !important;
+}
+
+[data-theme='dark'] .btn-confirm-action :deep(.v-btn__content),
+.v-theme--dark .btn-confirm-action :deep(.v-btn__content),
+[data-theme='dark'] .btn-confirm-action span,
+.v-theme--dark .btn-confirm-action span {
+  color: #f6d267 !important;
 }
 </style>

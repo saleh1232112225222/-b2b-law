@@ -62,8 +62,8 @@
           {{ cancelText }}
         </v-btn>
         <v-btn
-          variant="flat"
-          class="rounded-lg flex-grow-1 font-weight-black btn-gold-outline"
+          variant="outlined"
+          class="rounded-lg flex-grow-1 font-weight-black btn-confirm-action"
           :height="isMobile ? 44 : 50"
           :loading="loading"
           @click="handleConfirm"
@@ -195,13 +195,69 @@ const handleCancel = () => {
   color: #735c00 !important;
 }
 
+/* Secondary (Cancel) Button */
 .btn-secondary {
-  border-color: rgba(208, 198, 175, 0.8) !important;
+  background: #ffffff !important;
+  border: 1.5px solid rgba(208, 198, 175, 0.8) !important;
   color: #4f4539 !important;
+  transition: all 0.25s ease-in-out !important;
 }
 
-.btn-gold-outline {
-  background: #735c00 !important;
-  color: #ffffff !important;
+.btn-secondary :deep(.v-btn__content),
+.btn-secondary .v-btn__content,
+.btn-secondary span {
+  color: #4f4539 !important;
+  font-weight: 700 !important;
+  font-size: 0.95rem !important;
+}
+
+.btn-secondary:hover:not(.v-btn--disabled) {
+  background: #fbf8f2 !important;
+  border-color: #735c00 !important;
+}
+
+/* Primary Confirm Button */
+.btn-confirm-action {
+  background: #fdfbf7 !important;
+  border: 1.5px solid #d4af37 !important;
+  color: #735c00 !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 2px 8px rgba(115, 92, 0, 0.12) !important;
+  transition: all 0.25s ease-in-out !important;
+}
+
+.btn-confirm-action :deep(.v-btn__content),
+.btn-confirm-action .v-btn__content,
+.btn-confirm-action span {
+  color: #735c00 !important;
+  font-weight: 800 !important;
+  font-size: 1rem !important;
+}
+
+.btn-confirm-action:hover:not(.v-btn--disabled) {
+  background: #ffffff !important;
+  border-color: #bfa035 !important;
+  box-shadow: 0 4px 16px rgba(233, 195, 73, 0.35) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-confirm-action:hover:not(.v-btn--disabled) :deep(.v-btn__content),
+.btn-confirm-action:hover:not(.v-btn--disabled) .v-btn__content,
+.btn-confirm-action:hover:not(.v-btn--disabled) span {
+  color: #735c00 !important;
+}
+
+[data-theme='dark'] .btn-confirm-action,
+.v-theme--dark .btn-confirm-action {
+  background: #1e293b !important;
+  border-color: #e5b52b !important;
+}
+
+[data-theme='dark'] .btn-confirm-action :deep(.v-btn__content),
+.v-theme--dark .btn-confirm-action :deep(.v-btn__content),
+[data-theme='dark'] .btn-confirm-action span,
+.v-theme--dark .btn-confirm-action span {
+  color: #f6d267 !important;
 }
 </style>
