@@ -793,7 +793,7 @@ adminSubscriptionRouter.delete(
       if (!hasSoftDelete) {
         return res
           .status(500)
-          .json({ error: 'لم تُجهز أعمدة الحذف الناعم بعد. يرجى إعادة تشغيل الخادم.' })
+          .json({ error: 'لم تُجهز أعمدة الأرشفة وسلة المحذوفات بعد. يرجى إعادة تشغيل الخادم.' })
       }
 
       await query(

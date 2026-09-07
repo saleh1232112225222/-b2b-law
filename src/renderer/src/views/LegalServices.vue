@@ -946,7 +946,7 @@
         <v-card-title class="pa-6 modal-header-solid d-flex align-center">
           <LucideIcon name="alert-triangle" :size="24" class="me-3 text-error" />
           <span class="text-h6 font-weight-black text-pure-black"
-            >تأكيد الأرشفة / الحذف الناعم</span
+            >تأكيد أرشفة الخدمة القانونية</span
           >
           <v-spacer />
           <v-btn icon variant="text" size="small" @click="showDeleteDialog = false">
