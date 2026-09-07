@@ -113,6 +113,59 @@ describe('Postgres staged activation against a PostgreSQL-compatible engine', ()
     await adapter.cleanup()
     await db.close()
   })
+
+  it('creates placeholder parent for non-nullable FK like sessions.case_id when missing', async () => {
+    const db = new PGlite()
+    await db.exec(`
+      CREATE TABLE cases (id text PRIMARY KEY, company_id text NOT NULL, case_number text NOT NULL, subject text);
+      CREATE TABLE sessions (id text PRIMARY KEY, company_id text NOT NULL, case_id text NOT NULL REFERENCES cases(id), date text NOT NULL);
+    `)
+    const sink = new DirectoryRecoveryStagingSink()
+    sinks.push(sink)
+    const sessionBytes = Buffer.from(JSON.stringify({
+      id: 'session-1',
+      case_id: 'missing-parent-case',
+      company_id: 'tenant-a',
+      date: '2026-09-07'
+    }))
+    const desc = { kind: 'record' as const, name: 'sessions:000000', byteLength: sessionBytes.length }
+    await sink.beginEntry(desc)
+    await sink.writeEntryChunk(sessionBytes)
+    await sink.endEntry({ ...desc, sha256: createHash('sha256').update(sessionBytes).digest('hex') })
+
+    const client = {
+      query: async (sql: string, values?: unknown[]) => {
+        const result = await db.query(sql, values)
+        return { ...result, rowCount: result.rows.length || result.affectedRows || 0 }
+      },
+      release: () => undefined
+    } as unknown as PoolClient
+
+    const adapter = new PostgresStagedRestoreAdapter(
+      sink,
+      (_entity, row) => ({
+        sql: 'INSERT INTO sessions (id, case_id, company_id, date) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET date = EXCLUDED.date RETURNING id',
+        values: [row.id, row.case_id, row.company_id, row.date]
+      }),
+      async function* () { yield* [] },
+      'a'.repeat(64),
+      'b'.repeat(64),
+      new LocalIndependentStorage(backupDirectory),
+      async () => client
+    )
+    const context = { tenantId: 'tenant-a', userId: 'user-a', packageSha256: 'c'.repeat(64), previewSha256: 'd'.repeat(64), confirmationToken: 'unused' }
+    const stage = await adapter.stage()
+    await adapter.validate(stage, context)
+    const activation = await adapter.activate(stage, context)
+    await adapter.commit(activation)
+    const cases = (await db.query<{ id: string; case_number: string }>('SELECT id, case_number FROM cases')).rows
+    expect(cases.length).toBe(1)
+    expect(cases[0].id).toBe('missing-parent-case')
+    const sessions = (await db.query<{ id: string; case_id: string }>('SELECT id, case_id FROM sessions')).rows
+    expect(sessions).toEqual([{ id: 'session-1', case_id: 'missing-parent-case' }])
+    await adapter.cleanup()
+    await db.close()
+  })
 })
     const backupDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'restore-backup-test-'))
     directories.push(backupDirectory)

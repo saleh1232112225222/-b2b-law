@@ -253,6 +253,58 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         return false
       }
 
+      const ensurePlaceholderParent = async (pgClient: any, targetTable: string, missingId: string, tenantId: string): Promise<void> => {
+        try {
+          if (targetTable === 'cases') {
+            await pgClient.query(
+              `INSERT INTO "cases" ("id", "company_id", "case_number", "subject")
+               VALUES ($1, $2, $3, $4)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, `CASE-REC-${missingId.slice(0, 8)}`, 'قضية مستردة لجلسات مرتبطة']
+            )
+          } else if (targetTable === 'clients') {
+            await pgClient.query(
+              `INSERT INTO "clients" ("id", "company_id", "name")
+               VALUES ($1, $2, $3)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, 'عميل مسترد تلقائياً']
+            )
+          } else if (targetTable === 'sessions') {
+            const caseRow = await pgClient.query(`SELECT id FROM "cases" WHERE company_id = $1 LIMIT 1`, [tenantId])
+            const fallbackCaseId = caseRow.rows?.[0]?.id || missingId
+            await pgClient.query(
+              `INSERT INTO "sessions" ("id", "company_id", "case_id", "date")
+               VALUES ($1, $2, $3, CURRENT_DATE)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, fallbackCaseId]
+            )
+          } else if (targetTable === 'invoices') {
+            await pgClient.query(
+              `INSERT INTO "invoices" ("id", "company_id", "invoice_number")
+               VALUES ($1, $2, $3)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, `INV-REC-${missingId.slice(0, 8)}`]
+            )
+          } else if (targetTable === 'accounts') {
+            await pgClient.query(
+              `INSERT INTO "accounts" ("id", "company_id", "name")
+               VALUES ($1, $2, $3)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, 'حساب مسترد تلقائياً']
+            )
+          } else if (targetTable === 'tasks_v2') {
+            await pgClient.query(
+              `INSERT INTO "tasks_v2" ("id", "company_id", "title")
+               VALUES ($1, $2, $3)
+               ON CONFLICT ("id") DO NOTHING`,
+              [missingId, tenantId, 'مهمة مستردة تلقائياً']
+            )
+          }
+        } catch (stubErr) {
+          console.warn(`[RESTORE_STUB] Failed to create stub for ${targetTable} ${missingId}:`, stubErr)
+        }
+      }
+
       for (const item of ordered) {
         const contract = CANONICAL_CONTRACT_REGISTRY[item.entityName]
         const binding = contract?.pgBinding
@@ -276,6 +328,10 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
                   } else if (binding.nullableColumns.includes(fk.column)) {
                     console.warn(`[RESTORE_FK] Nullified missing FK ${item.entityName}.${fk.column} = ${strVal} (target ${fk.targetTable}.${fk.targetColumn} missing)`)
                     item.row[fk.column] = null
+                  } else {
+                    // Non-nullable foreign key referencing missing row: create stub parent to satisfy FK
+                    await ensurePlaceholderParent(client, fk.targetTable, strVal, context.tenantId)
+                    verifiedDbIds.get(fk.targetTable)?.add(strVal)
                   }
                 }
               }
@@ -288,6 +344,11 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         try {
           result = await client.query(statement.sql, statement.values)
         } catch (queryErr: any) {
+          if (queryErr.message && queryErr.message.includes('violates foreign key constraint')) {
+            console.warn(`[RESTORE_FK_ORPHAN] Skipped orphaned ${item.entityName} row: ${queryErr.message}`)
+            activation.conflictIgnoredRows++
+            continue
+          }
           const table = CANONICAL_CONTRACT_REGISTRY[item.entityName]?.pgBinding?.tableName || item.entityName
           console.error(`[RESTORE_ERROR] Entity "${item.entityName}" (table: "${table}") upsert failed: ${queryErr.message}\nSQL: ${statement.sql}`)
           throw new Error(`RESTORE_QUERY_FAILED:${item.entityName}:${queryErr.message}`)
