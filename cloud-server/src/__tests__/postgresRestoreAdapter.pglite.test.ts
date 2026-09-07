@@ -63,6 +63,56 @@ describe('Postgres staged activation against a PostgreSQL-compatible engine', ()
     await adapter.cleanup()
     await db.close()
   })
+
+  it('sanitizes dangling foreign keys like cases.client_id to null before upsert', async () => {
+    const db = new PGlite()
+    await db.exec(`
+      CREATE TABLE clients (id text PRIMARY KEY, company_id text NOT NULL, name text NOT NULL);
+      CREATE TABLE cases (id text PRIMARY KEY, company_id text NOT NULL, case_number text NOT NULL, client_id text REFERENCES clients(id));
+    `)
+    const sink = new DirectoryRecoveryStagingSink()
+    sinks.push(sink)
+    const caseBytes = Buffer.from(JSON.stringify({
+      id: 'case-1',
+      case_number: '12345',
+      client_id: 'missing-client-id',
+      company_id: 'tenant-a'
+    }))
+    const desc = { kind: 'record' as const, name: 'cases:000000', byteLength: caseBytes.length }
+    await sink.beginEntry(desc)
+    await sink.writeEntryChunk(caseBytes)
+    await sink.endEntry({ ...desc, sha256: createHash('sha256').update(caseBytes).digest('hex') })
+
+    const client = {
+      query: async (sql: string, values?: unknown[]) => {
+        const result = await db.query(sql, values)
+        return { ...result, rowCount: result.rows.length || result.affectedRows || 0 }
+      },
+      release: () => undefined
+    } as unknown as PoolClient
+
+    const adapter = new PostgresStagedRestoreAdapter(
+      sink,
+      (_entity, row) => ({
+        sql: 'INSERT INTO cases (id, case_number, client_id, company_id) VALUES ($1, $2, $3, $4) ON CONFLICT (id) DO UPDATE SET case_number = EXCLUDED.case_number, client_id = EXCLUDED.client_id RETURNING id',
+        values: [row.id, row.case_number, row.client_id, row.company_id]
+      }),
+      async function* () { yield* [] },
+      'a'.repeat(64),
+      'b'.repeat(64),
+      new LocalIndependentStorage(backupDirectory),
+      async () => client
+    )
+    const context = { tenantId: 'tenant-a', userId: 'user-a', packageSha256: 'c'.repeat(64), previewSha256: 'd'.repeat(64), confirmationToken: 'unused' }
+    const stage = await adapter.stage()
+    await adapter.validate(stage, context)
+    const activation = await adapter.activate(stage, context)
+    await adapter.commit(activation)
+    const rows = (await db.query<{ id: string; client_id: string | null }>('SELECT id, client_id FROM cases')).rows
+    expect(rows).toEqual([{ id: 'case-1', client_id: null }])
+    await adapter.cleanup()
+    await db.close()
+  })
 })
     const backupDirectory = fs.mkdtempSync(path.join(os.tmpdir(), 'restore-backup-test-'))
     directories.push(backupDirectory)

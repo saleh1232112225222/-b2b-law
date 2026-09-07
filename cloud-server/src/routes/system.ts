@@ -361,13 +361,27 @@ systemRouter.post(
         'agencies'
       ]
 
-      const allSnapshotTables = Object.keys(tables).sort((a, b) => {
-        let idxA = tableOrder.indexOf(a)
-        let idxB = tableOrder.indexOf(b)
-        if (idxA === -1) idxA = 999
-        if (idxB === -1) idxB = 999
-        return idxA - idxB
-      })
+      const excludedSnapshotTables = new Set([
+        'sync_inbox',
+        'sync_outbox',
+        'attachment_transfer_queue',
+        'sync_conflicts',
+        'sync_devices',
+        'sync_state',
+        'restore_runs',
+        'backup_catalog',
+        'sync_runtime_context'
+      ])
+
+      const allSnapshotTables = Object.keys(tables)
+        .filter((tbl) => !excludedSnapshotTables.has(tbl))
+        .sort((a, b) => {
+          let idxA = tableOrder.indexOf(a)
+          let idxB = tableOrder.indexOf(b)
+          if (idxA === -1) idxA = 999
+          if (idxB === -1) idxB = 999
+          return idxA - idxB
+        })
 
       for (const table of allSnapshotTables) {
         if (!existingTables.has(table)) {

@@ -39,32 +39,40 @@ export async function getDashboardAnalytics(companyId: string) {
 }
 
 export async function getCaseCount(companyId: string, filters: Record<string, any> = {}) {
-  const conditions = ['company_id = $1']
+  const conditions = ['c.company_id = $1']
   const params: any[] = [companyId]
   let idx = 2
 
   if (filters.status && filters.status !== 'الكل') {
-    conditions.push(`status = $${idx++}`)
+    conditions.push(`c.status = $${idx++}`)
     params.push(filters.status)
   }
   if (filters.priority && filters.priority !== 'الكل') {
-    conditions.push(`priority = $${idx++}`)
+    conditions.push(`c.priority = $${idx++}`)
     params.push(filters.priority)
   }
   if (filters.responsible_user_id) {
-    conditions.push(`responsible_user_id = $${idx++}`)
+    conditions.push(`c.responsible_user_id = $${idx++}`)
     params.push(filters.responsible_user_id)
   }
   if (filters.q) {
-    params.push(`%${filters.q}%`)
-    params.push(`%${filters.q}%`)
-    params.push(`%${filters.q}%`)
     conditions.push(
-      `(LOWER(case_number) LIKE LOWER($${idx++}) OR LOWER(subject) LIKE LOWER($${idx++}) OR LOWER(client_name) LIKE LOWER($${idx++}))`
+      `(c.case_number ILIKE $${idx} OR c.subject ILIKE $${idx} OR cl.name ILIKE $${idx} OR c.opponent_name ILIKE $${idx} OR EXISTS (
+        SELECT 1 FROM case_parties cp
+        LEFT JOIN clients cp_cl ON cp.client_id = cp_cl.id
+        LEFT JOIN defendants cp_df ON cp.defendant_id = cp_df.id
+        WHERE cp.case_id = c.id
+        AND (cp.name ILIKE $${idx} OR cp_cl.name ILIKE $${idx} OR cp_df.name ILIKE $${idx})
+      ))`
     )
+    params.push(`%${filters.q}%`)
+    idx++
   }
 
-  const result = await query(`SELECT COUNT(*) FROM cases WHERE ${conditions.join(' AND ')}`, params)
+  const result = await query(
+    `SELECT COUNT(*) FROM cases c LEFT JOIN clients cl ON c.client_id = cl.id WHERE ${conditions.join(' AND ')}`,
+    params
+  )
   return parseInt(result.rows[0].count) || 0
 }
 
@@ -85,7 +93,23 @@ export async function checkUniqueCaseNumber(
 
 export async function searchCases(companyId: string, searchQuery: string) {
   const result = await query(
-    `SELECT * FROM cases WHERE company_id = $1 AND (LOWER(case_number) LIKE LOWER($2) OR LOWER(subject) LIKE LOWER($2) OR LOWER(opponent_name) LIKE LOWER($2)) ORDER BY created_at DESC LIMIT 20`,
+    `SELECT c.*, cl.name as client_name 
+     FROM cases c 
+     LEFT JOIN clients cl ON c.client_id = cl.id 
+     WHERE c.company_id = $1 AND (
+       c.case_number ILIKE $2 
+       OR c.subject ILIKE $2 
+       OR cl.name ILIKE $2 
+       OR c.opponent_name ILIKE $2
+       OR EXISTS (
+         SELECT 1 FROM case_parties cp 
+         LEFT JOIN clients cp_cl ON cp.client_id = cp_cl.id 
+         LEFT JOIN defendants cp_df ON cp.defendant_id = cp_df.id 
+         WHERE cp.case_id = c.id 
+         AND (cp.name ILIKE $2 OR cp_cl.name ILIKE $2 OR cp_df.name ILIKE $2)
+       )
+     ) 
+     ORDER BY c.created_at DESC LIMIT 20`,
     [companyId, `%${searchQuery}%`]
   )
   return result.rows

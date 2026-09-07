@@ -213,7 +213,76 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
       }
       activation.missingAttachmentsCount = missingAttachmentsCount
 
+      // Map all record IDs staged in this package for instant FK lookups
+      const stagedIds = new Map<string, Set<string>>()
+      for (const rec of ordered) {
+        const c = CANONICAL_CONTRACT_REGISTRY[rec.entityName]
+        const pk = c?.pgBinding?.primaryKey?.[0] || 'id'
+        const idVal = rec.row[pk]
+        if (idVal !== undefined && idVal !== null && idVal !== '') {
+          let s = stagedIds.get(rec.entityName)
+          if (!s) {
+            s = new Set()
+            stagedIds.set(rec.entityName, s)
+          }
+          s.add(String(idVal))
+        }
+      }
+
+      // Cache verified DB IDs to avoid redundant queries during transaction
+      const verifiedDbIds = new Map<string, Set<string>>()
+      const checkIdExistsInDb = async (tableName: string, colName: string, id: string): Promise<boolean> => {
+        let set = verifiedDbIds.get(tableName)
+        if (set?.has(id)) return true
+        try {
+          const checkRes = await client.query(
+            `SELECT 1 FROM "${tableName}" WHERE "${colName}" = $1 LIMIT 1`,
+            [id]
+          )
+          if ((checkRes.rowCount || 0) > 0) {
+            if (!set) {
+              set = new Set()
+              verifiedDbIds.set(tableName, set)
+            }
+            set.add(id)
+            return true
+          }
+        } catch {
+          return false
+        }
+        return false
+      }
+
       for (const item of ordered) {
+        const contract = CANONICAL_CONTRACT_REGISTRY[item.entityName]
+        const binding = contract?.pgBinding
+
+        // Sanitize foreign key references and handle dangling/empty relations
+        if (binding?.foreignKeys && binding.foreignKeys.length > 0) {
+          for (const fk of binding.foreignKeys) {
+            const val = item.row[fk.column]
+            if (val === '') {
+              if (binding.nullableColumns.includes(fk.column)) {
+                item.row[fk.column] = null
+              }
+            } else if (val !== null && val !== undefined) {
+              const strVal = String(val)
+              const stagedInPackage = stagedIds.get(fk.targetTable)?.has(strVal) ?? false
+              if (!stagedInPackage) {
+                const existsInDb = await checkIdExistsInDb(fk.targetTable, fk.targetColumn, strVal)
+                if (!existsInDb) {
+                  if (fk.targetTable === 'users' && context.userId) {
+                    item.row[fk.column] = context.userId
+                  } else if (binding.nullableColumns.includes(fk.column)) {
+                    console.warn(`[RESTORE_FK] Nullified missing FK ${item.entityName}.${fk.column} = ${strVal} (target ${fk.targetTable}.${fk.targetColumn} missing)`)
+                    item.row[fk.column] = null
+                  }
+                }
+              }
+            }
+          }
+        }
+
         const statement = this.buildUpsert(item.entityName, item.row, context.tenantId)
         let result
         try {
@@ -225,8 +294,7 @@ export class PostgresStagedRestoreAdapter implements StagedRestoreAdapter<Postgr
         }
         if ((result.rowCount || 0) > 0) activation.importedRows++
         else activation.conflictIgnoredRows++
-        const contract = CANONICAL_CONTRACT_REGISTRY[item.entityName]!
-        const binding = contract.pgBinding!
+        if (!binding) throw new Error(`GLOBAL_ENTITY_NOT_RESTORABLE:${item.entityName}`)
         const pkStart = 2
         const clauses = binding.primaryKey.map((key, index) => `tenant_row."${key}" = $${index + pkStart}`).join(' AND ')
         const values = [context.tenantId, ...binding.primaryKey.map((key) => item.row[key])]

@@ -2101,15 +2101,35 @@ const api = {
               try {
                 const text = await file.text()
                 const data = JSON.parse(text)
-                if (!data.tables) {
-                  reject(new Error('Invalid snapshot file'))
+                if (!data.tables || typeof data.tables !== 'object') {
+                  reject(new Error('ملف النسخة الاحتياطية غير صالح'))
                   return
                 }
+                // استبعاد الجداول التشغيلية المؤقتة الخاصة بتطبيق سطح المكتب (طوابير المزامنة المحلية)
+                // هذه الجداول تحتوي على آلاف السجلات المحلية غير الموجودة في السيرفر وتزيد حجم الملف من 1MB إلى 25MB+
+                const excludedTables = new Set([
+                  'sync_inbox',
+                  'sync_outbox',
+                  'attachment_transfer_queue',
+                  'restore_runs',
+                  'sync_runtime_context',
+                  'sync_state',
+                  'sync_devices',
+                  'backup_catalog',
+                  '_license_meta'
+                ])
+                const tablesToSend: Record<string, any[]> = {}
+                for (const [table, rows] of Object.entries(data.tables)) {
+                  if (!excludedTables.has(table) && Array.isArray(rows)) {
+                    tablesToSend[table] = rows
+                  }
+                }
+
                 const result = await cloudRequest({
                   method: 'POST',
                   url: '/system/import-snapshot',
-                  data: { tables: data.tables, mode: 'merge' },
-                  timeout: 120000
+                  data: { tables: tablesToSend, mode: 'merge' },
+                  timeout: 180000
                 })
                 resolve(result)
               } catch (e) {

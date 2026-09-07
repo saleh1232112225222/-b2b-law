@@ -154,14 +154,20 @@ if (isTenantBackupEnabled) {
   app.use('/api/tenant-stream', tenantStreamRouter)
 }
 
-app.use(express.json({ limit: '10mb' }))
+app.use(express.json({ limit: '100mb' }))
+app.use(express.urlencoded({ limit: '100mb', extended: true }))
 app.use(sanitizeInput)
 
-// Catch JSON parse errors so they don't bubble to the generic handler
+// Catch JSON parse errors and payload size limits so they don't bubble to the generic handler
 app.use((err: any, _req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (err instanceof SyntaxError && 'body' in err) {
     console.error('[JSON_PARSE_ERROR]', err.message)
     res.status(400).json({ error: 'Invalid JSON in request body' })
+    return
+  }
+  if (err.type === 'entity.too.large' || err.status === 413) {
+    console.error('[PAYLOAD_TOO_LARGE]', err.message)
+    res.status(413).json({ error: 'حجم ملف النسخة الاحتياطية كبير جداً ويتجاوز الحد المسموح به' })
     return
   }
   next(err)

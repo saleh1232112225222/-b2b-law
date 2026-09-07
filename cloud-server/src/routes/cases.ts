@@ -151,46 +151,63 @@ casesRouter.get('/count', requirePermission('view_cases'), async (req: Request, 
     const companyId = getCompanyId(req)
     const { q, status, priority, responsible_user_id, stage, phase } = req.query
 
-    let whereClause = 'WHERE company_id = $1'
+    let whereClause = 'WHERE c.company_id = $1'
     const params: any[] = [companyId]
     let paramIndex = 2
 
     if (status && status !== 'الكل') {
-      whereClause += ` AND status = $${paramIndex++}`
+      whereClause += ` AND c.status = $${paramIndex++}`
       params.push(status)
     }
     if (priority && priority !== 'الكل') {
-      whereClause += ` AND priority = $${paramIndex++}`
+      whereClause += ` AND c.priority = $${paramIndex++}`
       params.push(priority)
     }
     if (responsible_user_id) {
-      whereClause += ` AND responsible_user_id = $${paramIndex++}`
+      whereClause += ` AND c.responsible_user_id = $${paramIndex++}`
       params.push(responsible_user_id)
     }
     const stageVal = String(stage || phase || '').trim()
     if (stageVal && stageVal !== 'الكل') {
       if (stageVal.includes('استشارة') || stageVal.includes('دراسة')) {
-        whereClause += ` AND (phase ILIKE '%استشارة%' OR phase ILIKE '%دراسة%' OR status = 'تحت الدراسة')`
+        whereClause += ` AND (c.phase ILIKE '%استشارة%' OR c.phase ILIKE '%دراسة%' OR c.status = 'تحت الدراسة')`
       } else if (stageVal.includes('تنفيذ')) {
-        whereClause += ` AND (phase ILIKE '%تنفيذ%' OR court ILIKE '%تنفيذ%' OR case_type ILIKE '%تنفيذ%' OR status ILIKE '%تنفيذ%')`
+        whereClause += ` AND (c.phase ILIKE '%تنفيذ%' OR c.court ILIKE '%تنفيذ%' OR c.case_type ILIKE '%تنفيذ%' OR c.status ILIKE '%تنفيذ%')`
       } else if (stageVal.includes('حكم')) {
-        whereClause += ` AND (phase ILIKE '%حكم%' OR status ILIKE '%محكوم%' OR status ILIKE '%حكم%')`
+        whereClause += ` AND (c.phase ILIKE '%حكم%' OR c.status ILIKE '%محكوم%' OR c.status ILIKE '%حكم%')`
       } else if (stageVal.includes('مرافعة')) {
-        whereClause += ` AND (phase ILIKE '%مرافعة%' OR phase IN ('استئناف', 'نقض (المحكمة العليا)') OR status = 'قيد النظر')`
+        whereClause += ` AND (c.phase ILIKE '%مرافعة%' OR c.phase IN ('استئناف', 'نقض (المحكمة العليا)') OR c.status = 'قيد النظر')`
       } else if (stageVal.includes('تحضير')) {
-        whereClause += ` AND (phase ILIKE '%تحضير%' OR (phase = 'ابتدائية' AND status != 'محكومة بحكم غير نهائي' AND status != 'محكومة بحكم نهائي') OR (phase IS NULL AND status = 'قيد النظر'))`
+        whereClause += ` AND (c.phase ILIKE '%تحضير%' OR (c.phase = 'ابتدائية' AND c.status != 'محكومة بحكم غير نهائي' AND c.status != 'محكومة بحكم نهائي') OR (c.phase IS NULL AND c.status = 'قيد النظر'))`
       } else {
-        whereClause += ` AND phase ILIKE $${paramIndex++}`
+        whereClause += ` AND c.phase ILIKE $${paramIndex++}`
         params.push(`%${stageVal}%`)
       }
     }
     if (q) {
-      whereClause += ` AND (case_number LIKE $${paramIndex} OR subject LIKE $${paramIndex} OR opponent_name LIKE $${paramIndex})`
+      whereClause += ` AND (
+        c.case_number ILIKE $${paramIndex}
+        OR c.subject ILIKE $${paramIndex}
+        OR cl.name ILIKE $${paramIndex}
+        OR c.opponent_name ILIKE $${paramIndex}
+        OR EXISTS (
+          SELECT 1 FROM case_parties cp
+          LEFT JOIN clients cp_cl ON cp.client_id = cp_cl.id
+          LEFT JOIN defendants cp_df ON cp.defendant_id = cp_df.id
+          WHERE cp.case_id = c.id
+          AND (cp.name ILIKE $${paramIndex} OR cp_cl.name ILIKE $${paramIndex} OR cp_df.name ILIKE $${paramIndex})
+        )
+      )`
       params.push(`%${q}%`)
       paramIndex++
     }
 
-    const result = await query(`SELECT COUNT(*) FROM cases ${whereClause}`, params)
+    const result = await query(
+      `SELECT COUNT(*) FROM cases c
+       LEFT JOIN clients cl ON c.client_id = cl.id
+       ${whereClause}`,
+      params
+    )
     res.json({ count: parseInt(result.rows[0].count) })
   } catch (err) {
     console.error('[Cases] Count error:', err)
@@ -212,7 +229,19 @@ casesRouter.get('/search', requirePermission('view_cases'), async (req: Request,
       `SELECT c.*, cl.name as client_name 
        FROM cases c
        LEFT JOIN clients cl ON c.client_id = cl.id
-       WHERE c.company_id = $1 AND (c.case_number ILIKE $2 OR c.subject ILIKE $2 OR cl.name ILIKE $2)
+       WHERE c.company_id = $1 AND (
+         c.case_number ILIKE $2
+         OR c.subject ILIKE $2
+         OR cl.name ILIKE $2
+         OR c.opponent_name ILIKE $2
+         OR EXISTS (
+           SELECT 1 FROM case_parties cp
+           LEFT JOIN clients cp_cl ON cp.client_id = cp_cl.id
+           LEFT JOIN defendants cp_df ON cp.defendant_id = cp_df.id
+           WHERE cp.case_id = c.id
+           AND (cp.name ILIKE $2 OR cp_cl.name ILIKE $2 OR cp_df.name ILIKE $2)
+         )
+       )
        LIMIT 20`,
       [companyId, `%${q}%`]
     )
@@ -322,12 +351,29 @@ casesRouter.get('/', requirePermission('view_cases'), async (req: Request, res: 
       }
     }
     if (q) {
-      whereClause += ` AND (c.case_number ILIKE $${paramIndex} OR c.subject ILIKE $${paramIndex} OR c.opponent_name ILIKE $${paramIndex})`
+      whereClause += ` AND (
+        c.case_number ILIKE $${paramIndex}
+        OR c.subject ILIKE $${paramIndex}
+        OR cl.name ILIKE $${paramIndex}
+        OR c.opponent_name ILIKE $${paramIndex}
+        OR EXISTS (
+          SELECT 1 FROM case_parties cp
+          LEFT JOIN clients cp_cl ON cp.client_id = cp_cl.id
+          LEFT JOIN defendants cp_df ON cp.defendant_id = cp_df.id
+          WHERE cp.case_id = c.id
+          AND (cp.name ILIKE $${paramIndex} OR cp_cl.name ILIKE $${paramIndex} OR cp_df.name ILIKE $${paramIndex})
+        )
+      )`
       params.push(`%${q}%`)
       paramIndex++
     }
 
-    const countRes = await query(`SELECT COUNT(*) FROM cases c ${whereClause}`, params)
+    const countRes = await query(
+      `SELECT COUNT(*) FROM cases c
+       LEFT JOIN clients cl ON c.client_id = cl.id
+       ${whereClause}`,
+      params
+    )
 
     const dataRes = await query(
       `SELECT c.*, cl.name as client_name, COALESCE(u.full_name, u.username) as responsible_name
