@@ -270,7 +270,13 @@ function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   const token = getAuthToken()
   const hasRealToken = Boolean(token && !token.startsWith('mock-'))
   const url = config.url || ''
-  if ((isMockMode() || !hasRealToken) && !url.startsWith('/auth/login')) {
+  const isAuthEndpoint = url.startsWith('/auth/')
+
+  if (isAuthEndpoint && !isMockMode()) {
+    return cloudClient(config).then((r) => r.data)
+  }
+
+  if (isMockMode() || (!hasRealToken && !isAuthEndpoint)) {
     return Promise.resolve(
       mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T
     )

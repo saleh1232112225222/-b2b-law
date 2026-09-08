@@ -550,7 +550,7 @@ onMounted(async () => {
   if (oauthCode) {
     try {
       const res = await (window as any).api.auth.exchangeOAuthCode(oauthCode)
-      if (res.token) {
+      if (res && res.token) {
         localStorage.setItem('b2b_cloud_token', res.token)
         localStorage.setItem('web_isLoggedIn', 'true')
 
@@ -559,17 +559,23 @@ onMounted(async () => {
         localStorage.removeItem('currentUser')
         localStorage.removeItem('currentUserSession')
 
-        const session = await (window as any).api.auth.getSession()
-        if (session) {
-          saveSessionFromOAuth(session)
+        try {
+          const session = await (window as any).api.auth.getSession()
+          if (session) {
+            saveSessionFromOAuth(session)
+          }
+        } catch (sessErr) {
+          console.error('[AUTH] Failed to fetch session after OAuth exchange:', sessErr)
         }
 
         window.dispatchEvent(new Event('auth-changed'))
         router.replace('/dashboard')
+      } else {
+        error.value = 'فشل التحقق من رمز تسجيل الدخول. يرجى المحاولة مجدداً.'
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('[AUTH] OAuth code exchange failed:', e)
-      error.value = 'فشل تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى.'
+      error.value = e?.response?.data?.error || 'فشل تسجيل الدخول عبر Google. يرجى المحاولة مرة أخرى.'
     }
   }
 })
