@@ -1147,11 +1147,11 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
           decoded &&
           (decoded.roleKey === 'admin' ||
             decoded.companyId ===
-              (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000'))
+            (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000'))
         ) {
           isAdmin = true
         }
-      } catch {}
+      } catch { }
     }
 
     if (!isAdmin && (!isRegistrationEnabled || !isAppEnabled)) {
@@ -1227,7 +1227,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
         to: 'slaehmap@gmail.com',
         subject: `⚠️ محاولة تسجيل مكررة (اسم المستخدم موجود): ${username}`,
         text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل باسم مستخدم موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- اسم المستخدم: ${username}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n\nشكراً لك.`
-      }).catch(() => {})
+      }).catch(() => { })
       res.status(400).json({ error: 'UsernameAlreadyExists', message: 'اسم المستخدم مسجل مسبقاً' })
       return
     }
@@ -1245,7 +1245,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
         to: 'slaehmap@gmail.com',
         subject: `⚠️ محاولة تسجيل مكررة (البريد الإلكتروني موجود): ${email}`,
         text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل ببريد إلكتروني موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- البريد الإلكتروني: ${email}\n- رقم الهاتف: ${phone}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-      }).catch(() => {})
+      }).catch(() => { })
       res
         .status(400)
         .json({ error: 'EmailAlreadyExists', message: 'البريد الإلكتروني مسجل مسبقاً' })
@@ -1265,7 +1265,7 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
         to: 'slaehmap@gmail.com',
         subject: `⚠️ محاولة تسجيل مكررة (رقم الهاتف موجود): ${phone}`,
         text: `مرحباً أستاذ صالح،\n\nحاول مستخدم التسجيل برقم هاتف موجود مسبقاً:\n\n- الاسم/المكتب: ${companyName}\n- رقم الهاتف: ${phone}\n- البريد الإلكتروني: ${email}\n- اسم المستخدم: ${username}\n\nشكراً لك.`
-      }).catch(() => {})
+      }).catch(() => { })
       res.status(400).json({ error: 'PhoneAlreadyExists', message: 'رقم الجوال مسجل مسبقاً' })
       return
     }
