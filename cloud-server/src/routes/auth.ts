@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs'
 import { v4 as uuidv4 } from 'uuid'
 import { OAuth2Client } from 'google-auth-library'
 import { query, getClient } from '../db/connection'
-import { generateToken, authMiddleware, revokeToken } from '../middleware/auth'
+import { generateToken, authMiddleware, revokeToken, verifyToken as verifyJwtToken } from '../middleware/auth'
 import { getUserPermissions } from '../middleware/permission'
 import { generateSecret, getQrCodeUrl, verifyToken } from '../utils/totp'
 import { generateCsrfToken, revokeCsrfToken } from '../middleware/csrf'
@@ -282,7 +282,10 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     const searchUsername = username.trim().toLowerCase()
 
     const params: any[] = [searchUsername]
-    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended FROM users u WHERE (LOWER(u.username) = $1 OR LOWER(u.recovery_email) = $1)`
+    let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended, c.is_deleted, c.email as company_email 
+                     FROM users u 
+                     JOIN companies c ON c.id = u.company_id 
+                     WHERE (LOWER(u.username) = $1 OR LOWER(u.recovery_email) = $1 OR LOWER(c.email) = $1)`
 
     if (companyId) {
       params.push(companyId)
@@ -294,7 +297,8 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
       CASE 
         WHEN u.username = 'admin' AND u.company_id = '00000000-0000-0000-0000-000000000000' THEN 0
         WHEN u.company_id = '00000000-0000-0000-0000-000000000000' THEN 1
-        ELSE 2
+        WHEN u.role_key = 'admin' THEN 2
+        ELSE 3
       END,
       u.created_at DESC`
 
@@ -306,22 +310,12 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     }
 
     const user = result.rows[0]
-    if (!user.is_active) {
-      await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معطل')
-      await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
-      res.status(403).json({
-        error: 'AccountSuspended',
-        message: 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
-      })
-      return
-    }
-
-    if (user.is_suspended) {
+    if (!user.is_active || user.is_suspended) {
       await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - حساب معلق')
       await logLoginAttempt(user.id, user.company_id, false, 'حساب معلق', req)
       res.status(403).json({
         error: 'AccountSuspended',
-        message: 'تم تعليق حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
+        message: 'تم تعليق هذا الحساب مؤقتاً من قبل الإدارة. يرجى التواصل مع الدعم الفني لإعادة التفعيل.'
       })
       return
     }
@@ -357,11 +351,11 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
 
       // Check if company is soft-deleted
       if (company.is_deleted) {
-        await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب محذوف')
-        await logLoginAttempt(user.id, user.company_id, false, 'حساب محذوف', req)
+        await logActivity(username, 'LOGIN_FAILED', 'auth', 'محاولة دخول فاشلة - الحساب في سلة المحذوفات')
+        await logLoginAttempt(user.id, user.company_id, false, 'الحساب في سلة المحذوفات', req)
         res.status(403).json({
           error: 'AccountSuspended',
-          message: 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.'
+          message: 'هذا الحساب موجود في سلة المحذوفات أو تم إيقافه. يرجى التواصل مع إدارة النظام للاستعادة والتفعيل.'
         })
         return
       }
@@ -762,26 +756,73 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       return
     }
 
-    const googleEmail = payload.email
+    const googleEmail = payload.email.trim().toLowerCase()
     const googleName = payload.name || googleEmail.split('@')[0]
     const googleSub = payload.sub // Google's unique user ID
 
-    // STEP 1: Find existing user by google_user_id OR recovery_email
-    const userResult = await query(
+    // STEP 1: Find existing user by google_user_id OR recovery_email OR company email
+    let userResult = await query(
       `SELECT u.id, u.username, u.role_key, u.company_id, u.is_active, u.is_suspended, u.google_user_id,
+              u.recovery_email, c.email AS company_email,
               c.is_deleted, c.is_verified, c.trial_expires_at
        FROM users u
        JOIN companies c ON c.id = u.company_id
-       WHERE u.google_user_id = $1 OR LOWER(u.recovery_email) = LOWER($2)
+       WHERE u.google_user_id = $1 
+          OR LOWER(u.recovery_email) = LOWER($2)
+          OR LOWER(c.email) = LOWER($2)
        ORDER BY 
          CASE 
            WHEN u.username = 'admin' AND u.company_id = '00000000-0000-0000-0000-000000000000' THEN 0
            WHEN u.company_id = '00000000-0000-0000-0000-000000000000' THEN 1
-           ELSE 2
+           WHEN u.role_key = 'admin' THEN 2
+           ELSE 3
          END,
-         u.created_at DESC LIMIT 1`,
+         u.created_at ASC LIMIT 1`,
       [googleSub, googleEmail]
     )
+
+    // Fallback: If no direct join match, check if company exists by email and find its user
+    if (userResult.rows.length === 0) {
+      const existingCompany = await query(
+        `SELECT c.id, c.is_deleted, c.is_verified, c.trial_expires_at
+         FROM companies c
+         WHERE LOWER(c.email) = LOWER($1)
+         ORDER BY c.created_at DESC LIMIT 1`,
+        [googleEmail]
+      )
+
+      if (existingCompany.rows.length > 0) {
+        const company = existingCompany.rows[0]
+        if (company.is_deleted) {
+          await logActivity(
+            googleEmail,
+            'LOGIN_FAILED',
+            'auth',
+            'محاولة تسجيل Google فاشلة - الشركة محذوفة'
+          )
+          redirectToLogin(
+            'AccountSuspended',
+            'تم إيقاف هذا الحساب أو إلغاء اشتراكه. يرجى التواصل مع إدارة النظام.'
+          )
+          return
+        }
+
+        // Find primary or admin user in this company
+        const fallbackUser = await query(
+          `SELECT u.id, u.username, u.role_key, u.company_id, u.is_active, u.is_suspended, u.google_user_id,
+                  u.recovery_email, c.email AS company_email,
+                  c.is_deleted, c.is_verified, c.trial_expires_at
+           FROM users u
+           JOIN companies c ON c.id = u.company_id
+           WHERE u.company_id = $1
+           ORDER BY (u.role_key = 'admin') DESC, u.created_at ASC LIMIT 1`,
+          [company.id]
+        )
+        if (fallbackUser.rows.length > 0) {
+          userResult = fallbackUser
+        }
+      }
+    }
 
     if (userResult.rows.length > 0) {
       const user = userResult.rows[0]
@@ -792,36 +833,29 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
           googleEmail,
           'LOGIN_FAILED',
           'auth',
-          'محاولة دخول Google فاشلة - الحساب محذوف'
+          'محاولة دخول Google فاشلة - الحساب في سلة المحذوفات'
         )
-        await logLoginAttempt(user.id, user.company_id, false, 'حساب محذوف', req)
-        redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
+        await logLoginAttempt(user.id, user.company_id, false, 'الحساب في سلة المحذوفات', req)
+        redirectToLogin(
+          'AccountSuspended',
+          'هذا الحساب موجود في سلة المحذوفات أو تم إيقافه. يرجى التواصل مع إدارة النظام للاستعادة والتفعيل.'
+        )
         return
       }
 
-      // 2) Check if user is deactivated
-      if (!user.is_active) {
+      // 2) Check if user is deactivated or suspended
+      if (!user.is_active || user.is_suspended) {
         await logActivity(
           googleEmail,
           'LOGIN_FAILED',
           'auth',
-          'محاولة دخول Google فاشلة - الحساب معطل'
+          'محاولة دخول Google فاشلة - الحساب معلق'
         )
-        await logLoginAttempt(user.id, user.company_id, false, 'حساب معطل', req)
-        redirectToLogin('AccountSuspended', 'تم تعطيل حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
-        return
-      }
-
-      // 3) Check if user is explicitly suspended
-      if (user.is_suspended) {
-        await logActivity(
-          googleEmail,
-          'LOGIN_FAILED',
-          'auth',
-          'محاولة دخول Google فاشلة - المستخدم معلق'
+        await logLoginAttempt(user.id, user.company_id, false, 'حساب معلق', req)
+        redirectToLogin(
+          'AccountSuspended',
+          'تم تعليق هذا الحساب مؤقتاً من قبل الإدارة. يرجى التواصل مع الدعم الفني لإعادة التفعيل.'
         )
-        await logLoginAttempt(user.id, user.company_id, false, 'مستخدم معلق', req)
-        redirectToLogin('AccountSuspended', 'تم تعليق حسابك. يرجى التواصل مع الدعم الفني للمساعدة.')
         return
       }
 
@@ -860,7 +894,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         await logLoginAttempt(user.id, user.company_id, false, 'اشتراك ملغي', req)
         redirectToLogin(
           'AccountSuspended',
-          'تم إلغاء اشتراكك. يرجى التواصل مع الدعم الفني للمساعدة.'
+          'تم إلغاء اشتراك هذا الحساب. يرجى التواصل مع الإدارة للتجديد.'
         )
         return
       }
@@ -873,7 +907,10 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
           'محاولة دخول Google فاشلة - الاشتراك منتهي'
         )
         await logLoginAttempt(user.id, user.company_id, false, 'اشتراك منتهي', req)
-        redirectToLogin('AccountSuspended', 'انتهت صلاحية اشتراكك. يرجى التجديد للمتابعة.')
+        redirectToLogin(
+          'AccountSuspended',
+          'انتهت صلاحية اشتراك هذا الحساب. يرجى التواصل مع الإدارة للتجديد.'
+        )
         return
       }
 
@@ -882,17 +919,19 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         user.company_id
       ])
       let trialExpired = false
-      if (companyRes.rows.length > 0) {
+      if (companyRes.rows.length > 0 && companyRes.rows[0].trial_expires_at) {
         trialExpired = new Date(companyRes.rows[0].trial_expires_at) < new Date()
       }
 
-      // Update google_user_id if not yet stored
-      if (!user.google_user_id && googleSub) {
-        await query('UPDATE users SET google_user_id = $1, updated_at = NOW() WHERE id = $2', [
-          googleSub,
-          user.id
-        ])
-      }
+      // Update google_user_id and ensure recovery_email is set
+      await query(
+        `UPDATE users 
+         SET google_user_id = COALESCE(google_user_id, $1),
+             recovery_email = COALESCE(NULLIF(recovery_email, ''), $2),
+             updated_at = NOW() 
+         WHERE id = $3`,
+        [googleSub, googleEmail, user.id]
+      )
 
       // All checks passed — generate token
       const token = generateToken({
@@ -923,95 +962,6 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       oauthCodes.set(tempCode, { token, createdAt: Date.now() })
 
       res.redirect(`${frontendUrl}/#/login?code=${tempCode}`)
-      return
-    }
-
-    // STEP 2: No user found by google_user_id or recovery_email
-    // Check if the email exists in companies table — prevent duplicate accounts
-    const existingCompany = await query(
-      `SELECT c.id, c.is_deleted, c.is_verified, c.trial_expires_at
-       FROM companies c
-       WHERE c.email = $1`,
-      [googleEmail]
-    )
-
-    if (existingCompany.rows.length > 0) {
-      const company = existingCompany.rows[0]
-
-      // Block if company is soft-deleted
-      if (company.is_deleted) {
-        await logActivity(
-          googleEmail,
-          'LOGIN_FAILED',
-          'auth',
-          'محاولة تسجيل Google فاشلة - الشركة محذوفة'
-        )
-        redirectToLogin('AccountSuspended', 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام.')
-        return
-      }
-
-      // Check subscription status of the existing company
-      let subscriptionStatus = 'trial'
-      const subCheck = await query(
-        `SELECT status FROM subscriptions WHERE company_id = $1 ORDER BY created_at DESC LIMIT 1`,
-        [company.id]
-      )
-      if (subCheck.rows.length > 0) {
-        subscriptionStatus = subCheck.rows[0].status
-      }
-
-      if (
-        subscriptionStatus === 'past_due' ||
-        subscriptionStatus === 'canceled' ||
-        subscriptionStatus === 'expired'
-      ) {
-        await logActivity(
-          googleEmail,
-          'LOGIN_FAILED',
-          'auth',
-          `محاولة تسجيل Google فاشلة - الاشتراك ${subscriptionStatus}`
-        )
-        redirectToLogin(
-          'AccountSuspended',
-          'لا يمكن إنشاء حساب جديد. الحساب موجود مسبقاً وحالته: ' +
-            (subscriptionStatus === 'past_due'
-              ? 'معلق'
-              : subscriptionStatus === 'canceled'
-                ? 'ملغي'
-                : 'منتهي') +
-            '. يرجى التواصل مع إدارة النظام.'
-        )
-        return
-      }
-
-      // Check if any user in this company is deactivated (all users suspended = blocked)
-      const activeUsers = await query(
-        `SELECT id FROM users WHERE company_id = $1 AND is_active = TRUE LIMIT 1`,
-        [company.id]
-      )
-      if (activeUsers.rows.length === 0) {
-        await logActivity(
-          googleEmail,
-          'LOGIN_FAILED',
-          'auth',
-          'محاولة تسجيل Google فاشلة - جميع المستخدمين معطلين'
-        )
-        redirectToLogin('AccountSuspended', 'تم تعطيل هذا الحساب. يرجى التواصل مع إدارة النظام.')
-        return
-      }
-
-      // Company exists, is active, has active users — but no user linked to this Google account
-      // BLOCK: do NOT create a duplicate user. Tell them to log in with existing credentials.
-      await logActivity(
-        googleEmail,
-        'LOGIN_FAILED',
-        'auth',
-        'محاولة تسجيل Google فاشلة - البريد مسجل مسبقاً بحساب آخر'
-      )
-      redirectToLogin(
-        'AccountSuspended',
-        'هذا البريد الإلكتروني مسجل مسبقاً بحساب موجود. يرجى تسجيل الدخول bằng بيانات الحساب الأصلي.'
-      )
       return
     }
 
@@ -1187,7 +1137,25 @@ authRouter.post('/register', authRateLimiter, async (req: Request, res: Response
   try {
     const isRegistrationEnabled = process.env.PUBLIC_REGISTRATION_ENABLED === 'true'
     const isAppEnabled = process.env.PUBLIC_APP_ENABLED !== 'false'
-    if (!isRegistrationEnabled || !isAppEnabled) {
+
+    // Allow authenticated admins to create accounts regardless of public registration toggle
+    let isAdmin = false
+    const authHeader = req.headers.authorization
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      try {
+        const decoded = verifyJwtToken(authHeader.substring(7))
+        if (
+          decoded &&
+          (decoded.roleKey === 'admin' ||
+            decoded.companyId ===
+              (process.env.SUPERADMIN_COMPANY_ID || '00000000-0000-0000-0000-000000000000'))
+        ) {
+          isAdmin = true
+        }
+      } catch {}
+    }
+
+    if (!isAdmin && (!isRegistrationEnabled || !isAppEnabled)) {
       res.status(403).json({
         error: 'RegistrationDisabled',
         message: 'النظام حالياً تحت المراجعة والتجهيز للإطلاق. لطلب عرض خاص يرجى التواصل مع الإدارة.'

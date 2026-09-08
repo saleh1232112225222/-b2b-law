@@ -204,7 +204,7 @@ export async function runExtraMigrations() {
       UPDATE users 
       SET recovery_email = 'slaehmap@gmail.com',
           security_question = COALESCE(NULLIF(security_question, ''), 'ماهو رقم جوالك الثاني')
-      WHERE username = 'admin' AND (
+      WHERE username = 'admin' AND company_id = '00000000-0000-0000-0000-000000000000' AND (
         recovery_email IS NULL 
         OR recovery_email LIKE '%@b2blaw.local' 
         OR recovery_email = 'admin@b2blaw.local' 

@@ -183,7 +183,7 @@
               <div class="suspended-alert-inner">
                 <div class="suspended-header">
                   <v-icon icon="mdi-information" size="24" class="me-2" color="#b45309" />
-                  <span class="suspended-title">الوصول إلى حسابك موقوف مؤقتاً</span>
+                  <span class="suspended-title">{{ error || 'الوصول إلى حسابك موقوف مؤقتاً' }}</span>
                 </div>
                 <p class="suspended-desc">
                   فريق الدعم جاهز لإعادة تفعيله خلال دقائق. اضغط للتواصل مباشرة.

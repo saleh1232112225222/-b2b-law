@@ -1370,23 +1370,11 @@ adminSubscriptionRouter.post(
         return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
       }
 
-      if (!password || password.length < 8) {
-        return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
-      }
-      if (!/[A-Z]/.test(password)) {
-        return res
-          .status(400)
-          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' })
-      }
-      if (!/[a-z]/.test(password)) {
-        return res
-          .status(400)
-          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' })
-      }
-      if (!/[0-9]/.test(password)) {
-        return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' })
+      if (!password || password.length < 4) {
+        return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل' })
       }
 
+      const normalizedEmail = email ? email.trim().toLowerCase() : null
       const companyId = uuidv4()
       const passwordHash = await bcrypt.hash(password, 12)
       const trialExpiresAt = new Date()
@@ -1395,7 +1383,7 @@ adminSubscriptionRouter.post(
       // 1. Create company (auto-verified)
       await query(
         'INSERT INTO companies (id, name, email, phone, is_verified, trial_expires_at) VALUES ($1, $2, $3, $4, TRUE, $5)',
-        [companyId, fullName || username, email || null, phone || null, trialExpiresAt]
+        [companyId, fullName || username, normalizedEmail, phone || null, trialExpiresAt]
       )
 
       // 2. Create user (must_change_password=TRUE, created_by_admin)
@@ -1408,7 +1396,7 @@ adminSubscriptionRouter.post(
           username,
           fullName || username,
           passwordHash,
-          email || null,
+          normalizedEmail,
           req.auth!.userId
         ]
       )
