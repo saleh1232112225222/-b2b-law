@@ -355,7 +355,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
         await logLoginAttempt(user.id, user.company_id, false, 'الحساب في سلة المحذوفات', req)
         res.status(403).json({
           error: 'AccountSuspended',
-          message: 'هذا الحساب موجود في سلة المحذوفات أو تم إيقافه. يرجى التواصل مع إدارة النظام للاستعادة والتفعيل.'
+          message: 'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام لإعادة التفعيل.'
         })
         return
       }
@@ -838,7 +838,7 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
         await logLoginAttempt(user.id, user.company_id, false, 'الحساب في سلة المحذوفات', req)
         redirectToLogin(
           'AccountSuspended',
-          'هذا الحساب موجود في سلة المحذوفات أو تم إيقافه. يرجى التواصل مع إدارة النظام للاستعادة والتفعيل.'
+          'تم إيقاف هذا الحساب. يرجى التواصل مع إدارة النظام لإعادة التفعيل.'
         )
         return
       }
