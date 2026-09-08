@@ -356,9 +356,9 @@ router.beforeEach(async (to) => {
   const isAppPubliclyEnabled = import.meta.env.VITE_PUBLIC_APP_ENABLED !== 'false'
   const isLoggedIn = localStorage.getItem('web_isLoggedIn') === 'true'
 
-  // If public portal is temporarily disabled, redirect unauthenticated public visitors to maintenance
+  // If public portal is temporarily disabled, redirect unauthenticated public visitors to maintenance (except login)
   if (!isAppPubliclyEnabled && !isLoggedIn) {
-    if (to.path !== '/maintenance') {
+    if (to.path !== '/maintenance' && to.path !== '/login') {
       return '/maintenance'
     }
   }
