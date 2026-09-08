@@ -54,6 +54,10 @@ export interface Case {
   archived_at?: string
   archived_by?: string
   archive_reason?: string
+  final_outcome?: 'full_win' | 'partial_win' | 'dismissed' | 'settled' | 'lost' | 'pending' | string
+  claimed_amount?: number
+  awarded_amount?: number
+  failure_reason?: string
   created_at?: string
   updated_at?: string
   parties?: CaseParty[]

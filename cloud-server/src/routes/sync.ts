@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { createHash, randomUUID } from 'crypto'
-import { authMiddleware } from '../middleware/auth'
+import { authMiddleware, generateSyncToken, revokeToken } from '../middleware/auth'
 import { getClient, query } from '../db/connection'
 import { assertSyncOperationAllowed, getSyncEntityAdapter, MAX_SYNC_BATCH, MAX_SYNC_PAGE, quoteRegisteredIdentifier as q, requireSyncIdentity, validateSyncPayload } from '../sync/syncPolicy'
 import { getSyncChangeCaptureBindings } from '../sync/syncChangeCapture'
@@ -17,7 +17,8 @@ export function calculateContentHash(data: Record<string, unknown>): string {
 }
 
 export async function initSyncTables(): Promise<void> {
-  await query(`CREATE TABLE IF NOT EXISTS registered_sync_devices(id TEXT NOT NULL,company_id UUID NOT NULL,name TEXT NOT NULL,paired_by UUID NOT NULL,paired_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),last_seen_at TIMESTAMPTZ,revoked_at TIMESTAMPTZ,PRIMARY KEY(company_id,id))`)
+  await query(`CREATE TABLE IF NOT EXISTS registered_sync_devices(id TEXT NOT NULL,company_id UUID NOT NULL,name TEXT NOT NULL,paired_by UUID NOT NULL,paired_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),last_seen_at TIMESTAMPTZ,revoked_at TIMESTAMPTZ,token_jti TEXT,PRIMARY KEY(company_id,id))`)
+  await query(`ALTER TABLE registered_sync_devices ADD COLUMN IF NOT EXISTS token_jti TEXT`)
   await query(`CREATE TABLE IF NOT EXISTS tenant_change_log(sequence BIGSERIAL PRIMARY KEY,company_id UUID NOT NULL,entity_type TEXT NOT NULL,entity_id UUID NOT NULL,operation TEXT NOT NULL,revision INTEGER NOT NULL,payload JSONB,device_id TEXT,user_id UUID,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),UNIQUE(company_id,entity_type,entity_id,revision))`)
   await query(`CREATE INDEX IF NOT EXISTS idx_tenant_change_cursor ON tenant_change_log(company_id,sequence)`)
   await query(`CREATE TABLE IF NOT EXISTS sync_operations(company_id UUID NOT NULL,operation_id TEXT NOT NULL,device_id TEXT NOT NULL,entity_type TEXT NOT NULL,entity_id UUID NOT NULL,operation TEXT NOT NULL,base_revision INTEGER NOT NULL,authoritative_revision INTEGER,content_hash TEXT NOT NULL,status TEXT NOT NULL,error_code TEXT,created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),processed_at TIMESTAMPTZ,PRIMARY KEY(company_id,operation_id))`)
@@ -73,7 +74,8 @@ syncRouter.post('/devices/pair', async (req, res) => {
     const name = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 100) : ''
     if (!name) return void res.status(400).json({ error: 'SYNC_DEVICE_NAME_REQUIRED' })
     const deviceId = randomUUID()
-    await query('INSERT INTO registered_sync_devices(id,company_id,name,paired_by) VALUES($1,$2,$3,$4)', [deviceId, companyId, name, userId])
+    const tokenJti = req.auth?.jti || null
+    await query('INSERT INTO registered_sync_devices(id,company_id,name,paired_by,token_jti) VALUES($1,$2,$3,$4,$5)', [deviceId, companyId, name, userId, tokenJti])
     res.status(201).json({ deviceId, name })
   } catch (e) { res.status(401).json({ error: (e as Error).message }) }
 })
@@ -95,14 +97,19 @@ syncRouter.get('/devices', async (req, res) => {
 
 syncRouter.get('/pairing-info', async (req, res) => {
   try {
-    const { companyId } = requireSyncIdentity(req)
+    const { companyId, userId } = requireSyncIdentity(req)
     if (!isAdmin(req)) return void res.status(403).json({ error: 'SYNC_ADMIN_REQUIRED' })
-    const token = req.headers.authorization?.replace(/^Bearer\s+/i, '') || ''
+    const { token, expiresAt } = generateSyncToken({
+      userId,
+      companyId,
+      username: req.auth?.username || 'sync-device',
+      roleKey: req.auth?.roleKey || 'admin'
+    })
     res.json({
       baseUrl: 'https://b2b-law-g2qr.onrender.com/api',
       tenantId: companyId,
       accessToken: token,
-      expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+      expiresAt
     })
   } catch (e) { res.status(401).json({ error: (e as Error).message }) }
 })
@@ -112,8 +119,12 @@ syncRouter.post('/devices/:id/revoke', async (req, res) => {
     const { companyId } = requireSyncIdentity(req)
     if (!isAdmin(req)) return void res.status(403).json({ error: 'SYNC_ADMIN_REQUIRED' })
     if (!UUID.test(req.params.id)) return void res.status(400).json({ error: 'SYNC_DEVICE_ID_INVALID' })
-    const result = await query('UPDATE registered_sync_devices SET revoked_at=NOW() WHERE company_id=$1 AND id=$2 AND revoked_at IS NULL', [companyId, req.params.id])
+    const result = await query('UPDATE registered_sync_devices SET revoked_at=NOW() WHERE company_id=$1 AND id=$2 AND revoked_at IS NULL RETURNING token_jti', [companyId, req.params.id])
     if (!result.rowCount) return void res.status(404).json({ error: 'SYNC_DEVICE_NOT_FOUND' })
+    const tokenJti = result.rows[0]?.token_jti
+    if (tokenJti) {
+      revokeToken(tokenJti)
+    }
     res.json({ success: true })
   } catch (e) { res.status(401).json({ error: (e as Error).message }) }
 })

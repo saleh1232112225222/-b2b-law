@@ -2009,3 +2009,368 @@ reportsRouter.post(
     }
   }
 )
+
+// ============================================================
+// Case Success Metrics & Judicial Performance Statistics
+// ============================================================
+
+reportsRouter.get(
+  '/case-success-stats',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { from, to, court, caseType, lawyerId, clientRole } = req.query
+
+      const conditions: string[] = ['c.company_id = $1']
+      const params: any[] = [companyId]
+
+      if (from) {
+        params.push(from)
+        conditions.push(`c.registration_date >= $${params.length}`)
+      }
+      if (to) {
+        params.push(to)
+        conditions.push(`c.registration_date <= $${params.length}`)
+      }
+      if (court) {
+        params.push(court)
+        conditions.push(`c.court = $${params.length}`)
+      }
+      if (caseType) {
+        params.push(caseType)
+        conditions.push(`c.case_type = $${params.length}`)
+      }
+      if (lawyerId) {
+        params.push(lawyerId)
+        conditions.push(`c.responsible_user_id = $${params.length}`)
+      }
+      if (clientRole && clientRole !== 'الكل') {
+        params.push(clientRole)
+        conditions.push(`(c.client_role = $${params.length} OR (c.client_role ILIKE '%' || $${params.length} || '%'))`)
+      }
+
+      const whereClause = conditions.join(' AND ')
+
+      const statsSql = `
+        WITH latest_judgments AS (
+          SELECT j1.case_id, j1.favor, j1.notes, j1.judgment_date
+          FROM judgments j1
+          INNER JOIN (
+            SELECT case_id, MAX(judgment_date) as max_date
+            FROM judgments
+            WHERE company_id = $1
+            GROUP BY case_id
+          ) j2 ON j1.case_id = j2.case_id AND j1.judgment_date = j2.max_date
+          WHERE j1.company_id = $1
+          GROUP BY j1.case_id, j1.favor, j1.notes, j1.judgment_date
+        ),
+        effective_cases AS (
+          SELECT 
+            c.*,
+            j.judgment_date,
+            COALESCE(
+              NULLIF(c.final_outcome, 'pending'),
+              CASE 
+                WHEN j.favor ILIKE '%ضد%' OR j.favor ILIKE '%خصم%' THEN 'lost'
+                WHEN j.favor ILIKE '%جزئي%' OR j.favor ILIKE '%شبه كلي%' THEN 'partial_win'
+                WHEN j.favor ILIKE '%صلح%' OR j.favor ILIKE '%تسوية%' THEN 'settled'
+                WHEN j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR (j.favor ILIKE '%الموكل%' AND j.favor NOT ILIKE '%ضد%')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                WHEN c.status IN ('منتهية', 'مغلقة', 'بانتظار التنفيذ', 'محكومة', 'محكومة بحكم نهائي')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                ELSE 'pending'
+              END
+            ) AS eff_outcome,
+            COALESCE(NULLIF(c.claimed_amount, 0), c.contract_amount, 0) AS eff_claimed,
+            COALESCE(
+              NULLIF(c.awarded_amount, 0),
+              CASE 
+                WHEN j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR c.status IN ('منتهية', 'مغلقة', 'بانتظار التنفيذ')
+                  THEN COALESCE(NULLIF(c.claimed_amount, 0), c.contract_amount, 0)
+                ELSE 0
+              END
+            ) AS eff_awarded
+          FROM cases c
+          LEFT JOIN latest_judgments j ON j.case_id = c.id
+          WHERE ${whereClause}
+        )
+        SELECT 
+          COUNT(*) as total_cases,
+          COUNT(CASE WHEN eff_outcome = 'full_win' THEN 1 END) as full_win,
+          COUNT(CASE WHEN eff_outcome = 'dismissed' THEN 1 END) as dismissed,
+          COUNT(CASE WHEN eff_outcome = 'settled' THEN 1 END) as settled,
+          COUNT(CASE WHEN eff_outcome = 'partial_win' THEN 1 END) as partial_win,
+          COUNT(CASE WHEN eff_outcome = 'lost' THEN 1 END) as lost,
+          COUNT(CASE WHEN eff_outcome = 'pending' OR eff_outcome IS NULL THEN 1 END) as pending,
+          COALESCE(SUM(eff_claimed), 0) as total_claimed,
+          COALESCE(SUM(eff_awarded), 0) as total_awarded,
+          AVG(
+            CASE 
+              WHEN judgment_date IS NOT NULL AND registration_date IS NOT NULL 
+              THEN (judgment_date - registration_date)
+              ELSE NULL 
+            END
+          ) as avg_duration_days
+        FROM effective_cases
+      `
+
+      const result = await query(statsSql, params)
+      const r = result.rows[0]
+
+      const fullWin = parseInt(r.full_win) || 0
+      const dismissed = parseInt(r.dismissed) || 0
+      const settled = parseInt(r.settled) || 0
+      const partialWin = parseInt(r.partial_win) || 0
+      const lost = parseInt(r.lost) || 0
+      const pending = parseInt(r.pending) || 0
+      const totalCases = parseInt(r.total_cases) || 0
+      const closedCases = fullWin + dismissed + settled + partialWin + lost
+
+      // Weighted success rate: Full Win & Dismissed = 100%, Settled = 75%, Partial = 50%
+      const weightedSuccessPoints = fullWin + dismissed + settled * 0.75 + partialWin * 0.5
+      const successRate = closedCases > 0 ? Math.round((weightedSuccessPoints / closedCases) * 1000) / 10 : 0
+      const pureWinRate = closedCases > 0 ? Math.round(((fullWin + dismissed) / closedCases) * 1000) / 10 : 0
+
+      const totalClaimed = parseFloat(r.total_claimed) || 0
+      const totalAwarded = parseFloat(r.total_awarded) || 0
+      const financialRecoveryRate = totalClaimed > 0 ? Math.round((totalAwarded / totalClaimed) * 1000) / 10 : 0
+      const avgDurationDays = r.avg_duration_days ? Math.round(parseFloat(r.avg_duration_days)) : 0
+
+      res.json({
+        totalCases,
+        closedCases,
+        pendingCases: pending,
+        fullWinCases: fullWin,
+        dismissedCases: dismissed,
+        settledCases: settled,
+        partialWinCases: partialWin,
+        lostCases: lost,
+        successRate,
+        pureWinRate,
+        avgDurationDays,
+        totalClaimedAmount: totalClaimed,
+        totalAwardedAmount: totalAwarded,
+        financialRecoveryRate
+      })
+    } catch (err) {
+      console.error('[REPORTS] case-success-stats error:', err)
+      res.status(500).json({ error: 'فشل جلب إحصائيات نجاح القضايا' })
+    }
+  }
+)
+
+reportsRouter.get(
+  '/case-success-breakdown',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { from, to, court } = req.query
+
+      const conditions: string[] = ['c.company_id = $1']
+      const params: any[] = [companyId]
+
+      if (from) {
+        params.push(from)
+        conditions.push(`c.registration_date >= $${params.length}`)
+      }
+      if (to) {
+        params.push(to)
+        conditions.push(`c.registration_date <= $${params.length}`)
+      }
+      if (court) {
+        params.push(court)
+        conditions.push(`c.court = $${params.length}`)
+      }
+
+      const whereClause = conditions.join(' AND ')
+
+      const baseCte = `
+        WITH latest_judgments AS (
+          SELECT j1.case_id, j1.favor, j1.notes, j1.judgment_date
+          FROM judgments j1
+          INNER JOIN (
+            SELECT case_id, MAX(judgment_date) as max_date
+            FROM judgments
+            WHERE company_id = $1
+            GROUP BY case_id
+          ) j2 ON j1.case_id = j2.case_id AND j1.judgment_date = j2.max_date
+          WHERE j1.company_id = $1
+          GROUP BY j1.case_id, j1.favor, j1.notes, j1.judgment_date
+        ),
+        effective_cases AS (
+          SELECT 
+            c.*,
+            j.judgment_date,
+            COALESCE(
+              NULLIF(c.final_outcome, 'pending'),
+              CASE 
+                WHEN j.favor ILIKE '%ضد%' OR j.favor ILIKE '%خصم%' THEN 'lost'
+                WHEN j.favor ILIKE '%جزئي%' OR j.favor ILIKE '%شبه كلي%' THEN 'partial_win'
+                WHEN j.favor ILIKE '%صلح%' OR j.favor ILIKE '%تسوية%' THEN 'settled'
+                WHEN j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR (j.favor ILIKE '%الموكل%' AND j.favor NOT ILIKE '%ضد%')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                WHEN c.status IN ('منتهية', 'مغلقة', 'بانتظار التنفيذ', 'محكومة', 'محكومة بحكم نهائي')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                ELSE 'pending'
+              END
+            ) AS eff_outcome
+          FROM cases c
+          LEFT JOIN latest_judgments j ON j.case_id = c.id
+          WHERE ${whereClause}
+        )
+      `
+
+      // 1. By Client Role
+      const roleRes = await query(
+        `${baseCte}
+         SELECT 
+           COALESCE(c.client_role, 'غير محدد') as role,
+           COUNT(*) as total,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed') THEN 1 END) as pure_win,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed', 'settled', 'partial_win') THEN 1 END) as total_success,
+           COUNT(CASE WHEN eff_outcome = 'lost' THEN 1 END) as lost
+         FROM effective_cases c
+         GROUP BY COALESCE(c.client_role, 'غير محدد')
+         ORDER BY total DESC`,
+        params
+      )
+
+      // 2. By Case Type
+      const typeRes = await query(
+        `${baseCte}
+         SELECT 
+           COALESCE(c.case_type, 'أخرى') as case_type,
+           COUNT(*) as total,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed') THEN 1 END) as pure_win,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed', 'settled', 'partial_win') THEN 1 END) as total_success,
+           COUNT(CASE WHEN eff_outcome = 'lost' THEN 1 END) as lost
+         FROM effective_cases c
+         GROUP BY COALESCE(c.case_type, 'أخرى')
+         ORDER BY total DESC`,
+        params
+      )
+
+      // 3. By Lawyer
+      const lawyerRes = await query(
+        `${baseCte}
+         SELECT 
+           COALESCE(u.full_name, u.username, 'غير مسند') as lawyer_name,
+           c.responsible_user_id as lawyer_id,
+           COUNT(*) as total,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed') THEN 1 END) as pure_win,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed', 'settled', 'partial_win') THEN 1 END) as total_success,
+           COUNT(CASE WHEN eff_outcome = 'lost' THEN 1 END) as lost
+         FROM effective_cases c
+         LEFT JOIN users u ON u.id = c.responsible_user_id
+         GROUP BY c.responsible_user_id, COALESCE(u.full_name, u.username, 'غير مسند')
+         ORDER BY total DESC`,
+        params
+      )
+
+      // 4. By Quarter (Time Trend)
+      const trendRes = await query(
+        `${baseCte}
+         SELECT 
+           TO_CHAR(COALESCE(c.judgment_date, c.registration_date), 'YYYY-"Q"Q') as period,
+           COUNT(*) as total,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed') THEN 1 END) as pure_win,
+           COUNT(CASE WHEN eff_outcome IN ('full_win', 'dismissed', 'settled', 'partial_win') THEN 1 END) as total_success
+         FROM effective_cases c
+         WHERE eff_outcome != 'pending' OR c.status IN ('منتهية', 'مغلقة', 'محكومة', 'محكومة بحكم نهائي')
+         GROUP BY TO_CHAR(COALESCE(c.judgment_date, c.registration_date), 'YYYY-"Q"Q')
+         ORDER BY period ASC`,
+        params
+      )
+
+      res.json({
+        byClientRole: roleRes.rows,
+        byCaseType: typeRes.rows,
+        byLawyer: lawyerRes.rows,
+        byQuarter: trendRes.rows
+      })
+    } catch (err) {
+      console.error('[REPORTS] case-success-breakdown error:', err)
+      res.status(500).json({ error: 'فشل جلب تفاصيل نجاح القضايا' })
+    }
+  }
+)
+
+reportsRouter.get(
+  '/case-failure-analysis',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const { from, to } = req.query
+
+      const conditions: string[] = ['c.company_id = $1']
+      const params: any[] = [companyId]
+
+      if (from) {
+        params.push(from)
+        conditions.push(`c.registration_date >= $${params.length}`)
+      }
+      if (to) {
+        params.push(to)
+        conditions.push(`c.registration_date <= $${params.length}`)
+      }
+
+      const whereClause = conditions.join(' AND ')
+
+      const failureSql = `
+        WITH latest_judgments AS (
+          SELECT j1.case_id, j1.favor, j1.notes, j1.judgment_date
+          FROM judgments j1
+          INNER JOIN (
+            SELECT case_id, MAX(judgment_date) as max_date
+            FROM judgments
+            WHERE company_id = $1
+            GROUP BY case_id
+          ) j2 ON j1.case_id = j2.case_id AND j1.judgment_date = j2.max_date
+          WHERE j1.company_id = $1
+          GROUP BY j1.case_id, j1.favor, j1.notes, j1.judgment_date
+        ),
+        effective_cases AS (
+          SELECT 
+            c.*,
+            COALESCE(
+              NULLIF(c.final_outcome, 'pending'),
+              CASE 
+                WHEN j.favor ILIKE '%ضد%' OR j.favor ILIKE '%خصم%' THEN 'lost'
+                WHEN j.favor ILIKE '%جزئي%' OR j.favor ILIKE '%شبه كلي%' THEN 'partial_win'
+                WHEN j.favor ILIKE '%صلح%' OR j.favor ILIKE '%تسوية%' THEN 'settled'
+                WHEN j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR (j.favor ILIKE '%الموكل%' AND j.favor NOT ILIKE '%ضد%')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                WHEN c.status IN ('منتهية', 'مغلقة', 'بانتظار التنفيذ', 'محكومة', 'محكومة بحكم نهائي')
+                  THEN (CASE WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed' ELSE 'full_win' END)
+                ELSE 'pending'
+              END
+            ) AS eff_outcome,
+            COALESCE(NULLIF(TRIM(c.failure_reason), ''), NULLIF(TRIM(j.notes), ''), 'أسباب موضوعية / حكم ضد الموكل') AS eff_failure_reason
+          FROM cases c
+          LEFT JOIN latest_judgments j ON j.case_id = c.id
+          WHERE ${whereClause}
+        )
+        SELECT 
+          COALESCE(NULLIF(TRIM(eff_failure_reason), ''), 'أسباب موضوعية / أخرى') as reason,
+          COUNT(*) as count,
+          ROUND((COUNT(*) * 100.0 / NULLIF(SUM(COUNT(*)) OVER(), 0)), 1) as percentage
+        FROM effective_cases
+        WHERE eff_outcome = 'lost'
+        GROUP BY COALESCE(NULLIF(TRIM(eff_failure_reason), ''), 'أسباب موضوعية / أخرى')
+        ORDER BY count DESC
+      `
+
+      const result = await query(failureSql, params)
+      res.json({
+        totalLostCases: result.rows.reduce((acc: number, r: any) => acc + parseInt(r.count), 0),
+        reasons: result.rows
+      })
+    } catch (err) {
+      console.error('[REPORTS] case-failure-analysis error:', err)
+      res.status(500).json({ error: 'فشل جلب تحليل أسباب الإخفاق' })
+    }
+  }
+)

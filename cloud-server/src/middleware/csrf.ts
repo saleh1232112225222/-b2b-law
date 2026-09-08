@@ -34,7 +34,7 @@ export function generateCsrfToken(req: Request, res: Response): string {
   res.cookie('XSRF-TOKEN', token, {
     httpOnly: false, // JS must be able to read this
     secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax',
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     path: '/'
   })
 
@@ -62,6 +62,7 @@ export function csrfProtection(req: Request, res: Response, next: NextFunction):
   // Bypass CSRF for public auth/recovery endpoints that run before session establishment
   const path = req.path
   if (
+    path.endsWith('/auth/csrf-token') ||
     path.endsWith('/auth/login') ||
     path.endsWith('/auth/register') ||
     path.endsWith('/auth/verify') ||

@@ -266,6 +266,11 @@ const otpRateLimiter = (req: Request, res: Response, next: NextFunction) => {
   next()
 }
 
+authRouter.get('/csrf-token', (req: Request, res: Response) => {
+  const token = generateCsrfToken(req, res)
+  res.json({ csrfToken: token })
+})
+
 authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) => {
   try {
     const { username, password, companyId } = req.body

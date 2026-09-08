@@ -259,7 +259,7 @@ app.use('/api/auth', authRouter)
 app.use('/api/dashboard', dashboardRouter)
 app.use('/api/integrations', integrationsRouter)
 app.use('/api/reports', reportsRouter)
-app.use('/api/system', systemRouter)
+app.use('/api', systemRouter)
 app.use('/api/enforcement/requests', enforcementRequestsRouter)
 app.use('/api/agencies', agenciesRouter)
 app.use('/api/users', usersRouter)
@@ -475,7 +475,6 @@ app.get(
 )
 
 app.use('/api/reports', reportsRouter)
-app.use('/api', systemRouter)
 
 app.get('/api/search', require('./middleware/auth').authMiddleware, async (req: any, res: any) => {
   try {

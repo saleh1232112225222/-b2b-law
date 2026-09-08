@@ -56,9 +56,9 @@ sessionOutcomesRouter.post(
 
       await client.query('BEGIN')
 
-      // 1. Get case_id from session
+      // 1. Get case_id and client_role from session & case
       const sessionRes = await client.query(
-        'SELECT case_id, company_id FROM sessions WHERE id = $1',
+        'SELECT s.case_id, s.company_id, c.client_role FROM sessions s LEFT JOIN cases c ON c.id = s.case_id WHERE s.id = $1',
         [sessionId]
       )
       if (sessionRes.rows.length === 0) {
@@ -72,6 +72,7 @@ sessionOutcomesRouter.post(
         return
       }
       const caseId = sessionRes.rows[0].case_id
+      const clientRole = sessionRes.rows[0].client_role || null
 
       // 2. Create the outcome record
       const outcomeId = uuidv4()
@@ -88,13 +89,15 @@ sessionOutcomesRouter.post(
       )
 
       // 4. Run smart analysis
-      const analysisInput: any = { result }
+      const analysisInput: any = { result, clientRole }
       if (judgmentData) {
         analysisInput.judgmentType = judgmentData.judgment_type
         analysisInput.judgmentNumber = judgmentData.judgment_number
         analysisInput.judgmentDate = judgmentData.judgment_date
         analysisInput.serviceDate = judgmentData.service_date
         analysisInput.isForClient = judgmentData.is_for_client
+        analysisInput.isPartialWin = judgmentData.is_partial_win
+        analysisInput.isSettlement = judgmentData.is_settlement
         analysisInput.hasAppealGrounds = judgmentData.has_appeal_grounds
         analysisInput.needsExecution = judgmentData.needs_execution
       }
@@ -102,6 +105,53 @@ sessionOutcomesRouter.post(
       analysisInput.notes = notes
 
       const analysis = analyzeJudgment(analysisInput)
+
+      // 4.5 Save judgment record if judgmentData provided
+      if (caseId && judgmentData) {
+        const judgmentId = uuidv4()
+        await client.query(
+          `INSERT INTO judgments (id, company_id, case_id, type, judgment_date, judgment_number, judgment_type, favor, notes, is_executable, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())`,
+          [
+            judgmentId,
+            companyId,
+            caseId,
+            judgmentData.judgment_type || 'حكم',
+            judgmentData.judgment_date || new Date().toISOString().slice(0, 10),
+            judgmentData.judgment_number || null,
+            judgmentData.judgment_type || 'ابتدائي',
+            analysis.favors || (judgmentData.is_for_client ? 'موكل' : 'خصم'),
+            notes || null,
+            Boolean(judgmentData.needs_execution)
+          ]
+        )
+      }
+
+      // 4.6 Update case final_outcome, claimed_amount, awarded_amount, failure_reason
+      if (caseId && analysis.finalOutcome && analysis.finalOutcome !== 'pending') {
+        await client.query(
+          `UPDATE cases 
+           SET final_outcome = $1,
+               claimed_amount = COALESCE($2, claimed_amount),
+               awarded_amount = COALESCE($3, awarded_amount),
+               failure_reason = COALESCE($4, failure_reason),
+               status = CASE WHEN $1 IN ('full_win', 'dismissed', 'settled', 'lost') THEN 'محكومة بحكم نهائي' ELSE status END,
+               updated_at = NOW()
+           WHERE id = $5 AND company_id = $6`,
+          [
+            analysis.finalOutcome,
+            judgmentData?.claimed_amount !== undefined && judgmentData?.claimed_amount !== null
+              ? Number(judgmentData.claimed_amount)
+              : null,
+            judgmentData?.awarded_amount !== undefined && judgmentData?.awarded_amount !== null
+              ? Number(judgmentData.awarded_amount)
+              : null,
+            judgmentData?.failure_reason || null,
+            caseId,
+            companyId
+          ]
+        )
+      }
 
       // 5. Save generated tasks
       if (analysis.tasks.length > 0) {

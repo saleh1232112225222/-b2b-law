@@ -15,26 +15,59 @@ export function setApiMode(m: ApiMode) {
   mode = m
 }
 
-function getXsrfToken(): string | null {
+let currentCloudBaseUrl = ''
+
+export function getAuthToken(): string | null {
+  const token =
+    localStorage.getItem('b2b_cloud_token') ||
+    localStorage.getItem('token') ||
+    localStorage.getItem('accessToken') ||
+    sessionStorage.getItem('b2b_cloud_token') ||
+    sessionStorage.getItem('token')
+  return token && token.trim() ? token.trim() : null
+}
+
+export function getXsrfToken(): string | null {
   const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/)
   if (match) return decodeURIComponent(match[1])
   return localStorage.getItem('csrfToken')
 }
 
+export async function fetchCsrfToken(): Promise<string | null> {
+  if (!currentCloudBaseUrl) return null
+  try {
+    const res = await axios.get(`${currentCloudBaseUrl}/auth/csrf-token`, {
+      timeout: 10000,
+      withCredentials: true
+    })
+    if (res.data?.csrfToken) {
+      localStorage.setItem('csrfToken', res.data.csrfToken)
+      return res.data.csrfToken
+    }
+  } catch (e) {
+    console.warn('[CSRF] Failed to fetch csrf token:', e)
+  }
+  return null
+}
+
 export function setCloudBaseUrl(url: string) {
+  currentCloudBaseUrl = url
   cloudClient = axios.create({
     baseURL: url,
     timeout: 60000,
     headers: { 'Content-Type': 'application/json' }
   })
-  cloudClient.interceptors.request.use((config) => {
-    const token = localStorage.getItem('b2b_cloud_token')
-    if (token) {
+  cloudClient.interceptors.request.use(async (config) => {
+    const token = getAuthToken()
+    if (token && !token.startsWith('mock-')) {
       config.headers.Authorization = `Bearer ${token}`
     }
     const method = (config.method || 'get').toLowerCase()
     if (['post', 'put', 'patch', 'delete'].includes(method)) {
-      const xsrfToken = getXsrfToken()
+      let xsrfToken = getXsrfToken()
+      if (!xsrfToken && !config.headers.Authorization) {
+        xsrfToken = await fetchCsrfToken()
+      }
       if (xsrfToken) {
         config.headers['X-XSRF-TOKEN'] = xsrfToken
       }
@@ -54,8 +87,15 @@ export function setCloudBaseUrl(url: string) {
         if (isMockMode()) {
           return Promise.reject(error)
         }
-        localStorage.removeItem('b2b_cloud_token')
-        localStorage.removeItem('csrfToken')
+        const errMsg = String(error.response?.data?.error || '')
+        if (
+          errMsg.includes('رمز الدخول غير صالح') ||
+          errMsg.includes('انتهت صلاحية الجلسة') ||
+          errMsg.includes('TokenExpired')
+        ) {
+          localStorage.removeItem('b2b_cloud_token')
+          localStorage.removeItem('csrfToken')
+        }
       }
       return Promise.reject(error)
     }
@@ -227,11 +267,10 @@ function mockOperationsReportData(): any {
 
 function cloudRequest<T = any>(config: AxiosRequestConfig): Promise<T> {
   if (!cloudClient) throw new Error('Cloud base URL not configured')
-  // Only use mock when there's no real JWT token (Google login provides a real token)
-  const token = localStorage.getItem('b2b_cloud_token')
-  const hasRealToken = token && !token.startsWith('mock-')
-  if (isMockMode() && !hasRealToken) {
-    const url = config.url || ''
+  const token = getAuthToken()
+  const hasRealToken = Boolean(token && !token.startsWith('mock-'))
+  const url = config.url || ''
+  if ((isMockMode() || !hasRealToken) && !url.startsWith('/auth/login')) {
     return Promise.resolve(
       mockCloudRequest(url, config.method || 'GET', config.data, config.params) as T
     )
@@ -369,7 +408,56 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/reports/user-activity')) return { data: [] }
   if (url.startsWith('/reports/sessions'))
     return { rows: [], pageInfo: { page: 1, pageSize: 25, totalRows: 0 } }
-  if (url.startsWith('/reports/case')) return { data: {} }
+  if (url.startsWith('/reports/case-success-stats')) {
+    return {
+      totalCases: 25,
+      closedCases: 20,
+      pendingCases: 5,
+      fullWinCases: 12,
+      dismissedCases: 4,
+      settledCases: 2,
+      partialWinCases: 1,
+      lostCases: 1,
+      successRate: 90.0,
+      pureWinRate: 80.0,
+      avgDurationDays: 145,
+      totalClaimedAmount: 1500000,
+      totalAwardedAmount: 1350000,
+      financialRecoveryRate: 90.0
+    }
+  }
+  if (url.startsWith('/reports/case-success-breakdown')) {
+    return {
+      byClientRole: [
+        { role: 'مدّعي', total: 15, pure_win: 10, total_success: 13, lost: 1 },
+        { role: 'مدعى عليه', total: 10, pure_win: 6, total_success: 8, lost: 1 }
+      ],
+      byCaseType: [
+        { case_type: 'تجاري', total: 12, pure_win: 8, total_success: 10, lost: 1 },
+        { case_type: 'عمالي', total: 8, pure_win: 5, total_success: 7, lost: 0 },
+        { case_type: 'مدني', total: 5, pure_win: 3, total_success: 4, lost: 1 }
+      ],
+      byLawyer: [
+        { lawyer_name: 'أحمد المحامي', lawyer_id: '1', total: 14, pure_win: 10, total_success: 12, lost: 1 },
+        { lawyer_name: 'سارة المستشارة', lawyer_id: '2', total: 11, pure_win: 6, total_success: 9, lost: 1 }
+      ],
+      byQuarter: [
+        { period: '2025-Q1', total: 6, pure_win: 5, total_success: 5 },
+        { period: '2025-Q2', total: 8, pure_win: 6, total_success: 7 },
+        { period: '2025-Q3', total: 6, pure_win: 5, total_success: 6 }
+      ]
+    }
+  }
+  if (url.startsWith('/reports/case-failure-analysis')) {
+    return {
+      totalLostCases: 2,
+      reasons: [
+        { reason: 'نقص البينة / مستندات غير كافية', count: 1, percentage: 50.0 },
+        { reason: 'فوات المواعيد النظامية / تقادم', count: 1, percentage: 50.0 }
+      ]
+    }
+  }
+  if (url === '/reports/case' || url.startsWith('/reports/case?') || url.startsWith('/reports/case/')) return { data: {} }
   if (url.startsWith('/reports/financial-summary'))
     return {
       totals: { totalIn: 0, totalOut: 0, balance: 0 },
@@ -1806,7 +1894,19 @@ const api = {
     getPreviewHtml: (payload: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getPreviewHtml', payload)
-        : cloudRequest({ method: 'POST', url: '/reports/preview', data: payload })
+        : cloudRequest({ method: 'POST', url: '/reports/preview', data: payload }),
+    getCaseSuccessStats: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:caseSuccessStats', params)
+        : cloudRequest({ method: 'GET', url: '/reports/case-success-stats', params }),
+    getCaseSuccessBreakdown: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:caseSuccessBreakdown', params)
+        : cloudRequest({ method: 'GET', url: '/reports/case-success-breakdown', params }),
+    getCaseFailureAnalysis: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:caseFailureAnalysis', params)
+        : cloudRequest({ method: 'GET', url: '/reports/case-failure-analysis', params })
   },
   enforcement: {
     count: (params: any) =>
@@ -2017,15 +2117,42 @@ const api = {
       throw new Error('Not available in cloud mode')
     },
     tailLog: (_maxBytes?: number) => Promise.resolve(''),
-    clearAllData: () => {
-      return mode === 'desktop'
-        ? window.ipcRenderer?.invoke('system:clearAllData')
-        : cloudRequest({ method: 'POST', url: '/system/clear-all-data' }).then((r) => r.success)
+    clearAllData: async () => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('system:clearAllData')
+      }
+      const token = getAuthToken()
+      const hasRealToken = Boolean(token && !token.startsWith('mock-'))
+      if (hasRealToken && !isMockMode()) {
+        const r = await cloudRequest({ method: 'POST', url: '/system/clear-all-data' })
+        return r?.success ?? true
+      }
+      // Web / Mock Mode: Clear local storage tables
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('mock_table_') || key.startsWith('b2b_data_') || key.startsWith('offline_'))) {
+          localStorage.removeItem(key)
+        }
+      }
+      return true
     },
-    clear: () => {
-      return mode === 'desktop'
-        ? window.ipcRenderer?.invoke('system:clearAllData')
-        : cloudRequest({ method: 'POST', url: '/system/clear-all-data' }).then((r) => r.success)
+    clear: async () => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('system:clearAllData')
+      }
+      const token = getAuthToken()
+      const hasRealToken = Boolean(token && !token.startsWith('mock-'))
+      if (hasRealToken && !isMockMode()) {
+        const r = await cloudRequest({ method: 'POST', url: '/system/clear-all-data' })
+        return r?.success ?? true
+      }
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith('mock_table_') || key.startsWith('b2b_data_') || key.startsWith('offline_'))) {
+          localStorage.removeItem(key)
+        }
+      }
+      return true
     },
     seed: (_data: any[]) => {
       throw new Error('Not available in cloud mode')
@@ -2125,13 +2252,31 @@ const api = {
                   }
                 }
 
-                const result = await cloudRequest({
-                  method: 'POST',
-                  url: '/system/import-snapshot',
-                  data: { tables: tablesToSend, mode: 'merge' },
-                  timeout: 180000
-                })
-                resolve(result)
+                const token = getAuthToken()
+                const hasRealToken = Boolean(token && !token.startsWith('mock-'))
+
+                if (hasRealToken && !isMockMode()) {
+                  const result = await cloudRequest({
+                    method: 'POST',
+                    url: '/system/import-snapshot',
+                    data: { tables: tablesToSend, mode: 'merge' },
+                    timeout: 180000
+                  })
+                  resolve(result)
+                  return
+                }
+
+                // Web / Mock Mode: Ingest tables locally so the web app can work with the injected data
+                const counts: Record<string, { received: number; imported: number }> = {}
+                for (const [table, rows] of Object.entries(tablesToSend)) {
+                  counts[table] = { received: rows.length, imported: rows.length }
+                  try {
+                    localStorage.setItem(`mock_table_${table}`, JSON.stringify(rows))
+                  } catch (err) {
+                    console.warn(`[LocalImport] Could not store table ${table}:`, err)
+                  }
+                }
+                resolve({ success: true, counts })
               } catch (e) {
                 reject(e)
               }

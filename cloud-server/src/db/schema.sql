@@ -166,6 +166,10 @@ CREATE TABLE cases (
     archived_at TIMESTAMPTZ,
     archived_by UUID,
     archive_reason TEXT,
+    final_outcome TEXT DEFAULT 'pending',
+    claimed_amount NUMERIC(14,2) DEFAULT 0,
+    awarded_amount NUMERIC(14,2) DEFAULT 0,
+    failure_reason TEXT,
     created_by UUID,
     updated_by UUID,
     created_at TIMESTAMPTZ DEFAULT NOW(),
@@ -723,6 +727,8 @@ CREATE TABLE activity_logs (
 CREATE INDEX idx_clients_company ON clients(company_id);
 CREATE INDEX idx_cases_company_status ON cases(company_id, status);
 CREATE INDEX idx_cases_company_number ON cases(company_id, case_number);
+CREATE INDEX idx_cases_final_outcome ON cases(company_id, final_outcome);
+CREATE INDEX idx_cases_client_role ON cases(company_id, client_role);
 CREATE INDEX idx_sessions_company_date ON sessions(company_id, date);
 CREATE INDEX idx_sessions_case_date ON sessions(company_id, case_id, date);
 CREATE INDEX idx_tasks_v2_company_status ON tasks_v2(company_id, status);

@@ -12,6 +12,7 @@ export interface JudgmentAnalysis {
   outcomeType: 'حكم' | 'قرار' | 'حجز للحكم' | 'تأجيل' | 'تبليغ / إجراء إداري' | 'أخرى'
   degree?: 'ابتدائي' | 'استئنافي' | 'نهائي' | 'قطعي'
   favors?: 'موكل' | 'خصم'
+  finalOutcome?: 'full_win' | 'partial_win' | 'dismissed' | 'settled' | 'lost' | 'pending'
   needsExecution?: boolean
   hasAppealGrounds?: boolean
   appealType?: 'اعتراض' | 'استئناف' | 'نقض'
@@ -83,7 +84,10 @@ export interface AnalyzeJudgmentInput {
   serviceDate?: string
   caseType?: string
   courtType?: string
+  clientRole?: string
   isForClient?: boolean
+  isPartialWin?: boolean
+  isSettlement?: boolean
   hasAppealGrounds?: boolean
   needsExecution?: boolean
   notes?: string
@@ -120,6 +124,35 @@ export function analyzeJudgment(input: AnalyzeJudgmentInput): JudgmentAnalysis {
   // المرحلة 2.2: تحديد صاحب الحكم
   const favors: 'موكل' | 'خصم' | undefined =
     input.isForClient === undefined ? undefined : input.isForClient ? 'موكل' : 'خصم'
+
+  // المرحلة 2.3: تحديد معيار النتيجة الموضوعية (finalOutcome)
+  let finalOutcome: JudgmentAnalysis['finalOutcome'] = 'pending'
+  const isDefendant = Boolean(
+    input.clientRole &&
+      (input.clientRole.includes('مدعى عليه') ||
+        input.clientRole.includes('منفذ ضده') ||
+        input.clientRole.includes('مستأنف ضده'))
+  )
+
+  if (input.isSettlement || input.result.includes('صلح') || input.result.includes('تسوية')) {
+    finalOutcome = 'settled'
+  } else if (favors === 'موكل') {
+    if (input.isPartialWin || input.result.includes('جزئي')) {
+      finalOutcome = 'partial_win'
+    } else if (
+      isDefendant ||
+      input.result.includes('رد') ||
+      input.result.includes('صرف نظر') ||
+      input.result.includes('عدم قبول') ||
+      input.result.includes('براءة')
+    ) {
+      finalOutcome = 'dismissed'
+    } else {
+      finalOutcome = 'full_win'
+    }
+  } else if (favors === 'خصم') {
+    finalOutcome = 'lost'
+  }
 
   const tasks: GeneratedTask[] = []
   const deadlines: Record<string, any> = {}
@@ -276,6 +309,7 @@ export function analyzeJudgment(input: AnalyzeJudgmentInput): JudgmentAnalysis {
     outcomeType,
     degree,
     favors,
+    finalOutcome,
     needsExecution,
     hasAppealGrounds,
     appealType: appealType?.type,
@@ -343,6 +377,7 @@ function analyzeNonJudgmentOutcome(outcomeType: JudgmentAnalysis['outcomeType'])
   }
   return {
     outcomeType,
+    finalOutcome: 'pending',
     tasks,
     summary: `نوع النتيجة: ${outcomeType} | عدد المهام: ${tasks.length}`
   }

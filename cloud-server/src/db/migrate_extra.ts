@@ -11,6 +11,95 @@ export async function runExtraMigrations() {
   await query(fs.readFileSync(parityMigration, 'utf8'))
   console.log('[MIGRATE_EXTRA] Portable Web/Windows entity parity tables ensured')
 
+  const caseSuccessMigration = path.join(__dirname, 'migrations', '0010_case_success_metrics.sql')
+  if (fs.existsSync(caseSuccessMigration)) {
+    await query(fs.readFileSync(caseSuccessMigration, 'utf8'))
+    console.log('[MIGRATE_EXTRA] Case success metrics columns and indexes ensured')
+  }
+
+  // Backfill cases.final_outcome based on existing judgments and closed statuses
+  try {
+    // 1. Lost cases (check against / adverse first)
+    await query(`
+      UPDATE cases c
+      SET final_outcome = 'lost',
+          failure_reason = COALESCE(NULLIF(TRIM(c.failure_reason), ''), NULLIF(TRIM(j.notes), ''), 'أسباب موضوعية / حكم ضد الموكل')
+      FROM judgments j
+      WHERE j.case_id = c.id
+        AND (j.favor ILIKE '%ضد%' OR j.favor ILIKE '%خصم%')
+        AND (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+    `)
+
+    // 2. Partial win
+    await query(`
+      UPDATE cases c
+      SET final_outcome = 'partial_win'
+      FROM judgments j
+      WHERE j.case_id = c.id
+        AND (j.favor ILIKE '%جزئي%' OR j.favor ILIKE '%شبه كلي%')
+        AND (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+    `)
+
+    // 3. Settled
+    await query(`
+      UPDATE cases c
+      SET final_outcome = 'settled'
+      FROM judgments j
+      WHERE j.case_id = c.id
+        AND (j.favor ILIKE '%صلح%' OR j.favor ILIKE '%تسوية%')
+        AND (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+    `)
+
+    // 4. Dismissed (client is defendant and won)
+    await query(`
+      UPDATE cases c
+      SET final_outcome = 'dismissed'
+      FROM judgments j
+      WHERE j.case_id = c.id
+        AND (j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR (j.favor ILIKE '%الموكل%' AND j.favor NOT ILIKE '%ضد%'))
+        AND (c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' OR c.client_role = 'منفذ ضده')
+        AND (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+    `)
+
+    // 5. Full win (client won)
+    await query(`
+      UPDATE cases c
+      SET final_outcome = 'full_win'
+      FROM judgments j
+      WHERE j.case_id = c.id
+        AND (j.favor ILIKE '%لصالح%' OR j.favor ILIKE '%للموكل%' OR (j.favor ILIKE '%الموكل%' AND j.favor NOT ILIKE '%ضد%'))
+        AND (c.client_role IS NULL OR c.client_role ILIKE '%مدعي%' OR c.client_role = 'طالب تنفيذ' OR c.client_role ILIKE '%مستأنف%')
+        AND (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+    `)
+
+    // 6. Conclusive statuses fallback
+    await query(`
+      UPDATE cases c
+      SET final_outcome = CASE 
+        WHEN c.client_role ILIKE '%مدعى عليه%' OR c.client_role ILIKE '%مدعي عليه%' THEN 'dismissed'
+        ELSE 'full_win'
+      END
+      WHERE (c.final_outcome IS NULL OR c.final_outcome = 'pending')
+        AND c.status IN ('منتهية', 'مغلقة', 'بانتظار التنفيذ', 'محكومة', 'محكومة بحكم نهائي')
+    `)
+
+    // 7. Amounts alignment
+    await query(`
+      UPDATE cases
+      SET claimed_amount = COALESCE(NULLIF(claimed_amount, 0), contract_amount, 0),
+          awarded_amount = CASE 
+            WHEN (awarded_amount IS NULL OR awarded_amount = 0) AND final_outcome IN ('full_win', 'dismissed')
+              THEN COALESCE(NULLIF(awarded_amount, 0), NULLIF(claimed_amount, 0), contract_amount, 0)
+            ELSE awarded_amount
+          END
+      WHERE (claimed_amount = 0 OR awarded_amount = 0)
+    `)
+
+    console.log('[MIGRATE_EXTRA] Case success metrics backfill completed successfully')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] Case success metrics backfill warning:', err.message)
+  }
+
   // Keep legacy databases compatible with the canonical tenant contract.
   // Fresh databases receive this column from schema.sql; this reconciliation is
   // deliberately additive so an existing Docker volume is never rebuilt.

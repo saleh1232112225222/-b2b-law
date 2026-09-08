@@ -68,6 +68,14 @@ export function generateToken(payload: AuthPayload): string {
   return jwt.sign({ ...payload, jti }, JWT_SECRET, { expiresIn: JWT_EXPIRY } as any)
 }
 
+export function generateSyncToken(payload: Omit<AuthPayload, 'jti'>): { token: string; jti: string; expiresAt: string } {
+  const jti = require('crypto').randomBytes(16).toString('hex')
+  const expiresIn = '30d'
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+  const token = jwt.sign({ ...payload, jti }, JWT_SECRET, { expiresIn } as any)
+  return { token, jti, expiresAt }
+}
+
 export function verifyToken(token: string): AuthPayload {
   return jwt.verify(token, JWT_SECRET) as AuthPayload
 }

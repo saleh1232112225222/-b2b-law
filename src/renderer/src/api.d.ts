@@ -668,6 +668,9 @@ declare global {
         listClients: () => Promise<any[]>
         listSessions: (caseId?: string) => Promise<any[]>
         listTasks: (caseId?: string) => Promise<any[]>
+        getCaseSuccessStats: (params?: any) => Promise<any>
+        getCaseSuccessBreakdown: (params?: any) => Promise<any>
+        getCaseFailureAnalysis: (params?: any) => Promise<any>
       }
       vault: {
         getRoot: () => Promise<{ path: string }>

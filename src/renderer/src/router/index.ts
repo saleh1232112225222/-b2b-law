@@ -310,6 +310,12 @@ const routes = [
     meta: { requiresAuth: true, permissions: ['manage_settings'] }
   },
   {
+    path: '/reports/case-success',
+    name: 'CaseSuccessReport',
+    component: () => import('../views/CaseSuccessReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'] }
+  },
+  {
     path: '/reports/users',
     name: 'UsersPermissionsReport',
     component: () => import('../views/UsersPermissionsReport.vue'),

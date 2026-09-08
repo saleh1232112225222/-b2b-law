@@ -615,6 +615,7 @@ systemRouter.post(
     try {
       const companyId = getCompanyId(req)
       const tablesToClear = [
+        // Finance & Collections
         'invoice_items',
         'invoices',
         'vouchers',
@@ -623,19 +624,23 @@ systemRouter.post(
         'finances_new',
         'collections_payments',
         'collections_claims',
+        // Enforcement
         'enf_attachments',
         'enf_decisions',
         'enf_request_parties',
         'enf_financial_details',
         'enf_personal_details',
         'enf_direct_details',
-        'enforcement_requests',
         'enforcement_actions',
         'enforcement_parties',
         'enforcement_files',
+        'enforcement_requests',
+        // Sessions & Judgments
         'session_outcomes',
         'sessions',
+        'judgment_amendments',
         'judgments',
+        // Tasks & Documents
         'tasks_v2',
         'tasks',
         'documents_v2',
@@ -645,17 +650,13 @@ systemRouter.post(
         'evidence',
         'experts',
         'agencies',
-        'user_case_access',
-        'user_client_access',
-        'user_permissions',
-        'cases',
-        'case_parties',
-        'clients',
-        'defendants',
+        // Case Children & Access
         'case_actions',
         'assignment_logs',
         'professional_liability_logs',
-        'judgment_amendments',
+        'user_case_access',
+        'case_parties',
+        // Contracts
         'contract_signatures',
         'contract_participants',
         'contract_parties',
@@ -666,11 +667,22 @@ systemRouter.post(
         'contract_amendments',
         'contracts',
         'contract_templates',
+        // Cases
+        'cases',
+        // Clients & Defendants
+        'user_client_access',
+        'user_permissions',
+        'clients',
+        'defendants',
+        // General
         'activity_logs',
         'accounts'
       ]
 
       await client.query('BEGIN')
+      try {
+        await client.query('SET CONSTRAINTS ALL DEFERRED')
+      } catch {}
 
       const tablesResult = await client.query(
         "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",

@@ -1048,7 +1048,8 @@ const injectManualSnapshot = async (): Promise<void> => {
       setTimeout(() => window.location.reload(), 1200)
     }
   } catch (e: unknown) {
-    showSnackbar('خطأ في حقن البيانات: ' + (e as Error).message, 'error')
+    const errText = (e as any)?.response?.data?.error || (e as any)?.message || 'فشل الحقن'
+    showSnackbar('خطأ في حقن البيانات: ' + errText, 'error')
   } finally {
     injectingManualSnapshot.value = false
   }
@@ -1074,9 +1075,12 @@ const executeWipe = async (): Promise<void> => {
         casesStore.fetchCases(),
         sessionsStore.fetchSessions()
       ])
+    } else {
+      showSnackbar('فشل في مسح البيانات: لم تكتمل العملية', 'error')
     }
   } catch (e: unknown) {
-    showSnackbar('خطأ في مسح البيانات', 'error')
+    const errText = (e as any)?.response?.data?.error || (e as any)?.message || 'فشل المسح'
+    showSnackbar('خطأ في مسح البيانات: ' + errText, 'error')
   } finally {
     clearing.value = false
   }

@@ -655,13 +655,19 @@ tenantBackupRouter.post('/step-up', async (req: Request, res: Response) => {
         stepUpAttempts.set(attemptKey, current)
         return sendSanitizedError(res, 401, 'رمز المصادقة الثنائية غير صحيح.', 'MFA_CODE_INVALID')
       }
-    } else if (code && typeof code === 'string' && code.trim().length > 0 && user?.password_hash) {
-      const isPasswordValid = await bcrypt.compare(code, user.password_hash).catch(() => false)
-      if (!isPasswordValid && code.length > 5) {
+    } else {
+      if (!code || typeof code !== 'string' || code.trim().length === 0 || !user?.password_hash) {
         const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 5 * 60 * 1000 }
         current.count++
         stepUpAttempts.set(attemptKey, current)
-        return sendSanitizedError(res, 401, 'كلمة المرور أو رمز التحقق غير صحيح.', 'STEP_UP_CODE_INVALID')
+        return sendSanitizedError(res, 401, 'كلمة المرور مطلوبة لإتمام التحقق.', 'STEP_UP_CODE_REQUIRED')
+      }
+      const isPasswordValid = await bcrypt.compare(code, user.password_hash).catch(() => false)
+      if (!isPasswordValid) {
+        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 5 * 60 * 1000 }
+        current.count++
+        stepUpAttempts.set(attemptKey, current)
+        return sendSanitizedError(res, 401, 'كلمة المرور غير صحيحة.', 'STEP_UP_CODE_INVALID')
       }
     }
     stepUpAttempts.delete(attemptKey)

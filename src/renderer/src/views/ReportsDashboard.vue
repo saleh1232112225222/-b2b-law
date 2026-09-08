@@ -95,6 +95,12 @@ const error = ref('')
 
 const reportCards = [
   {
+    title: 'نسب نجاح القضايا ومؤشرات الإنجاز',
+    subtitle: 'تحليل الأحكام القضائية ومعدلات كسب الدعاوى وتشريح الإخفاق',
+    icon: 'award',
+    path: '/reports/case-success'
+  },
+  {
     title: 'الخدمات والارتباطات القانونية',
     subtitle: 'تحليل شامل للخدمات القانونية والتعاقدات والمستحقات',
     icon: 'scale',
