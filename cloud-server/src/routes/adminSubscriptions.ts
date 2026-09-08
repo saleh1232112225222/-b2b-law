@@ -1370,8 +1370,21 @@ adminSubscriptionRouter.post(
         return res.status(400).json({ error: 'اسم المستخدم يجب أن يكون إنجليزي فقط (4-20 حرف)' })
       }
 
-      if (!password || password.length < 4) {
-        return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 4 أحرف على الأقل' })
+      if (!password || password.length < 8) {
+        return res.status(400).json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' })
+      }
+      if (!/[A-Z]/.test(password)) {
+        return res
+          .status(400)
+          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف كبير واحد على الأقل' })
+      }
+      if (!/[a-z]/.test(password)) {
+        return res
+          .status(400)
+          .json({ error: 'كلمة المرور يجب أن تحتوي على حرف صغير واحد على الأقل' })
+      }
+      if (!/[0-9]/.test(password)) {
+        return res.status(400).json({ error: 'كلمة المرور يجب أن تحتوي على رقم واحد على الأقل' })
       }
 
       const normalizedEmail = email ? email.trim().toLowerCase() : null

@@ -675,7 +675,7 @@ const handleLogin = async () => {
       }, 2000)
     } else if (errData === 'AccountSuspended' || e?.response?.data?.error === 'AccountSuspended') {
       accountSuspended.value = true
-      error.value = 'suspended'
+      error.value = e?.response?.data?.message || 'تم تعليق هذا الحساب مؤقتاً من قبل الإدارة'
     } else {
       error.value =
         e?.response?.data?.error || e?.message || 'خطأ! اسم المستخدم أو كلمة المرور غير صحيحة'

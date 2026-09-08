@@ -212,7 +212,15 @@ export async function runExtraMigrations() {
         OR recovery_email != 'slaehmap@gmail.com'
       )
     `)
-    console.log('[MIGRATE_EXTRA] Admin recovery email configured to slaehmap@gmail.com')
+
+    // Clean up any other tenant whose admin user accidentally received slaehmap@gmail.com
+    await query(`
+      UPDATE users 
+      SET recovery_email = NULL 
+      WHERE recovery_email = 'slaehmap@gmail.com' 
+        AND company_id != '00000000-0000-0000-0000-000000000000'
+    `)
+    console.log('[MIGRATE_EXTRA] Admin recovery email configured to slaehmap@gmail.com and tenant emails restored')
   } catch (err: any) {
     console.warn('[MIGRATE_EXTRA] recovery_email migration warning:', err.message)
   }

@@ -284,7 +284,7 @@ authRouter.post('/login', authRateLimiter, async (req: Request, res: Response) =
     const params: any[] = [searchUsername]
     let userQuery = `SELECT u.*, u.company_id, u.role_key, u.is_suspended, c.is_deleted, c.email as company_email 
                      FROM users u 
-                     JOIN companies c ON c.id = u.company_id 
+                     LEFT JOIN companies c ON c.id = u.company_id 
                      WHERE (LOWER(u.username) = $1 OR LOWER(u.recovery_email) = $1 OR LOWER(c.email) = $1)`
 
     if (companyId) {
@@ -965,15 +965,14 @@ authRouter.get('/google/callback', async (req: Request, res: Response) => {
       return
     }
 
-    // STEP 3: Brand new user — no matching user or company found
-    const isRegistrationEnabled = process.env.PUBLIC_REGISTRATION_ENABLED === 'true'
+    // STEP 3: Brand new user — allow public onboarding via Google
     const isAppEnabled = process.env.PUBLIC_APP_ENABLED !== 'false'
-    if (!isRegistrationEnabled || !isAppEnabled) {
+    if (!isAppEnabled) {
       await logActivity(
         googleEmail,
         'REGISTER_FAILED',
         'auth',
-        'محاولة تسجيل Google فاشلة - التسجيل معطل حالياً'
+        'محاولة تسجيل Google فاشلة - النظام مغلق للصيانة'
       )
       redirectToLogin(
         'RegistrationDisabled',
