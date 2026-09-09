@@ -125,6 +125,12 @@ const reportCards = [
     path: '/reports/sessions'
   },
   {
+    title: 'تقرير الأحكام القضائية',
+    subtitle: 'بيان الأحكام الصادرة والقرارات وحالة الصكوك',
+    icon: 'gavel',
+    path: '/reports/judgments'
+  },
+  {
     title: 'التقرير المالي',
     subtitle: 'القوائم والبيانات المالية',
     icon: 'banknote',
@@ -159,6 +165,24 @@ const reportCards = [
     subtitle: 'مؤشرات الأداء والتشغيل',
     icon: 'trending-up',
     path: '/reports/operations'
+  },
+  {
+    title: 'تقرير الخدمات القانونية',
+    subtitle: 'بيان وتفصيل الارتباطات والخدمات والمالية',
+    icon: 'scale',
+    path: '/reports/legal-services'
+  },
+  {
+    title: 'كشف حساب الموكل الموحد',
+    subtitle: 'ملخص مالي شامل لجميع تعاملات الموكل السابقة والنشطة',
+    icon: 'users',
+    path: '/reports/client-financial'
+  },
+  {
+    title: 'تقرير ميزانية وأعمال الشركاء',
+    subtitle: 'توزيع الأرباح، ميزانية التشغيل، ونسب مساهمة الشركاء',
+    icon: 'piggy-bank',
+    path: '/reports/partner-budget'
   },
   {
     title: 'الاستعلام التفصيلي عن قضية',

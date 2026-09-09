@@ -956,3 +956,42 @@ CREATE INDEX IF NOT EXISTS idx_time_logs_user ON time_logs(user_id);
 CREATE INDEX IF NOT EXISTS idx_time_logs_case ON time_logs(case_id);
 CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
 CREATE INDEX IF NOT EXISTS idx_permission_audit_actor ON permission_audit_logs(actor_user_id);
+
+-- جدول الأحكام القضائية
+CREATE TABLE IF NOT EXISTS judgments (
+    id VARCHAR(255) PRIMARY KEY,
+    company_id VARCHAR(255) NOT NULL,
+    case_id VARCHAR(255) NOT NULL,
+    type VARCHAR(255),
+    judgment_date VARCHAR(255),
+    judgment_date_hijri VARCHAR(255),
+    favor VARCHAR(255),
+    objection_deadline VARCHAR(255),
+    notes TEXT,
+    judgment_number VARCHAR(255),
+    judgment_type VARCHAR(255),
+    is_executable INTEGER DEFAULT 0,
+    objection_period_days INTEGER,
+    is_objection_handled INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_judgments_company_id ON judgments(company_id);
+CREATE INDEX IF NOT EXISTS idx_judgments_case_id ON judgments(case_id);
+CREATE INDEX IF NOT EXISTS idx_judgments_favor ON judgments(favor);
+CREATE INDEX IF NOT EXISTS idx_judgments_date ON judgments(judgment_date);
+
+-- تعديلات الأحكام القضائية
+CREATE TABLE IF NOT EXISTS judgment_amendments (
+    id VARCHAR(255) PRIMARY KEY,
+    company_id VARCHAR(255) NOT NULL,
+    judgment_id VARCHAR(255) NOT NULL,
+    reason TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_by VARCHAR(255),
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_judgment_amendments_company_id ON judgment_amendments(company_id);
+CREATE INDEX IF NOT EXISTS idx_judgment_amendments_judgment_id ON judgment_amendments(judgment_id);

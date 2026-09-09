@@ -216,6 +216,11 @@ export const useFinanceStore = defineStore('finance', () => {
   const budgets = ref<any[]>([])
 
   const fetchBudgetStats = async (month?: number, year?: number) => {
+    if (typeof month === 'number' && month > 100) {
+      const temp = month
+      month = year
+      year = temp
+    }
     try {
       const res = await (window.api as any).officeManagement?.getBudgetStats?.({ month, year }) ||
         await (window.api as any).reports?.getBudgetStats?.({ month, year })

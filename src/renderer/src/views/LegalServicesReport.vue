@@ -34,7 +34,7 @@
           :disabled="items.length === 0"
           @click="exportCSV"
         >
-          <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير CSV
+          <LucideIcon name="file-text" :size="18" class="me-2" /> تصدير ملف إكسل / مجدول
         </v-btn>
         <v-btn
           color="accent"

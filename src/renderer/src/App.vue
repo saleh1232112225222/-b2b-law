@@ -300,6 +300,7 @@ const currentRouteName = computed(() => {
     Clients: 'إدارة الموكلين',
     Defendants: 'إدارة الخصوم',
     POA: 'الوكالات والتفويضات',
+    LegalServices: 'الخدمات والارتباطات القانونية',
     Cases: 'القضايا والملفات',
     Employees: 'شؤون الموظفين',
     Sessions: 'الجلسات والتقويم',
@@ -309,20 +310,24 @@ const currentRouteName = computed(() => {
     Memoranda: 'المذكرات واللوائح',
     Experts: 'تقارير الخبراء',
     Finance: 'المالية والمحاسبة',
-    Contracts: 'العقود',
+    Contracts: 'العقود والاتفاقيات',
     Enforcement: 'التنفيذ والتحصيل',
     Communications: 'إدارة المراسلات',
     Firm: 'إدارة المكتب',
     Search: 'البحث الشامل',
     Archive: 'الأرشيف القانوني',
     Settings: 'إعدادات النظام',
-    TimeTracking: 'تتبع الوقت وساعات العمل',
     ActivityLog: 'سجل النشاط',
     Vault: 'خزانة المكتب',
     FileVault: 'خزانة المكتب',
     Reports: 'مركز التقارير',
     ReportsDashboard: 'مركز التقارير',
-    CaseReport: 'تقرير القضية',
+    JudgmentsReport: 'تقرير الأحكام والقرارات القضائية',
+    LegalServicesReport: 'تقرير الخدمات والارتباطات القانونية',
+    ClientFinancialReport: 'كشف حساب الموكل الموحد',
+    PartnerBudgetReport: 'تقرير ميزانية وأعمال الشركاء',
+    CaseSuccessReport: 'تقرير معدل نجاح القضايا',
+    CaseReport: 'تقرير القضية الشامل',
     CourtCasesReport: 'تقرير قضايا المحكمة',
     SessionsReport: 'تقرير الجلسات',
     FinancialReport: 'التقرير المالي',
@@ -335,8 +340,6 @@ const currentRouteName = computed(() => {
     DetailedCaseInquiry: 'الاستعلام التفصيلي عن قضية',
     Users: 'إدارة المستخدمين',
     UsersManagement: 'إدارة المستخدمين',
-    LegalServices: 'الخدمات القانونية',
-    LegalServicesReport: 'تقرير الخدمات القانونية',
     AdminSubscriptions: 'إدارة الاشتراكات',
     AdminRecycleBin: 'سلة المحذوفات',
     SubscriberDetail: 'تفاصيل المشترك',
@@ -347,8 +350,16 @@ const currentRouteName = computed(() => {
     ClientProfile: 'ملف الموكل',
     Profile: 'الملف الشخصي'
   }
+  if (route.meta?.title) return route.meta.title as string
   const routeName = (route.name as string) || ''
-  return nameMap[routeName] || routeName || 'الرئيسية'
+  if (nameMap[routeName]) return nameMap[routeName]
+  if (route.path.startsWith('/reports/judgments')) return 'تقرير الأحكام والقرارات القضائية'
+  if (route.path.startsWith('/reports/client-financial')) return 'كشف حساب الموكل الموحد'
+  if (route.path.startsWith('/reports/legal-services')) return 'تقرير الخدمات والارتباطات القانونية'
+  if (route.path.startsWith('/reports/partner-budget')) return 'تقرير ميزانية وأعمال الشركاء'
+  if (route.path.startsWith('/reports/case-success')) return 'تقرير معدل نجاح القضايا'
+  if (route.path.startsWith('/reports')) return 'مركز التقارير'
+  return 'الرئيسية'
 })
 
 const DesktopLayout = computed(() => {

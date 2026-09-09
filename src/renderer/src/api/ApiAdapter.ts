@@ -1471,7 +1471,25 @@ const api = {
         ? window.ipcRenderer
           ? window.ipcRenderer.invoke('finances:getStats')
           : Promise.resolve({ income: 0, expense: 0, balance: 0 })
-        : cloudRequest({ method: 'GET', url: '/finances/stats' })
+        : cloudRequest({ method: 'GET', url: '/finances/stats' }),
+    getBudgetStats: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:getBudgetStats', params)
+        : cloudRequest({ method: 'GET', url: '/reports/partner-budget', params }),
+    getBudgets: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:getBudgets', params)
+        : cloudRequest({ method: 'GET', url: '/office-management/budgets', params }),
+    saveBudgets: (data: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:saveBudgets', data)
+        : cloudRequest({ method: 'POST', url: '/office-management/budgets', data })
+  },
+  paymentTracking: {
+    getClientFullProfile: (clientId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('paymentTracking:getClientFullProfile', clientId)
+        : cloudRequest({ method: 'GET', url: `/reports/client-financial/${clientId}` })
   },
   employees: {
     ...buildCrudApi('employees'),
@@ -1724,6 +1742,22 @@ const api = {
         : cloudRequest({ method: 'GET', url: '/permissions' })
   },
   reports: {
+    getJudgmentsReport: (params: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getJudgmentsReport', params)
+        : cloudRequest({ method: 'GET', url: '/reports/judgments', params }),
+    getJudgmentsStats: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getJudgmentsStats', params)
+        : cloudRequest({ method: 'GET', url: '/reports/judgments/stats', params }),
+    getClientFinancialReport: (clientId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getClientFinancialReport', clientId)
+        : cloudRequest({ method: 'GET', url: `/reports/client-financial/${clientId}` }),
+    getPartnerBudgetReport: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getPartnerBudgetReport', params)
+        : cloudRequest({ method: 'GET', url: '/reports/partner-budget', params }),
     getCaseReport: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getCaseReport', params)

@@ -101,6 +101,57 @@
         </v-col>
       </v-row>
 
+      <!-- Actions & Export Bar -->
+      <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-3 no-print">
+        <div class="text-subtitle-1 text-gold font-weight-black">
+          ملخص التحليلات والرسوم البيانية للموكل
+        </div>
+        <div class="d-flex gap-3">
+          <v-btn
+            color="accent"
+            variant="flat"
+            class="rounded-lg px-6 font-weight-black"
+            prepend-icon="mdi-file-delimited"
+            @click="exportCsv"
+          >
+            تصدير Excel / CSV
+          </v-btn>
+          <v-btn
+            color="primary"
+            variant="flat"
+            class="rounded-lg px-6 font-weight-black"
+            prepend-icon="mdi-printer"
+            @click="printProfile"
+          >
+            تصدير PDF / طباعة
+          </v-btn>
+        </div>
+      </div>
+
+      <!-- Financial Visual Charts -->
+      <v-row class="mb-6" dense>
+        <v-col cols="12" md="5">
+          <v-card elevation="0" class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100">
+            <div class="text-subtitle-2 font-weight-black text-gold mb-3">
+              نسبة التحصيل والمدفوعات للموكل
+            </div>
+            <div style="height: 220px">
+              <PieChart :labels="clientPieLabels" :data="clientPieValues" :colors="clientPieColors" />
+            </div>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="7">
+          <v-card elevation="0" class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100">
+            <div class="text-subtitle-2 font-weight-black text-gold mb-3">
+              أتعاب القضايا والارتباطات المالية للموكل
+            </div>
+            <div style="height: 220px">
+              <SimpleBarChart :data="clientCasesBarData" :height="220" />
+            </div>
+          </v-card>
+        </v-col>
+      </v-row>
+
       <!-- Main Tabs -->
       <v-card class="glass-card overflow-hidden">
         <v-tabs
@@ -487,6 +538,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import LucideIcon from '../common/LucideIcon.vue'
+import PieChart from '../charts/PieChart.vue'
+import SimpleBarChart from '../SimpleBarChart.vue'
 import { useClientsStore } from '../../stores/clients'
 import { useOfficeAccountsStore } from '../../stores/officeAccounts'
 import type { ClientFullProfile } from '../../types/finance'
@@ -695,6 +748,64 @@ const loadProfile = async (clientId: string) => {
     profile.value = null
   } finally {
     loading.value = false
+  }
+}
+
+const clientPieLabels = computed(() => ['المدفوع', 'المتبقي', 'المتأخر'])
+const clientPieValues = computed(() => [
+  Number(profile.value?.summary?.total_payments || profile.value?.summary?.total_services_paid || 0),
+  Number(profile.value?.summary?.total_services_remaining || 0),
+  Number(profile.value?.summary?.overdue_installments || 0)
+])
+const clientPieColors = ['#4ade80', '#eab308', '#ef4444']
+
+const clientCasesBarData = computed(() => {
+  if (!profile.value?.cases || profile.value.cases.length === 0) {
+    return [{ label: 'لا توجد قضايا', value: 0, color: '#38bdf8' }]
+  }
+  return profile.value.cases.slice(0, 6).map((c: any) => ({
+    label: String(c.case_number || c.title || 'قضية').slice(0, 14),
+    value: Number(c.total_fee || 0),
+    color: '#38bdf8'
+  }))
+})
+
+const exportCsv = async (): Promise<void> => {
+  if (!profile.value) return
+  try {
+    const rows = [
+      ...(profile.value.cases || []).map((c: any) => ({
+        'النوع': 'قضية',
+        'الرقم / الكود': c.case_number || '',
+        'الوصف': c.case_type_name || c.case_type || '',
+        'الأتعاب': c.total_fee || 0,
+        'المدفوع': c.paid_amount || 0,
+        'المتبقي': c.remaining || 0,
+        'الحالة': c.status_name || c.status || ''
+      })),
+      ...(profile.value.services || []).map((s: any) => ({
+        'النوع': 'خدمة قانونية',
+        'الرقم / الكود': s.engagement_number || '',
+        'الوصف': s.service_type_name || '',
+        'الأتعاب': s.total_amount || 0,
+        'المدفوع': s.paid_amount || 0,
+        'المتبقي': s.remaining_amount || 0,
+        'الحالة': s.finance_status || ''
+      }))
+    ]
+    const filename = `كشف_حساب_${profile.value.client?.name || 'عميل'}.csv`
+    const res = await (window.api as any).reports?.exportCsv?.(filename, rows)
+    if (res?.csv) {
+      const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.filename || filename
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  } catch (e) {
+    console.error('Export CSV error:', e)
   }
 }
 

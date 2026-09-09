@@ -2374,3 +2374,611 @@ reportsRouter.get(
     }
   }
 )
+
+// ═══════════════════════════════════════════════════════════════
+// 1. تقرير الأحكام والقرارات القضائية (Judgments Report)
+// ═══════════════════════════════════════════════════════════════
+reportsRouter.get(
+  '/judgments',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const {
+        page = '1',
+        pageSize = '50',
+        caseId,
+        clientId,
+        lawyerId,
+        favor,
+        judgmentType,
+        from,
+        to,
+        q
+      } = req.query
+
+      const limit = Math.min(Math.max(parseInt(pageSize as string) || 50, 1), 500)
+      const offset = (Math.max(parseInt(page as string) || 1, 1) - 1) * limit
+
+      let whereSql = 'WHERE j.company_id = $1'
+      const params: any[] = [companyId]
+      let paramIndex = 2
+
+      if (caseId) {
+        whereSql += ` AND j.case_id = $${paramIndex++}`
+        params.push(caseId)
+      }
+      if (clientId) {
+        whereSql += ` AND c.client_id = $${paramIndex++}`
+        params.push(clientId)
+      }
+      if (lawyerId) {
+        whereSql += ` AND (c.responsible_lawyer_id = $${paramIndex} OR c.assigned_lawyer_id = $${paramIndex})`
+        params.push(lawyerId)
+        paramIndex++
+      }
+      if (favor) {
+        whereSql += ` AND (j.favor = $${paramIndex} OR j.favor ILIKE $${paramIndex})`
+        params.push(`%${favor}%`)
+        paramIndex++
+      }
+      if (judgmentType) {
+        whereSql += ` AND (j.type = $${paramIndex} OR j.judgment_type = $${paramIndex})`
+        params.push(judgmentType)
+        paramIndex++
+      }
+      if (from) {
+        whereSql += ` AND j.judgment_date >= $${paramIndex++}`
+        params.push(from)
+      }
+      if (to) {
+        whereSql += ` AND j.judgment_date <= $${paramIndex++}`
+        params.push(to)
+      }
+      if (q) {
+        whereSql += ` AND (j.judgment_number ILIKE $${paramIndex} OR c.case_number ILIKE $${paramIndex} OR cl.name ILIKE $${paramIndex} OR c.court ILIKE $${paramIndex})`
+        params.push(`%${q}%`)
+        paramIndex++
+      }
+
+      const querySql = `
+        SELECT
+          j.*,
+          COALESCE(j.type, j.judgment_type) as type,
+          COALESCE(j.favor, 'غير محدد') as favor,
+          c.case_number,
+          c.case_type,
+          c.court,
+          c.client_role,
+          c.opponent_name,
+          cl.name as client_name
+        FROM judgments j
+        JOIN cases c ON j.case_id = c.id
+        LEFT JOIN clients cl ON c.client_id = cl.id
+        ${whereSql}
+        ORDER BY j.judgment_date DESC, j.created_at DESC, j.id DESC
+      `
+      const rowsRes = await query(querySql, params)
+      const rawRows = rowsRes.rows
+
+      const sanitizeDeedNumber = (val: any) => {
+        if (!val) return { isRegistered: false, display: 'غير مسجل', raw: '' }
+        const s = String(val).trim()
+        if (!s || s === '---' || s === '-' || s === 'غير مسجل' || s === 'غير محدد' || /^0+$/.test(s)) {
+          return { isRegistered: false, display: 'غير مسجل', raw: s }
+        }
+        return { isRegistered: true, display: s, raw: s }
+      }
+
+      const normalizeStage = (t: string) => {
+        const s = String(t || '').trim()
+        if (s.includes('ابتدائي')) return 'ابتدائي'
+        if (s.includes('استئناف')) return 'استئناف'
+        if (s.includes('عليا') || s.includes('تمييز')) return 'عليا'
+        if (s.includes('قطعي') || s.includes('نهائي')) return 'قطعي'
+        return s || 'غير محدد'
+      }
+
+      for (const r of rawRows) {
+        const deed = sanitizeDeedNumber(r.judgment_number)
+        r.deed_info = deed
+        r.display_judgment_number = deed.display
+        r.is_deed_registered = deed.isRegistered
+        r.normalized_stage = normalizeStage(r.type)
+
+        let plaintiffName = r.client_role === 'مدعى عليه' ? r.opponent_name || 'غير محدد' : r.client_name || 'غير محدد'
+        let defendantName = r.client_role === 'مدعى عليه' ? r.client_name || 'غير محدد' : r.opponent_name || 'غير محدد'
+        r.plaintiff_name = plaintiffName
+        r.defendant_name = defendantName
+
+        if (!r.objection_deadline) {
+          r.display_objection_deadline = r.normalized_stage === 'قطعي' ? 'حكم قطعي / نهائي' : 'غير محدد'
+        } else {
+          r.display_objection_deadline = r.objection_deadline
+        }
+      }
+
+      // Conservative Deduplication: group by (case_id, judgment_date, normalized_stage)
+      const groups = new Map<string, any[]>()
+      for (const r of rawRows) {
+        const gKey = `${r.case_id}__${r.judgment_date || ''}__${r.normalized_stage}`
+        if (!groups.has(gKey)) groups.set(gKey, [])
+        groups.get(gKey)!.push(r)
+      }
+
+      const uniqueRows: any[] = []
+      const excludedDuplicates: any[] = []
+
+      for (const [_, gList] of groups.entries()) {
+        if (gList.length === 1) {
+          uniqueRows.push(gList[0])
+        } else {
+          gList.sort((a, b) => {
+            if (a.is_deed_registered && !b.is_deed_registered) return -1
+            if (!a.is_deed_registered && b.is_deed_registered) return 1
+            const timeA = new Date(a.created_at || a.judgment_date || 0).getTime()
+            const timeB = new Date(b.created_at || b.judgment_date || 0).getTime()
+            return timeB - timeA
+          })
+          uniqueRows.push(gList[0])
+          for (let i = 1; i < gList.length; i++) {
+            excludedDuplicates.push({
+              duplicateId: gList[i].id,
+              primaryId: gList[0].id,
+              caseNumber: gList[i].case_number,
+              judgmentDate: gList[i].judgment_date,
+              stage: gList[i].normalized_stage,
+              reason: 'تطابق في القضية والتاريخ والمرحلة القضائية'
+            })
+          }
+        }
+      }
+
+      uniqueRows.sort((a, b) => {
+        const cmpDate = String(b.judgment_date || '').localeCompare(String(a.judgment_date || ''))
+        if (cmpDate !== 0) return cmpDate
+        return String(b.created_at || '').localeCompare(String(a.created_at || ''))
+      })
+
+      // KPIs
+      const uniqueCaseIds = new Set(uniqueRows.map((r) => r.case_id))
+      const preliminaryCount = uniqueRows.filter((r) => r.normalized_stage === 'ابتدائي').length
+      const appealCount = uniqueRows.filter((r) => r.normalized_stage === 'استئناف').length
+      const finalCount = uniqueRows.filter((r) => r.normalized_stage === 'قطعي' || r.normalized_stage.includes('نهائي')).length
+      const otherStagesCount = uniqueRows.length - (preliminaryCount + appealCount + finalCount)
+      const unregisteredDeedsCount = uniqueRows.filter((r) => !r.is_deed_registered).length
+
+      const inFavor = uniqueRows.filter((r) => r.favor?.includes('لصالح') || r.favor?.includes('للموكل') || r.favor?.includes('كلي')).length
+      const against = uniqueRows.filter((r) => r.favor?.includes('ضد') || r.favor?.includes('خصم')).length
+      const settlement = uniqueRows.filter((r) => r.favor?.includes('صلح') || r.favor?.includes('تسوية')).length
+      const partial = uniqueRows.filter((r) => r.favor?.includes('شبه') || r.favor?.includes('جزئي')).length
+      const unassigned = uniqueRows.filter((r) => !r.favor || r.favor === 'غير محدد').length
+      const decided = inFavor + against
+      const winRate = decided > 0 ? Math.round((inFavor / decided) * 100) : 0
+
+      // Analytical summary: court & case type distributions
+      const courtCounts: Record<string, number> = {}
+      for (const r of uniqueRows) {
+        const c = r.court || 'غير محدد'
+        courtCounts[c] = (courtCounts[c] || 0) + 1
+      }
+      const byCourt = Object.entries(courtCounts)
+        .map(([court, count]) => ({
+          court,
+          count,
+          percentage: Math.round((count / (uniqueRows.length || 1)) * 100)
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      const caseTypeCounts: Record<string, number> = {}
+      for (const r of uniqueRows) {
+        const ct = r.case_type || 'أخرى'
+        caseTypeCounts[ct] = (caseTypeCounts[ct] || 0) + 1
+      }
+      const byCaseType = Object.entries(caseTypeCounts)
+        .map(([caseType, count]) => ({
+          caseType,
+          count,
+          percentage: Math.round((count / (uniqueRows.length || 1)) * 100)
+        }))
+        .sort((a, b) => b.count - a.count)
+
+      // Case Groups (by_case mode)
+      const caseJudgmentMap = new Map<string, any[]>()
+      for (const r of uniqueRows) {
+        if (!caseJudgmentMap.has(r.case_id)) caseJudgmentMap.set(r.case_id, [])
+        caseJudgmentMap.get(r.case_id)!.push(r)
+      }
+
+      const multiJudgmentCases: any[] = []
+      const caseGroups: any[] = []
+
+      for (const [cId, jList] of caseJudgmentMap.entries()) {
+        jList.sort((a, b) => String(a.judgment_date || '').localeCompare(String(b.judgment_date || '')))
+        const base = jList[0]
+        const latest = jList[jList.length - 1]
+
+        const caseObj = {
+          case_id: cId,
+          case_number: base.case_number,
+          court: base.court,
+          case_type: base.case_type,
+          client_name: base.client_name,
+          plaintiff_name: base.plaintiff_name,
+          defendant_name: base.defendant_name,
+          judgments_count: jList.length,
+          latest_judgment_date: latest.judgment_date,
+          latest_favor: latest.favor,
+          latest_stage: latest.normalized_stage,
+          is_multi_stage: jList.length > 1,
+          timeline: jList.map((j) => ({
+            id: j.id,
+            stage: j.normalized_stage,
+            raw_type: j.type,
+            judgment_date: j.judgment_date,
+            judgment_date_hijri: j.judgment_date_hijri,
+            display_judgment_number: j.display_judgment_number,
+            is_deed_registered: j.is_deed_registered,
+            favor: j.favor,
+            objection_deadline: j.display_objection_deadline,
+            notes: j.notes
+          }))
+        }
+
+        caseGroups.push(caseObj)
+        if (jList.length > 1) {
+          multiJudgmentCases.push({
+            caseNumber: base.case_number,
+            court: base.court,
+            judgmentsCount: jList.length,
+            stages: jList.map((j) => j.normalized_stage).join(' ← ')
+          })
+        }
+      }
+
+      caseGroups.sort((a, b) => String(b.latest_judgment_date || '').localeCompare(String(a.latest_judgment_date || '')))
+
+      const viewMode = req.query.viewMode === 'by_case' ? 'by_case' : 'by_judgment'
+      let pagedRows: any[] = []
+      let pagedCaseGroups: any[] = []
+      let totalItems = 0
+
+      if (viewMode === 'by_case') {
+        totalItems = caseGroups.length
+        pagedCaseGroups = caseGroups.slice(offset, offset + limit)
+        pagedRows = pagedCaseGroups
+      } else {
+        totalItems = uniqueRows.length
+        pagedRows = uniqueRows.slice(offset, offset + limit)
+      }
+
+      res.json({
+        viewMode,
+        rows: pagedRows,
+        caseGroups: pagedCaseGroups,
+        allUniqueRows: uniqueRows,
+        allCaseGroups: caseGroups,
+        pageInfo: {
+          page: Math.max(parseInt(page as string) || 1, 1),
+          pageSize: limit,
+          totalRows: totalItems,
+          uniqueJudgmentsTotal: uniqueRows.length,
+          uniqueCasesTotal: uniqueCaseIds.size,
+          rawRecordsTotal: rawRows.length
+        },
+        stats: {
+          total: uniqueRows.length,
+          rawTotal: rawRows.length,
+          uniqueCases: uniqueCaseIds.size,
+          preliminaryCount,
+          appealCount,
+          finalCount,
+          otherStagesCount,
+          excludedDuplicatesCount: excludedDuplicates.length,
+          unregisteredDeedsCount,
+          inFavor,
+          against,
+          settlement,
+          partial,
+          unassigned,
+          winRate,
+          byCourt: byCourt.slice(0, 8)
+        },
+        analyticalSummary: {
+          casesByCourt: byCourt,
+          casesByType: byCaseType,
+          stagesDistribution: {
+            preliminary: preliminaryCount,
+            appeal: appealCount,
+            final: finalCount,
+            other: otherStagesCount
+          },
+          multiJudgmentCasesCount: multiJudgmentCases.length,
+          multiJudgmentCasesList: multiJudgmentCases,
+          unregisteredDeedsCount,
+          deedComplianceRate:
+            uniqueRows.length > 0
+              ? Math.round(((uniqueRows.length - unregisteredDeedsCount) / uniqueRows.length) * 100)
+              : 100
+        }
+      })
+    } catch (err) {
+      console.error('[REPORTS] judgments error:', err)
+      res.status(500).json({ error: 'فشل جلب تقرير الأحكام القضائية' })
+    }
+  }
+)
+
+reportsRouter.get(
+  '/judgments/stats',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const statsSql = `
+        SELECT
+          COUNT(*) as total_judgments,
+          COUNT(*) FILTER (WHERE j.favor ILIKE '%لصالحنا%' OR j.favor ILIKE '%لصالح الموكل%' OR j.favor ILIKE '%كلي%' OR j.favor ILIKE '%جزئي%') as favorable_judgments,
+          COUNT(*) FILTER (WHERE j.favor ILIKE '%ضدنا%' OR j.favor ILIKE '%ضد الموكل%' OR j.favor ILIKE '%لصالح الخصم%') as unfavorable_judgments,
+          COUNT(*) FILTER (WHERE j.is_executable = 1) as executable_judgments
+        FROM judgments j
+        WHERE j.company_id = $1
+      `
+      const statsRes = await query(statsSql, [companyId])
+      const rawStats = statsRes.rows[0] || {}
+
+      res.json({
+        totalJudgments: parseInt(rawStats.total_judgments || '0', 10),
+        favorableJudgments: parseInt(rawStats.favorable_judgments || '0', 10),
+        unfavorableJudgments: parseInt(rawStats.unfavorable_judgments || '0', 10),
+        executableJudgments: parseInt(rawStats.executable_judgments || '0', 10)
+      })
+    } catch (err) {
+      console.error('[REPORTS] judgments stats error:', err)
+      res.status(500).json({ error: 'فشل جلب إحصائيات الأحكام' })
+    }
+  }
+)
+
+// ═══════════════════════════════════════════════════════════════
+// 2. كشف حساب الموكل الموحد (Unified Account Statement)
+// ═══════════════════════════════════════════════════════════════
+reportsRouter.get(
+  ['/client-financial/:clientId', '/client-financial'],
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const clientId = (req.params.clientId || req.query.clientId || req.query.client_id) as string
+      if (!clientId) {
+        res.status(400).json({ error: 'معرف العميل مطلوب' })
+        return
+      }
+
+      // Fetch client basic info
+      const clientRes = await query('SELECT * FROM clients WHERE id = $1 AND company_id = $2', [clientId, companyId])
+      if (clientRes.rows.length === 0) {
+        res.status(404).json({ error: 'العميل غير موجود' })
+        return
+      }
+      const client = clientRes.rows[0]
+
+      // Fetch cases
+      const casesRes = await query(
+        `SELECT c.*, 
+          COALESCE(c.total_fees, c.total_amount, 0) as total_fee,
+          COALESCE(c.paid_amount, 0) as paid_amount,
+          GREATEST(COALESCE(c.total_fees, c.total_amount, 0) - COALESCE(c.paid_amount, 0), 0) as remaining
+         FROM cases c
+         WHERE c.client_id = $1 AND c.company_id = $2 AND c.deleted_at IS NULL
+         ORDER BY c.created_at DESC`,
+        [clientId, companyId]
+      )
+
+      // Fetch services / engagements
+      const servicesRes = await query(
+        `SELECT e.*,
+          t.name as service_type_name,
+          cat.name as category_name,
+          u.full_name as responsible_name,
+          (e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)) as total_amount,
+          e.paid_amount,
+          GREATEST(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0) - e.paid_amount, 0) as remaining_amount
+         FROM legal_engagements e
+         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+         LEFT JOIN legal_service_categories cat ON e.category_id = cat.id
+         LEFT JOIN users u ON e.responsible_lawyer_id = u.id
+         WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
+         ORDER BY e.created_at DESC`,
+        [clientId, companyId]
+      )
+
+      // Fetch payments
+      const paymentsRes = await query(
+        `SELECT p.*, e.engagement_number
+         FROM payments p
+         LEFT JOIN legal_engagements e ON p.legal_engagement_id = e.id
+         WHERE (p.client_id = $1 OR e.client_id = $1) AND p.company_id = $2
+         ORDER BY p.payment_date DESC`,
+        [clientId, companyId]
+      )
+
+      // Fetch invoices
+      const invoicesRes = await query(
+        `SELECT i.* FROM invoices i
+         WHERE i.client_id = $1 AND i.company_id = $2
+         ORDER BY i.created_at DESC`,
+        [clientId, companyId]
+      )
+
+      // Fetch vouchers
+      const vouchersRes = await query(
+        `SELECT v.* FROM payment_vouchers v
+         WHERE v.client_id = $1 AND v.company_id = $2
+         ORDER BY v.created_at DESC`,
+        [clientId, companyId]
+      )
+
+      // Fetch installments / payment schedules
+      const installmentsRes = await query(
+        `SELECT ps.*, e.engagement_number
+         FROM payment_schedules ps
+         JOIN legal_engagements e ON ps.legal_engagement_id = e.id
+         WHERE e.client_id = $1 AND ps.company_id = $2
+         ORDER BY ps.due_date ASC`,
+        [clientId, companyId]
+      )
+
+      // First deal date
+      const firstDealDate = casesRes.rows[casesRes.rows.length - 1]?.created_at ||
+        servicesRes.rows[servicesRes.rows.length - 1]?.start_date ||
+        client.created_at
+
+      // Financial totals
+      const totalInvoiced = invoicesRes.rows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0)
+      const totalPaid = paymentsRes.rows.reduce((s: number, r: any) => s + Number(r.amount || 0), 0)
+      const totalBalance = Math.max(0, totalInvoiced - totalPaid)
+      const overdueAmount = installmentsRes.rows
+        .filter((i: any) => i.status !== 'paid' && i.due_date && new Date(i.due_date) < new Date())
+        .reduce((s: number, r: any) => s + (Number(r.amount || 0) - Number(r.paid_amount || 0)), 0)
+
+      res.json({
+        client,
+        first_deal_date: firstDealDate,
+        summary: {
+          total_invoiced: totalInvoiced,
+          total_paid: totalPaid,
+          balance: totalBalance,
+          overdue_amount: overdueAmount,
+          cases_count: casesRes.rows.length,
+          services_count: servicesRes.rows.length,
+          active_installments: installmentsRes.rows.filter((i: any) => i.status !== 'paid').length
+        },
+        cases: casesRes.rows,
+        services: servicesRes.rows,
+        payments: paymentsRes.rows,
+        invoices: invoicesRes.rows,
+        vouchers: vouchersRes.rows,
+        installments: installmentsRes.rows
+      })
+    } catch (err) {
+      console.error('[REPORTS] client-financial error:', err)
+      res.status(500).json({ error: 'فشل جلب كشف حساب الموكل الموحد' })
+    }
+  }
+)
+
+// ═══════════════════════════════════════════════════════════════
+// 3. تقرير ميزانية وأعمال الشركاء (Partners Budget Report)
+// ═══════════════════════════════════════════════════════════════
+reportsRouter.get(
+  '/partner-budget',
+  requirePermission('export_reports'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const now = new Date()
+      const month = parseInt((req.query.month as string) || String(now.getMonth() + 1), 10)
+      const year = parseInt((req.query.year as string) || String(now.getFullYear()), 10)
+
+      const startDate = `${year}-${String(month).padStart(2, '0')}-01`
+      const nextMonth = month === 12 ? 1 : month + 1
+      const nextYear = month === 12 ? year + 1 : year
+      const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
+
+      // 1. Actual Income (Payments collected this month)
+      const incomeRes = await query(
+        `SELECT COALESCE(SUM(amount), 0) as total_income
+         FROM payments
+         WHERE company_id = $1 AND payment_date >= $2 AND payment_date < $3`,
+        [companyId, startDate, endDate]
+      )
+      const income = Number(incomeRes.rows[0]?.total_income || 0)
+
+      // 2. Actual Expenses (Recorded expenses this month)
+      const expenseRes = await query(
+        `SELECT COALESCE(SUM(amount), 0) as total_expense
+         FROM office_expenses
+         WHERE company_id = $1 AND expense_date >= $2 AND expense_date < $3`,
+        [companyId, startDate, endDate]
+      )
+      const expense = Number(expenseRes.rows[0]?.total_expense || 0)
+
+      // 3. Planned Budget
+      const budgetRes = await query(
+        `SELECT 
+          COALESCE(SUM(b.amount), 0) as total_budgeted
+         FROM office_budgets b
+         WHERE b.company_id = $1 AND b.month = $2 AND b.year = $3`,
+        [companyId, month, year]
+      )
+      const budgeted = Number(budgetRes.rows[0]?.total_budgeted || 0)
+
+      // 4. Categories Stats (Expenses vs Budget limit by category)
+      const catStatsRes = await query(
+        `SELECT 
+          COALESCE(cat.id, 'uncategorized') as category_id,
+          COALESCE(cat.name, 'مصروفات عامة') as category_name,
+          COALESCE(b.amount, 0) as budget_limit,
+          COALESCE(SUM(e.amount), 0) as actual_amount
+         FROM office_expenses e
+         LEFT JOIN expense_categories cat ON e.category_id = cat.id
+         LEFT JOIN office_budgets b ON b.category_id = cat.id AND b.month = $2 AND b.year = $3 AND b.company_id = $1
+         WHERE e.company_id = $1 AND e.expense_date >= $4 AND e.expense_date < $5
+         GROUP BY cat.id, cat.name, b.amount`,
+        [companyId, month, year, startDate, endDate]
+      )
+      const categoriesStats = catStatsRes.rows.map((r: any) => {
+        const actual = Number(r.actual_amount || 0)
+        const limit = Number(r.budget_limit || 0)
+        const percent = limit > 0 ? Math.round((actual / limit) * 100) : (actual > 0 ? 100 : 0)
+        return {
+          category_id: r.category_id,
+          category_name: r.category_name,
+          actual_amount: actual,
+          budget_limit: limit,
+          percent
+        }
+      })
+
+      // 5. Lawyer Contributions
+      const lawyersRes = await query(
+        `SELECT 
+          u.id as lawyer_id,
+          u.full_name as lawyer_name,
+          COUNT(e.id) as works_count,
+          COALESCE(SUM(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)), 0) as total_contracts_amount,
+          COALESCE(SUM(e.paid_amount), 0) as collected_amount
+         FROM users u
+         LEFT JOIN legal_engagements e ON (e.responsible_lawyer_id = u.id AND e.company_id = $1 AND e.start_date >= $2 AND e.start_date < $3)
+         WHERE u.company_id = $1 AND u.role IN ('lawyer', 'consultant', 'partner', 'admin')
+         GROUP BY u.id, u.full_name
+         ORDER BY collected_amount DESC`,
+        [companyId, startDate, endDate]
+      )
+      const totalCollected = lawyersRes.rows.reduce((s: number, r: any) => s + Number(r.collected_amount || 0), 0)
+      const lawyer_contributions = lawyersRes.rows.map((r: any) => {
+        const collected = Number(r.collected_amount || 0)
+        const percent = totalCollected > 0 ? Math.round((collected / totalCollected) * 100) : 0
+        return {
+          lawyer_name: r.lawyer_name,
+          works_count: parseInt(r.works_count, 10) || 0,
+          total_contracts_amount: Number(r.total_contracts_amount || 0),
+          collected_amount: collected,
+          contribution_percentage: percent
+        }
+      })
+
+      res.json({
+        income,
+        expense,
+        budgeted,
+        categoriesStats,
+        lawyer_contributions
+      })
+    } catch (err) {
+      console.error('[REPORTS] partner-budget error:', err)
+      res.status(500).json({ error: 'فشل جلب تقرير ميزانية وأعمال الشركاء' })
+    }
+  }
+)

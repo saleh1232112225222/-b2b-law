@@ -26,7 +26,10 @@ export const useOfficeAccountsStore = defineStore('officeAccounts', () => {
   const fetchClientFullProfile = async (clientId: string) => {
     loading.value = true
     try {
-      clientFullProfile.value = await window.api.legalServices.getClientFullProfile(clientId)
+      clientFullProfile.value =
+        (await (window.api as any).paymentTracking?.getClientFullProfile?.(clientId)) ||
+        (await (window.api as any).legalServices?.getClientFullProfile?.(clientId)) ||
+        (await (window.api as any).reports?.getClientFinancialReport?.(clientId))
     } catch (e) {
       clientFullProfile.value = null
     } finally {
