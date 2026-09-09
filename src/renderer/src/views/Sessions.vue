@@ -21,27 +21,31 @@
               </div>
             </div>
           </v-col>
-          <v-col cols="12" sm="auto" class="d-flex align-center gap-2">
-            <v-btn
-              color="accent"
-              variant="outlined"
-              :size="isMobile ? 'default' : 'large'"
-              class="font-weight-black rounded-lg"
-              :loading="syncingGoogle"
-              @click="triggerGoogleCalendarSync"
-            >
-              <LucideIcon name="calendar" :size="18" class="me-2 text-gold" /> مزامنة تقويم Google
-            </v-btn>
-            <v-btn
-              color="accent"
-              :size="isMobile ? 'default' : 'large'"
-              :block="isMobile"
-              class="font-weight-black rounded-lg premium-lift premium-btn-gold-gradient"
-              :class="isMobile ? '' : 'px-8 h-100'"
-              @click="openAddDialog"
-            >
-              <LucideIcon name="calendar-plus" :size="18" class="me-2" /> جدولة جلسة جديدة
-            </v-btn>
+          <v-col cols="12" sm="auto">
+            <div class="d-flex flex-column flex-sm-row align-stretch align-sm-center gap-2 w-100">
+              <v-btn
+                color="accent"
+                :size="isMobile ? 'default' : 'large'"
+                :block="isMobile"
+                height="44"
+                class="font-weight-black rounded-lg premium-lift premium-btn-gold-gradient px-6"
+                @click="openAddDialog"
+              >
+                <LucideIcon name="calendar-plus" :size="18" class="me-2" /> جدولة جلسة جديدة
+              </v-btn>
+              <v-btn
+                color="accent"
+                variant="outlined"
+                :size="isMobile ? 'default' : 'large'"
+                :block="isMobile"
+                height="44"
+                class="font-weight-black rounded-lg px-4"
+                :loading="syncingGoogle"
+                @click="triggerGoogleCalendarSync"
+              >
+                <LucideIcon name="calendar" :size="18" class="me-2 text-gold" /> مزامنة تقويم Google
+              </v-btn>
+            </div>
           </v-col>
         </v-row>
 
