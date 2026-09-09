@@ -17,6 +17,12 @@ export async function runExtraMigrations() {
     console.log('[MIGRATE_EXTRA] Case success metrics columns and indexes ensured')
   }
 
+  const firmDataMigration = path.join(__dirname, 'migrations', '0011_firm_data_unique.sql')
+  if (fs.existsSync(firmDataMigration)) {
+    await query(fs.readFileSync(firmDataMigration, 'utf8'))
+    console.log('[MIGRATE_EXTRA] firm_data deduplication and unique index ensured')
+  }
+
   // Backfill cases.final_outcome based on existing judgments and closed statuses
   try {
     // 1. Lost cases (check against / adverse first)
@@ -1110,7 +1116,22 @@ async function ensureCanonicalUniqueConstraints() {
     console.warn('[MIGRATE_EXTRA] settings primary key repair warning:', err.message)
   }
 
-  // 3. Ensure unique index matching primaryKey exists on all other tables
+  // 2b. Explicit repair for firm_data unique constraint (company_id, key)
+  try {
+    await query(`
+      DELETE FROM firm_data f1
+      USING firm_data f2
+      WHERE f1.ctid < f2.ctid
+        AND f1.company_id = f2.company_id
+        AND f1.key = f2.key;
+    `)
+    await query(`CREATE UNIQUE INDEX IF NOT EXISTS idx_firm_data_company_key ON firm_data (company_id, key);`)
+    console.log('[MIGRATE_EXTRA] firm_data unique index (company_id, key) ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] firm_data unique index warning:', err.message)
+  }
+
+  // 3. Ensure unique index matching primaryKey and uniqueKeys exists on all other tables
   try {
     const tablesRes = await query(`
       SELECT tablename FROM pg_tables WHERE schemaname = 'public'
@@ -1129,6 +1150,19 @@ async function ensureCanonicalUniqueConstraints() {
         await query(`CREATE UNIQUE INDEX IF NOT EXISTS "${indexName}" ON "${tableName}" (${colsQuoted})`)
       } catch (err: any) {
         console.warn(`[MIGRATE_EXTRA] Unique index note for ${tableName} (${colsQuoted}):`, err.message)
+      }
+
+      if (Array.isArray(contract.pgBinding.uniqueKeys)) {
+        for (const uqCols of contract.pgBinding.uniqueKeys) {
+          if (!Array.isArray(uqCols) || uqCols.length === 0) continue
+          const uqQuoted = uqCols.map((c) => `"${c}"`).join(', ')
+          const uqIndexName = `idx_uq_canon_${tableName}_${uqCols.join('_')}`.slice(0, 63)
+          try {
+            await query(`CREATE UNIQUE INDEX IF NOT EXISTS "${uqIndexName}" ON "${tableName}" (${uqQuoted})`)
+          } catch (err: any) {
+            console.warn(`[MIGRATE_EXTRA] Unique key index note for ${tableName} (${uqQuoted}):`, err.message)
+          }
+        }
       }
     }
     console.log('[MIGRATE_EXTRA] Canonical unique constraints check completed')

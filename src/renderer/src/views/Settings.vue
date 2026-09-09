@@ -960,8 +960,9 @@ const saveSettings = async (): Promise<void> => {
   try {
     await (window as any).api.settings.update({ ...settings.value })
     showSnackbar('تم حفظ الإعدادات بنجاح', 'success')
-  } catch (e: unknown) {
-    showSnackbar('خطأ في حفظ الإعدادات', 'error')
+  } catch (e: any) {
+    const errorMsg = e?.response?.data?.error || e?.message || 'خطأ في حفظ الإعدادات'
+    showSnackbar(errorMsg, 'error')
   }
 }
 

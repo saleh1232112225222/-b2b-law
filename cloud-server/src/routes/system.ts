@@ -60,6 +60,9 @@ systemRouter.get('/system/diagnostic', requireAdminRole, async (req: Request, re
 systemRouter.get('/system/settings', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
+    if (!companyId) {
+      return res.status(401).json({ error: 'المصادقة مطلوبة' })
+    }
     const result = await query('SELECT key, value FROM firm_data WHERE company_id = $1', [
       companyId
     ])
@@ -68,6 +71,7 @@ systemRouter.get('/system/settings', async (req: Request, res: Response) => {
       firmAddress: '',
       firmPhone: '',
       firmEmail: '',
+      vatNumber: '',
       theme: 'light',
       activityLogRetentionDays: 365,
       casesRootPath: '',
@@ -91,21 +95,44 @@ systemRouter.get('/system/settings', async (req: Request, res: Response) => {
 systemRouter.put('/system/settings', async (req: Request, res: Response) => {
   try {
     const companyId = getCompanyId(req)
-    const body = req.body
+    if (!companyId) {
+      return res.status(401).json({ error: 'المصادقة مطلوبة' })
+    }
+    const body = req.body || {}
     for (const [key, value] of Object.entries(body)) {
+      if (!key || typeof key !== 'string') continue
       const val = typeof value === 'string' ? value : JSON.stringify(value)
-      await query(
-        `INSERT INTO firm_data (company_id, key, value, updated_at)
-         VALUES ($1, $2, $3, NOW())
-         ON CONFLICT (company_id, key)
-         DO UPDATE SET value = $3, updated_at = NOW()`,
+
+      // 1. Try UPDATE first (works regardless of whether unique index is already ready)
+      const updateResult = await query(
+        `UPDATE firm_data SET value = $3, updated_at = NOW() WHERE company_id = $1 AND key = $2`,
         [companyId, key, val]
       )
+
+      // 2. If no existing row was updated, insert new entry
+      if ((updateResult?.rowCount ?? 0) === 0) {
+        try {
+          await query(
+            `INSERT INTO firm_data (id, company_id, key, value, created_at, updated_at)
+             VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
+             ON CONFLICT (company_id, key)
+             DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+            [companyId, key, val]
+          )
+        } catch {
+          // Fallback if ON CONFLICT clause has any issue in runtime schema
+          await query(
+            `INSERT INTO firm_data (id, company_id, key, value, created_at, updated_at)
+             VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())`,
+            [companyId, key, val]
+          )
+        }
+      }
     }
     res.json({ success: true })
-  } catch (err) {
+  } catch (err: any) {
     console.error('[Settings] Update error:', err)
-    res.status(500).json({ error: 'فشل في تحديث الإعدادات' })
+    res.status(500).json({ error: err?.message || 'فشل في تحديث الإعدادات' })
   }
 })
 

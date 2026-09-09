@@ -388,7 +388,26 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
   if (url.startsWith('/tasks/pending')) return { data: [] }
   if (url.startsWith('/employees') && url.endsWith('/performance')) return { data: [] }
   if (url.startsWith('/agencies/expiry-alerts')) return { data: [] }
-  if (url.startsWith('/system/settings')) return { data: {} }
+  if (url.startsWith('/system/settings')) {
+    if (method === 'GET') {
+      try {
+        const saved = localStorage.getItem('mock_system_settings')
+        return saved ? JSON.parse(saved) : { data: {} }
+      } catch {
+        return { data: {} }
+      }
+    }
+    if (method === 'PUT' || method === 'POST') {
+      try {
+        const existing = JSON.parse(localStorage.getItem('mock_system_settings') || '{}')
+        localStorage.setItem('mock_system_settings', JSON.stringify({ ...existing, ...data }))
+      } catch {
+        localStorage.setItem('mock_system_settings', JSON.stringify(data || {}))
+      }
+      return { success: true }
+    }
+    return { data: {} }
+  }
   if (url.startsWith('/system/database-inventory'))
     return [
       { name: 'clients', count: 12 },
