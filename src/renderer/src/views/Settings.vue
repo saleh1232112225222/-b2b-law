@@ -596,10 +596,27 @@
       <v-card rounded="xl" aria-labelledby="disaster-title">
         <v-card-title id="disaster-title">{{ disasterMode === 'export' ? 'تصدير حزمة الطوارئ' : 'مراجعة الاستعادة المرحلية' }}</v-card-title>
         <v-card-text>
-          <v-text-field v-model="disasterMfa" label="رمز التحقق الثنائي / كلمة مرور حساب Windows" autocomplete="current-password" type="password" />
-          <v-text-field v-model="disasterPassphrase" label="كلمة مرور الطوارئ" type="password" autocomplete="new-password" />
-          <v-progress-linear v-if="disasterBusy" :model-value="disasterPercent" height="8" rounded class="mb-3" />
-          <v-alert v-if="disasterPreview" type="warning" variant="tonal" role="alert">
+          <v-text-field
+            v-model="disasterMfa"
+            :label="isDesktop ? 'رمز التحقق الثنائي / كلمة مرور حساب Windows' : 'كلمة مرور حسابك في النظام (لتأكيد الهوية)'"
+            :placeholder="isDesktop ? 'أدخل الرمز أو كلمة المرور' : 'أدخل كلمة مرور تسجيل الدخول'"
+            autocomplete="current-password"
+            type="password"
+            :hint="isDesktop ? 'رمز التحقق لتأكيد الصلاحية' : 'أدخل كلمة مرور حسابك لتأكيد هوية المسؤول'"
+            persistent-hint
+            class="mb-3"
+          />
+          <v-text-field
+            v-model="disasterPassphrase"
+            label="كلمة مرور تشفير حزمة الطوارئ (لا تقل عن 12 خانة)"
+            placeholder="أدخل كلمة مرور الحزمة (احفظها جيداً لاستخدامها عند الاستعادة)"
+            type="password"
+            autocomplete="new-password"
+            hint="يجب ألا تقل عن 12 خانة وتستخدم لتشفير وفك تشفير ملف الحزمة"
+            persistent-hint
+          />
+          <v-progress-linear v-if="disasterBusy" :model-value="disasterPercent" height="8" rounded class="mb-3 mt-3" />
+          <v-alert v-if="disasterPreview" type="warning" variant="tonal" role="alert" class="mt-3">
             سيتم استعادة {{ disasterPreview.totalRows }} سجل و{{ disasterPreview.attachmentCount }} مرفق.
             لا يمكن الإلغاء بعد بدء التفعيل. أُنشئت نسخة أمان مستقلة قبل التفعيل.
           </v-alert>
@@ -633,6 +650,7 @@ import SettingsDeviceManagementCard from './settings/SettingsDeviceManagementCar
 import SettingsIntegrationsCard from './settings/SettingsIntegrationsCard.vue'
 import { usePermissions } from '../composables/usePermissions'
 
+const isDesktop = computed(() => Boolean((window as any).ipcRenderer))
 const { session } = usePermissions()
 const isSuperAdmin = computed(() => (session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000')
 

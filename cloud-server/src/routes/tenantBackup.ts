@@ -640,8 +640,9 @@ tenantBackupRouter.post('/step-up', async (req: Request, res: Response) => {
     const now = Date.now()
     const attemptKey = `${context.companyId}:${context.userId}`
     const attempt = stepUpAttempts.get(attemptKey)
-    if (attempt && attempt.resetAt > now && attempt.count >= 5) {
-      return sendSanitizedError(res, 429, 'محاولات كثيرة؛ أعد المحاولة لاحقاً.', 'STEP_UP_RATE_LIMITED')
+    if (attempt && attempt.resetAt > now && attempt.count >= 10) {
+      const remainingSeconds = Math.ceil((attempt.resetAt - now) / 1000)
+      return sendSanitizedError(res, 429, `محاولات كثيرة؛ يرجى الانتظار ${remainingSeconds} ثانية قبل إعادة المحاولة.`, 'STEP_UP_RATE_LIMITED')
     }
     const userResult = await query(
       'SELECT password_hash, two_factor_secret, two_factor_enabled FROM users WHERE id = $1 AND company_id = $2',
@@ -650,24 +651,24 @@ tenantBackupRouter.post('/step-up', async (req: Request, res: Response) => {
     const user = userResult.rows[0]
     if (user?.two_factor_enabled && user?.two_factor_secret) {
       if (typeof code !== 'string' || !verifyTotp(user.two_factor_secret, code)) {
-        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 5 * 60 * 1000 }
+        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 60 * 1000 }
         current.count++
         stepUpAttempts.set(attemptKey, current)
         return sendSanitizedError(res, 401, 'رمز المصادقة الثنائية غير صحيح.', 'MFA_CODE_INVALID')
       }
     } else {
       if (!code || typeof code !== 'string' || code.trim().length === 0 || !user?.password_hash) {
-        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 5 * 60 * 1000 }
+        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 60 * 1000 }
         current.count++
         stepUpAttempts.set(attemptKey, current)
-        return sendSanitizedError(res, 401, 'كلمة المرور مطلوبة لإتمام التحقق.', 'STEP_UP_CODE_REQUIRED')
+        return sendSanitizedError(res, 401, 'كلمة مرور الحساب مطلوبة لإتمام التحقق.', 'STEP_UP_CODE_REQUIRED')
       }
       const isPasswordValid = await bcrypt.compare(code, user.password_hash).catch(() => false)
       if (!isPasswordValid) {
-        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 5 * 60 * 1000 }
+        const current = attempt && attempt.resetAt > now ? attempt : { count: 0, resetAt: now + 60 * 1000 }
         current.count++
         stepUpAttempts.set(attemptKey, current)
-        return sendSanitizedError(res, 401, 'كلمة المرور غير صحيحة.', 'STEP_UP_CODE_INVALID')
+        return sendSanitizedError(res, 401, 'كلمة مرور الحساب غير صحيحة.', 'STEP_UP_CODE_INVALID')
       }
     }
     stepUpAttempts.delete(attemptKey)
