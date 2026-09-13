@@ -325,7 +325,29 @@ const routes = [
     path: '/reports/detailed-inquiry',
     name: 'DetailedCaseInquiry',
     component: () => import('../views/DetailedCaseInquiry.vue'),
-    meta: { requiresAuth: true, permissions: ['view_cases'] }
+    meta: {
+      requiresAuth: true,
+      permissions: ['export_reports', 'view_cases'],
+      permissionMode: 'any'
+    }
+  },
+  {
+    path: '/reports/judgments',
+    name: 'JudgmentsReport',
+    component: () => import('../views/JudgmentsReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'] }
+  },
+  {
+    path: '/reports/client-financial/:clientId?',
+    name: 'ClientFinancialReport',
+    component: () => import('../views/ClientFinancialReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'] }
+  },
+  {
+    path: '/reports/partner-budget',
+    name: 'PartnerBudgetReport',
+    component: () => import('../views/PartnerBudgetReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'] }
   },
   {
     path: '/vault',
@@ -436,7 +458,10 @@ router.beforeEach(async (to) => {
       (session.roleKey === 'admin' ||
         (Array.isArray(session.permissions) && session.permissions.includes(k)))
 
-    const ok = requiredPermissions.every(can)
+    const ok =
+      (to.meta as any).permissionMode === 'any'
+        ? requiredPermissions.some(can)
+        : requiredPermissions.every(can)
     if (!ok) return '/forbidden'
   }
 

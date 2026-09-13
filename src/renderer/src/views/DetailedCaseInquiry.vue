@@ -45,6 +45,7 @@
             :menu-props="{ maxHeight: 420, zIndex: 9999 }"
             item-title="title"
             item-value="id"
+            @update:model-value="onCaseChange"
           >
             <template #prepend-inner>
               <LucideIcon name="search" :size="20" class="text-accent me-2" />
@@ -67,6 +68,21 @@
         </v-col>
       </v-row>
     </v-card>
+
+    <!-- Error Alert -->
+    <v-alert
+      v-if="error"
+      type="error"
+      variant="flat"
+      class="mb-6 rounded-xl font-weight-black border-2 border-error-darken-1"
+      closable
+      @click:close="error = ''"
+    >
+      <template #prepend>
+        <LucideIcon name="alert-triangle" :size="24" class="me-3" />
+      </template>
+      {{ error }}
+    </v-alert>
 
     <!-- Inquiry Content -->
     <template v-if="report">
@@ -182,20 +198,47 @@
                       </tr>
                     </thead>
                     <tbody>
-                      <tr class="premium-hover-row">
-                        <td class="font-weight-black text-accent">{{ report.case.client_name }}</td>
-                        <td class="text-white">{{ report.case.client_role || 'موكل' }}</td>
-                        <td class="text-white font-mono">{{ report.case.id_number || '-' }}</td>
-                        <td class="text-white">{{ report.case.nationality || 'سعودي' }}</td>
-                      </tr>
-                      <tr class="premium-hover-row">
-                        <td class="font-weight-black text-error">
-                          {{ report.case.opponent_name || '-' }}
-                        </td>
-                        <td class="text-white">خصم</td>
-                        <td class="text-white font-mono">{{ report.case.opponent_id || '-' }}</td>
-                        <td class="text-white">{{ report.case.opponent_nationality || '-' }}</td>
-                      </tr>
+                      <template v-if="report.case.parties && report.case.parties.length > 0">
+                        <tr
+                          v-for="party in report.case.parties"
+                          :key="party.id || party.name"
+                          class="premium-hover-row"
+                        >
+                          <td
+                            class="font-weight-black"
+                            :class="
+                              party.role === 'خصم' || party.party_type === 'opponent'
+                                ? 'text-error'
+                                : 'text-accent'
+                            "
+                          >
+                            {{ party.name }}
+                          </td>
+                          <td class="text-white">
+                            {{ party.role || (party.party_type === 'opponent' ? 'خصم' : 'موكل') }}
+                          </td>
+                          <td class="text-white font-mono">{{ party.id_number || '-' }}</td>
+                          <td class="text-white">{{ party.nationality || '-' }}</td>
+                        </tr>
+                      </template>
+                      <template v-else>
+                        <tr class="premium-hover-row">
+                          <td class="font-weight-black text-accent">
+                            {{ report.case.client_name }}
+                          </td>
+                          <td class="text-white">{{ report.case.client_role || 'موكل' }}</td>
+                          <td class="text-white font-mono">{{ report.case.id_number || '-' }}</td>
+                          <td class="text-white">{{ report.case.nationality || 'سعودي' }}</td>
+                        </tr>
+                        <tr v-if="report.case.opponent_name" class="premium-hover-row">
+                          <td class="font-weight-black text-error">
+                            {{ report.case.opponent_name }}
+                          </td>
+                          <td class="text-white">خصم</td>
+                          <td class="text-white font-mono">{{ report.case.opponent_id || '-' }}</td>
+                          <td class="text-white">{{ report.case.opponent_nationality || '-' }}</td>
+                        </tr>
+                      </template>
                     </tbody>
                   </v-table>
                 </div>
@@ -439,7 +482,14 @@
 
                 <!-- Financial -->
                 <div v-if="section.key === 'finance'">
-                  <v-row dense>
+                  <div
+                    v-if="report.kpis?.hasFinancialAccess === false"
+                    class="pa-8 text-center text-gold opacity-60 font-weight-bold"
+                  >
+                    <LucideIcon name="lock" :size="32" class="text-gold opacity-40 mb-3 mx-auto" />
+                    <div>غير مصرح بعرض البيانات المالية لهذه القضية</div>
+                  </div>
+                  <v-row v-else dense>
                     <v-col cols="12" md="4">
                       <div
                         class="pa-6 rounded-xl glass-panel-light border border-gold border-opacity-20 text-center"
@@ -448,7 +498,7 @@
                           إجمالي الإيرادات
                         </div>
                         <div class="text-h5 font-weight-black text-accent">
-                          {{ report.kpis.totalIn }} <span class="text-caption">ر.س</span>
+                          {{ report.kpis?.totalIn ?? 0 }} <span class="text-caption">ر.س</span>
                         </div>
                       </div>
                     </v-col>
@@ -460,7 +510,7 @@
                           إجمالي المصاريف
                         </div>
                         <div class="text-h5 font-weight-black text-error">
-                          {{ report.kpis.totalOut }} <span class="text-caption">ر.س</span>
+                          {{ report.kpis?.totalOut ?? 0 }} <span class="text-caption">ر.س</span>
                         </div>
                       </div>
                     </v-col>
@@ -472,7 +522,7 @@
                           صافي الرصيد
                         </div>
                         <div class="text-h5 font-weight-black text-white">
-                          {{ report.kpis.balance }} <span class="text-caption">ر.س</span>
+                          {{ report.kpis?.balance ?? 0 }} <span class="text-caption">ر.س</span>
                         </div>
                       </div>
                     </v-col>
@@ -524,15 +574,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { safeArray, safeLength } from '../utils/safe'
 import LucideIcon from '../components/common/LucideIcon.vue'
+
+const route = useRoute()
 
 const caseId = ref<string | null>(null)
 const loading = ref(false)
 const loadingCases = ref(false)
 const caseOptions = ref<any[]>([])
 const report = ref<any>(null)
+const error = ref('')
 
 const expandableSections = ref([
   { key: 'subject', title: 'موضوع الدعوى', open: false },
@@ -583,9 +637,19 @@ const loadOptions = async () => {
   }
 }
 
+const onCaseChange = (val: string | null) => {
+  if (val) {
+    loadInquiry()
+  } else {
+    report.value = null
+    error.value = ''
+  }
+}
+
 const loadInquiry = async () => {
   if (!caseId.value) return
   loading.value = true
+  error.value = ''
   try {
     const data = await (window as any).api.reports.getCaseReport({
       caseId: caseId.value,
@@ -596,9 +660,13 @@ const loadInquiry = async () => {
       }
     })
     report.value = data
-    expandableSections.value[0].open = true
-  } catch (e) {
+    if (expandableSections.value.length > 0) {
+      expandableSections.value[0].open = true
+    }
+  } catch (e: any) {
     console.error('Inquiry failed:', e)
+    error.value = e?.message || 'فشل استعلام بيانات القضية'
+    report.value = null
   } finally {
     loading.value = false
   }
@@ -633,8 +701,22 @@ const formatDate = (ts: string) => {
   return ts.split('T')[0]
 }
 
-onMounted(() => {
-  loadOptions()
+watch(
+  () => route.query.caseId,
+  async (newCaseId) => {
+    if (newCaseId && String(newCaseId) !== caseId.value) {
+      caseId.value = String(newCaseId)
+      await loadInquiry()
+    }
+  }
+)
+
+onMounted(async () => {
+  await loadOptions()
+  if (route.query.caseId) {
+    caseId.value = String(route.query.caseId)
+    await loadInquiry()
+  }
 })
 </script>
 

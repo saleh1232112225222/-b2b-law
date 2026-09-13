@@ -23,15 +23,69 @@ export const useOfficeAccountsStore = defineStore('officeAccounts', () => {
     }
   }
 
+  const isCompliantProfile = (p: any): p is ClientFullProfile => {
+    if (!p || typeof p !== 'object') return false
+    if (!p.client || typeof p.client !== 'object' || !p.client.id || !p.client.name) return false
+    if (
+      !Array.isArray(p.cases) ||
+      !Array.isArray(p.services) ||
+      !Array.isArray(p.payments) ||
+      !Array.isArray(p.invoices) ||
+      !Array.isArray(p.vouchers) ||
+      !Array.isArray(p.installment_schedules)
+    ) {
+      return false
+    }
+    const s = p.summary
+    if (!s || typeof s !== 'object') return false
+    return (
+      typeof s.total_cases === 'number' &&
+      typeof s.total_services === 'number' &&
+      typeof s.total_services_amount === 'number' &&
+      typeof s.total_services_paid === 'number' &&
+      typeof s.total_services_remaining === 'number' &&
+      typeof s.total_payments === 'number' &&
+      typeof s.total_invoices === 'number' &&
+      typeof s.total_vouchers === 'number' &&
+      typeof s.pending_installments === 'number' &&
+      typeof s.overdue_installments === 'number'
+    )
+  }
+
   const fetchClientFullProfile = async (clientId: string) => {
     loading.value = true
     try {
-      clientFullProfile.value =
-        (await (window.api as any).paymentTracking?.getClientFullProfile?.(clientId)) ||
-        (await (window.api as any).legalServices?.getClientFullProfile?.(clientId)) ||
-        (await (window.api as any).reports?.getClientFinancialReport?.(clientId))
+      const candidates = [
+        () => (window.api as any).reports?.getClientFinancialReport?.(clientId),
+        () => (window.api as any).legalServices?.getClientFullProfile?.(clientId),
+        () => (window.api as any).paymentTracking?.getClientFullProfile?.(clientId)
+      ]
+
+      let result: ClientFullProfile | null = null
+      for (const fn of candidates) {
+        try {
+          const res = await fn?.()
+          if (!res || typeof res !== 'object') continue
+
+          // Safe normalization if candidate returns 'installments' instead of 'installment_schedules'
+          if (!Array.isArray(res.installment_schedules) && Array.isArray(res.installments)) {
+            res.installment_schedules = res.installments
+          }
+
+          if (isCompliantProfile(res)) {
+            result = res
+            break
+          }
+        } catch {
+          // Continue to next candidate
+        }
+      }
+
+      clientFullProfile.value = result
+      return clientFullProfile.value
     } catch (e) {
       clientFullProfile.value = null
+      return null
     } finally {
       loading.value = false
     }

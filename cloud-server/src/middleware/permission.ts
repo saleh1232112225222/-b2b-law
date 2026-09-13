@@ -200,6 +200,13 @@ export async function getUserPermissions(
  * Express middleware to require a specific permission.
  */
 export function requirePermission(permissionKey: string) {
+  return requireAnyPermission([permissionKey])
+}
+
+/**
+ * Express middleware to require at least one of the specified permissions.
+ */
+export function requireAnyPermission(permissionKeys: string[]) {
   return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     if (!req.auth) {
       res.status(401).json({ error: 'غير مصرح: لا توجد جلسة' })
@@ -215,13 +222,13 @@ export function requirePermission(permissionKey: string) {
 
     try {
       const userPerms = await getUserPermissions(companyId, userId, roleKey)
-      if (userPerms.includes(permissionKey)) {
+      if (permissionKeys.some((p) => userPerms.includes(p))) {
         return next()
       }
 
       res.status(403).json({
         error: 'غير مصرح',
-        message: `ليس لديك الصلاحية الكافية لإتمام هذه العملية (${permissionKey}).`
+        message: `ليس لديك الصلاحية الكافية لإتمام هذه العملية (${permissionKeys.join(', ')}).`
       })
     } catch (err: any) {
       console.error(`[PERMISSIONS] Middleware check failed:`, err.message)

@@ -11,7 +11,8 @@ vi.mock('../../../../cloud-server/src/middleware/auth', () => ({
 }))
 
 vi.mock('../../../../cloud-server/src/middleware/permission', () => ({
-  requirePermission: () => (_req: unknown, _res: unknown, next: () => void) => next()
+  requirePermission: () => (_req: unknown, _res: unknown, next: () => void) => next(),
+  requireAnyPermission: () => (_req: unknown, _res: unknown, next: () => void) => next()
 }))
 
 vi.mock('../../../../cloud-server/src/middleware/tenant', () => ({

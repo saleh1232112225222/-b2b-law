@@ -10,7 +10,9 @@
             <LucideIcon name="gavel" :size="36" class="text-accent" />
           </div>
           <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">تقرير الأحكام والقرارات القضائية</h1>
+            <h1 class="text-h5 font-weight-black text-gold mb-1">
+              تقرير الأحكام والقرارات القضائية
+            </h1>
             <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
               بيان تحليلي شامل بالأحكام الصادرة، درجات التقاضي، مواعيد الاعتراض، وحالة الصكوك
             </p>
@@ -195,44 +197,76 @@
     <!-- KPI Summary Cards -->
     <v-row class="mb-6" dense>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
-          <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">الأحكام الفريدة</div>
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
+          <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">
+            الأحكام الفريدة
+          </div>
           <div class="text-h5 font-weight-black text-white">{{ stats.total || 0 }}</div>
-          <div class="text-tiny text-grey font-weight-bold">من أصل {{ stats.rawTotal || stats.total || 0 }} مدخلة</div>
+          <div class="text-tiny text-grey font-weight-bold">
+            من أصل {{ stats.rawTotal || stats.total || 0 }} مدخلة
+          </div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
-          <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">القضايا الفريدة</div>
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
+          <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">
+            القضايا الفريدة
+          </div>
           <div class="text-h5 font-weight-black text-white">{{ stats.uniqueCases || 0 }}</div>
-          <div class="text-tiny text-accent font-weight-bold">{{ summary.multiJudgmentCasesCount || 0 }} متعددة المراحل</div>
+          <div class="text-tiny text-accent font-weight-bold">
+            {{ summary.multiJudgmentCasesCount || 0 }} متعددة المراحل
+          </div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
           <div class="text-caption text-warning mb-1 font-weight-black">أحكام ابتدائية</div>
-          <div class="text-h5 font-weight-black text-warning">{{ stats.preliminaryCount || 0 }}</div>
+          <div class="text-h5 font-weight-black text-warning">
+            {{ stats.preliminaryCount || 0 }}
+          </div>
           <div class="text-tiny text-grey font-weight-bold">مرحلة أولى</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
           <div class="text-caption text-success mb-1 font-weight-black">أحكام قطعية / نهائية</div>
           <div class="text-h5 font-weight-black text-success">{{ stats.finalCount || 0 }}</div>
           <div class="text-tiny text-success font-weight-bold">حكم مكتسب للقطعية</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
           <div class="text-caption text-grey-lighten-1 mb-1 font-weight-black">مستبعد كتكرار</div>
-          <div class="text-h5 font-weight-black text-grey-lighten-1">{{ stats.excludedDuplicatesCount || 0 }}</div>
+          <div class="text-h5 font-weight-black text-grey-lighten-1">
+            {{ stats.excludedDuplicatesCount || 0 }}
+          </div>
           <div class="text-tiny text-grey font-weight-bold">تم تنقيته تلقائياً</div>
         </v-card>
       </v-col>
       <v-col cols="6" sm="4" md="2">
-        <v-card elevation="0" class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10">
+        <v-card
+          elevation="0"
+          class="glass-card pa-4 text-center rounded-xl border border-gold border-opacity-10"
+        >
           <div class="text-caption text-error mb-1 font-weight-black">صكوك غير مسجلة</div>
-          <div class="text-h5 font-weight-black text-error">{{ stats.unregisteredDeedsCount || 0 }}</div>
+          <div class="text-h5 font-weight-black text-error">
+            {{ stats.unregisteredDeedsCount || 0 }}
+          </div>
           <div class="text-tiny text-error font-weight-bold">بانتظار تدوين الصك</div>
         </v-card>
       </v-col>
@@ -241,7 +275,10 @@
     <!-- Visual Charts Section -->
     <v-row v-if="filteredRows.length > 0" class="mb-6" dense>
       <v-col cols="12" md="5">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100">
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100"
+        >
           <div class="d-flex justify-space-between align-center mb-3">
             <div class="text-subtitle-2 font-weight-black text-gold">
               توزيع نتائج الأحكام الصادرة
@@ -251,12 +288,19 @@
             </v-chip>
           </div>
           <div style="height: 220px">
-            <PieChart :labels="favorChartLabels" :data="favorChartValues" :colors="favorChartColors" />
+            <PieChart
+              :labels="favorChartLabels"
+              :data="favorChartValues"
+              :colors="favorChartColors"
+            />
           </div>
         </v-card>
       </v-col>
       <v-col cols="12" md="7">
-        <v-card elevation="0" class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100">
+        <v-card
+          elevation="0"
+          class="glass-card pa-5 rounded-xl border border-gold border-opacity-10 h-100"
+        >
           <div class="text-subtitle-2 font-weight-black text-gold mb-3">
             توزيع الأحكام بحسب المحاكم
           </div>
@@ -276,15 +320,17 @@
       <v-table density="comfortable" class="glass-table">
         <thead>
           <tr>
-            <th class="text-right text-gold font-weight-black" style="width: 13%;">رقم الصك</th>
-            <th class="text-right text-gold font-weight-black" style="width: 10%;">درجة الحكم</th>
-            <th class="text-right text-gold font-weight-black" style="width: 15%;">رقم القضية والمحكمة</th>
-            <th class="text-right text-gold font-weight-black" style="width: 15%;">المدعي</th>
-            <th class="text-right text-gold font-weight-black" style="width: 15%;">المدعى عليه</th>
-            <th class="text-right text-gold font-weight-black" style="width: 12%;">تاريخ الحكم</th>
-            <th class="text-right text-gold font-weight-black" style="width: 13%;">مهلة الاعتراض</th>
-            <th class="text-right text-gold font-weight-black" style="width: 11%;">نتيجة الحكم</th>
-            <th class="text-center text-gold font-weight-black" style="width: 6%;">إجراء</th>
+            <th class="text-right text-gold font-weight-black" style="width: 13%">رقم الصك</th>
+            <th class="text-right text-gold font-weight-black" style="width: 10%">درجة الحكم</th>
+            <th class="text-right text-gold font-weight-black" style="width: 15%">
+              رقم القضية والمحكمة
+            </th>
+            <th class="text-right text-gold font-weight-black" style="width: 15%">المدعي</th>
+            <th class="text-right text-gold font-weight-black" style="width: 15%">المدعى عليه</th>
+            <th class="text-right text-gold font-weight-black" style="width: 12%">تاريخ الحكم</th>
+            <th class="text-right text-gold font-weight-black" style="width: 13%">مهلة الاعتراض</th>
+            <th class="text-right text-gold font-weight-black" style="width: 11%">نتيجة الحكم</th>
+            <th class="text-center text-gold font-weight-black" style="width: 6%">إجراء</th>
           </tr>
         </thead>
         <tbody>
@@ -315,7 +361,13 @@
               <v-chip
                 size="small"
                 variant="tonal"
-                :color="r.normalized_stage === 'قطعي' ? 'success' : r.normalized_stage === 'ابتدائي' ? 'warning' : 'info'"
+                :color="
+                  r.normalized_stage === 'قطعي'
+                    ? 'success'
+                    : r.normalized_stage === 'ابتدائي'
+                      ? 'warning'
+                      : 'info'
+                "
                 class="font-weight-black"
               >
                 {{ r.normalized_stage || r.type || '---' }}
@@ -326,7 +378,7 @@
               <div class="text-caption text-gold opacity-80">{{ r.court || '---' }}</div>
             </td>
             <td class="text-white font-weight-bold">{{ r.plaintiff_name || '---' }}</td>
-            <td class="text-white font-weight-medium" style="color: #e2e8f0 !important;">
+            <td class="text-white font-weight-medium" style="color: #e2e8f0 !important">
               {{ r.defendant_name || '---' }}
             </td>
             <td class="font-mono">
@@ -336,10 +388,7 @@
               </div>
             </td>
             <td>
-              <div
-                v-if="r.objection_deadline"
-                class="font-mono text-warning font-weight-bold"
-              >
+              <div v-if="r.objection_deadline" class="font-mono text-warning font-weight-bold">
                 {{ r.objection_deadline }}
               </div>
               <div
@@ -379,7 +428,10 @@
 
     <!-- VIEW MODE 2: BY CASE PROCEDURAL PROGRESSION -->
     <div v-else-if="viewMode === 'by_case'" class="mb-8">
-      <div v-if="!loading && filteredCases.length === 0" class="glass-card pa-12 text-center text-gold opacity-40 font-weight-black rounded-xl">
+      <div
+        v-if="!loading && filteredCases.length === 0"
+        class="glass-card pa-12 text-center text-gold opacity-40 font-weight-black rounded-xl"
+      >
         لا توجد قضايا مطابقة لشروط التصفية
       </div>
       <v-card
@@ -389,14 +441,18 @@
         class="glass-card rounded-xl border border-gold border-opacity-15 mb-4 overflow-hidden"
       >
         <!-- Case Summary Header -->
-        <div class="pa-4 glass-panel-light border-bottom d-flex flex-wrap align-center justify-space-between gap-3">
+        <div
+          class="pa-4 glass-panel-light border-bottom d-flex flex-wrap align-center justify-space-between gap-3"
+        >
           <div class="d-flex align-center gap-3">
             <div class="glass-panel pa-2 rounded-lg border border-gold">
               <LucideIcon name="briefcase" :size="20" class="text-accent" />
             </div>
             <div>
               <div class="d-flex align-center gap-2">
-                <span class="font-weight-black text-h6 text-white font-mono">قضية رقم: {{ cg.case_number }}</span>
+                <span class="font-weight-black text-h6 text-white font-mono"
+                  >قضية رقم: {{ cg.case_number }}</span
+                >
                 <v-chip size="x-small" color="accent" variant="outlined" class="font-weight-black">
                   {{ cg.case_type || 'قضية' }}
                 </v-chip>
@@ -416,8 +472,14 @@
             </div>
           </div>
           <div class="d-flex align-center gap-4 text-body-2">
-            <div><span class="text-gold opacity-60">المدعي:</span> <b class="text-white">{{ cg.plaintiff_name }}</b></div>
-            <div><span class="text-gold opacity-60">المدعى عليه:</span> <b class="text-white">{{ cg.defendant_name }}</b></div>
+            <div>
+              <span class="text-gold opacity-60">المدعي:</span>
+              <b class="text-white">{{ cg.plaintiff_name }}</b>
+            </div>
+            <div>
+              <span class="text-gold opacity-60">المدعى عليه:</span>
+              <b class="text-white">{{ cg.defendant_name }}</b>
+            </div>
           </div>
         </div>
 
@@ -425,23 +487,33 @@
         <v-table density="compact" class="glass-table timeline-table-mobile">
           <thead>
             <tr>
-              <th class="text-right text-gold font-weight-black" style="width: 15%;">المرحلة / الدرجة</th>
-              <th class="text-right text-gold font-weight-black" style="width: 15%;">تاريخ الحكم</th>
-              <th class="text-right text-gold font-weight-black" style="width: 15%;">رقم الصك</th>
-              <th class="text-right text-gold font-weight-black" style="width: 18%;">مهلة الاعتراض</th>
-              <th class="text-right text-gold font-weight-black" style="width: 15%;">نتيجة الحكم</th>
-              <th class="text-right text-gold font-weight-black" style="width: 22%;">منطوق الحكم / الملاحظات</th>
+              <th class="text-right text-gold font-weight-black" style="width: 15%">
+                المرحلة / الدرجة
+              </th>
+              <th class="text-right text-gold font-weight-black" style="width: 15%">تاريخ الحكم</th>
+              <th class="text-right text-gold font-weight-black" style="width: 15%">رقم الصك</th>
+              <th class="text-right text-gold font-weight-black" style="width: 18%">
+                مهلة الاعتراض
+              </th>
+              <th class="text-right text-gold font-weight-black" style="width: 15%">نتيجة الحكم</th>
+              <th class="text-right text-gold font-weight-black" style="width: 22%">
+                منطوق الحكم / الملاحظات
+              </th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="(t, tIdx) in cg.timeline" :key="t.id" class="premium-hover-row">
               <td>
                 <div class="d-flex align-center gap-2">
-                  <span class="text-caption font-mono text-gold opacity-60 font-weight-bold">#{{ Number(tIdx) + 1 }}</span>
+                  <span class="text-caption font-mono text-gold opacity-60 font-weight-bold"
+                    >#{{ Number(tIdx) + 1 }}</span
+                  >
                   <v-chip
                     size="x-small"
                     variant="tonal"
-                    :color="t.stage === 'قطعي' ? 'success' : t.stage === 'ابتدائي' ? 'warning' : 'info'"
+                    :color="
+                      t.stage === 'قطعي' ? 'success' : t.stage === 'ابتدائي' ? 'warning' : 'info'
+                    "
                     class="font-weight-black"
                   >
                     {{ t.stage || t.raw_type || '---' }}
@@ -455,21 +527,19 @@
                 </div>
               </td>
               <td>
-                <span
-                  v-if="t.is_deed_registered"
-                  class="font-mono text-accent font-weight-black"
-                >
+                <span v-if="t.is_deed_registered" class="font-mono text-accent font-weight-black">
                   {{ t.display_judgment_number }}
                 </span>
-                <span v-else class="text-caption text-grey font-weight-bold">
-                  غير مسجل
-                </span>
+                <span v-else class="text-caption text-grey font-weight-bold"> غير مسجل </span>
               </td>
               <td>
                 <span v-if="t.objection_deadline" class="font-mono text-warning font-weight-bold">
                   {{ t.objection_deadline }}
                 </span>
-                <span v-else-if="t.stage === 'قطعي'" class="text-caption text-success font-weight-bold">
+                <span
+                  v-else-if="t.stage === 'قطعي'"
+                  class="text-caption text-success font-weight-bold"
+                >
                   حكم قطعي / نهائي
                 </span>
                 <span v-else class="text-caption text-grey">غير محدد</span>
@@ -494,11 +564,16 @@
     </div>
 
     <!-- ANALYTICAL SUMMARY SECTION (ملخص تحليلي إداري شامل) -->
-    <v-card elevation="0" class="glass-card pa-6 rounded-xl border border-gold border-opacity-20 mt-6">
+    <v-card
+      elevation="0"
+      class="glass-card pa-6 rounded-xl border border-gold border-opacity-20 mt-6"
+    >
       <div class="d-flex align-center justify-space-between mb-4">
         <div class="d-flex align-center gap-3">
           <LucideIcon name="bar-chart-3" :size="24" class="text-accent" />
-          <h2 class="text-h6 font-weight-black text-gold mb-0">الملخص التحليلي والإحصائي الإداري</h2>
+          <h2 class="text-h6 font-weight-black text-gold mb-0">
+            الملخص التحليلي والإحصائي الإداري
+          </h2>
         </div>
         <v-chip color="accent" size="small" variant="tonal" class="font-weight-black">
           تقرير حوكمة المكتب
@@ -512,11 +587,19 @@
             <div class="text-subtitle-2 font-weight-black text-gold mb-3">
               1. توزيع الأحكام الصادرة بحسب المحاكم
             </div>
-            <div v-for="c in summary.casesByCourt?.slice(0, 6)" :key="c.court" class="d-flex justify-space-between align-center py-2 border-bottom">
+            <div
+              v-for="c in Array.isArray(summary.casesByCourt)
+                ? summary.casesByCourt.slice(0, 6)
+                : []"
+              :key="c.court"
+              class="d-flex justify-space-between align-center py-2 border-bottom"
+            >
               <span class="text-body-2 text-white">{{ c.court }}</span>
               <div class="d-flex align-center gap-3">
                 <span class="font-weight-black text-accent font-mono">{{ c.count }} حكم</span>
-                <v-chip size="x-small" color="gold" variant="outlined" class="font-weight-bold">{{ c.percentage }}%</v-chip>
+                <v-chip size="x-small" color="gold" variant="outlined" class="font-weight-bold"
+                  >{{ c.percentage }}%</v-chip
+                >
               </div>
             </div>
           </div>
@@ -528,11 +611,17 @@
             <div class="text-subtitle-2 font-weight-black text-gold mb-3">
               2. توزيع الأحكام بحسب تصنيف القضية
             </div>
-            <div v-for="t in summary.casesByType?.slice(0, 6)" :key="t.caseType" class="d-flex justify-space-between align-center py-2 border-bottom">
+            <div
+              v-for="t in Array.isArray(summary.casesByType) ? summary.casesByType.slice(0, 6) : []"
+              :key="t.caseType"
+              class="d-flex justify-space-between align-center py-2 border-bottom"
+            >
               <span class="text-body-2 text-white">{{ t.caseType }}</span>
               <div class="d-flex align-center gap-3">
                 <span class="font-weight-black text-accent font-mono">{{ t.count }} حكم</span>
-                <v-chip size="x-small" color="gold" variant="outlined" class="font-weight-bold">{{ t.percentage }}%</v-chip>
+                <v-chip size="x-small" color="gold" variant="outlined" class="font-weight-bold"
+                  >{{ t.percentage }}%</v-chip
+                >
               </div>
             </div>
           </div>
@@ -543,25 +632,41 @@
       <v-row dense class="mt-4">
         <v-col cols="12" md="4">
           <div class="pa-4 glass-panel rounded-lg border border-gold border-opacity-10 text-center">
-            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">القضايا ذات الأحكام المتعددة</div>
-            <div class="text-h6 font-weight-black text-accent font-mono">{{ summary.multiJudgmentCasesCount || 0 }} قضايا</div>
+            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">
+              القضايا ذات الأحكام المتعددة
+            </div>
+            <div class="text-h6 font-weight-black text-accent font-mono">
+              {{ summary.multiJudgmentCasesCount || 0 }} قضايا
+            </div>
             <div class="text-tiny text-grey font-weight-bold">تطورت عبر درجات تقاضي متعاقبة</div>
           </div>
         </v-col>
         <v-col cols="12" md="4">
           <div class="pa-4 glass-panel rounded-lg border border-gold border-opacity-10 text-center">
-            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">مؤشر الامتثال لتدوين الصكوك</div>
+            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">
+              مؤشر الامتثال لتدوين الصكوك
+            </div>
             <div class="text-h6 font-weight-black text-success font-mono">
-              {{ Math.round((((stats.total || 1) - (stats.unregisteredDeedsCount || 0)) / (stats.total || 1)) * 100) }}%
+              {{
+                Math.round(
+                  (((stats.total || 1) - (stats.unregisteredDeedsCount || 0)) /
+                    (stats.total || 1)) *
+                    100
+                )
+              }}%
             </div>
             <div class="text-tiny text-grey font-weight-bold">من الأحكام مسجلة بصك رسمي صحيح</div>
           </div>
         </v-col>
         <v-col cols="12" md="4">
           <div class="pa-4 glass-panel rounded-lg border border-gold border-opacity-10 text-center">
-            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">دقة مؤشرات التقاضي</div>
+            <div class="text-caption text-gold opacity-70 mb-1 font-weight-black">
+              دقة مؤشرات التقاضي
+            </div>
             <div class="text-h6 font-weight-black text-info font-mono">100%</div>
-            <div class="text-tiny text-grey font-weight-bold">تم استبعاد {{ stats.excludedDuplicatesCount || 0 }} تكرارات في البيانات</div>
+            <div class="text-tiny text-grey font-weight-bold">
+              تم استبعاد {{ stats.excludedDuplicatesCount || 0 }} تكرارات في البيانات
+            </div>
           </div>
         </v-col>
       </v-row>
@@ -608,7 +713,13 @@
           />
           <div class="d-flex justify-end gap-2">
             <v-btn variant="outlined" color="gold" @click="editDialog = false">إلغاء</v-btn>
-            <v-btn color="accent" class="text-ebony font-weight-black" :loading="saving" @click="saveJudgment">حفظ</v-btn>
+            <v-btn
+              color="accent"
+              class="text-ebony font-weight-black"
+              :loading="saving"
+              @click="saveJudgment"
+              >حفظ</v-btn
+            >
           </div>
         </v-form>
       </v-card>
@@ -771,7 +882,17 @@ const load = async (): Promise<void> => {
       stats.value = res.stats
     }
     if (res.analyticalSummary) {
-      summary.value = res.analyticalSummary
+      summary.value = {
+        casesByCourt: Array.isArray(res.analyticalSummary.casesByCourt)
+          ? res.analyticalSummary.casesByCourt
+          : [],
+        casesByType: Array.isArray(res.analyticalSummary.casesByType)
+          ? res.analyticalSummary.casesByType
+          : [],
+        stagesDistribution: res.analyticalSummary.stagesDistribution || {},
+        multiJudgmentCasesCount: Number(res.analyticalSummary.multiJudgmentCasesCount) || 0,
+        unregisteredDeedsCount: Number(res.analyticalSummary.unregisteredDeedsCount) || 0
+      }
     }
   } catch (e: any) {
     console.error('Failed to load judgments:', e)
@@ -788,16 +909,16 @@ const exportPdf = async (): Promise<void> => {
   try {
     if ((window as any).api?.reports?.exportPdf) {
       await (window as any).api.reports.exportPdf({
-      type: 'judgments',
-      params: {
-        caseId: caseId.value || undefined,
-        clientId: clientId.value || undefined,
-        from: from.value || undefined,
-        to: to.value || undefined,
-        q: q.value || undefined,
-        viewMode: viewMode.value
-      }
-    })
+        type: 'judgments',
+        params: {
+          caseId: caseId.value || undefined,
+          clientId: clientId.value || undefined,
+          from: from.value || undefined,
+          to: to.value || undefined,
+          q: q.value || undefined,
+          viewMode: viewMode.value
+        }
+      })
     } else {
       window.print()
     }
@@ -815,16 +936,19 @@ const exportCsv = async (): Promise<void> => {
       'حالة الصك': r.is_deed_registered ? 'مسجل' : 'غير مسجل',
       'درجة الحكم': r.normalized_stage || r.type || '',
       'رقم القضية': r.case_number || '',
-      'المحكمة': r.court || '',
-      'المدعي': r.plaintiff_name || '',
+      المحكمة: r.court || '',
+      المدعي: r.plaintiff_name || '',
       'المدعى عليه': r.defendant_name || '',
       'تاريخ الحكم الميلادي': r.judgment_date || '',
       'تاريخ الحكم الهجري': r.judgment_date_hijri || '',
       'مهلة الاعتراض': r.display_objection_deadline || r.objection_deadline || '',
       'نتيجة الحكم': r.favor || '',
-      'الملاحظات': r.notes || ''
+      الملاحظات: r.notes || ''
     }))
-    const res = await (window as any).api.reports.exportCsv('تقرير_الأحكام_القضائية.csv', exportRows)
+    const res = await (window as any).api.reports.exportCsv(
+      'تقرير_الأحكام_القضائية.csv',
+      exportRows
+    )
     if (res?.csv) {
       const blob = new Blob([res.csv], { type: 'text/csv;charset=utf-8;' })
       const url = URL.createObjectURL(blob)
@@ -920,7 +1044,7 @@ onMounted(async () => {
 :deep(.glass-table th) {
   background: rgba(212, 175, 55, 0.07) !important;
   border-bottom: 1px solid rgba(212, 175, 55, 0.15) !important;
-  color: #D4AF37 !important;
+  color: #d4af37 !important;
 }
 :deep(.glass-table td) {
   border-bottom: 1px solid rgba(212, 175, 55, 0.05) !important;

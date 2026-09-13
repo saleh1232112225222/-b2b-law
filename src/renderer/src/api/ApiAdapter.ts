@@ -1777,6 +1777,10 @@ const api = {
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getPartnerBudgetReport', params)
         : cloudRequest({ method: 'GET', url: '/reports/partner-budget', params }),
+    getBudgetStats: (params?: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('reports:getPartnerBudgetReport', params)
+        : cloudRequest({ method: 'GET', url: '/reports/partner-budget', params }),
     getCaseReport: (params: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('reports:getCaseReport', params)

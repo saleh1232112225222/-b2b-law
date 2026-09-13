@@ -243,8 +243,15 @@
                     إيرادات القضية
                   </div>
                   <div class="text-h5 font-weight-black text-success">
-                    {{ report.kpis.totalIn ?? 0 }}
-                    <span class="text-caption">ر.س</span>
+                    <template v-if="report.kpis.hasFinancialAccess === false">
+                      <span class="text-caption text-gold opacity-40 font-weight-bold"
+                        >غير مصرح</span
+                      >
+                    </template>
+                    <template v-else>
+                      {{ report.kpis.totalIn ?? 0 }}
+                      <span class="text-caption">ر.س</span>
+                    </template>
                   </div>
                 </v-card>
               </v-col>
@@ -262,8 +269,15 @@
                     الرصيد المتبقي
                   </div>
                   <div class="text-h5 font-weight-black text-warning">
-                    {{ report.kpis.balance ?? 0 }}
-                    <span class="text-caption">ر.س</span>
+                    <template v-if="report.kpis.hasFinancialAccess === false">
+                      <span class="text-caption text-gold opacity-40 font-weight-bold"
+                        >غير مصرح</span
+                      >
+                    </template>
+                    <template v-else>
+                      {{ report.kpis.balance ?? 0 }}
+                      <span class="text-caption">ر.س</span>
+                    </template>
                   </div>
                 </v-card>
               </v-col>
@@ -657,7 +671,12 @@ import LucideIcon from '../components/common/LucideIcon.vue'
 interface CaseReportData {
   case: { id: string; case_number: string; status: string; client_name: string; parties: any[] }
   executive?: any
-  kpis: { sessionsTotal: number; totalIn: number; balance: number }
+  kpis: {
+    sessionsTotal: number
+    totalIn: number | null
+    balance: number | null
+    hasFinancialAccess?: boolean
+  }
   timeline: { rows: any[]; pageInfo: any }
   sessions: { rows: any[] }
   activity: { rows: any[] }

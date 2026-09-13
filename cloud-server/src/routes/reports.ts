@@ -1,24 +1,40 @@
 import { Router, Request, Response } from 'express'
 import { query } from '../db/connection'
 import { authMiddleware } from '../middleware/auth'
-import { requirePermission } from '../middleware/permission'
+import {
+  requirePermission,
+  requireAnyPermission,
+  getUserPermissions
+} from '../middleware/permission'
 import { getCompanyId } from '../middleware/tenant'
 
 export const reportsRouter = Router()
 
 reportsRouter.use(authMiddleware)
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
+export function isValidUuid(val: any): boolean {
+  if (typeof val !== 'string') return false
+  return UUID_REGEX.test(val.trim())
+}
+
 reportsRouter.get(
   '/case',
-  requirePermission('export_reports'),
+  requireAnyPermission(['export_reports', 'view_cases']),
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
       const { caseId, from, to } = req.query
-      if (!caseId) {
+      if (!caseId || typeof caseId !== 'string') {
         res.status(400).json({ error: 'معرف القضية مطلوب' })
         return
       }
+      if (!isValidUuid(caseId)) {
+        res.status(400).json({ error: 'معرف القضية غير صالح: يجب أن يكون UUID صحيحاً' })
+        return
+      }
+
       const caseData = await query('SELECT * FROM cases WHERE id = $1 AND company_id = $2', [
         caseId,
         companyId
@@ -28,6 +44,14 @@ reportsRouter.get(
         return
       }
       const caseRow = caseData.rows[0]
+
+      // Financial access separation: view_cases alone must NOT reveal financial movements/KPIs
+      const { userId, roleKey } = (req as any).auth || {}
+      const userPerms = await getUserPermissions(companyId, userId || '', roleKey || '')
+      const hasFinancialAccess =
+        roleKey === 'admin' ||
+        userPerms.includes('view_finances') ||
+        userPerms.includes('export_reports')
 
       const appendDateRange = (
         sql: string,
@@ -71,28 +95,46 @@ reportsRouter.get(
          WHERE company_id = $1
            AND (
              entity_id = $2
-             OR metadata_json ->> 'caseId' = $2
-             OR metadata_json ->> 'case_id' = $2
+             OR (metadata_json IS NOT NULL AND metadata_json ~* ('"(case_id|caseId)"\\s*:\\s*"' || $2 || '"'))
            )`,
         [companyId, String(caseId)],
         'timestamp'
       )
+      const judgmentsFilter = appendDateRange(
+        'SELECT * FROM judgments WHERE case_id = $1 AND company_id = $2',
+        [caseId, companyId],
+        'judgment_date'
+      )
+      const memorandaFilter = appendDateRange(
+        'SELECT * FROM memoranda WHERE case_id = $1 AND company_id = $2',
+        [caseId, companyId],
+        'memo_date'
+      )
 
-      const [sessions, tasks, finances, documents, activityLogs] = await Promise.all([
-        query(`${sessionsFilter.sql} ORDER BY date DESC`, sessionsFilter.values),
-        query(`${tasksFilter.sql} ORDER BY created_at DESC`, tasksFilter.values),
-        query(`${financesFilter.sql} ORDER BY date DESC`, financesFilter.values),
-        query(`${documentsFilter.sql} ORDER BY created_at DESC`, documentsFilter.values),
-        query(`${activityFilter.sql} ORDER BY timestamp DESC LIMIT 50`, activityFilter.values)
-      ])
+      const [sessions, tasks, finances, documents, activityLogs, judgments, memoranda, partiesRes] =
+        await Promise.all([
+          query(`${sessionsFilter.sql} ORDER BY date DESC`, sessionsFilter.values),
+          query(`${tasksFilter.sql} ORDER BY created_at DESC`, tasksFilter.values),
+          hasFinancialAccess
+            ? query(`${financesFilter.sql} ORDER BY date DESC`, financesFilter.values)
+            : Promise.resolve({ rows: [] }),
+          query(`${documentsFilter.sql} ORDER BY created_at DESC`, documentsFilter.values),
+          query(`${activityFilter.sql} ORDER BY timestamp DESC LIMIT 50`, activityFilter.values),
+          query(`${judgmentsFilter.sql} ORDER BY judgment_date DESC`, judgmentsFilter.values),
+          query(`${memorandaFilter.sql} ORDER BY memo_date DESC`, memorandaFilter.values),
+          query('SELECT * FROM case_parties WHERE case_id = $1 AND company_id = $2', [
+            caseId,
+            companyId
+          ])
+        ])
 
-      // Build timeline combining sessions, tasks, documents
+      // Build timeline combining sessions, tasks, documents, judgments
       const timelineRows: any[] = []
       for (const s of sessions.rows) {
         timelineRows.push({
           at: s.date,
           type: 'جلسة',
-          title: s.type || s.session_type || 'جلسة',
+          title: s.notes || s.result || s.type || s.session_type || 'جلسة قضائية',
           id: s.id
         })
       }
@@ -108,61 +150,146 @@ reportsRouter.get(
         timelineRows.push({
           at: d.created_at,
           type: 'مستند',
-          title: d.title || d.file_name || 'مستند',
+          title: d.title || d.name || d.file_name || 'مستند',
           id: d.id
+        })
+      }
+      for (const j of judgments.rows) {
+        timelineRows.push({
+          at: j.judgment_date || j.created_at,
+          type: 'حكم',
+          title: `حكم قضائي: ${j.favor || j.type || 'صادر'}`,
+          id: j.id
         })
       }
       timelineRows.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
 
-      // Calculate KPIs
-      const totalIn = finances.rows.reduce(
-        (sum: number, f: any) => sum + parseFloat(f.amount_in || f.amount || 0),
-        0
-      )
-      const totalOut = finances.rows.reduce(
-        (sum: number, f: any) => sum + parseFloat(f.amount_out || 0),
-        0
-      )
+      // Calculate KPIs accurately - do not allow expenses to fall through to income
+      let totalIn: number | null = null
+      let totalOut: number | null = null
+      let balance: number | null = null
 
-      // Build parties from clients
-      const clientData = await query('SELECT cl.* FROM clients cl WHERE cl.id = $1', [
-        caseRow.client_id
-      ]).catch(() => ({ rows: [] }))
+      if (hasFinancialAccess) {
+        let inSum = 0
+        let outSum = 0
+        for (const f of finances.rows) {
+          const type = String(f.type || '').toLowerCase()
+          const isIncome =
+            type.includes('income') ||
+            type.includes('قبض') ||
+            type.includes('إيراد') ||
+            type.includes('revenue')
+          const isExpense =
+            type.includes('expense') || type.includes('صرف') || type.includes('مصروف')
+          const val = parseFloat(f.total || f.amount || 0) || 0
+
+          if (isIncome && !isExpense) {
+            inSum += val
+          } else if (isExpense && !isIncome) {
+            outSum += val
+          } else if (f.amount_in || f.amount_out) {
+            inSum += parseFloat(f.amount_in || 0) || 0
+            outSum += parseFloat(f.amount_out || 0) || 0
+          }
+        }
+        totalIn = inSum
+        totalOut = outSum
+        balance = inSum - outSum
+      }
+
+      // Build parties (strictly bounded by company_id)
+      const clientData = caseRow.client_id
+        ? await query('SELECT cl.* FROM clients cl WHERE cl.id = $1 AND cl.company_id = $2', [
+            caseRow.client_id,
+            companyId
+          ]).catch(() => ({ rows: [] }))
+        : { rows: [] }
+
+      let parties = partiesRes.rows.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        party_type: p.party_type,
+        role: p.role,
+        id_number: p.id_number,
+        phone: p.phone,
+        nationality: p.nationality
+      }))
+
+      if (parties.length === 0 && clientData.rows.length > 0) {
+        parties = [
+          {
+            id: clientData.rows[0].id,
+            name: clientData.rows[0].name,
+            party_type: 'client',
+            role: 'موكل',
+            id_number: clientData.rows[0].id_number,
+            phone: clientData.rows[0].phone,
+            nationality: clientData.rows[0].nationality
+          }
+        ]
+      }
 
       res.json({
         case: {
           ...caseRow,
           client_name: clientData.rows[0]?.name || caseRow.client_name || '',
-          parties:
-            clientData.rows.length > 0
-              ? [
-                  {
-                    id: clientData.rows[0].id,
-                    name: clientData.rows[0].name,
-                    party_type: 'client'
-                  }
-                ]
-              : []
+          parties
         },
         kpis: {
           sessionsTotal: sessions.rows.length,
+          hasFinancialAccess,
           totalIn,
-          balance: totalIn - totalOut
+          totalOut,
+          totalExpenses: totalOut,
+          balance
         },
         timeline: {
-          rows: timelineRows.slice(0, 20),
-          pageInfo: { page: 1, pageSize: 20, totalRows: timelineRows.length }
+          rows: timelineRows.slice(0, 50),
+          pageInfo: { page: 1, pageSize: 50, totalRows: timelineRows.length }
         },
         sessions: {
           rows: sessions.rows.map((s: any) => ({
             id: s.id,
             date: s.date,
+            time: s.time || '',
+            court_room: s.court_room || '',
             status: s.status || 'مجدول',
-            notes: s.notes || s.result || ''
+            notes: s.notes || s.result || '',
+            result: s.result || ''
+          }))
+        },
+        judgments: {
+          rows: judgments.rows.map((j: any) => ({
+            id: j.id,
+            type: j.type || j.judgment_type || 'حكم',
+            judgment_type: j.judgment_type || j.type || 'حكم',
+            judgment_date: j.judgment_date,
+            created_at: j.created_at,
+            favor: j.favor || 'غير محدد',
+            objection_deadline: j.objection_deadline,
+            notes: j.notes || ''
+          }))
+        },
+        tasks: {
+          rows: tasks.rows.map((t: any) => ({
+            id: t.id,
+            title: t.title || t.task_title || 'مهمة',
+            due_date: t.due_date,
+            priority: t.priority || 'متوسطة',
+            status: t.status || 'pending'
+          }))
+        },
+        memoranda: {
+          rows: memoranda.rows.map((m: any) => ({
+            id: m.id,
+            memo_title: m.memo_title,
+            memo_date: m.memo_date,
+            memo_type: m.memo_type,
+            memo_status: m.memo_status || 'مسودة'
           }))
         },
         activity: {
-          rows: activityLogs.rows.slice(0, 10).map((a: any) => ({
+          rows: activityLogs.rows.slice(0, 50).map((a: any) => ({
             id: a.id,
             timestamp: a.timestamp,
             actor: a.actor || '',
@@ -2047,7 +2174,9 @@ reportsRouter.get(
       }
       if (clientRole && clientRole !== 'الكل') {
         params.push(clientRole)
-        conditions.push(`(c.client_role = $${params.length} OR (c.client_role ILIKE '%' || $${params.length} || '%'))`)
+        conditions.push(
+          `(c.client_role = $${params.length} OR (c.client_role ILIKE '%' || $${params.length} || '%'))`
+        )
       }
 
       const whereClause = conditions.join(' AND ')
@@ -2129,12 +2258,15 @@ reportsRouter.get(
 
       // Weighted success rate: Full Win & Dismissed = 100%, Settled = 75%, Partial = 50%
       const weightedSuccessPoints = fullWin + dismissed + settled * 0.75 + partialWin * 0.5
-      const successRate = closedCases > 0 ? Math.round((weightedSuccessPoints / closedCases) * 1000) / 10 : 0
-      const pureWinRate = closedCases > 0 ? Math.round(((fullWin + dismissed) / closedCases) * 1000) / 10 : 0
+      const successRate =
+        closedCases > 0 ? Math.round((weightedSuccessPoints / closedCases) * 1000) / 10 : 0
+      const pureWinRate =
+        closedCases > 0 ? Math.round(((fullWin + dismissed) / closedCases) * 1000) / 10 : 0
 
       const totalClaimed = parseFloat(r.total_claimed) || 0
       const totalAwarded = parseFloat(r.total_awarded) || 0
-      const financialRecoveryRate = totalClaimed > 0 ? Math.round((totalAwarded / totalClaimed) * 1000) / 10 : 0
+      const financialRecoveryRate =
+        totalClaimed > 0 ? Math.round((totalAwarded / totalClaimed) * 1000) / 10 : 0
       const avgDurationDays = r.avg_duration_days ? Math.round(parseFloat(r.avg_duration_days)) : 0
 
       res.json({
@@ -2413,9 +2545,8 @@ reportsRouter.get(
         params.push(clientId)
       }
       if (lawyerId) {
-        whereSql += ` AND (c.responsible_lawyer_id = $${paramIndex} OR c.assigned_lawyer_id = $${paramIndex})`
+        whereSql += ` AND c.responsible_user_id = $${paramIndex++}`
         params.push(lawyerId)
-        paramIndex++
       }
       if (favor) {
         whereSql += ` AND (j.favor = $${paramIndex} OR j.favor ILIKE $${paramIndex})`
@@ -2453,8 +2584,8 @@ reportsRouter.get(
           c.opponent_name,
           cl.name as client_name
         FROM judgments j
-        JOIN cases c ON j.case_id = c.id
-        LEFT JOIN clients cl ON c.client_id = cl.id
+        JOIN cases c ON j.case_id = c.id AND c.company_id = $1
+        LEFT JOIN clients cl ON c.client_id = cl.id AND cl.company_id = $1
         ${whereSql}
         ORDER BY j.judgment_date DESC, j.created_at DESC, j.id DESC
       `
@@ -2464,7 +2595,14 @@ reportsRouter.get(
       const sanitizeDeedNumber = (val: any) => {
         if (!val) return { isRegistered: false, display: 'غير مسجل', raw: '' }
         const s = String(val).trim()
-        if (!s || s === '---' || s === '-' || s === 'غير مسجل' || s === 'غير محدد' || /^0+$/.test(s)) {
+        if (
+          !s ||
+          s === '---' ||
+          s === '-' ||
+          s === 'غير مسجل' ||
+          s === 'غير محدد' ||
+          /^0+$/.test(s)
+        ) {
           return { isRegistered: false, display: 'غير مسجل', raw: s }
         }
         return { isRegistered: true, display: s, raw: s }
@@ -2486,13 +2624,20 @@ reportsRouter.get(
         r.is_deed_registered = deed.isRegistered
         r.normalized_stage = normalizeStage(r.type)
 
-        let plaintiffName = r.client_role === 'مدعى عليه' ? r.opponent_name || 'غير محدد' : r.client_name || 'غير محدد'
-        let defendantName = r.client_role === 'مدعى عليه' ? r.client_name || 'غير محدد' : r.opponent_name || 'غير محدد'
+        const plaintiffName =
+          r.client_role === 'مدعى عليه'
+            ? r.opponent_name || 'غير محدد'
+            : r.client_name || 'غير محدد'
+        const defendantName =
+          r.client_role === 'مدعى عليه'
+            ? r.client_name || 'غير محدد'
+            : r.opponent_name || 'غير محدد'
         r.plaintiff_name = plaintiffName
         r.defendant_name = defendantName
 
         if (!r.objection_deadline) {
-          r.display_objection_deadline = r.normalized_stage === 'قطعي' ? 'حكم قطعي / نهائي' : 'غير محدد'
+          r.display_objection_deadline =
+            r.normalized_stage === 'قطعي' ? 'حكم قطعي / نهائي' : 'غير محدد'
         } else {
           r.display_objection_deadline = r.objection_deadline
         }
@@ -2544,14 +2689,24 @@ reportsRouter.get(
       const uniqueCaseIds = new Set(uniqueRows.map((r) => r.case_id))
       const preliminaryCount = uniqueRows.filter((r) => r.normalized_stage === 'ابتدائي').length
       const appealCount = uniqueRows.filter((r) => r.normalized_stage === 'استئناف').length
-      const finalCount = uniqueRows.filter((r) => r.normalized_stage === 'قطعي' || r.normalized_stage.includes('نهائي')).length
+      const finalCount = uniqueRows.filter(
+        (r) => r.normalized_stage === 'قطعي' || r.normalized_stage.includes('نهائي')
+      ).length
       const otherStagesCount = uniqueRows.length - (preliminaryCount + appealCount + finalCount)
       const unregisteredDeedsCount = uniqueRows.filter((r) => !r.is_deed_registered).length
 
-      const inFavor = uniqueRows.filter((r) => r.favor?.includes('لصالح') || r.favor?.includes('للموكل') || r.favor?.includes('كلي')).length
-      const against = uniqueRows.filter((r) => r.favor?.includes('ضد') || r.favor?.includes('خصم')).length
-      const settlement = uniqueRows.filter((r) => r.favor?.includes('صلح') || r.favor?.includes('تسوية')).length
-      const partial = uniqueRows.filter((r) => r.favor?.includes('شبه') || r.favor?.includes('جزئي')).length
+      const inFavor = uniqueRows.filter(
+        (r) => r.favor?.includes('لصالح') || r.favor?.includes('للموكل') || r.favor?.includes('كلي')
+      ).length
+      const against = uniqueRows.filter(
+        (r) => r.favor?.includes('ضد') || r.favor?.includes('خصم')
+      ).length
+      const settlement = uniqueRows.filter(
+        (r) => r.favor?.includes('صلح') || r.favor?.includes('تسوية')
+      ).length
+      const partial = uniqueRows.filter(
+        (r) => r.favor?.includes('شبه') || r.favor?.includes('جزئي')
+      ).length
       const unassigned = uniqueRows.filter((r) => !r.favor || r.favor === 'غير محدد').length
       const decided = inFavor + against
       const winRate = decided > 0 ? Math.round((inFavor / decided) * 100) : 0
@@ -2594,7 +2749,9 @@ reportsRouter.get(
       const caseGroups: any[] = []
 
       for (const [cId, jList] of caseJudgmentMap.entries()) {
-        jList.sort((a, b) => String(a.judgment_date || '').localeCompare(String(b.judgment_date || '')))
+        jList.sort((a, b) =>
+          String(a.judgment_date || '').localeCompare(String(b.judgment_date || ''))
+        )
         const base = jList[0]
         const latest = jList[jList.length - 1]
 
@@ -2636,7 +2793,9 @@ reportsRouter.get(
         }
       }
 
-      caseGroups.sort((a, b) => String(b.latest_judgment_date || '').localeCompare(String(a.latest_judgment_date || '')))
+      caseGroups.sort((a, b) =>
+        String(b.latest_judgment_date || '').localeCompare(String(a.latest_judgment_date || ''))
+      )
 
       const viewMode = req.query.viewMode === 'by_case' ? 'by_case' : 'by_judgment'
       let pagedRows: any[] = []
@@ -2720,7 +2879,7 @@ reportsRouter.get(
           COUNT(*) as total_judgments,
           COUNT(*) FILTER (WHERE j.favor ILIKE '%لصالحنا%' OR j.favor ILIKE '%لصالح الموكل%' OR j.favor ILIKE '%كلي%' OR j.favor ILIKE '%جزئي%') as favorable_judgments,
           COUNT(*) FILTER (WHERE j.favor ILIKE '%ضدنا%' OR j.favor ILIKE '%ضد الموكل%' OR j.favor ILIKE '%لصالح الخصم%') as unfavorable_judgments,
-          COUNT(*) FILTER (WHERE j.is_executable = 1) as executable_judgments
+          COUNT(*) FILTER (WHERE (j.is_executable IS TRUE OR (j.is_executable)::text IN ('1', 'true', 't'))) as executable_judgments
         FROM judgments j
         WHERE j.company_id = $1
       `
@@ -2750,116 +2909,270 @@ reportsRouter.get(
     try {
       const companyId = getCompanyId(req)
       const clientId = (req.params.clientId || req.query.clientId || req.query.client_id) as string
-      if (!clientId) {
+      if (!clientId || typeof clientId !== 'string') {
         res.status(400).json({ error: 'معرف العميل مطلوب' })
         return
       }
+      if (!isValidUuid(clientId)) {
+        res.status(400).json({ error: 'معرف العميل غير صالح: يجب أن يكون UUID صحيحاً' })
+        return
+      }
 
-      // Fetch client basic info
-      const clientRes = await query('SELECT * FROM clients WHERE id = $1 AND company_id = $2', [clientId, companyId])
+      // 1. Fetch client basic info (strictly scoped by company_id)
+      const clientRes = await query('SELECT * FROM clients WHERE id = $1 AND company_id = $2', [
+        clientId,
+        companyId
+      ])
+
       if (clientRes.rows.length === 0) {
         res.status(404).json({ error: 'العميل غير موجود' })
         return
       }
       const client = clientRes.rows[0]
 
-      // Fetch cases
+      // 2. Fetch cases (initially paid_amount is 0, will be accurately computed from tied collections below)
       const casesRes = await query(
-        `SELECT c.*, 
-          COALESCE(c.total_fees, c.total_amount, 0) as total_fee,
-          COALESCE(c.paid_amount, 0) as paid_amount,
-          GREATEST(COALESCE(c.total_fees, c.total_amount, 0) - COALESCE(c.paid_amount, 0), 0) as remaining
+        `SELECT c.id, c.case_number, c.case_type, c.status,
+          COALESCE(c.contract_amount, 0) as total_fee,
+          c.opponent_name,
+          COALESCE(c.case_type, 'عامة') as case_type_name,
+          COALESCE(c.status, 'قيد النظر') as status_name,
+          0 as paid_amount,
+          COALESCE(c.contract_amount, 0) as remaining
          FROM cases c
-         WHERE c.client_id = $1 AND c.company_id = $2 AND c.deleted_at IS NULL
+         WHERE c.client_id = $1 AND c.company_id = $2 AND (c.is_archived IS NULL OR c.is_archived = false)
          ORDER BY c.created_at DESC`,
         [clientId, companyId]
       )
 
-      // Fetch services / engagements
+      // 3. Fetch services / legal_engagements (exclude soft-deleted, enforce company_id on all joins)
       const servicesRes = await query(
-        `SELECT e.*,
-          t.name as service_type_name,
-          cat.name as category_name,
-          u.full_name as responsible_name,
-          (e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)) as total_amount,
-          e.paid_amount,
-          GREATEST(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0) - e.paid_amount, 0) as remaining_amount
+        `SELECT e.id, e.case_id, e.engagement_number,
+          COALESCE(e.financial_compensation, 0) as financial_compensation,
+          COALESCE(e.tax, 0) as tax,
+          (COALESCE(e.financial_compensation, 0) + COALESCE(e.tax, 0) + COALESCE(e.late_fee_amount, 0)) as total_amount,
+          COALESCE(e.paid_amount, 0) as paid_amount,
+          GREATEST(COALESCE(e.financial_compensation, 0) + COALESCE(e.tax, 0) + COALESCE(e.late_fee_amount, 0) - COALESCE(e.paid_amount, 0), 0) as remaining_amount,
+          e.finance_status,
+          e.start_date,
+          e.payment_method,
+          e.description,
+          COALESCE(e.installment_count, 1) as installment_count,
+          cat.name_ar as category_name,
+          t.name_ar as service_type_name,
+          emp.name as responsible_name
          FROM legal_engagements e
          LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
          LEFT JOIN legal_service_categories cat ON e.category_id = cat.id
-         LEFT JOIN users u ON e.responsible_lawyer_id = u.id
+         LEFT JOIN employees emp ON e.responsible_lawyer_id = emp.id AND emp.company_id = $2
          WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
          ORDER BY e.created_at DESC`,
         [clientId, companyId]
       )
 
-      // Fetch payments
-      const paymentsRes = await query(
-        `SELECT p.*, e.engagement_number
-         FROM payments p
-         LEFT JOIN legal_engagements e ON p.legal_engagement_id = e.id
-         WHERE (p.client_id = $1 OR e.client_id = $1) AND p.company_id = $2
-         ORDER BY p.payment_date DESC`,
-        [clientId, companyId]
+      // 4. Fetch payments from BOTH payment_history AND finances with row-level deduplication
+      const [paymentHistoryRes, financesPaymentsRes] = await Promise.all([
+        query(
+          `SELECT ph.id, COALESCE(ph.amount, 0) as amount, COALESCE(ph.payment_method, 'تحويل بنكي') as payment_method,
+            ph.received_at as payment_date, ph.voucher_id, ph.notes,
+            e.engagement_number, e.id as engagement_id, e.case_id,
+            t.name_ar as service_type_name,
+            v.voucher_number
+           FROM payment_history ph
+           JOIN legal_engagements e ON ph.legal_engagement_id = e.id AND e.company_id = $2 AND e.deleted_at IS NULL
+           LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+           LEFT JOIN vouchers v ON ph.voucher_id = v.id AND v.company_id = $2
+           WHERE e.client_id = $1 AND ph.company_id = $2
+           ORDER BY ph.received_at DESC`,
+          [clientId, companyId]
+        ),
+        query(
+          `SELECT f.id, COALESCE(f.total, f.amount, 0) as amount,
+            COALESCE(f.payment_method, 'نقدي') as payment_method,
+            f.date as payment_date,
+            f.reference_id as voucher_id,
+            v.voucher_number,
+            f.description as notes,
+            e.engagement_number,
+            e.id as engagement_id,
+            COALESCE(f.case_id, e.case_id) as case_id,
+            t.name_ar as service_type_name
+           FROM finances f
+           LEFT JOIN legal_engagements e ON f.legal_engagement_id = e.id AND e.company_id = $2 AND e.deleted_at IS NULL
+           LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
+           LEFT JOIN vouchers v ON (f.reference_id = v.id::text OR f.reference_id = v.voucher_number) AND v.company_id = $2
+           WHERE (f.client_id = $1 OR e.client_id = $1 OR f.case_id IN (SELECT id FROM cases WHERE client_id = $1 AND company_id = $2))
+             AND f.company_id = $2
+             AND (f.type ILIKE '%income%' OR f.type ILIKE '%قبض%' OR f.type ILIKE '%إيراد%' OR f.type ILIKE '%revenue%')
+           ORDER BY f.date DESC`,
+          [clientId, companyId]
+        )
+      ])
+
+      const knownVoucherIds = new Set<string>()
+      const knownVoucherNumbers = new Set<string>()
+      const knownEngagementSignatures = new Set<string>()
+      const payments: any[] = []
+
+      for (const ph of paymentHistoryRes.rows) {
+        payments.push({
+          id: ph.id,
+          amount: Number(ph.amount || 0),
+          payment_method: ph.payment_method || 'تحويل بنكي',
+          payment_date: ph.payment_date,
+          voucher_id: ph.voucher_id,
+          voucher_number: ph.voucher_number,
+          notes: ph.notes,
+          engagement_number: ph.engagement_number,
+          engagement_id: ph.engagement_id,
+          case_id: ph.case_id,
+          service_type_name: ph.service_type_name,
+          source: 'payment_history'
+        })
+        if (ph.voucher_id) knownVoucherIds.add(String(ph.voucher_id))
+        if (ph.id) knownVoucherIds.add(String(ph.id))
+        if (ph.voucher_number) knownVoucherNumbers.add(String(ph.voucher_number))
+        if (ph.engagement_id && ph.amount) {
+          const dateStr = ph.payment_date ? String(ph.payment_date).substring(0, 10) : ''
+          knownEngagementSignatures.add(`${ph.engagement_id}_${Number(ph.amount)}_${dateStr}`)
+        }
+      }
+
+      for (const f of financesPaymentsRes.rows) {
+        const refId = f.voucher_id ? String(f.voucher_id) : ''
+        const vNum = f.voucher_number ? String(f.voucher_number) : ''
+        const dateStr = f.payment_date ? String(f.payment_date).substring(0, 10) : ''
+        const sig = `${f.engagement_id || ''}_${Number(f.amount)}_${dateStr}`
+
+        const isDup =
+          (refId && (knownVoucherIds.has(refId) || knownVoucherNumbers.has(refId))) ||
+          (vNum && (knownVoucherNumbers.has(vNum) || knownVoucherIds.has(vNum))) ||
+          (f.engagement_id && knownEngagementSignatures.has(sig))
+
+        if (!isDup) {
+          payments.push({
+            id: f.id,
+            amount: Number(f.amount || 0),
+            payment_method: f.payment_method || 'نقدي',
+            payment_date: f.payment_date,
+            voucher_id: f.voucher_id,
+            voucher_number: f.voucher_number,
+            notes: f.notes,
+            engagement_number: f.engagement_number,
+            engagement_id: f.engagement_id,
+            case_id: f.case_id,
+            service_type_name: f.service_type_name,
+            source: 'finances'
+          })
+        }
+      }
+
+      payments.sort(
+        (a, b) => new Date(b.payment_date || 0).getTime() - new Date(a.payment_date || 0).getTime()
       )
 
-      // Fetch invoices
+      // Calculate each case's paid_amount and remaining from all collections
+      for (const c of casesRes.rows) {
+        const casePayments = payments.filter(
+          (p: any) => p.case_id && String(p.case_id) === String(c.id)
+        )
+        const cPaid = casePayments.reduce((acc: number, p: any) => acc + Number(p.amount || 0), 0)
+        c.paid_amount = cPaid
+        c.remaining = Math.max(0, Number(c.total_fee || 0) - cPaid)
+      }
+
+      // 5. Fetch invoices
       const invoicesRes = await query(
-        `SELECT i.* FROM invoices i
+        `SELECT i.id, i.invoice_number, i.date,
+          COALESCE(i.subtotal, i.total, 0) as amount,
+          COALESCE(i.tax_amount, 0) as vat_amount,
+          COALESCE(i.total, 0) as total_amount,
+          COALESCE(i.status, 'draft') as status,
+          COALESCE(i.notes, '') as description
+         FROM invoices i
          WHERE i.client_id = $1 AND i.company_id = $2
-         ORDER BY i.created_at DESC`,
+         ORDER BY i.date DESC`,
         [clientId, companyId]
       )
 
-      // Fetch vouchers
+      // 6. Fetch vouchers
       const vouchersRes = await query(
-        `SELECT v.* FROM payment_vouchers v
+        `SELECT v.id, v.voucher_number, v.date, v.type,
+          COALESCE(v.amount, 0) as amount,
+          COALESCE(v.notes, '') as description
+         FROM vouchers v
          WHERE v.client_id = $1 AND v.company_id = $2
-         ORDER BY v.created_at DESC`,
+         ORDER BY v.date DESC`,
         [clientId, companyId]
       )
 
-      // Fetch installments / payment schedules
-      const installmentsRes = await query(
-        `SELECT ps.*, e.engagement_number
+      // 7. Fetch installment schedules
+      const schedulesRes = await query(
+        `SELECT ps.id, ps.installment_number, ps.title,
+          COALESCE(ps.amount, 0) as amount,
+          ps.due_date,
+          COALESCE(ps.paid_amount, 0) as paid_amount,
+          COALESCE(ps.status, 'pending') as status,
+          e.engagement_number
          FROM payment_schedules ps
          JOIN legal_engagements e ON ps.legal_engagement_id = e.id
-         WHERE e.client_id = $1 AND ps.company_id = $2
+         WHERE e.client_id = $1 AND ps.company_id = $2 AND e.deleted_at IS NULL
          ORDER BY ps.due_date ASC`,
         [clientId, companyId]
       )
 
-      // First deal date
-      const firstDealDate = casesRes.rows[casesRes.rows.length - 1]?.created_at ||
+      // 8. First deal date
+      const firstDealDate =
+        casesRes.rows[casesRes.rows.length - 1]?.created_at ||
         servicesRes.rows[servicesRes.rows.length - 1]?.start_date ||
         client.created_at
 
-      // Financial totals
-      const totalInvoiced = invoicesRes.rows.reduce((s: number, r: any) => s + Number(r.total_amount || 0), 0)
-      const totalPaid = paymentsRes.rows.reduce((s: number, r: any) => s + Number(r.amount || 0), 0)
-      const totalBalance = Math.max(0, totalInvoiced - totalPaid)
-      const overdueAmount = installmentsRes.rows
-        .filter((i: any) => i.status !== 'paid' && i.due_date && new Date(i.due_date) < new Date())
-        .reduce((s: number, r: any) => s + (Number(r.amount || 0) - Number(r.paid_amount || 0)), 0)
+      // 9. Summary calculation
+      const totalServicesAmount = servicesRes.rows.reduce(
+        (sum: number, s: any) => sum + Number(s.total_amount || 0),
+        0
+      )
+      const totalServicesPaid = servicesRes.rows.reduce(
+        (sum: number, s: any) => sum + Number(s.paid_amount || 0),
+        0
+      )
+      const totalServicesRemaining = servicesRes.rows.reduce(
+        (sum: number, s: any) => sum + Number(s.remaining_amount || 0),
+        0
+      )
+      const totalPayments = payments.reduce((sum: number, p: any) => sum + Number(p.amount || 0), 0)
+      const pendingInstallments = schedulesRes.rows.filter(
+        (s: any) => s.status === 'pending'
+      ).length
+      const overdueInstallments = schedulesRes.rows.filter(
+        (s: any) =>
+          s.status === 'overdue' ||
+          (s.status !== 'paid' && s.due_date && new Date(s.due_date) < new Date())
+      ).length
+
+      const summary = {
+        total_cases: casesRes.rows.length,
+        total_services: servicesRes.rows.length,
+        total_services_amount: totalServicesAmount,
+        total_services_paid: totalServicesPaid,
+        total_services_remaining: totalServicesRemaining,
+        total_payments: totalPayments,
+        total_invoices: invoicesRes.rows.length,
+        total_vouchers: vouchersRes.rows.length,
+        pending_installments: pendingInstallments,
+        overdue_installments: overdueInstallments
+      }
 
       res.json({
         client,
         first_deal_date: firstDealDate,
-        summary: {
-          total_invoiced: totalInvoiced,
-          total_paid: totalPaid,
-          balance: totalBalance,
-          overdue_amount: overdueAmount,
-          cases_count: casesRes.rows.length,
-          services_count: servicesRes.rows.length,
-          active_installments: installmentsRes.rows.filter((i: any) => i.status !== 'paid').length
-        },
         cases: casesRes.rows,
         services: servicesRes.rows,
-        payments: paymentsRes.rows,
+        payments,
         invoices: invoicesRes.rows,
         vouchers: vouchersRes.rows,
-        installments: installmentsRes.rows
+        installment_schedules: schedulesRes.rows,
+        summary
       })
     } catch (err) {
       console.error('[REPORTS] client-financial error:', err)
@@ -2877,6 +3190,22 @@ reportsRouter.get(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
+
+      if (req.query.month !== undefined) {
+        const m = Number(req.query.month)
+        if (!Number.isInteger(m) || m < 1 || m > 12) {
+          res.status(400).json({ error: 'الشهر غير صالح: يجب أن يكون عدداً صحيحاً بين 1 و 12' })
+          return
+        }
+      }
+      if (req.query.year !== undefined) {
+        const y = Number(req.query.year)
+        if (!Number.isInteger(y) || y < 1900 || y > 2100) {
+          res.status(400).json({ error: 'السنة غير صالحة: يجب أن تكون سنة صحيحة بين 1900 و 2100' })
+          return
+        }
+      }
+
       const now = new Date()
       const month = parseInt((req.query.month as string) || String(now.getMonth() + 1), 10)
       const year = parseInt((req.query.year as string) || String(now.getFullYear()), 10)
@@ -2886,52 +3215,88 @@ reportsRouter.get(
       const nextYear = month === 12 ? year + 1 : year
       const endDate = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`
 
-      // 1. Actual Income (Payments collected this month)
+      // 1. Canonical Actual Income (Finances + non-overlapping Vouchers, strictly scoped by company_id)
       const incomeRes = await query(
-        `SELECT COALESCE(SUM(amount), 0) as total_income
-         FROM payments
-         WHERE company_id = $1 AND payment_date >= $2 AND payment_date < $3`,
+        `SELECT COALESCE(SUM(amount), 0) as total_income FROM (
+           SELECT COALESCE(total, amount, 0) as amount
+           FROM finances
+           WHERE company_id = $1
+             AND (type ILIKE '%income%' OR type ILIKE '%قبض%' OR type ILIKE '%ايراد%' OR type ILIKE '%revenue%')
+             AND date >= $2 AND date < $3
+           UNION ALL
+           SELECT v.amount
+           FROM vouchers v
+           WHERE v.company_id = $1
+             AND (v.type ILIKE '%قبض%' OR v.type ILIKE '%receipt%')
+             AND v.date >= $2 AND v.date < $3
+             AND NOT EXISTS (
+               SELECT 1 FROM finances f
+               WHERE f.company_id = $1
+                 AND (f.reference_id = v.id::text OR f.id::text = v.linked_transaction_id)
+             )
+         ) all_income`,
         [companyId, startDate, endDate]
       )
       const income = Number(incomeRes.rows[0]?.total_income || 0)
 
-      // 2. Actual Expenses (Recorded expenses this month)
-      const expenseRes = await query(
-        `SELECT COALESCE(SUM(amount), 0) as total_expense
-         FROM office_expenses
-         WHERE company_id = $1 AND expense_date >= $2 AND expense_date < $3`,
-        [companyId, startDate, endDate]
-      )
-      const expense = Number(expenseRes.rows[0]?.total_expense || 0)
-
-      // 3. Planned Budget
+      // 2. Planned Budget
       const budgetRes = await query(
         `SELECT 
-          COALESCE(SUM(b.amount), 0) as total_budgeted
+          COALESCE(SUM(b.budgeted_amount), 0) as total_budgeted
          FROM office_budgets b
          WHERE b.company_id = $1 AND b.month = $2 AND b.year = $3`,
         [companyId, month, year]
       )
       const budgeted = Number(budgetRes.rows[0]?.total_budgeted || 0)
 
-      // 4. Categories Stats (Expenses vs Budget limit by category)
+      // 3. Categories Stats & Canonical Expenses (Derived from the EXACT SAME source so sum(categories) strictly equals expense)
       const catStatsRes = await query(
-        `SELECT 
-          COALESCE(cat.id, 'uncategorized') as category_id,
-          COALESCE(cat.name, 'مصروفات عامة') as category_name,
-          COALESCE(b.amount, 0) as budget_limit,
-          COALESCE(SUM(e.amount), 0) as actual_amount
-         FROM office_expenses e
-         LEFT JOIN expense_categories cat ON e.category_id = cat.id
-         LEFT JOIN office_budgets b ON b.category_id = cat.id AND b.month = $2 AND b.year = $3 AND b.company_id = $1
-         WHERE e.company_id = $1 AND e.expense_date >= $4 AND e.expense_date < $5
-         GROUP BY cat.id, cat.name, b.amount`,
-        [companyId, month, year, startDate, endDate]
+        `WITH combined_expenses AS (
+           SELECT
+             COALESCE(NULLIF(TRIM(e.category), ''), 'مصروفات عامة') as category,
+             e.amount
+           FROM office_expenses e
+           WHERE e.company_id = $1 AND e.expense_date >= $2 AND e.expense_date < $3
+           UNION ALL
+           SELECT
+             COALESCE(NULLIF(TRIM(f.category), ''), 'مصروفات تشغيلية') as category,
+             COALESCE(f.total, f.amount, 0) as amount
+           FROM finances f
+           WHERE f.company_id = $1
+             AND (f.type ILIKE '%expense%' OR f.type ILIKE '%صرف%' OR f.type ILIKE '%مصروف%')
+             AND f.date >= $2 AND f.date < $3
+             AND NOT EXISTS (
+               SELECT 1 FROM office_expenses e
+               WHERE e.company_id = $1
+                 AND (e.id::text = f.reference_id OR e.receipt_number = f.reference_id)
+             )
+         ),
+         all_categories AS (
+           SELECT DISTINCT category FROM combined_expenses
+           UNION
+           SELECT DISTINCT category FROM office_budgets WHERE company_id = $1 AND month = $4 AND year = $5
+         ),
+         actual_by_cat AS (
+           SELECT category, SUM(amount) as actual_amount
+           FROM combined_expenses
+           GROUP BY category
+         )
+         SELECT
+           c.category as category_id,
+           c.category as category_name,
+           COALESCE(b.budgeted_amount, 0) as budget_limit,
+           COALESCE(a.actual_amount, 0) as actual_amount
+         FROM all_categories c
+         LEFT JOIN actual_by_cat a ON a.category = c.category
+         LEFT JOIN office_budgets b ON b.category = c.category AND b.company_id = $1 AND b.month = $4 AND b.year = $5
+         ORDER BY actual_amount DESC, c.category ASC`,
+        [companyId, startDate, endDate, month, year]
       )
+
       const categoriesStats = catStatsRes.rows.map((r: any) => {
         const actual = Number(r.actual_amount || 0)
         const limit = Number(r.budget_limit || 0)
-        const percent = limit > 0 ? Math.round((actual / limit) * 100) : (actual > 0 ? 100 : 0)
+        const percent = limit > 0 ? Math.round((actual / limit) * 100) : actual > 0 ? 100 : 0
         return {
           category_id: r.category_id,
           category_name: r.category_name,
@@ -2941,25 +3306,59 @@ reportsRouter.get(
         }
       })
 
-      // 5. Lawyer Contributions
-      const lawyersRes = await query(
-        `SELECT 
-          u.id as lawyer_id,
-          u.full_name as lawyer_name,
-          COUNT(e.id) as works_count,
-          COALESCE(SUM(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)), 0) as total_contracts_amount,
-          COALESCE(SUM(e.paid_amount), 0) as collected_amount
-         FROM users u
-         LEFT JOIN legal_engagements e ON (e.responsible_lawyer_id = u.id AND e.company_id = $1 AND e.start_date >= $2 AND e.start_date < $3)
-         WHERE u.company_id = $1 AND u.role IN ('lawyer', 'consultant', 'partner', 'admin')
-         GROUP BY u.id, u.full_name
-         ORDER BY collected_amount DESC`,
+      // Total expense is mathematically identical to the sum of all category actual amounts
+      const expense = categoriesStats.reduce((sum: number, c: any) => sum + c.actual_amount, 0)
+
+      // 4. Partner Contributions & Works (Strictly from partners and partner_contributions tables)
+      const partnersRes = await query(
+        `SELECT
+           p.id as partner_id,
+           p.name as lawyer_name,
+           p.role,
+           p.share_percentage,
+           COALESCE(eng.works_count, 0) + COALESCE(contrib.contrib_count, 0) as works_count,
+           COALESCE(eng.total_contracts_amount, 0) as total_contracts_amount,
+           COALESCE(eng.collected_amount, 0) + COALESCE(contrib.total_contrib, 0) as collected_amount
+         FROM partners p
+         LEFT JOIN (
+           SELECT
+             e.responsible_lawyer_id,
+             COUNT(e.id) as works_count,
+             SUM(COALESCE(e.financial_compensation, 0) + COALESCE(e.tax, 0) + COALESCE(e.late_fee_amount, 0)) as total_contracts_amount,
+             SUM(COALESCE(e.paid_amount, 0)) as collected_amount
+           FROM legal_engagements e
+           WHERE e.company_id = $1
+             AND e.start_date >= $2 AND e.start_date < $3
+             AND e.deleted_at IS NULL
+             AND e.responsible_lawyer_id IS NOT NULL
+           GROUP BY e.responsible_lawyer_id
+         ) eng ON p.employee_id IS NOT NULL AND eng.responsible_lawyer_id = p.employee_id
+         LEFT JOIN (
+           SELECT
+             pc.partner_id,
+             COUNT(pc.id) as contrib_count,
+             SUM(COALESCE(pc.amount, 0)) as total_contrib
+           FROM partner_contributions pc
+           WHERE pc.company_id = $1
+             AND pc.contribution_date >= $2 AND pc.contribution_date < $3
+           GROUP BY pc.partner_id
+         ) contrib ON contrib.partner_id = p.id
+         WHERE p.company_id = $1 AND (p.is_active = true OR p.is_active IS NULL)
+         ORDER BY p.name ASC`,
         [companyId, startDate, endDate]
       )
-      const totalCollected = lawyersRes.rows.reduce((s: number, r: any) => s + Number(r.collected_amount || 0), 0)
-      const lawyer_contributions = lawyersRes.rows.map((r: any) => {
+
+      const totalCollected = partnersRes.rows.reduce(
+        (s: number, r: any) => s + Number(r.collected_amount || 0),
+        0
+      )
+
+      const lawyer_contributions = partnersRes.rows.map((r: any) => {
         const collected = Number(r.collected_amount || 0)
-        const percent = totalCollected > 0 ? Math.round((collected / totalCollected) * 100) : 0
+        const percent =
+          totalCollected > 0
+            ? Math.round((collected / totalCollected) * 100)
+            : Math.round(Number(r.share_percentage || 0))
         return {
           lawyer_name: r.lawyer_name,
           works_count: parseInt(r.works_count, 10) || 0,
@@ -2973,6 +3372,7 @@ reportsRouter.get(
         income,
         expense,
         budgeted,
+        budget: budgeted,
         categoriesStats,
         lawyer_contributions
       })

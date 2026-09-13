@@ -222,8 +222,10 @@ export const useFinanceStore = defineStore('finance', () => {
       year = temp
     }
     try {
-      const res = await (window.api as any).officeManagement?.getBudgetStats?.({ month, year }) ||
-        await (window.api as any).reports?.getBudgetStats?.({ month, year })
+      const res =
+        (await (window.api as any).reports?.getPartnerBudgetReport?.({ month, year })) ||
+        (await (window.api as any).reports?.getBudgetStats?.({ month, year })) ||
+        (await (window.api as any).officeManagement?.getBudgetStats?.({ month, year }))
       if (res) {
         budgetStats.value = res
       }

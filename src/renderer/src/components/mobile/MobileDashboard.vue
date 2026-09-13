@@ -1118,6 +1118,17 @@ const selectedDateLabel = computed(() => {
   }
 })
 
+interface DashboardCalendarCell {
+  day: number
+  iso: string
+  inMonth: boolean
+  isToday: boolean
+  isSelected: boolean
+  hasSession: boolean
+  hasTask: boolean
+  hasDeadline: boolean
+}
+
 // Current Week Cells (Saturday to Friday)
 const weekCells = computed(() => {
   const anchor = new Date(calendarAnchor.value)
@@ -1126,7 +1137,7 @@ const weekCells = computed(() => {
   const start = new Date(anchor)
   start.setDate(start.getDate() - dayOfWeek)
 
-  const cells = []
+  const cells: DashboardCalendarCell[] = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
@@ -1165,7 +1176,7 @@ const monthCells = computed(() => {
 
   const todayIso = new Date().toLocaleDateString('en-CA')
 
-  const cells = []
+  const cells: DashboardCalendarCell[] = []
   for (let i = 0; i < 35; i++) {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
