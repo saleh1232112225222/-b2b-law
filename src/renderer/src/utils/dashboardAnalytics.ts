@@ -31,6 +31,11 @@ export interface ImportantDateItem {
   title: string
   subtitle?: string
   color: 'primary' | 'warning' | 'error' | 'success' | 'info' | 'grey'
+  case_id?: string
+  case_number?: string
+  najiz_url?: string
+  meeting_link?: string
+  raw?: any
 }
 
 const toIsoDate = (d: Date): string => d.toLocaleDateString('en-CA')
@@ -171,6 +176,7 @@ export const computeImportantDates = (input: {
     if (!inRange(s.date)) continue
     const isPast = parseDate(s.date) ? parseDate(s.date)!.getTime() < Date.now() : false
     const color = s.status === 'قادمة' ? 'primary' : isPast ? 'grey' : 'info'
+    const najizUrl = String((s as any).najiz_url || (s as any).case_najiz_url || s.meeting_link || '').trim()
     items.push({
       type: 'session',
       date: s.date,
@@ -178,7 +184,12 @@ export const computeImportantDates = (input: {
       subtitle:
         `${s.time ? `الوقت: ${s.time}` : ''} ${s.client_name ? `| الموكل: ${s.client_name}` : ''}`.trim() ||
         undefined,
-      color
+      color,
+      case_id: s.case_id,
+      case_number: s.case_number,
+      najiz_url: najizUrl,
+      meeting_link: s.meeting_link,
+      raw: s
     })
   }
 
@@ -192,7 +203,11 @@ export const computeImportantDates = (input: {
       date: d,
       title: `مهمة: ${t.title}`,
       subtitle: t.case_number ? `قضية: ${t.case_number}` : undefined,
-      color
+      color,
+      case_id: (t as any).case_id,
+      case_number: t.case_number,
+      najiz_url: (t as any).najiz_url || '',
+      raw: t
     })
   }
 

@@ -499,9 +499,23 @@
                     {{ s.time || '10:00' }} {{ s.court_room ? `· ${s.court_room}` : '' }}
                   </div>
                 </div>
-                <v-btn size="x-small" variant="tonal" color="accent" class="font-weight-bold ms-2">
-                  عرض
-                </v-btn>
+                <div class="d-flex align-center gap-1 shrink-0 ms-2">
+                  <v-btn
+                    size="x-small"
+                    variant="flat"
+                    color="success"
+                    class="font-weight-bold rounded-pill px-2 d-flex align-center shadow-sm"
+                    style="height: 24px; background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
+                    :title="'فتح ملف القضية في منصة ناجز (صفحة جديدة)'"
+                    @click.stop="openNajizLink(s)"
+                  >
+                    <LucideIcon name="external-link" :size="11" class="me-1" />
+                    <span>رابط ناجز</span>
+                  </v-btn>
+                  <v-btn size="x-small" variant="tonal" color="accent" class="font-weight-bold">
+                    عرض
+                  </v-btn>
+                </div>
               </div>
             </div>
           </div>
@@ -1123,6 +1137,47 @@ const resetToToday = () => {
 const openDirections = (courtName: string) => {
   const query = encodeURIComponent(courtName || 'المحكمة')
   window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
+}
+
+const openNajizLink = (s: any) => {
+  let url = String(s?.najiz_url || s?.case_najiz_url || '').trim()
+
+  if (!url) {
+    const list = Array.isArray(casesStore.cases) ? casesStore.cases : []
+    const matched = list.find(
+      (c: any) =>
+        (s?.case_id && String(c.id) === String(s.case_id)) ||
+        (s?.case_number && String(c.case_number || '').trim() === String(s.case_number || '').trim())
+    )
+    if (matched?.najiz_url) {
+      url = String(matched.najiz_url).trim()
+    }
+  }
+
+  if (!url && s?.meeting_link) {
+    url = String(s.meeting_link).trim()
+  }
+
+  if (!url) {
+    url = 'https://najiz.sa/applications/lawsuit/cases'
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`
+  }
+
+  if (typeof window !== 'undefined') {
+    const api = (window as any).api
+    if (api?.system?.openExternal) {
+      try {
+        api.system.openExternal(url)
+        return
+      } catch (e) {
+        console.warn('[MobileDashboard] openExternal failed, fallback to window.open', e)
+      }
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 }
 
 onMounted(async () => {

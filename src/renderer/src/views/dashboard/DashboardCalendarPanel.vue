@@ -97,9 +97,22 @@
                 :key="it.type + it.date + it.title"
                 class="px-3 py-2 border-b text-right"
               >
-                <v-list-item-title class="font-weight-bold text-body-2 detail-title mb-1">{{
-                  it.title
-                }}</v-list-item-title>
+                <div class="d-flex align-center justify-space-between flex-wrap ga-2 mb-1">
+                  <v-list-item-title class="font-weight-bold text-body-2 detail-title mb-0">
+                    {{ it.title }}
+                  </v-list-item-title>
+                  <v-btn
+                    v-if="hasNajizLink(it)"
+                    size="x-small"
+                    variant="flat"
+                    class="najiz-link-btn rounded-pill font-weight-black px-2.5 d-flex align-center shadow-sm"
+                    :title="'فتح ملف القضية في منصة ناجز (صفحة جديدة)'"
+                    @click.stop="openNajizLink(it)"
+                  >
+                    <LucideIcon name="external-link" :size="12" class="me-1" />
+                    <span>رابط ناجز</span>
+                  </v-btn>
+                </div>
                 <v-list-item-subtitle
                   v-if="it.subtitle"
                   class="text-caption detail-subtitle"
@@ -120,6 +133,7 @@
 import { ref, computed } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
 import { gregorianIsoToHijriIso } from '../../utils/hijriIso'
+import { useCasesStore } from '../../stores/cases'
 
 const props = defineProps<{
   calendarMonthLabel: string
@@ -137,6 +151,7 @@ defineEmits<{
   (e: 'select-date', value: string): void
 }>()
 
+const casesStore = useCasesStore()
 const calendarView = ref<'month' | 'week' | 'day'>('month')
 
 const filteredCells = computed(() => {
@@ -156,6 +171,51 @@ const filteredCells = computed(() => {
 
   return props.calendarCells
 })
+
+const hasNajizLink = (it: any): boolean => {
+  return Boolean(it?.case_number || it?.najiz_url || it?.type === 'session')
+}
+
+const openNajizLink = (it: any) => {
+  let url = String(it?.najiz_url || it?.raw?.najiz_url || it?.raw?.case_najiz_url || '').trim()
+
+  if (!url) {
+    const list = Array.isArray(casesStore.cases) ? casesStore.cases : []
+    const matched = list.find(
+      (c: any) =>
+        (it?.case_id && String(c.id) === String(it.case_id)) ||
+        (it?.case_number && String(c.case_number || '').trim() === String(it.case_number || '').trim())
+    )
+    if (matched?.najiz_url) {
+      url = String(matched.najiz_url).trim()
+    }
+  }
+
+  if (!url && it?.meeting_link) {
+    url = String(it.meeting_link).trim()
+  }
+
+  if (!url) {
+    url = 'https://najiz.sa/applications/lawsuit/cases'
+  }
+
+  if (!/^https?:\/\//i.test(url)) {
+    url = `https://${url}`
+  }
+
+  if (typeof window !== 'undefined') {
+    const api = (window as any).api
+    if (api?.system?.openExternal) {
+      try {
+        api.system.openExternal(url)
+        return
+      } catch (e) {
+        console.warn('[DashboardCalendarPanel] openExternal failed, fallback to window.open', e)
+      }
+    }
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
+}
 </script>
 
 <style scoped>
@@ -298,10 +358,35 @@ const filteredCells = computed(() => {
   color: #9EACBD !important;
 }
 
+.najiz-link-btn {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+  color: #ffffff !important;
+  font-size: 0.72rem !important;
+  letter-spacing: 0.2px;
+  height: 24px !important;
+  padding: 0 10px !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.25);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  cursor: pointer;
+}
+
+.najiz-link-btn:hover {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.35);
+}
+
 @media (max-width: 768px) {
   .calendar-cell-mini {
     min-height: 36px !important;
     min-width: 36px !important;
+  }
+
+  .najiz-link-btn {
+    height: 22px !important;
+    padding: 0 8px !important;
+    font-size: 0.68rem !important;
   }
 
   .v-window-item .v-row .v-col,
