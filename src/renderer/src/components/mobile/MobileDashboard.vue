@@ -334,6 +334,18 @@
                 تفاصيل
               </v-btn>
               <v-btn
+                size="small"
+                variant="flat"
+                color="success"
+                class="rounded-lg font-weight-bold d-flex align-center shadow-sm text-white"
+                style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
+                title="فتح ملف القضية في منصة ناجز (صفحة جديدة)"
+                @click="openNajizLink(session.raw || session)"
+              >
+                <LucideIcon name="external-link" :size="13" class="me-1" />
+                <span>رابط ناجز</span>
+              </v-btn>
+              <v-btn
                 v-if="session.client_phone"
                 size="small"
                 variant="outlined"
@@ -677,7 +689,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useClientsStore } from '../../stores/clients'
 import { useCasesStore } from '../../stores/cases'
@@ -690,6 +702,7 @@ import ActivationJourneyCard from '../subscription/ActivationJourneyCard.vue'
 import { safeArray } from '../../utils/safe'
 import { getCasePipelineStage } from '../../utils/legalConstants'
 import { gregorianIsoToHijriIso } from '../../utils/hijriIso'
+import { getMonthRange } from '../../utils/dashboardAnalytics'
 
 const router = useRouter()
 const clientsStore = useClientsStore()
@@ -941,16 +954,74 @@ const priorityItems = computed(() => {
   return items
 })
 
+// Helper: Extract normalized 'YYYY-MM-DD' from any date format safely
+const getSessionIsoDate = (s: any): string => {
+  const raw = s?.date || s?.session_date || ''
+  if (!raw) return ''
+  if (raw instanceof Date) {
+    return raw.toLocaleDateString('en-CA')
+  }
+  const str = String(raw).trim()
+  if (str.includes('T')) return str.split('T')[0]
+  if (str.includes(' ')) return str.split(' ')[0]
+  return str
+}
+
+// Month Sessions from Server (Loaded for the visible month/week range)
+const monthSessions = ref<any[]>([])
+
+const refreshMonthSessions = async (): Promise<void> => {
+  try {
+    const anchor = calendarAnchor.value || new Date()
+    const { from, to } = getMonthRange(anchor)
+    const api = (window as any).api
+    if (api?.sessions?.list) {
+      const data = await api.sessions.list({
+        page: 1,
+        pageSize: 200,
+        from,
+        to,
+        status: 'الكل'
+      })
+      monthSessions.value = Array.isArray(data) ? data : []
+    }
+  } catch (e) {
+    console.error('[MobileDashboard] month sessions refresh failed:', e)
+    monthSessions.value = []
+  }
+}
+
+// Unified pool of sessions from both month query and general store
+const allSessionsPool = computed(() => {
+  const pool = [...safeArray(monthSessions.value), ...safeArray(sessionsStore.sessions)]
+  const seen = new Set<string>()
+  const list: any[] = []
+  for (const s of pool) {
+    if (!s) continue
+    const key = String(s.id || '') || `${getSessionIsoDate(s)}_${s.case_id || ''}_${s.time || ''}`
+    if (seen.has(key)) continue
+    seen.add(key)
+    list.push(s)
+  }
+  return list
+})
+
+// Unified pool of tasks
+const allTasksPool = computed(() => {
+  const pending = safeArray(tasksStore.pendingTasks)
+  return pending.length ? pending : safeArray(tasksStore.tasks)
+})
+
 // Display Sessions (REAL UPCOMING SESSIONS ONLY)
 const displaySessions = computed(() => {
-  const sessions = safeArray(sessionsStore.sessions)
-  const now = new Date()
+  const sessions = allSessionsPool.value
+  const todayIso = new Date().toLocaleDateString('en-CA')
 
-  // Filter ONLY future/upcoming sessions whose status is NOT ended ('منتهية', 'مكتملة', 'ملغاة', 'منعقدة')
+  // Filter future/upcoming sessions whose status is NOT ended
   const upcomingOnly = sessions.filter((s: any) => {
-    if (!s.session_date) return false
-    const d = new Date(s.session_date)
-    const isFuture = d >= now
+    const sDate = getSessionIsoDate(s)
+    if (!sDate) return false
+    const isFuture = sDate >= todayIso
     const isNotEnded =
       s.status !== 'منتهية' &&
       s.status !== 'مكتملة' &&
@@ -959,26 +1030,34 @@ const displaySessions = computed(() => {
     return isFuture && isNotEnded
   })
 
-  // Sort upcoming sessions ascending by date (earliest upcoming session first)
-  upcomingOnly.sort(
-    (a: any, b: any) => new Date(a.session_date).getTime() - new Date(b.session_date).getTime()
-  )
+  // Sort upcoming sessions ascending by date & time
+  upcomingOnly.sort((a: any, b: any) => {
+    const dateA = getSessionIsoDate(a) + ' ' + (a.time || '00:00')
+    const dateB = getSessionIsoDate(b) + ' ' + (b.time || '00:00')
+    return dateA.localeCompare(dateB)
+  })
 
-  return upcomingOnly.slice(0, 3).map((s: any) => {
-    const dt = new Date(s.session_date)
+  return upcomingOnly.slice(0, 5).map((s: any) => {
+    const sDate = getSessionIsoDate(s)
+    const dt = new Date(sDate + 'T12:00:00')
     const dayNum = dt.getDate()
     const monthStr = dt.toLocaleDateString('ar-SA', { month: 'long' })
-    const timeStr = dt.toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })
+    const timeStr = s.time ? String(s.time).slice(0, 5) : ''
 
     return {
       id: s.id,
       status: s.status || 'مؤكدة',
       formattedDay: dayNum,
-      formattedMonthTime: `${monthStr} · ${timeStr}`,
+      formattedMonthTime: timeStr ? `${monthStr} · ${timeStr}` : monthStr,
       title: s.session_title || `جلسة مرافعة · قضية رقم ${s.case_number || '-'}`,
       client_name: s.client_name || 'غير محدد',
       client_phone: s.client_phone || '',
-      court_name: s.court_name || 'المحكمة العامة'
+      court_name: s.court_room || s.court_name || 'المحكمة العامة',
+      najiz_url: s.najiz_url || s.case_najiz_url || '',
+      meeting_link: s.meeting_link || '',
+      case_number: s.case_number || '',
+      case_id: s.case_id || '',
+      raw: s
     }
   })
 })
@@ -1017,19 +1096,16 @@ const weekCells = computed(() => {
   const start = new Date(anchor)
   start.setDate(start.getDate() - dayOfWeek)
 
-  const realSessions = safeArray(sessionsStore.sessions)
-  const realTasks = safeArray(tasksStore.pendingTasks)
-
   const cells = []
   for (let i = 0; i < 7; i++) {
     const d = new Date(start)
     d.setDate(start.getDate() + i)
     const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-    const hasSession = realSessions.some(
-      (s: any) => (s.session_date || s.date || '').split('T')[0] === iso
+    const hasSession = allSessionsPool.value.some(
+      (s: any) => getSessionIsoDate(s) === iso
     )
-    const hasTask = realTasks.some(
+    const hasTask = allTasksPool.value.some(
       (t: any) => (t.due_date || '').split('T')[0] === iso
     )
 
@@ -1058,8 +1134,6 @@ const monthCells = computed(() => {
   start.setDate(start.getDate() - startDow)
 
   const todayIso = new Date().toLocaleDateString('en-CA')
-  const realSessions = safeArray(sessionsStore.sessions)
-  const realTasks = safeArray(tasksStore.pendingTasks)
 
   const cells = []
   for (let i = 0; i < 35; i++) {
@@ -1068,10 +1142,10 @@ const monthCells = computed(() => {
     const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const inMonth = d.getMonth() === month
 
-    const hasSession = realSessions.some(
-      (s: any) => (s.session_date || s.date || '').split('T')[0] === iso
+    const hasSession = allSessionsPool.value.some(
+      (s: any) => getSessionIsoDate(s) === iso
     )
-    const hasTask = realTasks.some(
+    const hasTask = allTasksPool.value.some(
       (t: any) => (t.due_date || '').split('T')[0] === iso
     )
 
@@ -1094,14 +1168,16 @@ const activeCalendarCells = computed(() => {
 })
 
 const selectedDaySessions = computed(() => {
-  return safeArray(sessionsStore.sessions).filter(
-    (s: any) => (s.session_date || s.date || '').split('T')[0] === selectedDate.value
+  const targetIso = selectedDate.value
+  return allSessionsPool.value.filter(
+    (s: any) => getSessionIsoDate(s) === targetIso
   )
 })
 
 const selectedDayTasks = computed(() => {
-  return safeArray(tasksStore.pendingTasks).filter(
-    (t: any) => (t.due_date || '').split('T')[0] === selectedDate.value
+  const targetIso = selectedDate.value
+  return allTasksPool.value.filter(
+    (t: any) => (t.due_date || '').split('T')[0] === targetIso
   )
 })
 
@@ -1134,6 +1210,10 @@ const resetToToday = () => {
   selectedDate.value = new Date().toLocaleDateString('en-CA')
 }
 
+watch(calendarAnchor, () => {
+  void refreshMonthSessions()
+})
+
 const openDirections = (courtName: string) => {
   const query = encodeURIComponent(courtName || 'المحكمة')
   window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank')
@@ -1144,18 +1224,21 @@ const openNajizLink = (s: any) => {
 
   if (!url) {
     const list = Array.isArray(casesStore.cases) ? casesStore.cases : []
+    const sCaseNumber = String(s?.case_number || s?.raw?.case_number || '').trim()
+    const sCaseId = String(s?.case_id || s?.raw?.case_id || '').trim()
+
     const matched = list.find(
       (c: any) =>
-        (s?.case_id && String(c.id) === String(s.case_id)) ||
-        (s?.case_number && String(c.case_number || '').trim() === String(s.case_number || '').trim())
+        (sCaseId && String(c.id) === sCaseId) ||
+        (sCaseNumber && String(c.case_number || '').trim() === sCaseNumber)
     )
     if (matched?.najiz_url) {
       url = String(matched.najiz_url).trim()
     }
   }
 
-  if (!url && s?.meeting_link) {
-    url = String(s.meeting_link).trim()
+  if (!url && (s?.meeting_link || s?.raw?.meeting_link)) {
+    url = String(s.meeting_link || s.raw.meeting_link).trim()
   }
 
   if (!url) {
@@ -1182,14 +1265,18 @@ const openNajizLink = (s: any) => {
 
 onMounted(async () => {
   try {
-    await Promise.all([
-      clientsStore.fetchAllClients(),
-      casesStore.fetchAllCases(),
-      sessionsStore.listSessions({}),
-      financeStore.fetchFinanceData(),
-      tasksStore.fetchTasks(),
-      licensingStore.refreshStatus()
+    await Promise.allSettled([
+      clientsStore.fetchAllClients?.(),
+      casesStore.fetchAllCases?.(),
+      sessionsStore.fetchTodaySessions?.(25),
+      sessionsStore.fetchTomorrowSessions?.(25),
+      sessionsStore.listSessions?.({ page: 1, pageSize: 200, status: 'الكل' }),
+      tasksStore.fetchPendingTasks?.(),
+      tasksStore.fetchTasks?.(),
+      financeStore.fetchFinanceData?.(),
+      licensingStore.refreshStatus?.()
     ])
+    await refreshMonthSessions()
   } catch (err) {
     console.error('MobileDashboard load error:', err)
   } finally {
