@@ -170,7 +170,7 @@ jobs:
   deploy:
     name: Deploy
     if: (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')) && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
-    needs: [build, docker]
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -198,7 +198,7 @@ jobs:
   notify:
     name: Notify
     if: always()
-    needs: [verify, e2e, build]
+    needs: [verify, e2e, build, deploy]
     runs-on: ubuntu-latest
     steps:
       - name: Summary
@@ -209,3 +209,4 @@ jobs:
           echo "| Code Quality | ${{ needs.verify.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| E2E Tests | ${{ needs.e2e.result }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${{ needs.build.result }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Deploy | ${{ needs.deploy.result }} |" >> $GITHUB_STEP_SUMMARY
