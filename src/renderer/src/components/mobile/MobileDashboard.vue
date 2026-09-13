@@ -258,115 +258,144 @@
         </div>
       </div>
 
-      <!-- 2. UPCOMING SESSIONS: الجلسات القادمة (REAL DATA ONLY) -->
+      <!-- 2. UPCOMING SESSIONS: الجلسات القادمة (COLLAPSIBLE / ACCORDION) -->
       <div class="section-card pa-4 rounded-xl">
-        <div class="d-flex align-center justify-space-between mb-3">
+        <div
+          class="d-flex align-center justify-space-between cursor-pointer select-none"
+          @click="isUpcomingSessionsExpanded = !isUpcomingSessionsExpanded"
+        >
           <div class="d-flex align-center gap-2">
             <LucideIcon name="gavel" :size="18" class="text-success" />
-            <h3 class="section-title font-weight-bold text-subtitle-1">الجلسات القادمة</h3>
+            <h3 class="section-title font-weight-bold text-subtitle-1 mb-0">الجلسات القادمة</h3>
+            <v-chip
+              size="x-small"
+              variant="tonal"
+              :color="displaySessions.length > 0 ? 'success' : 'grey'"
+              class="font-weight-bold px-2"
+            >
+              {{ displaySessions.length }}
+            </v-chip>
           </div>
-          <v-btn
-            variant="text"
-            density="compact"
-            color="primary"
-            class="font-weight-bold"
-            @click="router.push('/sessions')"
-          >
-            عرض الكل
-          </v-btn>
+
+          <div class="d-flex align-center gap-1">
+            <v-btn
+              variant="text"
+              density="compact"
+              color="primary"
+              class="font-weight-bold px-2"
+              @click.stop="router.push('/sessions')"
+            >
+              عرض الكل
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
+              density="compact"
+              size="small"
+              color="grey"
+              :style="{ transform: isUpcomingSessionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }"
+              aria-label="تبديل عرض الجلسات القادمة"
+            >
+              <LucideIcon name="chevron-down" :size="18" />
+            </v-btn>
+          </div>
         </div>
 
-        <div v-if="displaySessions.length === 0" class="text-center pa-6 text-medium-emphasis">
-          <LucideIcon name="calendar-off" :size="32" class="mb-2 opacity-50" />
-          <div class="text-body-2 font-weight-bold">
-            لا توجد جلسات قادمة مسجلة في قاعدة البيانات
-          </div>
-          <v-btn
-            size="small"
-            color="primary"
-            variant="outlined"
-            class="mt-3 rounded-lg"
-            @click="router.push('/sessions?new=1')"
-          >
-            + إضافة جلسة جديدة
-          </v-btn>
-        </div>
-
-        <div v-else class="sessions-cards-list d-flex flex-column gap-3">
-          <div
-            v-for="session in displaySessions"
-            :key="session.id"
-            class="session-card pa-3 rounded-xl border"
-          >
-            <div class="d-flex align-center justify-space-between mb-2">
-              <span
-                class="status-pill font-weight-bold text-caption"
-                :class="session.status === 'مؤكدة' ? 'pill-green' : 'pill-yellow'"
+        <v-expand-transition>
+          <div v-show="isUpcomingSessionsExpanded" class="pt-3 border-top mt-3">
+            <div v-if="displaySessions.length === 0" class="text-center pa-6 text-medium-emphasis">
+              <LucideIcon name="calendar-off" :size="32" class="mb-2 opacity-50" />
+              <div class="text-body-2 font-weight-bold">
+                لا توجد جلسات قادمة مسجلة في قاعدة البيانات
+              </div>
+              <v-btn
+                size="small"
+                color="primary"
+                variant="outlined"
+                class="mt-3 rounded-lg"
+                @click="router.push('/sessions?new=1')"
               >
-                {{ session.status || 'مؤكدة' }}
-              </span>
-              <div class="session-date-box text-center pa-2 rounded-lg bg-surface-variant">
-                <div class="date-day font-weight-black text-h6 leading-none">
-                  {{ session.formattedDay }}
+                + إضافة جلسة جديدة
+              </v-btn>
+            </div>
+
+            <div v-else class="sessions-cards-list d-flex flex-column gap-3">
+              <div
+                v-for="session in displaySessions"
+                :key="session.id"
+                class="session-card pa-3 rounded-xl border"
+              >
+                <div class="d-flex align-center justify-space-between mb-2">
+                  <span
+                    class="status-pill font-weight-bold text-caption"
+                    :class="session.status === 'مؤكدة' ? 'pill-green' : 'pill-yellow'"
+                  >
+                    {{ session.status || 'مؤكدة' }}
+                  </span>
+                  <div class="session-date-box text-center pa-2 rounded-lg bg-surface-variant">
+                    <div class="date-day font-weight-black text-h6 leading-none">
+                      {{ session.formattedDay }}
+                    </div>
+                    <div class="date-month text-caption">
+                      {{ session.formattedMonthTime }}
+                    </div>
+                  </div>
                 </div>
-                <div class="date-month text-caption">
-                  {{ session.formattedMonthTime }}
+                <h4 class="session-title font-weight-bold text-body-1 mb-1">
+                  {{ session.title }}
+                </h4>
+                <p class="session-meta text-caption text-medium-emphasis mb-1">
+                  <strong>العميل:</strong> {{ session.client_name || 'غير محدد' }}
+                </p>
+                <p class="session-meta text-caption text-medium-emphasis mb-3">
+                  <strong>المحكمة:</strong> {{ session.court_name || 'المحكمة العامة' }}
+                </p>
+                <div class="action-buttons-row d-flex align-center gap-2 flex-wrap">
+                  <v-btn
+                    size="small"
+                    variant="outlined"
+                    color="primary"
+                    class="rounded-lg"
+                    @click="router.push(`/sessions?id=${session.id}`)"
+                  >
+                    تفاصيل
+                  </v-btn>
+                  <v-btn
+                    size="small"
+                    variant="flat"
+                    color="success"
+                    class="rounded-lg font-weight-bold d-flex align-center shadow-sm text-white"
+                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
+                    title="فتح ملف القضية في منصة ناجز (صفحة جديدة)"
+                    @click="openNajizLink(session.raw || session)"
+                  >
+                    <LucideIcon name="external-link" :size="13" class="me-1" />
+                    <span>رابط ناجز</span>
+                  </v-btn>
+                  <v-btn
+                    v-if="session.client_phone"
+                    size="small"
+                    variant="outlined"
+                    color="success"
+                    class="rounded-lg"
+                    :href="`tel:${session.client_phone}`"
+                  >
+                    <LucideIcon name="phone" :size="14" class="me-1" /> اتصل بالعميل
+                  </v-btn>
+                  <v-btn
+                    size="small"
+                    variant="outlined"
+                    color="secondary"
+                    class="rounded-lg"
+                    @click="openDirections(session.court_name)"
+                  >
+                    <LucideIcon name="navigation" :size="14" class="me-1" /> اتجاهات
+                  </v-btn>
                 </div>
               </div>
             </div>
-            <h4 class="session-title font-weight-bold text-body-1 mb-1">
-              {{ session.title }}
-            </h4>
-            <p class="session-meta text-caption text-medium-emphasis mb-1">
-              <strong>العميل:</strong> {{ session.client_name || 'غير محدد' }}
-            </p>
-            <p class="session-meta text-caption text-medium-emphasis mb-3">
-              <strong>المحكمة:</strong> {{ session.court_name || 'المحكمة العامة' }}
-            </p>
-            <div class="action-buttons-row d-flex align-center gap-2 flex-wrap">
-              <v-btn
-                size="small"
-                variant="outlined"
-                color="primary"
-                class="rounded-lg"
-                @click="router.push(`/sessions?id=${session.id}`)"
-              >
-                تفاصيل
-              </v-btn>
-              <v-btn
-                size="small"
-                variant="flat"
-                color="success"
-                class="rounded-lg font-weight-bold d-flex align-center shadow-sm text-white"
-                style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
-                title="فتح ملف القضية في منصة ناجز (صفحة جديدة)"
-                @click="openNajizLink(session.raw || session)"
-              >
-                <LucideIcon name="external-link" :size="13" class="me-1" />
-                <span>رابط ناجز</span>
-              </v-btn>
-              <v-btn
-                v-if="session.client_phone"
-                size="small"
-                variant="outlined"
-                color="success"
-                class="rounded-lg"
-                :href="`tel:${session.client_phone}`"
-              >
-                <LucideIcon name="phone" :size="14" class="me-1" /> اتصل بالعميل
-              </v-btn>
-              <v-btn
-                size="small"
-                variant="outlined"
-                color="secondary"
-                class="rounded-lg"
-                @click="openDirections(session.court_name)"
-              >
-                <LucideIcon name="navigation" :size="14" class="me-1" /> اتجاهات
-              </v-btn>
-            </div>
           </div>
-        </div>
+        </v-expand-transition>
       </div>
 
       <!-- 3. MINI CALENDAR WIDGET (ACCURATE & FULLY INTERACTIVE) -->
@@ -713,6 +742,7 @@ const tasksStore = useTasksStore()
 const licensingStore = useLicensingStore()
 
 const loading = ref(true)
+const isUpcomingSessionsExpanded = ref(false)
 const showActivationJourney = computed(() => {
   if (typeof __IS_WEB__ !== 'undefined' && __IS_WEB__) {
     return licensingStore.subscriptionStatus?.status === 'trial'
