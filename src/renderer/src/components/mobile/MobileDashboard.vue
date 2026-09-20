@@ -293,7 +293,10 @@
               density="compact"
               size="small"
               color="grey"
-              :style="{ transform: isUpcomingSessionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.25s ease' }"
+              :style="{
+                transform: isUpcomingSessionsExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                transition: 'transform 0.25s ease'
+              }"
               aria-label="تبديل عرض الجلسات القادمة"
             >
               <LucideIcon name="chevron-down" :size="18" />
@@ -365,7 +368,10 @@
                     variant="flat"
                     color="success"
                     class="rounded-lg font-weight-bold d-flex align-center shadow-sm text-white"
-                    style="background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
+                    style="
+                      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+                      color: #ffffff !important;
+                    "
                     title="فتح ملف القضية في منصة ناجز (صفحة جديدة)"
                     @click="openNajizLink(session.raw || session)"
                   >
@@ -514,7 +520,10 @@
                 {{ selectedDateLabel.greg }}
               </span>
             </div>
-            <span v-if="selectedDateLabel.hijri" class="text-caption font-weight-bold text-medium-emphasis">
+            <span
+              v-if="selectedDateLabel.hijri"
+              class="text-caption font-weight-bold text-medium-emphasis"
+            >
               {{ selectedDateLabel.hijri }}
             </span>
           </div>
@@ -546,7 +555,11 @@
                     variant="flat"
                     color="success"
                     class="font-weight-bold rounded-pill px-2 d-flex align-center shadow-sm"
-                    style="height: 24px; background: linear-gradient(135deg, #059669 0%, #047857 100%) !important; color: #ffffff !important;"
+                    style="
+                      height: 24px;
+                      background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
+                      color: #ffffff !important;
+                    "
                     :title="'فتح ملف القضية في منصة ناجز (صفحة جديدة)'"
                     @click.stop="openNajizLink(s)"
                   >
@@ -731,7 +744,7 @@ import ActivationJourneyCard from '../subscription/ActivationJourneyCard.vue'
 import { safeArray } from '../../utils/safe'
 import { getCasePipelineStage } from '../../utils/legalConstants'
 import { gregorianIsoToHijriIso } from '../../utils/hijriIso'
-import { getMonthRange } from '../../utils/dashboardAnalytics'
+import { getMonthRange, isActiveCaseStatus } from '../../utils/dashboardAnalytics'
 
 const router = useRouter()
 const clientsStore = useClientsStore()
@@ -776,15 +789,7 @@ const currentDateFormatted = computed(() => {
 const activeCasesCount = computed(() => {
   const cases = safeArray(casesStore.cases)
   if (cases.length > 0) {
-    return cases.filter(
-      (c: any) =>
-        c.status !== 'مغلقة' &&
-        c.status !== 'منتهية' &&
-        c.status !== 'أرشيف' &&
-        c.status !== 'مؤرشفة' &&
-        c.status !== 'كأن لم تكن' &&
-        !String(c.status || '').includes('محكوم')
-    ).length
+    return cases.filter((c: any) => isActiveCaseStatus(c.status, c.is_archived)).length
   }
   return casesStore.total || 0
 })
@@ -1108,7 +1113,12 @@ const selectedDateLabel = computed(() => {
     const parts = selectedDate.value.split('-')
     if (parts.length === 3) {
       const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10))
-      const greg = d.toLocaleDateString('ar-SA', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
+      const greg = d.toLocaleDateString('ar-SA', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      })
       const hijri = gregorianIsoToHijriIso(selectedDate.value)
       return { greg, hijri: hijri ? `${hijri} هـ` : '' }
     }
@@ -1143,12 +1153,8 @@ const weekCells = computed(() => {
     d.setDate(start.getDate() + i)
     const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 
-    const hasSession = allSessionsPool.value.some(
-      (s: any) => getSessionIsoDate(s) === iso
-    )
-    const hasTask = allTasksPool.value.some(
-      (t: any) => (t.due_date || '').split('T')[0] === iso
-    )
+    const hasSession = allSessionsPool.value.some((s: any) => getSessionIsoDate(s) === iso)
+    const hasTask = allTasksPool.value.some((t: any) => (t.due_date || '').split('T')[0] === iso)
 
     cells.push({
       day: d.getDate(),
@@ -1183,12 +1189,8 @@ const monthCells = computed(() => {
     const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
     const inMonth = d.getMonth() === month
 
-    const hasSession = allSessionsPool.value.some(
-      (s: any) => getSessionIsoDate(s) === iso
-    )
-    const hasTask = allTasksPool.value.some(
-      (t: any) => (t.due_date || '').split('T')[0] === iso
-    )
+    const hasSession = allSessionsPool.value.some((s: any) => getSessionIsoDate(s) === iso)
+    const hasTask = allTasksPool.value.some((t: any) => (t.due_date || '').split('T')[0] === iso)
 
     cells.push({
       day: d.getDate(),
@@ -1210,16 +1212,12 @@ const activeCalendarCells = computed(() => {
 
 const selectedDaySessions = computed(() => {
   const targetIso = selectedDate.value
-  return allSessionsPool.value.filter(
-    (s: any) => getSessionIsoDate(s) === targetIso
-  )
+  return allSessionsPool.value.filter((s: any) => getSessionIsoDate(s) === targetIso)
 })
 
 const selectedDayTasks = computed(() => {
   const targetIso = selectedDate.value
-  return allTasksPool.value.filter(
-    (t: any) => (t.due_date || '').split('T')[0] === targetIso
-  )
+  return allTasksPool.value.filter((t: any) => (t.due_date || '').split('T')[0] === targetIso)
 })
 
 const prevCalendarPeriod = () => {
@@ -1636,26 +1634,26 @@ onMounted(async () => {
 
 :global([data-theme='dark']) .stat-card,
 :global([data-theme='dark']) .section-card {
-  background-color: #0D1929 !important;
-  border: 1px solid #26364A !important;
-  color: #F3F6FA !important;
+  background-color: #0d1929 !important;
+  border: 1px solid #26364a !important;
+  color: #f3f6fa !important;
 }
 
 :global([data-theme='dark']) .session-card {
-  background-color: #0D1929 !important;
-  border-color: #26364A !important;
+  background-color: #0d1929 !important;
+  border-color: #26364a !important;
 }
 
 :global([data-theme='dark']) .quick-action-btn {
-  background-color: #0D1929 !important;
-  border-color: #26364A !important;
-  color: #F3F6FA !important;
+  background-color: #0d1929 !important;
+  border-color: #26364a !important;
+  color: #f3f6fa !important;
 }
 
 :global([data-theme='dark']) .calendar-date-cell {
-  background-color: #111F31 !important;
-  border-color: #26364A !important;
-  color: #F3F6FA !important;
+  background-color: #111f31 !important;
+  border-color: #26364a !important;
+  color: #f3f6fa !important;
 }
 
 :global([data-theme='dark']) .pipeline-stage-pill,
@@ -1669,7 +1667,7 @@ onMounted(async () => {
 }
 
 :global([data-theme='dark']) .selected-day-agenda .bg-surface {
-  background-color: #0D1929 !important;
+  background-color: #0d1929 !important;
   border-color: #26364a !important;
   color: #f3f6fa !important;
 }

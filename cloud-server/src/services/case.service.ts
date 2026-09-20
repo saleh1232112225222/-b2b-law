@@ -3,7 +3,18 @@ import { query, getClient } from '../db/connection'
 export async function getDashboardAnalytics(companyId: string) {
   const countRes = await query(
     `SELECT COUNT(*) AS total,
-            SUM(CASE WHEN status IN ('مغلقة', 'مؤرشفة') OR is_archived = TRUE THEN 1 ELSE 0 END) AS done,
+            SUM(CASE WHEN (
+               is_archived = TRUE
+               OR status IN ('مغلقة', 'مؤرشفة', 'منتهية', 'كأن لم تكن', 'بانتظار التنفيذ', 'محكومة بحكم نهائي')
+               OR status ILIKE '%منتهي%'
+               OR status ILIKE '%مغلق%'
+               OR status ILIKE '%مؤرشف%'
+               OR status ILIKE '%لم تكن%'
+               OR (status ILIKE '%محكوم%' AND status NOT ILIKE '%غير نهائي%')
+               OR status ILIKE '%قطعي%'
+               OR status ILIKE '%تنفيذ%'
+               OR status ILIKE '%مشطوب%'
+             ) THEN 1 ELSE 0 END) AS done,
             SUM(CASE WHEN status = 'تحت الدراسة' THEN 1 ELSE 0 END) AS review,
             SUM(CASE WHEN registration_date IS NOT NULL AND registration_date >= CURRENT_DATE - INTERVAL '30 days' THEN 1 ELSE 0 END) AS new,
             SUM(CASE WHEN registration_date IS NOT NULL AND registration_date < CURRENT_DATE - INTERVAL '30 days' AND (status NOT IN ('مغلقة', 'مؤرشفة') OR is_archived = FALSE) THEN 1 ELSE 0 END) AS court
@@ -44,8 +55,31 @@ export async function getCaseCount(companyId: string, filters: Record<string, an
   let idx = 2
 
   if (filters.status && filters.status !== 'الكل') {
-    conditions.push(`c.status = $${idx++}`)
-    params.push(filters.status)
+    if (filters.status === 'نشطة' || filters.status === 'active') {
+      conditions.push(`(
+        c.status = 'قيد النظر'
+        OR (
+          c.status NOT IN ('مغلقة', 'مؤرشفة', 'منتهية', 'كأن لم تكن', 'بانتظار التنفيذ', 'محكومة بحكم نهائي', 'معلقة')
+          AND c.status NOT ILIKE '%منتهي%'
+          AND c.status NOT ILIKE '%مغلق%'
+          AND c.status NOT ILIKE '%مؤرشف%'
+          AND c.status NOT ILIKE '%لم تكن%'
+          AND NOT (c.status ILIKE '%محكوم%' AND c.status NOT ILIKE '%غير نهائي%')
+          AND c.status NOT ILIKE '%قطعي%'
+          AND c.status NOT ILIKE '%تنفيذ%'
+          AND c.status NOT ILIKE '%مشطوب%'
+        )
+      )`)
+    } else if (filters.status === 'منتهية') {
+      conditions.push(
+        `(c.status = 'منتهية' OR c.status ILIKE '%منتهي%' OR c.status ILIKE '%قطعي%')`
+      )
+    } else if (filters.status === 'كأن لم تكن') {
+      conditions.push(`(c.status = 'كأن لم تكن' OR c.status ILIKE '%لم تكن%')`)
+    } else {
+      conditions.push(`c.status = $${idx++}`)
+      params.push(filters.status)
+    }
   }
   if (filters.priority && filters.priority !== 'الكل') {
     conditions.push(`c.priority = $${idx++}`)

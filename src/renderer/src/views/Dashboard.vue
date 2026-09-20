@@ -207,7 +207,12 @@ import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import ActivationJourneyCard from '../components/subscription/ActivationJourneyCard.vue'
 import PieChart from '../components/charts/PieChart.vue'
 import TimeSeriesLineChart from '../components/charts/TimeSeriesLineChart.vue'
-import { computeImportantDates, getSixMonthKeys, getMonthRange } from '../utils/dashboardAnalytics'
+import {
+  computeImportantDates,
+  getSixMonthKeys,
+  getMonthRange,
+  isActiveCaseStatus
+} from '../utils/dashboardAnalytics'
 import { gregorianIsoToHijriIso } from '../utils/hijriIso'
 import type { Session } from '../types/session'
 
@@ -241,7 +246,11 @@ const activationCasesCount = computed(() =>
 const handleQuickAction = async (action: string) => {
   if (action === 'sync') {
     const res = await syncStore.syncNow()
-    showMessage(res.message || 'عزيزي المستخدم: خدمة المزامنة قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله.', 'info')
+    showMessage(
+      res.message ||
+        'عزيزي المستخدم: خدمة المزامنة قيد التطوير والترقية حالياً، وسوف تتاح في الإصدارات القادمة بإذن الله.',
+      'info'
+    )
   } else if (action === 'snapshot') {
     handleSnapshotExport()
   } else if (action === 'backup') {
@@ -522,15 +531,11 @@ const stats = computed(() => [
   },
   {
     title: 'القضايا النشطة',
-    value: safeArray(casesStore.cases).filter(
-      (c) =>
-        c.status !== 'مغلقة' &&
-        c.status !== 'منتهية' &&
-        c.status !== 'أرشيف' &&
-        c.status !== 'مؤرشفة' &&
-        c.status !== 'كأن لم تكن' &&
-        !String(c.status || '').includes('محكوم')
-    ).length || casesStore.total,
+    value:
+      safeArray(casesStore.cases).length > 0
+        ? safeArray(casesStore.cases).filter((c) => isActiveCaseStatus(c.status, c.is_archived))
+            .length
+        : caseCounts.value.active || 0,
     icon: 'gavel',
     color: 'indigo',
     to: '/cases'
@@ -558,7 +563,8 @@ const stats = computed(() => [
   },
   {
     title: 'الخدمات القانونية',
-    value: typeof legalStore.total === 'number' ? legalStore.total : safeLength(legalStore.services),
+    value:
+      typeof legalStore.total === 'number' ? legalStore.total : safeLength(legalStore.services),
     icon: 'scale',
     color: 'accent',
     to: '/legal-services'

@@ -66,19 +66,58 @@ export const getSixMonthKeys = (now: Date = new Date()): { key: string; label: s
   return out
 }
 
+/**
+ * Determines whether a given case status represents a closed / finished / completed case.
+ * Handles variations such as 'منتهية بحكم قطعي', 'كان لم تكن', 'بانتظار التنفيذ', etc.
+ */
+export const isClosedCaseStatus = (
+  status: string | null | undefined,
+  isArchived?: number | boolean
+): boolean => {
+  if (Boolean(isArchived)) return true
+  const s = String(status || '').trim()
+  if (!s) return false
+  if (s === 'مغلقة' || s === 'منتهية' || s === 'مؤرشفة' || s === 'أرشيف') return true
+  if (s.includes('منتهي') || s.includes('منتهية')) return true
+  if (s.includes('مغلق') || s.includes('إغلاق')) return true
+  if (s.includes('مؤرشف') || s.includes('أرشيف')) return true
+  if (s.includes('لم تكن')) return true // matches 'كأن لم تكن', 'كان لم تكن', 'لم تكن'
+  if (s.includes('قطعي') || s.includes('قطعية')) return true // matches 'منتهية بحكم قطعي', 'مكتسب القطعية'
+  if (s.includes('محكوم') && !s.includes('غير نهائي')) return true // matches 'محكومة بحكم نهائي'
+  if (s === 'بانتظار التنفيذ' || s.includes('تنفيذ')) return true // finished in court, in enforcement phase
+  if (s.includes('مشطوب') || s.includes('شطب')) return true
+  return false
+}
+
+/**
+ * Determines whether a case is active in litigation.
+ * A case is active if it is not archived, not closed/done, and not suspended/pending ('معلقة').
+ */
+export const isActiveCaseStatus = (
+  status: string | null | undefined,
+  isArchived?: number | boolean
+): boolean => {
+  if (Boolean(isArchived)) return false
+  const s = String(status || '').trim()
+  if (!s) return false
+  if (
+    s === 'قيد النظر' ||
+    s === 'تحت الدراسة' ||
+    s.includes('غير نهائي') ||
+    s === 'موقفة بطلب من أطراف الدعوى'
+  ) {
+    return true
+  }
+  if (s === 'معلقة') return false
+  return !isClosedCaseStatus(s, isArchived)
+}
+
 export const classifyCaseBucket = (c: Case, now: Date = new Date()): CaseStatusBucket => {
   const status = String(c?.status || '').trim()
   const reg = parseDate(c?.registration_date)
   const ageDays = reg ? daysBetween(reg, now) : null
 
-  if (
-    status === 'مغلقة' ||
-    status === 'مؤرشفة' ||
-    status === 'منتهية' ||
-    status === 'محكومة بحكم نهائي' ||
-    status === 'كأن لم تكن'
-  )
-    return 'done'
+  if (isClosedCaseStatus(status, c?.is_archived)) return 'done'
   if (status === 'تحت الدراسة') return 'review'
 
   if (status === 'قيد النظر') {
@@ -119,9 +158,7 @@ export const computePerformanceMetrics = (
 ): PerformanceMetrics => {
   const list = Array.isArray(cases) ? cases : []
   const total = list.length
-  const doneCases = list.filter(
-    (c) => String(c?.status || '').trim() === 'مغلقة' || String(c?.status || '').trim() === 'مؤرشفة'
-  )
+  const doneCases = list.filter((c) => isClosedCaseStatus(c?.status, c?.is_archived))
 
   const completionRate = total > 0 ? doneCases.length / total : 0
 
@@ -176,7 +213,9 @@ export const computeImportantDates = (input: {
     if (!inRange(s.date)) continue
     const isPast = parseDate(s.date) ? parseDate(s.date)!.getTime() < Date.now() : false
     const color = s.status === 'قادمة' ? 'primary' : isPast ? 'grey' : 'info'
-    const najizUrl = String((s as any).najiz_url || (s as any).case_najiz_url || s.meeting_link || '').trim()
+    const najizUrl = String(
+      (s as any).najiz_url || (s as any).case_najiz_url || s.meeting_link || ''
+    ).trim()
     items.push({
       type: 'session',
       date: s.date,

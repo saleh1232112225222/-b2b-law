@@ -7,7 +7,7 @@
           <div
             class="text-caption font-weight-black text-gold opacity-60 mb-2 uppercase tracking-widest"
           >
-            إجمالي القضايا النشطة
+            {{ title || 'إجمالي القضايا النشطة' }}
           </div>
           <div class="d-flex align-center justify-space-between">
             <div class="text-h5 font-weight-black text-white tabular-nums">
@@ -47,5 +47,6 @@ defineProps<{
   total: number
   completionRate: string | number
   loading: boolean
+  title?: string
 }>()
 </script>

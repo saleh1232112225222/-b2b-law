@@ -254,6 +254,22 @@ const newSession = ref<Partial<Session>>({
   notes: ''
 })
 
+const activeCasesTotal = ref<number | null>(null)
+
+const statsCardTitle = computed(() => {
+  if (store.status && store.status !== 'الكل') {
+    return `إجمالي القضايا (${store.status})`
+  }
+  return 'إجمالي القضايا النشطة'
+})
+
+const statsCardValue = computed(() => {
+  if (store.status && store.status !== 'الكل') {
+    return valWithDefault(store.total, 0)
+  }
+  return activeCasesTotal.value !== null ? activeCasesTotal.value : valWithDefault(store.total, 0)
+})
+
 const completionRateDisplay = computed(() =>
   completionRate.value === null ? '--' : completionRate.value
 )
@@ -325,14 +341,18 @@ const refreshCompletionRate = async (): Promise<void> => {
       responsible_user_id: store.responsibleUserId || undefined,
       stage: store.stage && store.stage !== 'الكل' ? store.stage : undefined
     }
-    const [total, closed, archived, finished, finalJudgment, asIfNever] = await Promise.all([
-      api.cases.count({ ...baseParams, status: 'الكل' }),
-      api.cases.count({ ...baseParams, status: 'مغلقة' }),
-      api.cases.count({ ...baseParams, status: 'مؤرشفة' }),
-      api.cases.count({ ...baseParams, status: 'منتهية' }),
-      api.cases.count({ ...baseParams, status: 'محكومة بحكم نهائي' }),
-      api.cases.count({ ...baseParams, status: 'كأن لم تكن' })
-    ])
+    const [total, active, closed, archived, finished, finalJudgment, asIfNever] = await Promise.all(
+      [
+        api.cases.count({ ...baseParams, status: 'الكل' }),
+        api.cases.count({ ...baseParams, status: 'نشطة' }),
+        api.cases.count({ ...baseParams, status: 'مغلقة' }),
+        api.cases.count({ ...baseParams, status: 'مؤرشفة' }),
+        api.cases.count({ ...baseParams, status: 'منتهية' }),
+        api.cases.count({ ...baseParams, status: 'محكومة بحكم نهائي' }),
+        api.cases.count({ ...baseParams, status: 'كأن لم تكن' })
+      ]
+    )
+    activeCasesTotal.value = Number(active || 0)
     const totalNum = Number(total || 0)
     const doneNum =
       Number(closed || 0) +

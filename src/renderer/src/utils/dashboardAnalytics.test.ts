@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   computeCaseBreakdown,
   computeSixMonthTrend,
-  computePerformanceMetrics
+  computePerformanceMetrics,
+  isClosedCaseStatus,
+  isActiveCaseStatus
 } from './dashboardAnalytics'
 
 describe('dashboardAnalytics', () => {
@@ -52,5 +54,24 @@ describe('dashboardAnalytics', () => {
     expect(m.newCasesThisMonth).toBe(1)
     expect(m.avgDaysToClose).toBeGreaterThan(0)
     expect(m.customerSatisfactionRate).toBeCloseTo(0.5)
+  })
+
+  it('correctly classifies closed and active case statuses', () => {
+    expect(isClosedCaseStatus('منتهية')).toBe(true)
+    expect(isClosedCaseStatus('منتهية بحكم قطعي')).toBe(true)
+    expect(isClosedCaseStatus('كأن لم تكن')).toBe(true)
+    expect(isClosedCaseStatus('كان لم تكن')).toBe(true)
+    expect(isClosedCaseStatus('محكومة بحكم نهائي')).toBe(true)
+    expect(isClosedCaseStatus('بانتظار التنفيذ')).toBe(true)
+    expect(isClosedCaseStatus('مغلقة')).toBe(true)
+    expect(isClosedCaseStatus('قيد النظر', 1)).toBe(true)
+
+    expect(isActiveCaseStatus('قيد النظر')).toBe(true)
+    expect(isActiveCaseStatus('تحت الدراسة')).toBe(true)
+    expect(isActiveCaseStatus('محكومة بحكم غير نهائي')).toBe(true)
+    expect(isActiveCaseStatus('معلقة')).toBe(false)
+    expect(isActiveCaseStatus('منتهية بحكم قطعي')).toBe(false)
+    expect(isActiveCaseStatus('كأن لم تكن')).toBe(false)
+    expect(isActiveCaseStatus('بانتظار التنفيذ')).toBe(false)
   })
 })
