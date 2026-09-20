@@ -190,7 +190,7 @@
               variant="outlined"
               density="compact"
               readonly
-              class="mb-4 glass-input"
+              class="glass-input"
               hide-details="auto"
             >
               <template #append-inner>
@@ -217,24 +217,6 @@
                 </div>
               </template>
             </v-text-field>
-            <div class="d-flex ga-2">
-              <v-btn
-                variant="tonal"
-                color="gold"
-                size="small"
-                class="flex-grow-1 premium-btn-gold-gradient"
-                @click="exportSupportBundle"
-                >تقرير دعم</v-btn
-              >
-              <v-btn
-                variant="tonal"
-                color="gold"
-                size="small"
-                class="flex-grow-1 premium-btn-gold-gradient"
-                @click="captureScreenshot"
-                >لقطة شاشة</v-btn
-              >
-            </div>
           </v-card-text>
         </v-card>
 
@@ -1205,15 +1187,6 @@ const exportBackup = async (): Promise<void> => {
   } catch {}
 }
 
-const exportSupportBundle = async (): Promise<void> => {
-  try {
-    const res = await (window as any).api.system.exportSupportBundle()
-    if (res?.saved) showSnackbar('تم حفظ تقرير الدعم الفني', 'success')
-  } catch (e: unknown) {
-    showSnackbar('فشل تصدير التقرير', 'error')
-  }
-}
-
 const exportPerformanceReport = async (): Promise<void> => {
   try {
     const apiSystem = (window as any)?.api?.system
@@ -1266,15 +1239,6 @@ const savePerfReportToFile = async (): Promise<void> => {
     else showSnackbar('تم إلغاء حفظ الملف', 'info')
   } catch (e: unknown) {
     showSnackbar('فشل حفظ الملف: ' + ((e as any)?.message || String(e)), 'error')
-  }
-}
-
-const captureScreenshot = async (): Promise<void> => {
-  try {
-    const res = await (window as any).api.system.captureScreenshot()
-    if (res?.saved) showSnackbar('تم حفظ لقطة الشاشة', 'success')
-  } catch (e: unknown) {
-    showSnackbar('فشل حفظ لقطة الشاشة', 'error')
   }
 }
 

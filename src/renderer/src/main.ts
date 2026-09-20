@@ -95,15 +95,6 @@ if (import.meta.env.DEV && (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__)) {
   }, 250)
 }
 
-window.addEventListener('keydown', (e: KeyboardEvent) => {
-  if (typeof __IS_WEB__ === 'undefined' || !__IS_WEB__) {
-    if (e.altKey && e.shiftKey && e.code === 'KeyS') {
-      e.preventDefault()
-      // @ts-ignore
-      window.api.system.captureScreenshot()
-    }
-  }
-})
 
 const withTimeout = async <T>(p: Promise<T>, ms: number, label: string): Promise<T> => {
   let timeoutId: any = null
