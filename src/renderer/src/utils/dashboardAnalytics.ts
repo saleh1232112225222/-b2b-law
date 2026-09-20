@@ -74,7 +74,7 @@ export const isClosedCaseStatus = (
   status: string | null | undefined,
   isArchived?: number | boolean
 ): boolean => {
-  if (Boolean(isArchived)) return true
+  if (isArchived) return true
   const s = String(status || '').trim()
   if (!s) return false
   if (s === 'مغلقة' || s === 'منتهية' || s === 'مؤرشفة' || s === 'أرشيف') return true
@@ -97,7 +97,7 @@ export const isActiveCaseStatus = (
   status: string | null | undefined,
   isArchived?: number | boolean
 ): boolean => {
-  if (Boolean(isArchived)) return false
+  if (isArchived) return false
   const s = String(status || '').trim()
   if (!s) return false
   if (
