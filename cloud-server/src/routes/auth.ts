@@ -692,10 +692,15 @@ function getGoogleClient(): OAuth2Client | null {
     console.log('[AUTH] Google OAuth not configured')
     return null
   }
+  let callbackUrl =
+    process.env.GOOGLE_CALLBACK_URL || 'https://app.saleh-lawyer.com/api/auth/google/callback'
+  if (callbackUrl.includes('b2b-law-g2qr.onrender.com')) {
+    callbackUrl = 'https://app.saleh-lawyer.com/api/auth/google/callback'
+  }
   googleClient = new OAuth2Client(
     clientId,
     clientSecret,
-    process.env.GOOGLE_CALLBACK_URL || 'http://localhost:8080/api/auth/google/callback'
+    callbackUrl
   )
   return googleClient
 }
