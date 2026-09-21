@@ -64,6 +64,7 @@ import { usersRouter } from './routes/users'
 import { casesRouter } from './routes/cases'
 import { contractsRouter } from './routes/contracts'
 import { sessionOutcomesRouter } from './routes/session-outcomes'
+import { clientCaseReportsRouter } from './routes/clientCaseReports'
 import { tasksRouter } from './routes/tasks'
 import { marketingRouter } from './routes/marketing'
 import { subscriptionRouter } from './routes/subscriptions'
@@ -266,6 +267,7 @@ app.use('/api/users', usersRouter)
 app.use('/api/cases', casesRouter)
 app.use('/api/contracts', contractsRouter)
 app.use('/api/session-outcomes', sessionOutcomesRouter)
+app.use('/api/client-case-reports', clientCaseReportsRouter)
 app.use('/api/tasks', tasksRouter)
 app.use('/api/sessions', sessionsRouter)
 app.use('/api/subscriptions', subscriptionRouter)

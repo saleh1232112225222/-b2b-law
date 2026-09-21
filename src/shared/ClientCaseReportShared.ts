@@ -1,7 +1,28 @@
-export interface ClientSessionReportData {
+export interface ClientCaseReportSessionItem {
+  id: string
+  sessionNumber: number
+  date: string
+  dateHijri?: string
+  time?: string
+  courtRoom?: string
+  sessionType?: string
+  attendance?: string
+  result: string
+  isPostponed: boolean
+  postponementReason: string
+}
+
+export interface ClientCaseReportJudgmentItem {
+  id: string
+  type: string
+  judgmentDate: string
+  favor: string
+  notes?: string
+}
+
+export interface ClientCaseReportData {
   id: string
   companyId: string
-  sessionId: string
   caseId: string
   clientId: string
   clientName: string
@@ -18,25 +39,15 @@ export interface ClientSessionReportData {
     showSubject?: boolean
     claimAmount?: string | number
     phase?: string
+    status?: string
+    priority?: string
     clientRole: string
     opponentName: string
     responsibleLawyer: string
     registrationDate: string
   }
 
-  sessionInfo: {
-    sessionDate: string
-    sessionDateHijri: string
-    sessionTime: string
-    courtRoom: string
-    sessionNumber: number
-    sessionType?: string
-    attendance?: string
-    result: string
-    isPostponed: boolean
-    postponementReason: string
-    hearingTimeLimit?: string
-  }
+  sessions: ClientCaseReportSessionItem[]
 
   nextSessionInfo?: {
     date: string
@@ -47,6 +58,8 @@ export interface ClientSessionReportData {
     assignedParty?: string
     daysRemaining?: number
   }
+
+  judgments?: ClientCaseReportJudgmentItem[]
 
   proceedings?: {
     ourSubmissions?: string
@@ -95,14 +108,14 @@ export interface ClientSessionReportData {
   }
 }
 
-export const DISPATCH_STATUS_LABELS: Record<string, string> = {
+export const CASE_DISPATCH_STATUS_LABELS: Record<string, string> = {
   draft: 'مسودة',
   reviewed: 'تمت المراجعة',
   approved: 'معتمد',
   sent: 'أرسل للعميل'
 }
 
-export const SENT_VIA_LABELS: Record<string, string> = {
+export const CASE_SENT_VIA_LABELS: Record<string, string> = {
   whatsapp: 'واتساب',
   email: 'بريد إلكتروني',
   manual_print: 'تسليم يدوي / مطبوع',

@@ -189,6 +189,11 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+    <ClientCaseReportDialog
+      v-model:show="showClientReportDialog"
+      :case-id="caseId"
+    />
   </v-container>
 </template>
 
@@ -209,6 +214,7 @@ import CaseTasksTab from './case-details/CaseTasksTab.vue'
 import CaseDocumentsTab from './case-details/CaseDocumentsTab.vue'
 import CaseMemorandaTab from './case-details/CaseMemorandaTab.vue'
 import CaseLegalServicesTab from './case-details/CaseLegalServicesTab.vue'
+import ClientCaseReportDialog from '../components/cases/ClientCaseReportDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -216,6 +222,7 @@ const caseStore = useCasesStore()
 const sessionsStore = useSessionsStore()
 
 const caseId = computed(() => String(route.params.id || ''))
+const showClientReportDialog = ref(false)
 const tab = ref('overview')
 const caseItem = ref<any>(null)
 const loading = ref(true)
@@ -378,15 +385,8 @@ const removeDocument = async (doc: any): Promise<void> => {
   } catch {}
 }
 
-const generateProfessionalReport = async (): Promise<void> => {
-  generatingReport.value = true
-  try {
-    await window.api.reports.generateCaseReport(caseId.value)
-    window.open('/#/reports/case?case_id=' + caseId.value, '_blank')
-  } catch {
-  } finally {
-    generatingReport.value = false
-  }
+const generateProfessionalReport = (): void => {
+  showClientReportDialog.value = true
 }
 
 const openEditDialog = (): void => {

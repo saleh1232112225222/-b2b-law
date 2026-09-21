@@ -1,26 +1,26 @@
 <template>
   <v-dialog
     :model-value="show"
-    max-width="960"
+    max-width="1020"
     scrollable
     persistent
     :fullscreen="isMobile"
     @update:model-value="$emit('update:show', $event)"
   >
-    <v-card class="client-report-dialog-card rounded-xl border-gold">
+    <v-card class="client-case-report-dialog rounded-xl border-gold">
       <!-- Modal Header -->
       <v-card-item class="dialog-header pa-4 pa-md-5 border-b border-gold">
         <div class="d-flex justify-space-between align-center flex-wrap gap-2">
           <div class="d-flex align-center gap-3">
             <div class="report-icon-box pa-2 rounded-lg bg-gold-gradient">
-              <LucideIcon name="file-text" :size="24" class="text-ebony" />
+              <LucideIcon name="file-spreadsheet" :size="24" class="text-white" />
             </div>
             <div>
               <div class="text-h6 font-weight-black text-black">
-                تقرير جلسة العميل المعتمد
+                تقرير القضية الشامل للموكل
               </div>
               <div class="text-caption font-weight-bold text-muted-gold">
-                النموذج القانوني المعتمد ─ إحاطة الموكل بالوقائع وقرار الدائرة والإجراءات القادمة
+                إحاطة الموكل بمسار الدعوى والسجل الزمني لكافة الجلسات والأحكام والإجراءات القادمة
               </div>
             </div>
           </div>
@@ -54,13 +54,13 @@
         <div v-if="loading" class="text-center py-10">
           <v-progress-circular indeterminate color="primary" size="48" />
           <div class="text-caption text-black mt-3 font-weight-black">
-            جاري تجهيز وتجميع بيانات تقرير الجلسة...
+            جاري تجميع ملف القضية وسجل الجلسات وتجهيز التقرير الشامل للموكل...
           </div>
         </div>
 
         <div v-else-if="loadError" class="text-center py-8">
           <v-alert type="error" variant="tonal" class="rounded-xl mb-4 border border-error">
-            <div class="font-weight-black mb-1">تعذر جلب بيانات التقرير</div>
+            <div class="font-weight-black mb-1">تعذر جلب بيانات تقرير القضية</div>
             <div class="text-caption">{{ loadError }}</div>
           </v-alert>
           <v-btn color="primary" variant="flat" class="rounded-lg font-weight-bold text-white" @click="loadReport">
@@ -69,18 +69,27 @@
         </div>
 
         <div v-else-if="reportData" class="d-flex flex-column gap-3">
-          <!-- Top Executive Quick Summary Strip (شريط ملخص سريع للموكل في 5 ثوان) -->
+          <!-- Top Executive Quick Summary Strip (شريط الملخص السريع للموكل في 5 ثوان) -->
           <div class="quick-summary-bar pa-3 rounded-lg border-gold-thick">
             <div class="d-flex align-center justify-space-between flex-wrap gap-2 text-body-2">
               <div class="d-flex align-center gap-2">
-                <span class="summary-label">نتيجة الجلسة:</span>
-                <span class="summary-value text-primary font-weight-black">{{ reportData.sessionInfo.result }}</span>
+                <span class="summary-label">حالة القضية:</span>
+                <span class="summary-value text-primary font-weight-black">
+                  {{ reportData.caseInfo.status || 'قيد النظر' }} ({{ reportData.caseInfo.phase || 'المرحلة الابتدائية' }})
+                </span>
               </div>
               <div class="divider-dot d-none d-sm-inline">│</div>
               <div class="d-flex align-center gap-2">
                 <span class="summary-label">الجلسة القادمة:</span>
                 <span class="summary-value font-weight-black">
                   {{ nextSessionSummaryText }}
+                </span>
+              </div>
+              <div class="divider-dot d-none d-sm-inline">│</div>
+              <div class="d-flex align-center gap-2">
+                <span class="summary-label">إجمالي الجلسات:</span>
+                <span class="summary-value font-weight-black text-black">
+                  {{ reportData.sessions.length }} جلسة
                 </span>
               </div>
               <div class="divider-dot d-none d-sm-inline">│</div>
@@ -109,17 +118,17 @@
                 تم الاعتماد بتاريخ: {{ reportData.dispatch.approvedAt }}
               </div>
               <div v-else class="text-muted-gold font-weight-bold">
-                مسودة جاهزة للمراجعة والاعتماد
+                تقرير شامل جاهز للمراجعة والاعتماد
               </div>
             </div>
           </div>
 
-          <!-- Block 1: Case Particulars (بيانات القضية) -->
+          <!-- Block 1: Case & Parties Particulars (١. بيانات القضية والموكل) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-3 border-b-gold pb-2">
               <div class="block-title text-black">
                 <LucideIcon name="briefcase" :size="17" class="text-primary me-1" />
-                ١. بيانات القضية
+                ١. بيانات القضية والموكل
               </div>
               <v-chip size="x-small" color="primary" variant="flat" class="font-weight-black text-white">
                 {{ reportData.caseInfo.phase || 'المرحلة الابتدائية' }}
@@ -170,12 +179,12 @@
                     color="primary"
                     density="compact"
                     hide-details
-                    label="إظهار موضوع الدعوى في التقرير المعتمد"
+                    label="إظهار موضوع الدعوى في التقرير الشامل"
                     class="font-weight-black text-black"
                   />
                 </div>
                 <span class="text-caption text-muted-gold font-weight-bold">
-                  (يظهر كملخص مختصر لمنع شغل مساحة التقرير)
+                  (يظهر كملخص موجز لعدم شغل مساحة التقرير)
                 </span>
               </div>
 
@@ -193,79 +202,65 @@
             </div>
           </div>
 
-          <!-- Block 2: Session Info & Attendance (بيانات الجلسة وتوثيق الحضور) -->
+          <!-- Block 2: Chronological Sessions Log (٢. السجل الزمني لكافة الجلسات) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-3 border-b-gold pb-2">
               <div class="block-title text-black">
-                <LucideIcon name="calendar" :size="17" class="text-primary me-1" />
-                ٢. بيانات الجلسة المنعقدة وتوثيق الحضور
+                <LucideIcon name="calendar-days" :size="17" class="text-primary me-1" />
+                ٢. السجل الزمني لجلسات القضية ({{ reportData.sessions.length }} جلسة)
               </div>
               <v-chip size="x-small" color="primary" variant="outlined" class="font-weight-black">
-                الجلسة رقم ({{ reportData.sessionInfo.sessionNumber }})
+                توثيق كامل لكافة الجلسات
               </v-chip>
             </div>
 
-            <v-row dense class="text-caption">
-              <v-col cols="12" sm="6" md="3">
-                <div class="field-lbl">تاريخ الجلسة:</div>
-                <div class="field-val">
-                  {{ reportData.sessionInfo.sessionDate }}
-                  <span v-if="reportData.sessionInfo.sessionDateHijri">({{ reportData.sessionInfo.sessionDateHijri }})</span>
-                </div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <div class="field-lbl">وقت الجلسة والقاعة:</div>
-                <div class="field-val">
-                  {{ reportData.sessionInfo.sessionTime || 'غير محدد' }} | قاعة: {{ reportData.sessionInfo.courtRoom || 'إلكترونية' }}
-                </div>
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <label class="field-lbl d-block mb-1">نوع الجلسة:</label>
-                <v-select
-                  v-model="editForm.sessionType"
-                  :items="['جلسة مرافعة', 'جلسة تحضيرية', 'تبادل مذكرات', 'جلسة خبرة', 'جلسة استجواب', 'نطق بالحكم']"
-                  density="compact"
-                  variant="outlined"
-                  class="high-contrast-input"
-                  hide-details
-                />
-              </v-col>
-              <v-col cols="12" sm="6" md="3">
-                <label class="field-lbl d-block mb-1">حضور الأطراف (توثيق نظامي):</label>
-                <v-select
-                  v-model="editForm.attendance"
-                  :items="[
-                    'حضر وكيل موكلنا وحضر وكيل الخصم',
-                    'حضر وكيل موكلنا وتخلف الخصم عن الحضور',
-                    'حضر وكيل الخصم وتخلف وكيل موكلنا',
-                    'حضر موكلنا أصالة وحضر الخصم',
-                    'تخلف الطرفان عن الحضور'
-                  ]"
-                  density="compact"
-                  variant="outlined"
-                  class="high-contrast-input"
-                  hide-details
-                />
-              </v-col>
-            </v-row>
+            <div v-if="reportData.sessions.length > 0" class="sessions-table-wrapper">
+              <v-table density="compact" class="report-vuetify-table">
+                <thead>
+                  <tr>
+                    <th class="text-center font-weight-black" style="width: 45px;">#</th>
+                    <th class="font-weight-black">تاريخ الجلسة</th>
+                    <th class="font-weight-black">نوع الجلسة</th>
+                    <th class="font-weight-black">توثيق الحضور</th>
+                    <th class="font-weight-black">القرار الصادر</th>
+                    <th class="font-weight-black">سبب التأجيل</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="s in reportData.sessions" :key="s.id">
+                    <td class="text-center font-weight-black text-primary">{{ s.sessionNumber }}</td>
+                    <td class="font-weight-black">
+                      {{ s.date }}
+                      <span v-if="s.time" class="text-caption text-muted-gold ms-1">({{ s.time }})</span>
+                    </td>
+                    <td class="font-weight-bold">{{ s.sessionType || 'مرافعة' }}</td>
+                    <td class="font-weight-bold">{{ s.attendance || 'حضر الطرفان' }}</td>
+                    <td class="font-weight-black text-primary">{{ s.result }}</td>
+                    <td class="text-caption text-black font-weight-bold">{{ s.postponementReason }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+            <div v-else class="text-caption text-muted-gold pa-3 text-center">
+              لا توجد جلسات مسجلة في هذا الملف حتى تاريخ التقرير.
+            </div>
           </div>
 
-          <!-- Block 3: Proceedings (مجريات الجلسة - قلب التقرير) -->
+          <!-- Block 3: Proceedings & Case Journey Summary (٣. ملخص مسار القضية ومجرياتها) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-2 border-b-gold pb-2">
               <div class="block-title text-black">
                 <LucideIcon name="message-square" :size="17" class="text-primary me-1" />
-                ٣. ملخص مجريات ووقائع الجلسة (قلب التقرير)
+                ٣. ملخص مسار القضية ومجرياتها للموكل
               </div>
               <span class="text-caption text-muted-gold font-weight-bold">
-                إيضاح وافٍ لما دار بين الأطراف والدائرة
+                إحاطة قانونية وافية بما تم في القضية
               </span>
             </div>
 
-            <!-- Client Summary Textarea -->
             <div class="mb-3">
               <label class="field-lbl d-block mb-1">
-                الصياغة الشاملة لمجريات الجلسة (الموجهة للموكل):
+                الصياغة التنفيذية لمسار القضية ومجرياتها (الموجهة للموكل):
               </label>
               <v-textarea
                 v-model="editForm.clientSummary"
@@ -273,138 +268,52 @@
                 variant="outlined"
                 density="comfortable"
                 class="high-contrast-input text-body-2"
-                placeholder="اكتب ماذا حدث في الجلسة بالتفصيل: ماذا قدمنا، ماذا طلب الخصم، وما وجهت به الدائرة..."
+                placeholder="اكتب شرحاً واضحاً للموكل عن مسار الدعوى وما تم تقديمه وحضور الجلسات..."
                 hide-details
               />
             </div>
-
-            <!-- Detailed Sub-Blocks Accordion -->
-            <v-expansion-panels variant="accordion" class="border-gold-subtle rounded-lg">
-              <v-expansion-panel class="bg-card-subtle">
-                <v-expansion-panel-title class="pa-2 text-caption font-weight-black text-black">
-                  <LucideIcon name="layers" :size="15" class="me-2 text-primary" />
-                  تفصيل الدفوع والمذكرات المتبادلة (اختياري - يثري التقرير الرسمي المطبوع)
-                </v-expansion-panel-title>
-                <v-expansion-panel-text class="pa-3">
-                  <v-row dense>
-                    <v-col cols="12" sm="6">
-                      <label class="field-lbl d-block mb-1">ما قدمه وكيل موكلنا:</label>
-                      <v-textarea
-                        v-model="editForm.ourSubmissions"
-                        rows="2"
-                        variant="outlined"
-                        density="compact"
-                        class="high-contrast-input text-caption"
-                        placeholder="المذكرات والدفوع والطلبات المقدمة بالجلسة..."
-                        hide-details
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <label class="field-lbl d-block mb-1">ما قدمه الخصم وأبرز ما أثاره:</label>
-                      <v-textarea
-                        v-model="editForm.opponentSubmissions"
-                        rows="2"
-                        variant="outlined"
-                        density="compact"
-                        class="high-contrast-input text-caption"
-                        placeholder="طلبات الخصم، الدفوع المثارة، المستندات المودعة..."
-                        hide-details
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <label class="field-lbl d-block mb-1">ردنا على ما أثاره الخصم:</label>
-                      <v-textarea
-                        v-model="editForm.ourReply"
-                        rows="2"
-                        variant="outlined"
-                        density="compact"
-                        class="high-contrast-input text-caption"
-                        placeholder="الرد النظامي والدفوع المضادة..."
-                        hide-details
-                      />
-                    </v-col>
-                    <v-col cols="12" sm="6">
-                      <label class="field-lbl d-block mb-1">توجيه وأسئلة الدائرة القضائية:</label>
-                      <v-textarea
-                        v-model="editForm.courtDirectives"
-                        rows="2"
-                        variant="outlined"
-                        density="compact"
-                        class="high-contrast-input text-caption"
-                        placeholder="ما قررته الدائرة، المهل الممنوحة، الاستفسارات الموجهة..."
-                        hide-details
-                      />
-                    </v-col>
-                  </v-row>
-                </v-expansion-panel-text>
-              </v-expansion-panel>
-            </v-expansion-panels>
           </div>
 
-          <!-- Block 4: Court Decision & Postponement Reason (قرار الدائرة وسبب التأجيل) -->
+          <!-- Block 4: Judgments & Decisions (٤. الأحكام والقرارات) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-3 border-b-gold pb-2">
               <div class="block-title text-black">
                 <LucideIcon name="gavel" :size="17" class="text-primary me-1" />
-                ٤. قرار الدائرة القضائية ومواعيد المتابعة
+                ٤. الأحكام والقرارات القضائية الصادرة
               </div>
-              <v-chip
-                v-if="reportData.sessionInfo.isPostponed"
-                size="x-small"
-                color="warning"
-                variant="flat"
-                class="font-weight-black"
-              >
-                تأجيل معتمد
-              </v-chip>
             </div>
 
-            <v-row dense class="text-caption">
-              <v-col cols="12" sm="6">
-                <div class="field-lbl">القرار الصادر بالجلسة:</div>
-                <div class="field-val text-primary text-body-2 font-weight-black">
-                  {{ reportData.sessionInfo.result }}
-                </div>
-              </v-col>
-              <v-col cols="12" sm="6">
-                <div class="field-lbl">سبب التأجيل المعتمد:</div>
-                <div class="field-val font-weight-black">
-                  {{ reportData.sessionInfo.postponementReason }}
-                </div>
-              </v-col>
-            </v-row>
-
-            <div v-if="reportData.nextSessionInfo" class="mt-3 pt-2 border-t-gold">
-              <v-row dense class="text-caption">
-                <v-col cols="12" sm="4">
-                  <div class="field-lbl">موعد الجلسة القادمة:</div>
-                  <div class="field-val font-weight-black">
-                    {{ reportData.nextSessionInfo.date }}
-                    <span v-if="reportData.nextSessionInfo.time"> – الساعة {{ reportData.nextSessionInfo.time }}</span>
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <div class="field-lbl">المدة المتبقية:</div>
-                  <div class="field-val text-primary font-weight-black">
-                    {{ reportData.nextSessionInfo.daysRemaining !== undefined ? `باقٍ ${reportData.nextSessionInfo.daysRemaining} يوماً` : 'محددة بالنظام' }}
-                  </div>
-                </v-col>
-                <v-col cols="12" sm="4">
-                  <div class="field-lbl">القاعة / الرابط:</div>
-                  <div class="field-val">
-                    {{ reportData.nextSessionInfo.courtRoom || 'جلسة مرئية / إلكترونية' }}
-                  </div>
-                </v-col>
-              </v-row>
+            <div v-if="reportData.judgments && reportData.judgments.length > 0">
+              <v-table density="compact" class="report-vuetify-table">
+                <thead>
+                  <tr>
+                    <th class="font-weight-black">درجة الحكم</th>
+                    <th class="font-weight-black">تاريخ الحكم</th>
+                    <th class="font-weight-black">المنطوق / الإفادة</th>
+                    <th class="font-weight-black">الملاحظات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="j in reportData.judgments" :key="j.id">
+                    <td class="font-weight-black">{{ j.type }}</td>
+                    <td class="font-weight-black">{{ j.judgmentDate }}</td>
+                    <td class="font-weight-black text-primary">{{ j.favor }}</td>
+                    <td class="text-caption font-weight-bold">{{ j.notes || '---' }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+            <div v-else class="text-caption text-black font-weight-bold pa-2">
+              لا يوجد حكم منهي للخصومة حتى تاريخ التقرير، والدعوى قيد التداول والمرافعة المنتظمة.
             </div>
           </div>
 
-          <!-- Block 5: Case Position After Session (موقف القضية بعد الجلسة) -->
+          <!-- Block 5: Current Position (٥. موقف القضية الراهن) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-3 border-b-gold pb-2">
               <div class="block-title text-black">
                 <LucideIcon name="compass" :size="17" class="text-primary me-1" />
-                ٥. موقف القضية بعد الجلسة (تقييم موضوعي منضبط)
+                ٥. موقف القضية الراهن والأثر الإجرائي
               </div>
             </div>
 
@@ -414,13 +323,12 @@
                 <v-select
                   v-model="editForm.statusAfterSession"
                   :items="[
+                    'الدعوى قيد التداول والمرافعة المنتظمة',
                     'لا يوجد تغير جوهري في المركز القضائي للموكل',
                     'طرأ تطور إيجابي يعزز موقف موكلنا',
-                    'طرأ تطور يحتاج إلى معالجة وتقديم دفوع إضافية',
-                    'ظهر دفع أو مستند جديد من الخصم قيد الفحص',
-                    'القضية بانتظار رد الخصم على مذكرتنا',
-                    'القضية بانتظار قرار الدائرة / ورود تقرير الخبير',
-                    'قفل باب المرافعة وحجز القضية للحكم'
+                    'طرأ تطور إجرائي يستوجب تقديم دفوع إضافية',
+                    'القضية بانتظار ورود تقرير الخبرة / قرار الدائرة',
+                    'قفل باب المرافعة وحجز القضية للنطق بالحكم'
                   ]"
                   density="compact"
                   variant="outlined"
@@ -429,21 +337,21 @@
                 />
               </v-col>
               <v-col cols="12" sm="6">
-                <label class="field-lbl d-block mb-1">أثر الجلسة الإجرائي على مسار القضية:</label>
+                <label class="field-lbl d-block mb-1">أثر مسار التقاضي الإجرائي:</label>
                 <v-textarea
                   v-model="editForm.effectOnCase"
                   rows="2"
                   variant="outlined"
                   density="compact"
                   class="high-contrast-input text-caption"
-                  placeholder="بيان أثر الجلسة في سطرين دون توقعات جازمة..."
+                  placeholder="بيان أثر مسار الدعوى بموضوعية وانضباط دون مبالغة..."
                   hide-details
                 />
               </v-col>
             </v-row>
           </div>
 
-          <!-- Block 6: Next Actions (الإجراءات القادمة - مدمجة لمنع التكرار) -->
+          <!-- Block 6: Next Actions (٦. الإجراءات القادمة ومسؤوليات المتابعة) -->
           <div class="block-card pa-4 rounded-xl border-gold">
             <div class="d-flex align-center justify-space-between mb-3 border-b-gold pb-2">
               <div class="block-title text-black">
@@ -461,7 +369,7 @@
                   variant="outlined"
                   density="compact"
                   class="high-contrast-input text-caption"
-                  placeholder="إعداد مذكرة الرد، حضور الجلسة..."
+                  placeholder="إعداد المذكرات، متابعة الدائرة، حضور الجلسة..."
                   hide-details
                 />
               </v-col>
@@ -483,7 +391,7 @@
                   density="compact"
                   variant="outlined"
                   class="high-contrast-input text-caption"
-                  placeholder="مثال: قبل موعد الجلسة بـ 3 أيام..."
+                  placeholder="الموعد النهائي..."
                   hide-details
                 />
               </v-col>
@@ -507,21 +415,21 @@
                   density="compact"
                   variant="outlined"
                   class="high-contrast-input text-caption"
-                  placeholder="تزويد المكتب بالمستندات الأصلية / السداد / الحضور الشخصي..."
+                  placeholder="تزويد المكتب بالمستندات الأصلية / السداد / الحضور..."
                   hide-details
                 />
               </div>
             </div>
           </div>
 
-          <!-- Block 7: Client Alert (تنبيه وتوجيه الموكل) -->
+          <!-- Block 7: Client Alert (٧. تنبيه وتوجيه الموكل) -->
           <div class="client-alert-card pa-4 rounded-xl border-gold-thick">
             <div class="d-flex align-center justify-space-between flex-wrap gap-2">
               <div class="d-flex align-center gap-2">
                 <div class="alert-icon-tag">٧. تنبيه الموكل</div>
                 <div class="text-body-2 font-weight-black text-black">
                   {{ editForm.clientHasAction 
-                    ? `مطلوب منكم: ${editForm.clientAction || 'اتخاذ الإجراء المحدد أعلاه'}` 
+                    ? `المطلوب منكم: ${editForm.clientAction || 'اتخاذ الإجراء المحدد أعلاه'}` 
                     : '«لا يوجد إجراء مطلوب من الموكل حالياً، ويتولى المكتب المتابعة القضائية والدفاع.»' }}
                 </div>
               </div>
@@ -536,23 +444,7 @@
             </div>
           </div>
 
-          <!-- Strict Separation Notice -->
-          <v-alert
-            type="info"
-            variant="tonal"
-            color="primary"
-            density="compact"
-            class="rounded-lg border-dashed py-2"
-          >
-            <template #prepend>
-              <LucideIcon name="lock" :size="18" class="text-primary me-2" />
-            </template>
-            <div class="text-caption font-weight-bold text-black">
-              <strong>ضمان السرية والخصوصية:</strong> السجلات والملاحظات الداخلية للمكتب محجوبة تماماً ولا تظهر في التقرير الرسمي الصادر للعميل.
-            </div>
-          </v-alert>
-
-          <!-- Internal Office Notes (Confidential) -->
+          <!-- Confidential Office Notes -->
           <v-expansion-panels variant="accordion">
             <v-expansion-panel class="bg-card-subtle border-gold rounded-lg">
               <v-expansion-panel-title class="pa-2 text-caption font-weight-black text-black">
@@ -566,7 +458,7 @@
                   variant="outlined"
                   density="compact"
                   class="high-contrast-input text-caption"
-                  placeholder="نقاط القوة والضعف، تقييم الخبير، الملاحظات الإدارية..."
+                  placeholder="سجل التحليلات، نقاط القوة والضعف، والملاحظات الإدارية..."
                   hide-details
                 />
               </v-expansion-panel-text>
@@ -594,7 +486,7 @@
             حفظ التعديلات
           </v-btn>
 
-          <!-- Review Button (draft -> reviewed) -->
+          <!-- Review Button -->
           <v-btn
             v-if="reportData?.dispatch?.status === 'draft'"
             variant="outlined"
@@ -608,7 +500,7 @@
             تمت المراجعة
           </v-btn>
 
-          <!-- Approve Button (reviewed/draft -> approved) -->
+          <!-- Approve Button -->
           <v-btn
             v-if="reportData?.dispatch?.status !== 'approved' && reportData?.dispatch?.status !== 'sent'"
             variant="flat"
@@ -672,11 +564,11 @@
 import { computed, ref, watch } from 'vue'
 import api from '../../api/ApiAdapter'
 import LucideIcon from '../common/LucideIcon.vue'
-import type { ClientSessionReportData } from '../../../../shared/ClientSessionReportDesktopService'
+import type { ClientCaseReportData } from '../../../../shared/ClientCaseReportShared'
 
 const props = defineProps<{
   show: boolean
-  sessionId: string
+  caseId: string | number
 }>()
 
 const emit = defineEmits<{
@@ -691,7 +583,7 @@ const loadError = ref('')
 const saving = ref(false)
 const transitioning = ref(false)
 const printing = ref(false)
-const reportData = ref<ClientSessionReportData | null>(null)
+const reportData = ref<ClientCaseReportData | null>(null)
 
 const editForm = ref({
   clientSummary: '',
@@ -699,13 +591,7 @@ const editForm = ref({
   internalNotes: '',
   showSubjectInReport: true,
   shortSubject: '',
-  attendance: 'حضر وكيل موكلنا وحضر وكيل الخصم',
-  sessionType: 'جلسة مرافعة',
-  ourSubmissions: '',
-  opponentSubmissions: '',
-  ourReply: '',
-  courtDirectives: '',
-  statusAfterSession: 'لا يوجد تغير جوهري في المركز القضائي للموكل',
+  statusAfterSession: 'الدعوى قيد التداول والمرافعة المنتظمة',
   effectOnCase: '',
   clientHasAction: false,
   clientAction: '',
@@ -723,7 +609,7 @@ const formattedClaimAmount = computed(() => {
 
 const nextSessionSummaryText = computed(() => {
   const n = reportData.value?.nextSessionInfo
-  if (!n || !n.date) return 'لم تحدد بعد'
+  if (!n || !n.date) return 'لا توجد جلسات قادمة محددة'
   let s = n.date
   if (n.time) s += ` – ${n.time}`
   if (n.daysRemaining !== undefined && n.daysRemaining !== null) {
@@ -753,9 +639,9 @@ const canSend = computed(() => {
 })
 
 watch(
-  [() => props.show, () => props.sessionId],
-  ([show, sid]) => {
-    if (show && sid) {
+  [() => props.show, () => props.caseId],
+  ([show, cid]) => {
+    if (show && cid) {
       loadReport()
     }
   },
@@ -763,14 +649,14 @@ watch(
 )
 
 async function loadReport() {
-  if (!props.sessionId) return
+  if (!props.caseId) return
   loading.value = true
   loadError.value = ''
   try {
-    const res = await (api as any).sessionOutcome.getClientReport(props.sessionId)
-    const data = (res?.data || res) as ClientSessionReportData
+    const res = await (api as any).clientCaseReport.get(props.caseId)
+    const data = (res?.data || res) as ClientCaseReportData
     if (!data || typeof data !== 'object') {
-      throw new Error('لم يتم استرجاع بيانات التقرير لهذه الجلسة')
+      throw new Error('لم يتم استرجاع بيانات التقرير لهذه القضية')
     }
     reportData.value = data
     editForm.value.clientSummary = data.lawyerEdits?.clientSummary || ''
@@ -780,52 +666,33 @@ async function loadReport() {
     editForm.value.showSubjectInReport = data.caseInfo?.showSubject !== false
     editForm.value.shortSubject = data.caseInfo?.shortSubject || data.caseInfo?.subject || ''
 
-    editForm.value.attendance = data.sessionInfo?.attendance || 'حضر وكيل موكلنا وحضر وكيل الخصم'
-    editForm.value.sessionType = data.sessionInfo?.sessionType || 'جلسة مرافعة'
-
-    editForm.value.ourSubmissions = data.proceedings?.ourSubmissions || ''
-    editForm.value.opponentSubmissions = data.proceedings?.opponentSubmissions || ''
-    editForm.value.ourReply = data.proceedings?.ourReply || ''
-    editForm.value.courtDirectives = data.proceedings?.courtDirectives || ''
-
-    editForm.value.statusAfterSession = data.casePosition?.statusAfterSession || 'لا يوجد تغير جوهري في المركز القضائي للموكل'
-    editForm.value.effectOnCase = data.casePosition?.effectOnCase || (data.sessionInfo?.isPostponed 
-      ? 'لم يصدر في الجلسة قرار فاصل في الموضوع، واقتصر الإجراء على تأجيل نظر الدعوى لاستكمال تبادل المذكرات؛ ومن ثم لا يترتب على الجلسة الحالية تغير نهائي في المركز القضائي للموكل.'
-      : 'متابعة مسار الدعوى وفق المستجدات القضائية المقررة.')
+    editForm.value.statusAfterSession = data.casePosition?.statusAfterSession || 'الدعوى قيد التداول والمرافعة المنتظمة'
+    editForm.value.effectOnCase = data.casePosition?.effectOnCase || 'تسير الدعوى بشكل إيجابي ومنتظم طبقاً للإجراءات القضائية المتبعة لحفظ حقوق الموكل.'
 
     editForm.value.clientHasAction = data.actionItems?.clientHasAction === true
     editForm.value.clientAction = data.actionItems?.clientAction || ''
-    editForm.value.officeAction = data.actionItems?.officeAction || data.nextSessionInfo?.actionRequired || 'إعداد المذكرة ومتابعة الإجراءات'
+    editForm.value.officeAction = data.actionItems?.officeAction || data.nextSessionInfo?.actionRequired || 'متابعة سير الدعوى وإعداد المذكرات'
     editForm.value.officeResponsible = data.actionItems?.officeResponsible || data.caseInfo?.responsibleLawyer || 'فريق الترافع بالمكتب'
-    editForm.value.officeDeadline = data.actionItems?.officeDeadline || data.nextSessionInfo?.date || 'قبل الجلسة القادمة'
+    editForm.value.officeDeadline = data.actionItems?.officeDeadline || data.nextSessionInfo?.date || 'المتابعة الدورية المستمرة'
   } catch (err: any) {
-    console.error('Failed to load client session report:', err)
-    loadError.value = err?.message || 'تعذر تحميل بيانات تقرير الجلسة'
+    console.error('Failed to load client case report:', err)
+    loadError.value = err?.message || 'تعذر تحميل بيانات تقرير القضية للموكل'
   } finally {
     loading.value = false
   }
 }
 
 async function saveEdits() {
-  if (!props.sessionId) return
+  if (!props.caseId) return
   saving.value = true
   try {
     const payload = {
       clientSummary: editForm.value.clientSummary,
       lawyerNoteAndNextStep: editForm.value.officeAction,
       internalNotes: editForm.value.internalNotes,
-      caseId: reportData.value?.caseId,
       clientId: reportData.value?.clientId,
       showSubjectInReport: editForm.value.showSubjectInReport,
       shortSubject: editForm.value.shortSubject,
-      attendance: editForm.value.attendance,
-      sessionType: editForm.value.sessionType,
-      proceedings: {
-        ourSubmissions: editForm.value.ourSubmissions,
-        opponentSubmissions: editForm.value.opponentSubmissions,
-        ourReply: editForm.value.ourReply,
-        courtDirectives: editForm.value.courtDirectives
-      },
       casePosition: {
         statusAfterSession: editForm.value.statusAfterSession,
         effectOnCase: editForm.value.effectOnCase
@@ -839,42 +706,39 @@ async function saveEdits() {
       }
     }
 
-    const res = await (api as any).sessionOutcome.updateClientReport(props.sessionId, payload)
+    const res = await (api as any).clientCaseReport.update(props.caseId, payload)
     const data = res?.data || res
     reportData.value = data
     emit('updated')
   } catch (err) {
-    console.error('Failed to save report edits:', err)
+    console.error('Failed to save case report edits:', err)
   } finally {
     saving.value = false
   }
 }
 
 async function transitionTo(toStatus: 'draft' | 'reviewed' | 'approved' | 'sent', sentVia?: string) {
-  if (!props.sessionId) return
+  if (!props.caseId) return
   transitioning.value = true
   try {
-    // Save edits first
     await saveEdits()
-
-    const res = await (api as any).sessionOutcome.transitionClientReport(props.sessionId, toStatus, sentVia)
+    const res = await (api as any).clientCaseReport.transition(props.caseId, toStatus, sentVia)
     const data = res?.data || res
     reportData.value = data
     emit('updated')
   } catch (err) {
-    console.error('Failed to transition report status:', err)
+    console.error('Failed to transition case report status:', err)
   } finally {
     transitioning.value = false
   }
 }
 
 async function printReport() {
-  if (!props.sessionId) return
+  if (!props.caseId) return
   printing.value = true
   try {
-    const html = await (api as any).sessionOutcome.getClientReportHtml(props.sessionId)
+    const html = await (api as any).clientCaseReport.getHtml(props.caseId)
     if (typeof window !== 'undefined' && (window as any).electron?.ipcRenderer) {
-      // In Desktop Electron, call native safe printHtml without opening window
       await (window as any).electron.ipcRenderer.invoke('pdf:print-html', html)
     } else {
       const printWindow = window.open('', '_blank')
@@ -888,7 +752,7 @@ async function printReport() {
       }
     }
   } catch (err) {
-    console.error('Failed to print client session report:', err)
+    console.error('Failed to print client case report:', err)
   } finally {
     printing.value = false
   }
@@ -902,27 +766,28 @@ async function sendViaWhatsapp() {
     `السلام عليكم ورحمة الله وبركاته،`,
     `المكرم / ${d.clientName} المحترم،`,
     ``,
-    `نفيدكم بصدور تقرير جلسة قضائية معتمد للقضية رقم: (${d.caseInfo.caseNumber})`,
-    `لدى: ${d.caseInfo.court} - ${d.caseInfo.circuit}`,
-    `صفة موكلنا: ${d.caseInfo.clientRole} | الطرف الخصم: ${d.caseInfo.opponentName}`,
+    `نفيدكم بصدور تقرير القضية الشامل المعتمد:`,
+    `📋 رقم القضية: (${d.caseInfo.caseNumber})`,
+    `🏛️ المحكمة والدائرة: ${d.caseInfo.court} - ${d.caseInfo.circuit}`,
+    `⚖️ صفة موكلنا: ${d.caseInfo.clientRole} | الطرف الخصم: ${d.caseInfo.opponentName}`,
     ``,
-    `⚡ ملخص سريع:`,
-    `• نتيجة الجلسة: ${d.sessionInfo.result}`,
-    d.sessionInfo.isPostponed ? `• سبب التأجيل: ${d.sessionInfo.postponementReason}` : '',
+    `⚡ ملخص تنفيذي سريع:`,
+    `• حالة القضية والمرحلة: ${d.caseInfo.status || 'قيد النظر'} (${d.caseInfo.phase || 'المرحلة الابتدائية'})`,
+    `• إجمالي الجلسات المنعقدة: ${d.sessions.length} جلسة`,
     `• الجلسة القادمة: ${nextSessionSummaryText.value}`,
     `• المطلوب منكم: ${editForm.value.clientHasAction ? (editForm.value.clientAction || 'مطلوب إجراء') : 'لا يوجد مطلوب حالياً'}`,
     ``,
-    `📋 مجريات الجلسة:`,
+    `📝 ملخص مسار القضية:`,
     editForm.value.clientSummary,
     ``,
-    `🧭 موقف القضية بعد الجلسة:`,
+    `🧭 موقف القضية الراهن:`,
     editForm.value.statusAfterSession,
     editForm.value.effectOnCase ? `(${editForm.value.effectOnCase})` : '',
     ``,
     `🛠️ الإجراءات القادمة:`,
     `• المطلوب من المكتب: ${editForm.value.officeAction}`,
     `• المسؤول: ${editForm.value.officeResponsible} | الموعد: ${editForm.value.officeDeadline}`,
-    editForm.value.clientHasAction ? `• المطلوب منكم: ${editForm.value.clientAction}` : `• تنبيه: لا يوجد إجراء مطلوب منكم حالياً، ويتولى المكتب المتابعة القضائية.`,
+    editForm.value.clientHasAction ? `• المطلوب منكم: ${editForm.value.clientAction}` : `• تنبيه: لا يوجد إجراء مطلوب منكم حالياً، ويتولى المكتب المتابعة والدفاع.`,
     ``,
     `شاكرين لكم ثقتكم الكريمة،`,
     `${d.caseInfo.responsibleLawyer || 'مكتب المحاماة والاستشارات القانونية'}`
@@ -937,7 +802,6 @@ async function sendViaWhatsapp() {
   const url = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`
   window.open(url, '_blank')
 
-  // Automatically record as sent via WhatsApp
   await transitionTo('sent', 'whatsapp')
 }
 
@@ -947,7 +811,7 @@ async function markSentManual() {
 </script>
 
 <style scoped>
-.client-report-dialog-card {
+.client-case-report-dialog {
   background: #ffffff !important;
   color: #000000 !important;
   border-width: 1.5px !important;
@@ -965,10 +829,6 @@ async function markSentManual() {
   background: linear-gradient(135deg, #735c00 0%, #b89758 100%) !important;
 }
 
-.text-ebony {
-  color: #ffffff !important;
-}
-
 .text-muted-gold {
   color: #735c00 !important;
 }
@@ -979,10 +839,6 @@ async function markSentManual() {
 
 .border-gold-thick {
   border: 1.5px solid #735c00 !important;
-}
-
-.border-gold-subtle {
-  border: 1px solid rgba(115, 92, 0, 0.25) !important;
 }
 
 .border-b-gold {
@@ -1052,7 +908,25 @@ async function markSentManual() {
   background: #fdfdfd !important;
 }
 
-/* High Contrast Input Styling: White background, Jet Black Text, Bold, Gold Border */
+.report-vuetify-table {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+}
+
+.report-vuetify-table th {
+  background: #faf7ed !important;
+  color: #735c00 !important;
+  font-size: 12px !important;
+}
+
+.report-vuetify-table td {
+  font-size: 12.5px !important;
+  color: #000000 !important;
+}
+
+/* High Contrast Input Styling */
 .high-contrast-input :deep(.v-field) {
   background: #ffffff !important;
   border-color: #735c00 !important;

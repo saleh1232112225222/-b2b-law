@@ -2135,6 +2135,33 @@ const api = {
         ? window.ipcRenderer?.invoke('sessionOutcome:getClientReportHtml', sessionId)
         : cloudRequest({ method: 'GET', url: `/session-outcomes/client-report/${sessionId}/html` })
   },
+  clientCaseReport: {
+    get: (caseId: string) =>
+      mode === 'desktop'
+        ? ((window as any).api?.clientCaseReport?.get?.(caseId) ??
+           window.ipcRenderer?.invoke('clientCaseReport:get', caseId))
+        : cloudRequest({ method: 'GET', url: `/client-case-reports/${caseId}` }),
+    update: (caseId: string, payload: any) =>
+      mode === 'desktop'
+        ? ((window as any).api?.clientCaseReport?.update?.({ caseId, ...payload }) ??
+           window.ipcRenderer?.invoke('clientCaseReport:update', { caseId, ...payload }))
+        : cloudRequest({ method: 'PUT', url: `/client-case-reports/${caseId}`, data: payload }),
+    transition: (caseId: string, toStatus: string, sentVia?: string) =>
+      mode === 'desktop'
+        ? ((window as any).api?.clientCaseReport?.transition?.({ caseId, toStatus, sentVia }) ??
+           window.ipcRenderer?.invoke('clientCaseReport:transition', { caseId, toStatus, sentVia }))
+        : cloudRequest({ method: 'POST', url: `/client-case-reports/${caseId}/transition`, data: { toStatus, sentVia } }),
+    getHtml: (caseId: string) =>
+      mode === 'desktop'
+        ? ((window as any).api?.clientCaseReport?.getHtml?.(caseId) ??
+           window.ipcRenderer?.invoke('clientCaseReport:getHtml', caseId))
+        : cloudRequest({ method: 'GET', url: `/client-case-reports/${caseId}/html` }),
+    print: (caseId: string) =>
+      mode === 'desktop'
+        ? ((window as any).api?.clientCaseReport?.print?.(caseId) ??
+           window.ipcRenderer?.invoke('clientCaseReport:print', caseId))
+        : cloudRequest({ method: 'GET', url: `/client-case-reports/${caseId}/html` })
+  },
   analytics: {
     getDashboard: () =>
       mode === 'desktop'
