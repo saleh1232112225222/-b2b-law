@@ -10,6 +10,7 @@
       @open-new-window="openInNewWindow"
       @go-back="goBack"
       @open-picker="pickerDialog = true"
+      @open-client-report="openClientReportModal"
       @open-outcome="openOutcomeModal"
     />
 
@@ -97,6 +98,112 @@
             class="rounded-xl premium-select glass-input"
             hide-details
           />
+        </v-col>
+
+        <!-- قسم تفاصيل التأجيل لموعد آخر -->
+        <v-col
+          v-if="outcomeModal.result === 'تأجيل الجلسة لموعد آخر'"
+          cols="12"
+          class="mt-3"
+        >
+          <div class="pa-4 rounded-xl border border-gold border-opacity-30 glass-card-noir">
+            <div class="d-flex align-center gap-2 mb-3">
+              <LucideIcon name="calendar-clock" :size="20" class="text-accent" />
+              <span class="text-subtitle-2 font-weight-black text-gold">
+                بيانات وإجراءات تأجيل الجلسة
+              </span>
+            </div>
+
+            <v-row dense>
+              <!-- سبب التأجيل -->
+              <v-col cols="12">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="help-circle" :size="15" class="me-1" /> سبب التأجيل المقرر:
+                </label>
+                <v-combobox
+                  v-model="outcomeModal.postponementReason"
+                  :items="POSTPONEMENT_REASONS"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="اختر سبب التأجيل أو اكتب سبباً مخصصاً..."
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- تاريخ ووقت الجلسة القادمة والقاعة -->
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="calendar" :size="15" class="me-1" /> تاريخ الجلسة القادمة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionDate"
+                  type="date"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="clock" :size="15" class="me-1" /> وقت الجلسة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionTime"
+                  type="time"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="door-closed" :size="15" class="me-1" /> القاعة / الدائرة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionRoom"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="رقم القاعة أو الدائرة..."
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- الإجراء المطلوب للتحضير -->
+              <v-col cols="12" sm="7">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="check-square" :size="15" class="me-1" /> التكليف / الإجراء المطلوب للجلسة:
+                </label>
+                <v-combobox
+                  v-model="outcomeModal.actionRequired"
+                  :items="POSTPONEMENT_ACTIONS"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="حدد المطلوب (مثال: إيداع مذكرة جوابية)..."
+                  class="rounded-xl premium-select glass-input"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- المكلف بالإجراء -->
+              <v-col cols="12" sm="5">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="user-check" :size="15" class="me-1" /> الطرف المكلف:
+                </label>
+                <v-select
+                  v-model="outcomeModal.assignedParty"
+                  :items="POSTPONEMENT_ASSIGNED_PARTIES"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input"
+                  hide-details
+                />
+              </v-col>
+            </v-row>
+          </div>
         </v-col>
         <v-col v-if="outcomeModal.result === 'شطب الدعوى / انقطاع'" cols="12" class="mt-4">
           <label class="mb-2 font-weight-black text-gold">
@@ -311,6 +418,11 @@
     />
 
     <PoaPreviewDialog v-model:show="poaPreviewDialog" :data="poaPreviewData" />
+
+    <ClientSessionReportDialog
+      v-model:show="clientReportDialog.show"
+      :session-id="clientReportDialog.sessionId"
+    />
   </v-container>
 </template>
 
@@ -318,9 +430,15 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { safeArray } from '../utils/safe'
-import { SESSION_OUTCOMES } from '../utils/legalConstants'
+import {
+  SESSION_OUTCOMES,
+  POSTPONEMENT_REASONS,
+  POSTPONEMENT_ACTIONS,
+  POSTPONEMENT_ASSIGNED_PARTIES
+} from '../utils/legalConstants'
 import PremiumModal from '../components/common/PremiumModal.vue'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import ClientSessionReportDialog from '../components/sessions/ClientSessionReportDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import { useAgenciesStore } from '../stores/agencies'
 import LucideIcon from '../components/common/LucideIcon.vue'
@@ -410,8 +528,23 @@ const outcomeModal = ref({
   judgmentNeedsExecution: '',
   judgmentHasAppealGrounds: '',
   judgmentDegree: '',
-  caseType: ''
+  caseType: '',
+  postponementReason: '',
+  nextSessionDate: '',
+  nextSessionTime: '',
+  nextSessionRoom: '',
+  actionRequired: '',
+  assignedParty: 'مكتبنا (فريق المرافعة)'
 })
+
+const clientReportDialog = ref({ show: false, sessionId: '' })
+const openClientReportModal = () => {
+  if (activeSession.value?.id) {
+    clientReportDialog.value = { show: true, sessionId: activeSession.value.id }
+  } else {
+    showToast('يرجى اختيار جلسة أولاً لعرض التقرير', 'info')
+  }
+}
 
 const todaySessions = ref<any[]>([])
 const tomorrowSessions = ref<any[]>([])
@@ -646,7 +779,13 @@ const openOutcomeModal = () => {
     judgmentNeedsExecution: '',
     judgmentHasAppealGrounds: '',
     judgmentDegree: '',
-    caseType: ''
+    caseType: '',
+    postponementReason: '',
+    nextSessionDate: '',
+    nextSessionTime: '',
+    nextSessionRoom: activeSession.value?.court_room || '',
+    actionRequired: '',
+    assignedParty: 'مكتبنا (فريق المرافعة)'
   }
 }
 
@@ -674,6 +813,25 @@ const submitOutcome = async () => {
       notes: outcomeModal.value.notes,
       caseType: outcomeModal.value.caseType || undefined
     }
+
+    if (result === 'تأجيل الجلسة لموعد آخر' || result.includes('تأجيل')) {
+      payload.postponementReason = outcomeModal.value.postponementReason
+      if (outcomeModal.value.nextSessionDate) {
+        payload.nextSession = {
+          date: outcomeModal.value.nextSessionDate,
+          time: outcomeModal.value.nextSessionTime || undefined,
+          court_room: outcomeModal.value.nextSessionRoom || undefined,
+          notes: [
+            outcomeModal.value.postponementReason ? `سبب التأجيل: ${outcomeModal.value.postponementReason}` : '',
+            outcomeModal.value.actionRequired ? `المطلوب: ${outcomeModal.value.actionRequired}` : '',
+            outcomeModal.value.assignedParty ? `المكلف: ${outcomeModal.value.assignedParty}` : ''
+          ].filter(Boolean).join(' | ')
+        }
+      }
+      payload.actionRequired = outcomeModal.value.actionRequired
+      payload.assignedParty = outcomeModal.value.assignedParty
+    }
+
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
       const jt = outcomeModal.value.result === 'صدور حكم قطعي' ? 'قطعي' : 'ابتدائي'
       payload.judgmentData = {
@@ -746,8 +904,17 @@ const submitOutcome = async () => {
         lines.push(`• نوع النتيجة: ${analysis?.outcomeType || '—'}`)
         if (analysis?.outcomeType === 'حجز للحكم') {
           lines.push('• الإجراء: متابعة تاريخ النطق بالحكم')
-        } else if (analysis?.outcomeType === 'تأجيل') {
-          lines.push('• الإجراء: متابعة تاريخ الجلسة الجديدة')
+        } else if (analysis?.outcomeType === 'تأجيل' || result.includes('تأجيل')) {
+          lines.push('• الإجراء: متابعة تاريخ الجلسة الجديدة وتجهيز المطلوب')
+          if (outcomeModal.value.postponementReason) {
+            lines.push(`• سبب التأجيل: ${outcomeModal.value.postponementReason}`)
+          }
+          if (outcomeModal.value.nextSessionDate) {
+            lines.push(`• موعد الجلسة القادمة: ${outcomeModal.value.nextSessionDate}`)
+          }
+          if (outcomeModal.value.actionRequired) {
+            lines.push(`• الإجراء المطلوب: ${outcomeModal.value.actionRequired} (المكلف: ${outcomeModal.value.assignedParty || 'المكتب'})`)
+          }
         } else if (analysis?.outcomeType === 'تبليغ / إجراء إداري') {
           lines.push('• الإجراء: متابعة إجراءات التبليغ')
         } else if (analysis?.outcomeType === 'قرار') {
@@ -771,7 +938,7 @@ const submitOutcome = async () => {
       }
       lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       lines.push('هل أنت متأكد من تسجيل النتيجة؟')
-      lines.push('سيتم إغلاق الجلسة وإنشاء المهام أعلاه.')
+      lines.push('سيتم إغلاق الجلسة وإنشاء المهام والتقرير المعتمد للعميل.')
 
       const msg = lines.join('\n')
 
@@ -785,16 +952,25 @@ const submitOutcome = async () => {
         action: async () => {
           confirmDialog.value.loading = true
           try {
+            const currentSessionId = activeSession.value.id
             const applied = await api.sessionOutcome.apply({
-              sessionId: activeSession.value.id,
+              sessionId: currentSessionId,
               result,
               notes: outcomeModal.value.notes,
               judgmentData: payload.judgmentData,
-              caseType: outcomeModal.value.caseType || undefined
+              caseType: outcomeModal.value.caseType || undefined,
+              postponementReason: payload.postponementReason,
+              nextSession: payload.nextSession,
+              actionRequired: payload.actionRequired,
+              assignedParty: payload.assignedParty
             })
             outcomeModal.value.show = false
-            showToast('تم تسجيل النتيجة بنجاح مع التحليل الذكي', 'success')
-            router.push('/sessions')
+            showToast('تم تسجيل النتيجة بنجاح؛ جاري فتح تقرير جلسة العميل المعتمد', 'success')
+            // Open Client Session Report immediately for review & approval
+            clientReportDialog.value = {
+              show: true,
+              sessionId: currentSessionId
+            }
           } catch (e: unknown) {
             showToast('فشل تسجيل النتيجة: ' + (e as Error).message, 'error')
           } finally {
@@ -829,17 +1005,19 @@ const submitOutcome = async () => {
         action: async () => {
           confirmDialog.value.loading = true
           try {
+            const currentSessionId = activeSession.value.id
             const applied = await api.workflow.applyDecision({
-              sessionId: activeSession.value.id,
+              sessionId: currentSessionId,
               resultLabel: result,
               inputs: payload
             })
             outcomeModal.value.show = false
-            showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح', 'success')
-            const next = applied?.next
-            if (next?.type === 'ui' && next?.route)
-              router.push({ path: next.route, query: next.query || {} })
-            else router.push('/sessions')
+            showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح؛ جاري فتح تقرير العميل', 'success')
+            // Open Client Session Report immediately for review & approval
+            clientReportDialog.value = {
+              show: true,
+              sessionId: currentSessionId
+            }
           } catch (e: unknown) {
             showToast('فشل تثبيت النتيجة: ' + (e as Error).message, 'error')
           } finally {

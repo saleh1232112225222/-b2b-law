@@ -406,6 +406,112 @@
           ></v-select>
         </v-col>
 
+        <!-- قسم تفاصيل التأجيل لموعد آخر -->
+        <v-col
+          v-if="outcomeModal.result === 'تأجيل الجلسة لموعد آخر'"
+          cols="12"
+          class="mt-3"
+        >
+          <div class="pa-4 rounded-xl border border-gold border-opacity-30 glass-card-noir">
+            <div class="d-flex align-center gap-2 mb-3">
+              <LucideIcon name="calendar-clock" :size="20" class="text-accent" />
+              <span class="text-subtitle-2 font-weight-black text-gold">
+                بيانات وإجراءات تأجيل الجلسة
+              </span>
+            </div>
+
+            <v-row dense>
+              <!-- سبب التأجيل -->
+              <v-col cols="12">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="help-circle" :size="15" class="me-1" /> سبب التأجيل المقرر:
+                </label>
+                <v-combobox
+                  v-model="outcomeModal.postponementReason"
+                  :items="POSTPONEMENT_REASONS"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="اختر سبب التأجيل أو اكتب سبباً مخصصاً..."
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- تاريخ ووقت الجلسة القادمة والقاعة -->
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="calendar" :size="15" class="me-1" /> تاريخ الجلسة القادمة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionDate"
+                  type="date"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="clock" :size="15" class="me-1" /> وقت الجلسة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionTime"
+                  type="time"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+              <v-col cols="12" sm="4">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="door-closed" :size="15" class="me-1" /> القاعة / الدائرة:
+                </label>
+                <v-text-field
+                  v-model="outcomeModal.nextSessionRoom"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="رقم القاعة أو الدائرة..."
+                  class="rounded-xl premium-select glass-input mb-3"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- الإجراء المطلوب للتحضير -->
+              <v-col cols="12" sm="7">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="check-square" :size="15" class="me-1" /> التكليف / الإجراء المطلوب للجلسة:
+                </label>
+                <v-combobox
+                  v-model="outcomeModal.actionRequired"
+                  :items="POSTPONEMENT_ACTIONS"
+                  variant="outlined"
+                  density="comfortable"
+                  placeholder="حدد المطلوب (مثال: إيداع مذكرة جوابية)..."
+                  class="rounded-xl premium-select glass-input"
+                  hide-details
+                />
+              </v-col>
+
+              <!-- المكلف بالإجراء -->
+              <v-col cols="12" sm="5">
+                <label class="mb-2 d-block font-weight-black text-gold text-caption">
+                  <LucideIcon name="user-check" :size="15" class="me-1" /> الطرف المكلف:
+                </label>
+                <v-select
+                  v-model="outcomeModal.assignedParty"
+                  :items="POSTPONEMENT_ASSIGNED_PARTIES"
+                  variant="outlined"
+                  density="comfortable"
+                  class="rounded-xl premium-select glass-input"
+                  hide-details
+                />
+              </v-col>
+            </v-row>
+          </div>
+        </v-col>
+
         <v-col v-if="outcomeModal.result === 'شطب الدعوى / انقطاع'" cols="12" class="mt-4">
           <div class="text-subtitle-2 font-weight-black text-gold mb-3">قرار الشطب / الانقطاع</div>
           <v-select
@@ -713,6 +819,11 @@
       @update:show="addPostponedSessionState.show = $event"
       @save="savePostponedSession"
     />
+
+    <ClientSessionReportDialog
+      v-model:show="clientReportDialog.show"
+      :session-id="clientReportDialog.sessionId"
+    />
   </v-container>
 </template>
 
@@ -720,7 +831,12 @@
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { safeArray } from '../utils/safe'
-import { SESSION_OUTCOMES } from '../utils/legalConstants'
+import {
+  SESSION_OUTCOMES,
+  POSTPONEMENT_REASONS,
+  POSTPONEMENT_ACTIONS,
+  POSTPONEMENT_ASSIGNED_PARTIES
+} from '../utils/legalConstants'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 
@@ -728,6 +844,7 @@ import { useConfirmDialog } from '../composables/useConfirmDialog'
 import UrgentSessionsTable from '../components/briefing/UrgentSessionsTable.vue'
 import EnforcementTimeline from '../components/briefing/EnforcementTimeline.vue'
 import PremiumModal from '../components/common/PremiumModal.vue'
+import ClientSessionReportDialog from '../components/sessions/ClientSessionReportDialog.vue'
 import DailyProgress from '../components/briefing/DailyProgress.vue'
 import DashboardKpiCards from '../components/briefing/DashboardKpiCards.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
@@ -817,8 +934,16 @@ const outcomeModal = ref({
   judgmentNeedsExecution: '',
   judgmentHasAppealGrounds: '',
   judgmentDegree: '',
-  caseType: ''
+  caseType: '',
+  postponementReason: '',
+  nextSessionDate: '',
+  nextSessionTime: '',
+  nextSessionRoom: '',
+  actionRequired: '',
+  assignedParty: 'مكتبنا (فريق المرافعة)'
 })
+
+const clientReportDialog = ref({ show: false, sessionId: '' })
 
 const translatePlanItem = (k: string): string => {
   const key = String(k || '').trim()
@@ -910,7 +1035,13 @@ function openOutcomeModal(session: Record<string, any>): void {
     judgmentNeedsExecution: '',
     judgmentHasAppealGrounds: '',
     judgmentDegree: '',
-    caseType: ''
+    caseType: '',
+    postponementReason: '',
+    nextSessionDate: '',
+    nextSessionTime: '',
+    nextSessionRoom: session.court_room || '',
+    actionRequired: '',
+    assignedParty: 'مكتبنا (فريق المرافعة)'
   }
 }
 
@@ -934,6 +1065,25 @@ async function submitOutcome(): Promise<void> {
       notes: outcomeModal.value.notes,
       caseType: outcomeModal.value.caseType || undefined
     }
+
+    if (result === 'تأجيل الجلسة لموعد آخر' || result.includes('تأجيل')) {
+      payload.postponementReason = outcomeModal.value.postponementReason
+      if (outcomeModal.value.nextSessionDate) {
+        payload.nextSession = {
+          date: outcomeModal.value.nextSessionDate,
+          time: outcomeModal.value.nextSessionTime || undefined,
+          court_room: outcomeModal.value.nextSessionRoom || undefined,
+          notes: [
+            outcomeModal.value.postponementReason ? `سبب التأجيل: ${outcomeModal.value.postponementReason}` : '',
+            outcomeModal.value.actionRequired ? `المطلوب: ${outcomeModal.value.actionRequired}` : '',
+            outcomeModal.value.assignedParty ? `المكلف: ${outcomeModal.value.assignedParty}` : ''
+          ].filter(Boolean).join(' | ')
+        }
+      }
+      payload.actionRequired = outcomeModal.value.actionRequired
+      payload.assignedParty = outcomeModal.value.assignedParty
+    }
+
     if (result === 'صدور حكم قطعي' || result === 'صدور حكم ابتدائي') {
       const isFinal = result === 'صدور حكم قطعي'
       payload.judgmentData = {
@@ -1011,8 +1161,17 @@ async function submitOutcome(): Promise<void> {
         lines.push(`• نوع النتيجة: ${analysis?.outcomeType || '—'}`)
         if (analysis?.outcomeType === 'حجز للحكم') {
           lines.push('• الإجراء: متابعة تاريخ النطق بالحكم')
-        } else if (analysis?.outcomeType === 'تأجيل') {
-          lines.push('• الإجراء: متابعة تاريخ الجلسة الجديدة')
+        } else if (analysis?.outcomeType === 'تأجيل' || result.includes('تأجيل')) {
+          lines.push('• الإجراء: متابعة موعد الجلسة المؤجلة وتجهيز المطلوب')
+          if (outcomeModal.value.postponementReason) {
+            lines.push(`• سبب التأجيل: ${outcomeModal.value.postponementReason}`)
+          }
+          if (outcomeModal.value.nextSessionDate) {
+            lines.push(`• تاريخ الجلسة القادمة: ${outcomeModal.value.nextSessionDate}`)
+          }
+          if (outcomeModal.value.actionRequired) {
+            lines.push(`• الإجراء المطلوب: ${outcomeModal.value.actionRequired} (المكلف: ${outcomeModal.value.assignedParty || 'المكتب'})`)
+          }
         } else if (analysis?.outcomeType === 'تبليغ / إجراء إداري') {
           lines.push('• الإجراء: متابعة إجراءات التبليغ')
         } else if (analysis?.outcomeType === 'قرار') {
@@ -1036,7 +1195,7 @@ async function submitOutcome(): Promise<void> {
       }
       lines.push('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━')
       lines.push('هل أنت متأكد من تسجيل النتيجة؟')
-      lines.push('سيتم إغلاق الجلسة وإنشاء المهام أعلاه.')
+      lines.push('سيتم إغلاق الجلسة وإنشاء المهام والتقرير المعتمد للعميل.')
       const msg = lines.join('\n')
 
       openConfirm({
@@ -1051,32 +1210,29 @@ async function submitOutcome(): Promise<void> {
           confirmDialog.value.loading = true
           try {
             const currentSession = outcomeModal.value.session
-            const targetCaseId = currentSession?.case_id || currentSession?.caseId
-            const isPostponed = result.includes('تأجيل') || result.includes('موعد آخر')
 
             const applied = await api.sessionOutcome.apply({
-              sessionId: outcomeModal.value.session.id,
+              sessionId: currentSession.id,
               result,
               notes: outcomeModal.value.notes,
               judgmentData: payload.judgmentData,
-              caseType: outcomeModal.value.caseType || undefined
+              caseType: outcomeModal.value.caseType || undefined,
+              postponementReason: payload.postponementReason,
+              nextSession: payload.nextSession,
+              actionRequired: payload.actionRequired,
+              assignedParty: payload.assignedParty
             })
             outcomeModal.value.show = false
             await loadSummary()
-            const tasks = applied?.analysis?.tasks || []
-            const taskCount = tasks.length
+            closeConfirm()
             cleanSnackbar.value = {
               show: true,
-              text:
-                taskCount > 0
-                  ? `تم تسجيل النتيجة وإنشاء ${taskCount} مهام ذكية.`
-                  : 'تم تسجيل النتيجة بنجاح.',
+              text: 'تم رصد النتيجة بنجاح؛ جاري فتح تقرير جلسة العميل للمراجعة والاعتماد.',
               color: 'success'
             }
-            closeConfirm()
-
-            if (isPostponed && targetCaseId) {
-              openAddSessionForCase(targetCaseId, currentSession)
+            clientReportDialog.value = {
+              show: true,
+              sessionId: currentSession.id
             }
           } catch (e: unknown) {
             cleanSnackbar.value = {
@@ -1128,22 +1284,24 @@ async function submitOutcome(): Promise<void> {
         action: async () => {
           confirmDialog.value.loading = true
           try {
+            const currentSession = outcomeModal.value.session
             const applied = await api.workflow.applyDecision({
-              sessionId: outcomeModal.value.session.id,
+              sessionId: currentSession.id,
               resultLabel: result,
               inputs: payload
             })
             outcomeModal.value.show = false
             await loadSummary()
-            const next = applied?.next
-            if (next?.type === 'ui' && next?.route)
-              router.push({ path: next.route, query: next.query || {} })
+            closeConfirm()
             cleanSnackbar.value = {
               show: true,
-              text: 'تم تحديث ملف القضية بنجاح.',
+              text: 'تم إغلاق الجلسة ورصد النتيجة بنجاح؛ جاري فتح تقرير العميل.',
               color: 'success'
             }
-            closeConfirm()
+            clientReportDialog.value = {
+              show: true,
+              sessionId: currentSession.id
+            }
           } catch (e: unknown) {
             cleanSnackbar.value = {
               show: true,

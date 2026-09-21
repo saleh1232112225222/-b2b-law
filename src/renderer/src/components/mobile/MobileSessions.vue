@@ -95,7 +95,12 @@
 
                 <!-- Time -->
                 <v-col cols="6" class="d-flex align-center justify-end">
-                  <v-icon icon="mdi-clock-outline" size="15" color="accent" class="me-1 flex-shrink-0" />
+                  <v-icon
+                    icon="mdi-clock-outline"
+                    size="15"
+                    color="accent"
+                    class="me-1 flex-shrink-0"
+                  />
                   <span class="text-caption font-weight-black text-amber-800">
                     {{ item.time || '--:--' }}
                   </span>
@@ -103,8 +108,15 @@
 
                 <!-- Hijri Date -->
                 <v-col cols="12" class="d-flex align-center mt-1">
-                  <v-icon icon="mdi-calendar-star" size="15" color="accent" class="me-1 flex-shrink-0" />
-                  <span class="text-caption font-weight-bold text-amber-800 opacity-90 text-truncate">
+                  <v-icon
+                    icon="mdi-calendar-star"
+                    size="15"
+                    color="accent"
+                    class="me-1 flex-shrink-0"
+                  />
+                  <span
+                    class="text-caption font-weight-bold text-amber-800 opacity-90 text-truncate"
+                  >
                     {{ formatHijri(item.date_hijri) }}
                   </span>
                 </v-col>
@@ -116,13 +128,20 @@
               v-if="item.court_room"
               class="d-flex align-center text-caption text-slate-600 mb-1"
             >
-              <v-icon icon="mdi-gavel" size="14" color="accent" class="me-1 opacity-70 flex-shrink-0" />
+              <v-icon
+                icon="mdi-gavel"
+                size="14"
+                color="accent"
+                class="me-1 opacity-70 flex-shrink-0"
+              />
               <span class="text-truncate">{{ item.court_room }}</span>
             </div>
           </div>
 
           <!-- 3. Footer Row -->
-          <div class="card-footer d-flex align-center justify-space-between px-4 py-2.5 flex-wrap gap-2">
+          <div
+            class="card-footer d-flex align-center justify-space-between px-4 py-2.5 flex-wrap gap-2"
+          >
             <!-- Left Actions (Delete, Edit, Ops Room) -->
             <div class="d-flex align-center gap-2">
               <button
@@ -140,6 +159,14 @@
                 @click.stop="emit('edit', item)"
               >
                 <v-icon icon="mdi-pencil-outline" size="18" />
+              </button>
+              <button
+                type="button"
+                class="action-btn-icon btn-report"
+                title="تقرير جلسة العميل"
+                @click.stop="emit('report', item)"
+              >
+                <v-icon icon="mdi-file-document-outline" size="18" />
               </button>
               <button
                 type="button"
@@ -181,6 +208,7 @@ const emit = defineEmits<{
   edit: [item: any]
   add: []
   delete: [item: any]
+  report: [item: any]
   'open-najiz': [link: string]
   'open-session-room': [item: any]
   refresh: []
@@ -240,7 +268,8 @@ const formatHijri = (hijri?: string): string => {
 const openNajizLink = (link: string): void => {
   if (!link) return
   emit('open-najiz', link)
-  const fullUrl = link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`
+  const fullUrl =
+    link.startsWith('http://') || link.startsWith('https://') ? link : `https://${link}`
   window.open(fullUrl, '_blank')
 }
 </script>
@@ -258,7 +287,9 @@ const openNajizLink = (link: string): void => {
   border-radius: 16px !important;
   box-shadow: 0 2px 8px rgba(197, 160, 40, 0.08) !important;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .client-style-card:active {
@@ -362,7 +393,9 @@ const openNajizLink = (link: string): void => {
   justify-content: center;
   border: none;
   cursor: pointer;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .action-btn-icon:active {
@@ -377,6 +410,11 @@ const openNajizLink = (link: string): void => {
 .btn-edit {
   background: #e2e8f0;
   color: #334155;
+}
+
+.btn-report {
+  background: #fef3c7;
+  color: #b45309;
 }
 
 .btn-ops {
@@ -404,48 +442,48 @@ const openNajizLink = (link: string): void => {
 
 /* Dark Mode Contrast Overrides */
 :global([data-theme='dark'] .mobile-sessions-container .client-style-card) {
-  background: #0D1929 !important;
+  background: #0d1929 !important;
   border-color: #c5a028 !important;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .card-header),
 :global([data-theme='dark'] .mobile-sessions-container .card-body) {
-  background: #0D1929 !important;
+  background: #0d1929 !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .card-footer) {
-  background: #111F31 !important;
+  background: #111f31 !important;
   border-top-color: rgba(197, 160, 40, 0.35) !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .session-datetime-box) {
-  background: #111F31 !important;
-  border-color: #26364A !important;
+  background: #111f31 !important;
+  border-color: #26364a !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .card-title),
 :global([data-theme='dark'] .mobile-sessions-container .value-text),
 :global([data-theme='dark'] .mobile-sessions-container .session-datetime-box .text-slate-800) {
-  color: #F3F6FA !important;
+  color: #f3f6fa !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .label-text) {
-  color: #E5B52B !important;
+  color: #e5b52b !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .text-amber-800),
 :global([data-theme='dark'] .mobile-sessions-container .text-amber-900) {
-  color: #E5B52B !important;
+  color: #e5b52b !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .card-body .text-slate-600) {
-  color: #9EACBD !important;
+  color: #9eacbd !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .btn-edit) {
   background: #1e293b !important;
-  color: #F3F6FA !important;
+  color: #f3f6fa !important;
 }
 
 :global([data-theme='dark'] .mobile-sessions-container .btn-ops) {
@@ -456,6 +494,6 @@ const openNajizLink = (link: string): void => {
 :global([data-theme='dark'] .mobile-sessions-container .najiz-join-btn) {
   background: rgba(197, 160, 40, 0.2) !important;
   border-color: #c5a028 !important;
-  color: #F3F6FA !important;
+  color: #f3f6fa !important;
 }
 </style>

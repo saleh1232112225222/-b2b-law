@@ -362,14 +362,14 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
     url.startsWith('/sessions/today') ||
     (url.startsWith('/sessions') && method === 'GET' && params?.from)
   ) {
-    const sessions = []
+    const sessions: any[] = []
     for (let i = 0; i < 3; i++) {
       sessions.push(mockSession(new Date(), `mock-session-t-${i}`))
     }
     return { data: sessions }
   }
   if (url.startsWith('/sessions/tomorrow')) {
-    const sessions = []
+    const sessions: any[] = []
     const tomorrow = new Date(Date.now() + 86400000)
     for (let i = 0; i < 2; i++) {
       sessions.push(mockSession(tomorrow, `mock-session-tm-${i}`))
@@ -377,7 +377,7 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
     return { data: sessions }
   }
   if (url.startsWith('/sessions') && method === 'GET' && params?.from && params?.to) {
-    const sessions = []
+    const sessions: any[] = []
     for (let i = 0; i < 5; i++) {
       const d = new Date(params.from)
       d.setDate(d.getDate() + i)
@@ -2117,7 +2117,23 @@ const api = {
     preview: (payload: any) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('sessionOutcome:preview', payload)
-        : cloudRequest({ method: 'POST', url: '/session-outcomes/preview', data: payload })
+        : cloudRequest({ method: 'POST', url: '/session-outcomes/preview', data: payload }),
+    getClientReport: (sessionId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:getClientReport', sessionId)
+        : cloudRequest({ method: 'GET', url: `/session-outcomes/client-report/${sessionId}` }),
+    updateClientReport: (sessionId: string, payload: any) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:updateClientReport', { sessionId, ...payload })
+        : cloudRequest({ method: 'PUT', url: `/session-outcomes/client-report/${sessionId}`, data: payload }),
+    transitionClientReport: (sessionId: string, toStatus: string, sentVia?: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:transitionClientReport', { sessionId, toStatus, sentVia })
+        : cloudRequest({ method: 'POST', url: `/session-outcomes/client-report/${sessionId}/transition`, data: { toStatus, sentVia } }),
+    getClientReportHtml: (sessionId: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('sessionOutcome:getClientReportHtml', sessionId)
+        : cloudRequest({ method: 'GET', url: `/session-outcomes/client-report/${sessionId}/html` })
   },
   analytics: {
     getDashboard: () =>

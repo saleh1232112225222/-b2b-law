@@ -181,12 +181,24 @@
             <v-btn
               icon
               variant="text"
+              color="accent"
+              size="small"
+              class="premium-hover"
+              @click="$emit('report', item)"
+            >
+              <LucideIcon name="file-text" :size="18" />
+              <v-tooltip activator="parent" location="top">تقرير جلسة العميل</v-tooltip>
+            </v-btn>
+            <v-btn
+              icon
+              variant="text"
               color="gold"
               size="small"
               class="premium-hover opacity-70"
               @click="$emit('edit', item)"
             >
               <LucideIcon name="edit-3" :size="18" />
+              <v-tooltip activator="parent" location="top">تعديل الجلسة</v-tooltip>
             </v-btn>
             <v-btn
               icon
@@ -197,6 +209,7 @@
               @click="$emit('delete', item)"
             >
               <LucideIcon name="trash-2" :size="18" />
+              <v-tooltip activator="parent" location="top">حذف الجلسة</v-tooltip>
             </v-btn>
           </div>
         </template>
@@ -232,6 +245,7 @@ defineEmits<{
   ]
   edit: [item: any]
   delete: [item: any]
+  report: [item: any]
   'open-session-room': [item: any]
   'open-session-room-new-window': [item: any]
   'open-najiz': [link: string]
@@ -246,7 +260,7 @@ const headers = [
   { title: 'حالة الجلسة', key: 'status', align: 'center' as const, width: 100 },
   { title: 'تقويم Google', key: 'google_sync', align: 'center' as const, width: 120 },
   { title: '', key: 'session_room', sortable: false, align: 'center' as const, width: 80 },
-  { title: 'إجراءات', key: 'actions', sortable: false, align: 'center' as const, width: 100 }
+  { title: 'إجراءات', key: 'actions', sortable: false, align: 'center' as const, width: 130 }
 ]
 
 const getStatusColor = (status: string): string => {

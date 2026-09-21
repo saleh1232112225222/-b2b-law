@@ -47,7 +47,7 @@ describe('report output filtering', () => {
               status: 'قيد النظر',
               subject: 'يجب ألا تظهر هذه القضية'
             }
-          ].filter((row) => !sql.includes('c.id =') || row.id === params[1])
+          ].filter((row) => (!sql.includes('c.id =') && !sql.includes('id = $1')) || row.id === params[0] || row.id === params[1])
         }
       }
       return { rows: [] }
@@ -65,10 +65,10 @@ describe('report output filtering', () => {
     expect(html).toContain('موضوع القضية المحددة')
     expect(html).not.toContain('48888888')
     expect(html).not.toContain('يجب ألا تظهر هذه القضية')
-    expect(queryMock).toHaveBeenCalledWith(expect.stringContaining('c.id = $2'), [
-      'company-1',
-      'case-selected'
-    ])
+    expect(queryMock).toHaveBeenCalledWith(
+      expect.stringMatching(/(c\.id\s*=\s*\$2|id\s*=\s*\$1)/),
+      expect.arrayContaining(['case-selected', 'company-1'])
+    )
   })
 
   it.each([

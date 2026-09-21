@@ -48,6 +48,16 @@
       </v-btn>
       <v-btn
         v-if="hasActiveSession"
+        variant="tonal"
+        color="accent"
+        class="rounded-xl font-weight-black px-6 shadow-premium session-room-btn-zr1 premium-btn-gold-gradient"
+        height="56"
+        @click="$emit('open-client-report')"
+      >
+        <LucideIcon name="file-text" :size="20" class="me-2" /> تقرير جلسة العميل
+      </v-btn>
+      <v-btn
+        v-if="hasActiveSession"
         variant="flat"
         color="error"
         class="rounded-xl font-weight-black px-8 shadow-premium session-room-btn-zr1 premium-btn-gold-gradient"
@@ -63,5 +73,11 @@
 <script setup lang="ts">
 import LucideIcon from '../../components/common/LucideIcon.vue'
 defineProps<{ isNewWindow: boolean; hasActiveSession: boolean }>()
-defineEmits<{ 'open-new-window': []; 'go-back': []; 'open-picker': []; 'open-outcome': [] }>()
+defineEmits<{
+  'open-new-window': []
+  'go-back': []
+  'open-picker': []
+  'open-outcome': []
+  'open-client-report': []
+}>()
 </script>

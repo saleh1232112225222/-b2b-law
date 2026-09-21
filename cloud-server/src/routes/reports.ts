@@ -7,6 +7,10 @@ import {
   getUserPermissions
 } from '../middleware/permission'
 import { getCompanyId } from '../middleware/tenant'
+import {
+  buildCanonicalCaseDossier,
+  renderMasterCaseDossierHtml
+} from '../services/caseDossierService'
 
 export const reportsRouter = Router()
 
@@ -229,7 +233,16 @@ reportsRouter.get(
         ]
       }
 
+      const dossier = await buildCanonicalCaseDossier(
+        companyId,
+        caseId,
+        hasFinancialAccess,
+        from as string,
+        to as string
+      )
+
       res.json({
+        dossier,
         case: {
           ...caseRow,
           client_name: clientData.rows[0]?.name || caseRow.client_name || '',
@@ -680,31 +693,12 @@ export async function generateReportHtmlString(
       const selectedCaseId = String(params.caseId || '').trim()
       if (!selectedCaseId) throw new Error('معرف القضية مطلوب لإنشاء تقرير القضية')
 
-      title = 'تقرير قضية شامل'
-      const result = await query(
-        `SELECT c.id, c.case_number, COALESCE(cl.name, '') AS client_name,
-                c.court, c.circuit, c.status, c.subject, c.case_type,
-                c.registration_date, c.opponent_name, c.client_role, c.phase,
-                c.priority, c.notes
-         FROM cases c
-         LEFT JOIN clients cl ON c.client_id = cl.id
-         WHERE c.company_id = $1 AND c.id = $2`,
-        [companyId, selectedCaseId]
+      const firmRes = await query('SELECT * FROM companies WHERE id = $1', [companyId]).catch(
+        () => ({ rows: [] })
       )
-      if (result.rows.length === 0) throw new Error('القضية المحددة غير موجودة')
-      const c = result.rows[0]
-      headers = ['رقم القضية', 'الموكل', 'الخصم', 'المحكمة / الدائرة', 'الحالة', 'الموضوع']
-      rows = [
-        [
-          c.case_number || '',
-          c.client_name || '',
-          c.opponent_name || '-',
-          `${c.court || ''}${c.circuit ? ` / ${c.circuit}` : ''}`,
-          c.status || '',
-          c.subject || ''
-        ]
-      ]
-      summary = `القضية المحددة: ${c.case_number || selectedCaseId} | نوع القضية: ${c.case_type || '-'} | المرحلة: ${c.phase || '-'} | الأولوية: ${c.priority || '-'} | تاريخ القيد: ${c.registration_date ? new Date(c.registration_date).toLocaleDateString('ar-SA') : '-'}`
+      const firm = firmRes.rows[0] || {}
+      const dossier = await buildCanonicalCaseDossier(companyId, selectedCaseId, true)
+      return renderMasterCaseDossierHtml(dossier, isPdf, firm)
     } else if (type === 'financial') {
       title = 'التقرير المالي وحسابات المكتب'
       let sql = `SELECT f.date, f.amount, f.description, f.type, f.category, c.case_number,

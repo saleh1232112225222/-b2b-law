@@ -73,6 +73,7 @@
           @update:options="loadItems"
           @edit="openEditDialog"
           @delete="confirmDelete"
+          @report="openClientReportModal"
           @open-session-room="openSessionRoom"
           @open-session-room-new-window="openSessionRoomInNewWindow"
           @open-najiz="openNajiz"
@@ -84,6 +85,7 @@
           @edit="openEditDialog"
           @add="openAddDialog"
           @delete="confirmDelete"
+          @report="openClientReportModal"
           @open-najiz="openNajiz"
           @open-session-room="openSessionRoom"
           @refresh="loadItems(serverOptions)"
@@ -134,6 +136,11 @@
       :loading="confirmDialog.loading"
       @confirm="confirmDialog.action"
     />
+
+    <ClientSessionReportDialog
+      v-model:show="clientReportDialog.show"
+      :session-id="clientReportDialog.sessionId"
+    />
   </v-container>
 </template>
 
@@ -147,6 +154,7 @@ import { useSearch } from '../composables/useSearch'
 import { safeArray, safeLength, valWithDefault } from '../utils/safe'
 import { convertToHijri } from '../utils/hijri'
 import ConfirmDialog from '../components/common/ConfirmDialog.vue'
+import ClientSessionReportDialog from '../components/sessions/ClientSessionReportDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { useMobileLayout } from '../composables/useMobileLayout'
@@ -163,6 +171,16 @@ const store = useSessionsStore()
 const casesStore = useCasesStore()
 const integrationsStore = useIntegrationsStore()
 
+const clientReportDialog = ref({ show: false, sessionId: '' })
+const openClientReportModal = (item: any) => {
+  const sid = item?.id
+  if (sid) {
+    clientReportDialog.value = { show: true, sessionId: String(sid) }
+  } else {
+    showSnackbar('تعذر تحديد معرف الجلسة', 'error')
+  }
+}
+
 const syncingGoogle = ref(false)
 
 async function triggerGoogleCalendarSync() {
@@ -170,7 +188,10 @@ async function triggerGoogleCalendarSync() {
   const res = await integrationsStore.triggerSync()
   syncingGoogle.value = false
   if (res && res.success) {
-    showSnackbar(`تمت مزامنة ${(res as any).syncedCount || 0} جلسة قادمة بنجاح مع تقويم Google 🟢`, 'success')
+    showSnackbar(
+      `تمت مزامنة ${(res as any).syncedCount || 0} جلسة قادمة بنجاح مع تقويم Google 🟢`,
+      'success'
+    )
     await loadItems(serverOptions.value)
   } else {
     showSnackbar(integrationsStore.error || 'تعذر إجراء المزامنة مع تقويم Google', 'error')
