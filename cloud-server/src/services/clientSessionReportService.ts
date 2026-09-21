@@ -233,7 +233,7 @@ export async function buildClientSessionReport(
         postponementReason = match[1].trim()
       }
     } else if (sRow.notes && sRow.notes.includes('تأجيل')) {
-      const cleaned = sRow.notes.replace(/^تأجيل\s*[:-.]?\s*/, '').trim()
+      const cleaned = sRow.notes.replace(/^تأجيل\s*[-:.]?\s*/, '').trim()
       if (cleaned && cleaned !== 'غير مسجل') postponementReason = cleaned
     }
   }
