@@ -499,6 +499,214 @@ function mockCloudRequest(url: string, method: string, data?: any, params?: any)
     return new Blob([createMockReportHtml(data?.type)], { type: 'text/html;charset=utf-8' })
   }
   if (url.startsWith('/reports/preview')) return createMockReportHtml(data?.type)
+
+  // Mock client case reports
+  if (url.startsWith('/client-case-reports')) {
+    if (url.endsWith('/html')) {
+      return `<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>تقرير القضية الشامل للموكل</title></head><body><h1>تقرير القضية الشامل للموكل</h1><p>معاينة التقرير الشامل للموكل في الوضع التجريبي</p></body></html>`
+    }
+    if (method === 'PUT' || method === 'POST') {
+      return {
+        data: {
+          id: 'mock-case-report-1',
+          caseId: 'case-1',
+          clientName: 'شركة الأمل للتجارة والمقاولات',
+          dispatch: {
+            status: data?.toStatus || 'draft',
+            statusLabel: data?.toStatus === 'approved' ? 'معتمد' : data?.toStatus === 'sent' ? 'تم الإرسال' : 'مسودة',
+            approvedAt: data?.toStatus === 'approved' ? new Date().toISOString().slice(0, 10) : undefined
+          },
+          ...data
+        }
+      }
+    }
+    return {
+      data: {
+        id: 'mock-case-report-1',
+        companyId: 'mock-co',
+        caseId: url.split('/')[2] || 'case-1',
+        clientId: 'client-1',
+        clientName: 'شركة الأمل للتجارة والمقاولات',
+        clientPhone: '0501234567',
+        clientEmail: 'info@alamal.sa',
+        caseInfo: {
+          caseNumber: '1446/1023',
+          court: 'المحكمة العامة بالرياض',
+          circuit: 'الدائرة الحقوقية الخامسة',
+          judgeName: 'فضيلة الشيخ ناظر القضية',
+          subject: 'المطالبة بمستحقات مالية وتعويض عن أضرار تأخير تنفيذ العقد',
+          shortSubject: 'المطالبة بمستحقات مالية وتعويض عن أضرار العقد',
+          showSubject: true,
+          claimAmount: 450000,
+          phase: 'المرحلة الابتدائية',
+          status: 'قيد النظر',
+          priority: 'عالية',
+          clientRole: 'مدّعي',
+          opponentName: 'شركة الإنشاءات المتقدمة',
+          responsibleLawyer: 'فريق الترافع والمستشار القانوني',
+          registrationDate: '2025-01-15'
+        },
+        sessions: [
+          {
+            id: 's-1',
+            sessionNumber: 1,
+            date: '2025-02-10',
+            dateHijri: '1446/08/11',
+            time: '09:30',
+            courtRoom: 'القاعة 3',
+            sessionType: 'جلسة افتتاحية وتحضيرية',
+            attendance: 'حضر وكيل المدعي وحضر وكيل المدعى عليه',
+            result: 'قيد المرافعة وتبادل المذكرات',
+            isPostponed: false,
+            postponementReason: ''
+          },
+          {
+            id: 's-2',
+            sessionNumber: 2,
+            date: '2025-03-05',
+            dateHijri: '1446/09/05',
+            time: '10:00',
+            courtRoom: 'القاعة 3',
+            sessionType: 'جلسة مرافعة وتقديم بينات',
+            attendance: 'حضر وكيل المدعي وقدم مذكرة الجواب وحضر الخصم',
+            result: 'تأجيل لتمكين المدعى عليه من تقديم الجواب الختامي',
+            isPostponed: true,
+            postponementReason: 'طلب وكيل المدعى عليه مهلة إضافية لدراسة المستندات'
+          }
+        ],
+        nextSessionInfo: {
+          date: '2025-04-15',
+          dateHijri: '1446/10/17',
+          time: '10:30',
+          courtRoom: 'القاعة 3',
+          actionRequired: 'إيداع المذكرة الختامية وحصر الطلبات الأصلية والتبعية',
+          assignedParty: 'فريق الترافع بالمكتب',
+          daysRemaining: 24
+        },
+        judgments: [],
+        proceedings: {
+          ourSubmissions: 'تم تقديم لائحة الدعوى ومرفقاتها من فواتير وكشوف حسابات مصرفية معتمدة.',
+          opponentSubmissions: 'دفع الخصم بعدم استحقاق كامل المبالغ وطالب بمهلة للرد التفصيلي.',
+          ourReply: 'تم تفنيد دفوع الخصم وتقديم المستندات الخطية المعززة لاستحقاق كامل المطالبة.',
+          courtDirectives: 'أمرت المحكمة بحصر كافة البينات وإرفاق التقارير المحاسبية قبل الجلسة القادمة.'
+        },
+        casePosition: {
+          statusAfterSession: 'الدعوى قيد التداول والمرافعة المنتظمة',
+          effectOnCase: 'تسير الدعوى بشكل إيجابي ومنتظم طبقاً للإجراءات القضائية المتبعة لحفظ حقوق الموكل.'
+        },
+        actionItems: {
+          clientAction: 'لا يوجد إجراء مطلوب من الموكل حالياً',
+          clientHasAction: false,
+          officeAction: 'إيداع المذكرة الختامية وحصر الطلبات قبل موعد الجلسة',
+          officeResponsible: 'فريق الترافع بالمكتب',
+          officeDeadline: '2025-04-10'
+        },
+        lawyerEdits: {
+          clientSummary: 'نحيطكم علماً بأن القضية تسير بصورة ممتازة؛ وقد عُقدت حتى تاريخه جلستان، وجرى تثبيت طلباتكم ومستنداتكم، وتم إلزام الخصم بالجواب الختامي للجلسة المقبلة.',
+          lawyerNoteAndNextStep: 'إعداد المذكرة الختامية والمتابعة المستمرة لرد الخصم عبر بوابة ناجز.'
+        },
+        internalOnlyData: {
+          internalNotes: 'موقف الدعوى قوي وثابت استناداً لكشوف الحسابات الموقعة من المدير المفوض للخصم.'
+        },
+        dispatch: {
+          status: 'draft',
+          statusLabel: 'مسودة'
+        }
+      }
+    }
+  }
+
+  // Mock client session reports
+  if (url.startsWith('/session-outcomes/client-report')) {
+    if (url.endsWith('/html')) {
+      return `<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>تقرير الجلسة المعتمد للموكل</title></head><body><h1>تقرير الجلسة المعتمد للموكل</h1><p>معاينة تقرير الجلسة في الوضع التجريبي</p></body></html>`
+    }
+    if (method === 'PUT' || method === 'POST') {
+      return {
+        data: {
+          id: 'mock-session-report-1',
+          sessionId: 'mock-session-1',
+          dispatch: {
+            status: data?.toStatus || 'draft',
+            statusLabel: data?.toStatus === 'approved' ? 'معتمد' : data?.toStatus === 'sent' ? 'تم الإرسال' : 'مسودة'
+          },
+          ...data
+        }
+      }
+    }
+    return {
+      data: {
+        id: 'mock-session-report-1',
+        companyId: 'mock-co',
+        sessionId: 'mock-session-1',
+        caseId: 'case-1',
+        clientId: 'client-1',
+        clientName: 'شركة الأمل للتجارة والمقاولات',
+        clientPhone: '0501234567',
+        caseInfo: {
+          caseNumber: '1446/1023',
+          court: 'المحكمة العامة بالرياض',
+          circuit: 'الدائرة الحقوقية الخامسة',
+          judgeName: 'فضيلة الشيخ ناظر القضية',
+          subject: 'المطالبة بمستحقات مالية وتعويض عن أضرار تأخير تنفيذ العقد',
+          shortSubject: 'المطالبة بمستحقات مالية وتعويض عن أضرار العقد',
+          showSubject: true,
+          claimAmount: 450000,
+          phase: 'المرحلة الابتدائية',
+          status: 'قيد النظر',
+          clientRole: 'مدّعي',
+          opponentName: 'شركة الإنشاءات المتقدمة',
+          responsibleLawyer: 'فريق الترافع بالمكتب'
+        },
+        sessionInfo: {
+          sessionNumber: 2,
+          date: '2025-03-05',
+          dateHijri: '1446/09/05',
+          time: '10:00',
+          courtRoom: 'القاعة 3',
+          sessionType: 'جلسة مرافعة',
+          attendance: 'حضر وكيل المدعي وحضر وكيل المدعى عليه',
+          result: 'تأجيل لتمكين الخصم من تقديم الجواب',
+          isPostponed: true,
+          postponementReason: 'طلب الخصم مهلة للرد على المستندات'
+        },
+        nextSessionInfo: {
+          date: '2025-04-15',
+          dateHijri: '1446/10/17',
+          time: '10:30',
+          courtRoom: 'القاعة 3',
+          actionRequired: 'إيداع المذكرة الختامية وحصر الطلبات',
+          assignedParty: 'فريق الترافع بالمكتب',
+          daysRemaining: 24
+        },
+        proceedings: {
+          ourSubmissions: 'تم تقديم المذكرة الجوابية مع الفواتير المعتمدة.',
+          opponentSubmissions: 'طلب مهلة للرد.',
+          ourReply: 'تمسكنا بثبوت الحق.',
+          courtDirectives: 'مهلة أخيرة للخصم لتقديم جوابه.'
+        },
+        casePosition: {
+          statusAfterSession: 'الدعوى قيد التداول والمرافعة المنتظمة',
+          effectOnCase: 'تسير الدعوى بشكل إيجابي لحفظ حقوق الموكل.'
+        },
+        actionItems: {
+          clientAction: 'لا يوجد إجراء مطلوب من الموكل حالياً',
+          clientHasAction: false,
+          officeAction: 'إيداع المذكرة الختامية',
+          officeResponsible: 'فريق الترافع بالمكتب',
+          officeDeadline: '2025-04-10'
+        },
+        lawyerEdits: {
+          clientSummary: 'عُقدت جلسة اليوم وتم إلزام الخصم بتقديم جوابه النهائي للجلسة القادمة.',
+          lawyerNoteAndNextStep: 'المتابعة المستمرة وإعداد الردود اللازمة.'
+        },
+        dispatch: {
+          status: 'draft',
+          statusLabel: 'مسودة'
+        }
+      }
+    }
+  }
   // Mock sync endpoints
   if (url.startsWith('/sync/status'))
     return {

@@ -64,6 +64,14 @@
           <LucideIcon name="external-link" :size="16" class="me-1" /> ناجز
         </v-btn>
         <v-btn
+          color="accent"
+          variant="outlined"
+          class="rounded-lg font-weight-black text-white"
+          :to="'/reports/case?caseId=' + caseItem.id"
+        >
+          <LucideIcon name="file-search-2" :size="18" class="me-2" /> التقرير الشامل
+        </v-btn>
+        <v-btn
           color="gold"
           variant="outlined"
           class="rounded-lg font-weight-black text-white"

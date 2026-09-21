@@ -196,7 +196,7 @@ export async function buildClientCaseReport(
      FROM cases c
      LEFT JOIN clients cl ON cl.id = c.client_id
      LEFT JOIN users u ON u.id = c.responsible_user_id
-     WHERE c.id = $1 AND c.company_id = $2`,
+     WHERE (c.id::text = $1 OR c.case_number = $1) AND c.company_id = $2`,
     [caseId, companyId]
   )
 
@@ -205,15 +205,17 @@ export async function buildClientCaseReport(
     throw new Error('القضية غير موجودة أو تم حذفها')
   }
 
+  const realCaseId = cRow.id
+
   // 2. Fetch all linked sessions ordered by date ASC
   const sessionsRes = await query(
     `SELECT s.*, 
             so.result as outcome_result, so.notes as outcome_notes
      FROM sessions s
      LEFT JOIN session_outcomes so ON so.session_id = s.id
-     WHERE s.case_id = $1 AND s.company_id = $2
+     WHERE (s.case_id = $1 OR s.case_id::text = $1::text) AND s.company_id = $2
      ORDER BY s.date ASC, s.time ASC, s.created_at ASC`,
-    [caseId, companyId]
+    [realCaseId, companyId]
   )
 
   const now = new Date()
@@ -295,8 +297,8 @@ export async function buildClientCaseReport(
   let judgmentsList: ClientCaseReportJudgmentItem[] = []
   try {
     const judgRes = await query(
-      `SELECT * FROM judgments WHERE case_id = $1 AND company_id = $2 ORDER BY judgment_date DESC`,
-      [caseId, companyId]
+      `SELECT * FROM judgments WHERE (case_id = $1 OR case_id::text = $1::text) AND company_id = $2 ORDER BY judgment_date DESC`,
+      [realCaseId, companyId]
     )
     judgmentsList = judgRes.rows.map((j: any) => ({
       id: j.id,
@@ -309,8 +311,8 @@ export async function buildClientCaseReport(
 
   // 4. Fetch existing case client report
   const repRes = await query(
-    `SELECT * FROM case_client_reports WHERE case_id = $1 AND company_id = $2`,
-    [caseId, companyId]
+    `SELECT * FROM case_client_reports WHERE (case_id = $1 OR case_id::text = $1::text) AND company_id = $2`,
+    [realCaseId, companyId]
   )
   const existingReport = repRes.rows[0] || null
 
@@ -459,6 +461,12 @@ export async function saveClientCaseReportEdits(
 ): Promise<void> {
   await ensureCaseClientReportsTable()
 
+  const caseCheck = await query(
+    `SELECT id FROM cases WHERE (id::text = $1 OR case_number = $1) AND company_id = $2`,
+    [caseId, companyId]
+  )
+  const targetCaseId = caseCheck.rows[0]?.id || caseId
+
   const metaToSave: any = data.metadataJson || {}
   if (data.showSubjectInReport !== undefined) metaToSave.showSubjectInReport = data.showSubjectInReport
   if (data.shortSubject !== undefined) metaToSave.shortSubject = data.shortSubject
@@ -480,7 +488,7 @@ export async function saveClientCaseReportEdits(
       updated_at = NOW()`,
     [
       companyId,
-      caseId,
+      targetCaseId,
       data.clientId || null,
       data.clientSummary,
       data.lawyerNoteAndNextStep,
@@ -501,28 +509,34 @@ export async function transitionClientCaseReportStatus(
 ): Promise<void> {
   await ensureCaseClientReportsTable()
 
+  const caseCheck = await query(
+    `SELECT id FROM cases WHERE (id::text = $1 OR case_number = $1) AND company_id = $2`,
+    [caseId, companyId]
+  )
+  const targetCaseId = caseCheck.rows[0]?.id || caseId
+
   let sql = ''
-  const params: any[] = [input.toStatus, companyId, caseId]
+  const params: any[] = [input.toStatus, companyId, targetCaseId]
 
   if (input.toStatus === 'reviewed') {
     sql = `UPDATE case_client_reports 
            SET dispatch_status = $1, reviewed_by = $4, reviewed_at = NOW(), updated_at = NOW()
-           WHERE company_id = $2 AND case_id = $3`
+           WHERE company_id = $2 AND (case_id = $3 OR case_id::text = $3::text)`
     params.push(input.userId)
   } else if (input.toStatus === 'approved') {
     sql = `UPDATE case_client_reports 
            SET dispatch_status = $1, approved_by = $4, approved_at = NOW(), updated_at = NOW()
-           WHERE company_id = $2 AND case_id = $3`
+           WHERE company_id = $2 AND (case_id = $3 OR case_id::text = $3::text)`
     params.push(input.userId)
   } else if (input.toStatus === 'sent') {
     sql = `UPDATE case_client_reports 
            SET dispatch_status = $1, sent_by = $4, sent_at = NOW(), sent_via = $5, updated_at = NOW()
-           WHERE company_id = $2 AND case_id = $3`
+           WHERE company_id = $2 AND (case_id = $3 OR case_id::text = $3::text)`
     params.push(input.userId, input.sentVia || 'whatsapp')
   } else {
     sql = `UPDATE case_client_reports 
            SET dispatch_status = $1, updated_at = NOW()
-           WHERE company_id = $2 AND case_id = $3`
+           WHERE company_id = $2 AND (case_id = $3 OR case_id::text = $3::text)`
   }
 
   const res = await query(sql, params)

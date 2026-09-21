@@ -192,7 +192,7 @@
 
     <ClientCaseReportDialog
       v-model:show="showClientReportDialog"
-      :case-id="caseId"
+      :case-id="String(caseItem?.id || caseId || '')"
     />
   </v-container>
 </template>
