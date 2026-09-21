@@ -19,7 +19,7 @@
               <div class="text-h6 font-weight-black text-gold">
                 تقرير جلسة العميل المعتمد
               </div>
-              <div class="text-caption text-gold opacity-70 font-weight-bold">
+              <div class="text-caption font-weight-bold text-slate-300">
                 إحاطة الموكل بوقائع الجلسة وقرار الدائرة والخطوة التنفيذية القادمة
               </div>
             </div>
@@ -59,6 +59,24 @@
         </div>
 
         <div v-else-if="reportData" class="d-flex flex-column gap-4">
+          <!-- Future Session Guard Banner -->
+          <div
+            v-if="isSessionFuture"
+            class="future-session-warning-card pa-4 rounded-xl"
+          >
+            <div class="d-flex align-center gap-3">
+              <LucideIcon name="clock" :size="24" class="text-warning flex-shrink-0" />
+              <div>
+                <div class="text-subtitle-2 font-weight-black text-warning">
+                  تنبيه: موعد انعقاد هذه الجلسة لم يحن بعد (الجلسة مجدولة ولم تُعقد بعد)
+                </div>
+                <div class="text-caption text-slate-200 mt-1">
+                  لا يمكن اعتماد التقرير أو طباعته أو إرساله للموكل قبل انعقاد الجلسة ورصد نتيجتها الرسمية في غرفة العمليات.
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Audit Trail Banner -->
           <div class="audit-trail-card pa-3 rounded-lg border border-gold border-opacity-20">
             <div class="d-flex align-center justify-space-between flex-wrap gap-2 text-caption">
@@ -254,6 +272,18 @@
             </v-expansion-panels>
           </div>
         </div>
+
+        <!-- Fallback if loading failed or no reportData -->
+        <div v-else class="text-center py-12">
+          <LucideIcon name="alert-circle" :size="48" class="text-warning mb-3" />
+          <div class="text-h6 font-weight-black text-gold">تعذر تحميل بيانات تقرير الجلسة</div>
+          <div class="text-caption text-slate-300 mt-1 mb-4">
+            تأكد من وجود الجلسة واكتمال بيانات القضية والموكل
+          </div>
+          <v-btn color="gold" variant="tonal" class="font-weight-bold" @click="loadReport">
+            إعادة المحاولة
+          </v-btn>
+        </div>
       </v-card-text>
 
       <v-divider class="border-gold border-opacity-20" />
@@ -268,6 +298,7 @@
             height="42"
             class="rounded-lg font-weight-bold px-4"
             :loading="saving"
+            :disabled="!canSend || isSessionFuture"
             @click="saveEdits"
           >
             <LucideIcon name="save" :size="16" class="me-1" />
@@ -282,6 +313,7 @@
             height="42"
             class="rounded-lg font-weight-bold px-4"
             :loading="transitioning"
+            :disabled="isSessionFuture"
             @click="transitionTo('reviewed')"
           >
             <LucideIcon name="check" :size="16" class="me-1" />
@@ -296,6 +328,7 @@
             height="42"
             class="rounded-lg font-weight-black text-ebony px-4"
             :loading="transitioning"
+            :disabled="isSessionFuture"
             @click="transitionTo('approved')"
           >
             <LucideIcon name="check-circle" :size="16" class="me-1" />
@@ -311,6 +344,7 @@
             height="42"
             class="rounded-lg font-weight-bold px-4"
             :loading="printing"
+            :disabled="!canSend || isSessionFuture"
             @click="printReport"
           >
             <LucideIcon name="printer" :size="16" class="me-1" />
@@ -323,7 +357,7 @@
             color="success"
             height="42"
             class="rounded-lg font-weight-black text-white px-4"
-            :disabled="!canSend"
+            :disabled="!canSend || isSessionFuture"
             @click="sendViaWhatsapp"
           >
             <LucideIcon name="share-2" :size="16" class="me-1" />
@@ -337,6 +371,7 @@
             color="gold"
             size="small"
             class="text-caption font-weight-bold"
+            :disabled="isSessionFuture"
             @click="markSentManual"
           >
             توثيق التسليم يدوياً
@@ -395,6 +430,28 @@ const statusChipIcon = computed(() => {
 
 const canSend = computed(() => {
   return reportData.value !== null
+})
+
+const isSessionFuture = computed(() => {
+  if (!reportData.value?.sessionInfo) return false
+  const s = reportData.value.sessionInfo
+  if (
+    s.result &&
+    s.result !== 'قيد الإجراء' &&
+    !s.result.includes('لم تُعقد') &&
+    !s.result.includes('مجدولة')
+  ) {
+    return false
+  }
+  const rawDate = String(s.sessionDate || '').split('T')[0]
+  if (!rawDate) return false
+  const rawTime = String(s.sessionTime || '23:59').trim()
+  const timePart = rawTime.includes(':') ? rawTime : '23:59'
+  const sessionDateTime = new Date(`${rawDate}T${timePart.padStart(5, '0')}:00`)
+  if (!isNaN(sessionDateTime.getTime())) {
+    return sessionDateTime.getTime() > Date.now()
+  }
+  return false
 })
 
 watch(
@@ -537,36 +594,75 @@ async function markSentManual() {
 
 <style scoped>
 .client-report-dialog-card {
-  background: #0f172a;
-  color: #ffffff;
+  background: #0b1329 !important;
+  color: #f8fafc !important;
+  height: 88vh !important;
+  max-height: 88vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.dialog-header {
+  flex-shrink: 0 !important;
+  background: #0e172e !important;
+}
+.dialog-body {
+  flex: 1 1 auto !important;
+  max-height: calc(88vh - 150px) !important;
+  min-height: 420px !important;
+  overflow-y: auto !important;
+}
+.dialog-footer {
+  flex-shrink: 0 !important;
+  background: #0e172e !important;
 }
 .bg-gold-gradient {
-  background: linear-gradient(135deg, #b89758 0%, #d4af37 100%);
+  background: linear-gradient(135deg, #d4af37 0%, #f59e0b 100%) !important;
 }
 .text-ebony {
   color: #0b0f19 !important;
 }
 .text-gold {
-  color: #e2d2b3 !important;
+  color: #f0c33a !important;
 }
 .text-accent {
-  color: #d4af37 !important;
+  color: #fbbf24 !important;
+}
+.text-slate-300 {
+  color: #cbd5e1 !important;
+}
+.text-slate-200 {
+  color: #e2e8f0 !important;
 }
 .border-gold {
-  border-color: #b89758 !important;
+  border-color: rgba(212, 175, 55, 0.35) !important;
 }
 .audit-trail-card {
-  background: rgba(184, 151, 88, 0.08);
+  background: rgba(212, 175, 55, 0.08) !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  color: #f8fafc !important;
+}
+.future-session-warning-card {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.45) !important;
 }
 .context-card,
 .next-session-card {
-  background: rgba(30, 41, 59, 0.7);
+  background: rgba(15, 23, 42, 0.92) !important;
+  border: 1px solid rgba(212, 175, 55, 0.25) !important;
+  color: #f8fafc !important;
 }
 .lawyer-inputs-card {
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(15, 23, 42, 0.95) !important;
+  border: 1px solid rgba(212, 175, 55, 0.3) !important;
+  color: #f8fafc !important;
 }
 .glass-input :deep(.v-field) {
-  background: rgba(15, 23, 42, 0.6) !important;
-  border-color: rgba(184, 151, 88, 0.3) !important;
+  background: rgba(8, 14, 26, 0.8) !important;
+  color: #ffffff !important;
+  border-color: rgba(212, 175, 55, 0.35) !important;
+}
+.glass-input :deep(textarea),
+.glass-input :deep(input) {
+  color: #ffffff !important;
 }
 </style>

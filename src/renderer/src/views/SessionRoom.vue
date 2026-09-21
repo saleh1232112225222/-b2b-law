@@ -537,13 +537,45 @@ const outcomeModal = ref({
   assignedParty: 'مكتبنا (فريق المرافعة)'
 })
 
+const isSessionNotHeldYet = (session: any): { notHeld: boolean; message?: string } => {
+  if (!session) return { notHeld: false }
+  if (session.status === 'تمت' || (session.result && String(session.result).trim().length > 0)) {
+    return { notHeld: false }
+  }
+  if (session.status === 'ملغية') {
+    return {
+      notHeld: true,
+      message: 'لا يمكن إعداد أو طباعة تقرير الجلسة؛ نظراً لأن الجلسة ملغية.'
+    }
+  }
+  const rawDate = String(session.date || '').split('T')[0]
+  if (!rawDate) return { notHeld: false }
+  const rawTime = String(session.time || '23:59').trim()
+  const timePart = rawTime.includes(':') ? rawTime : '23:59'
+  const sessionDateTime = new Date(`${rawDate}T${timePart.padStart(5, '0')}:00`)
+  if (!isNaN(sessionDateTime.getTime())) {
+    if (sessionDateTime.getTime() > Date.now()) {
+      return {
+        notHeld: true,
+        message: 'لا يمكن إعداد أو طباعة تقرير الجلسة؛ نظراً لأن موعد انعقاد الجلسة لم يحن بعد (الجلسة مجدولة ولم تُعقد بعد).'
+      }
+    }
+  }
+  return { notHeld: false }
+}
+
 const clientReportDialog = ref({ show: false, sessionId: '' })
 const openClientReportModal = () => {
-  if (activeSession.value?.id) {
-    clientReportDialog.value = { show: true, sessionId: activeSession.value.id }
-  } else {
+  if (!activeSession.value?.id) {
     showToast('يرجى اختيار جلسة أولاً لعرض التقرير', 'info')
+    return
   }
+  const check = isSessionNotHeldYet(activeSession.value)
+  if (check.notHeld) {
+    showToast(check.message || 'لا يمكن إعداد تقرير لجلسة لم تُعقد بعد', 'error')
+    return
+  }
+  clientReportDialog.value = { show: true, sessionId: activeSession.value.id }
 }
 
 const todaySessions = ref<any[]>([])
@@ -766,12 +798,12 @@ const saveNote = async () => {
   }
 }
 
-const openOutcomeModal = () => {
+const initOutcomeModal = (existingResult: string = '') => {
   outcomeModal.value = {
     ...outcomeModal.value,
     show: true,
     loading: false,
-    result: '',
+    result: existingResult || '',
     notes: note.value || activeSession.value?.notes || '',
     serviceDate: new Date().toLocaleDateString('en-CA'),
     judgmentDate: new Date().toLocaleDateString('en-CA'),
@@ -787,6 +819,35 @@ const openOutcomeModal = () => {
     actionRequired: '',
     assignedParty: 'مكتبنا (فريق المرافعة)'
   }
+}
+
+const openOutcomeModal = () => {
+  if (!activeSession.value?.id) {
+    showToast('يرجى اختيار جلسة أولاً لرصد النتيجة', 'info')
+    return
+  }
+
+  const existingResult = String(activeSession.value?.result || '').trim()
+  const isAlreadyRecorded = activeSession.value?.status === 'تمت' || !!existingResult
+
+  if (isAlreadyRecorded) {
+    const resultDisplay = existingResult || 'مسجلة ومنتهية'
+    openConfirm({
+      title: 'تنبيه: نتيجة الجلسة مرصودة مسبقاً',
+      message: `تم رصد نتيجة هذه الجلسة مسبقاً بنجاح!\n\nالنتيجة الحالية المسجلة:\n« ${resultDisplay} »\n\nهل ترغب في تعديل النتيجة المرصودة للجلسة؟`,
+      color: 'warning',
+      icon: 'alert-triangle',
+      confirmText: 'نعم، تعديل النتيجة',
+      cancelText: 'إلغاء',
+      action: () => {
+        closeConfirm()
+        initOutcomeModal(existingResult)
+      }
+    })
+    return
+  }
+
+  initOutcomeModal('')
 }
 
 const translateOutcomeItem = (k: string): string => {
@@ -965,7 +1026,10 @@ const submitOutcome = async () => {
               assignedParty: payload.assignedParty
             })
             outcomeModal.value.show = false
-            showToast('تم تسجيل النتيجة بنجاح؛ جاري فتح تقرير جلسة العميل المعتمد', 'success')
+            const outcomeSuccessMsg = (activeSession.value?.result || activeSession.value?.status === 'تمت')
+              ? 'تم تحديث النتيجة المرصودة للجلسة بنجاح؛ جاري فتح تقرير العميل'
+              : 'تم إغلاق الجلسة ورصد النتيجة بنجاح؛ جاري فتح تقرير العميل'
+            showToast(outcomeSuccessMsg, 'success')
             // Open Client Session Report immediately for review & approval
             clientReportDialog.value = {
               show: true,
@@ -1012,7 +1076,10 @@ const submitOutcome = async () => {
               inputs: payload
             })
             outcomeModal.value.show = false
-            showToast('تم إغلاق الجلسة ورصد النتيجة بنجاح؛ جاري فتح تقرير العميل', 'success')
+            const outcomeSuccessMsg = (activeSession.value?.result || activeSession.value?.status === 'تمت')
+              ? 'تم تحديث النتيجة المرصودة للجلسة بنجاح؛ جاري فتح تقرير العميل'
+              : 'تم إغلاق الجلسة ورصد النتيجة بنجاح؛ جاري فتح تقرير العميل'
+            showToast(outcomeSuccessMsg, 'success')
             // Open Client Session Report immediately for review & approval
             clientReportDialog.value = {
               show: true,

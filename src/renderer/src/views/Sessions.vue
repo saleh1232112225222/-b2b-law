@@ -171,14 +171,46 @@ const store = useSessionsStore()
 const casesStore = useCasesStore()
 const integrationsStore = useIntegrationsStore()
 
+const isSessionNotHeldYet = (session: any): { notHeld: boolean; message?: string } => {
+  if (!session) return { notHeld: false }
+  if (session.status === 'تمت' || (session.result && String(session.result).trim().length > 0)) {
+    return { notHeld: false }
+  }
+  if (session.status === 'ملغية') {
+    return {
+      notHeld: true,
+      message: 'لا يمكن إعداد أو طباعة تقرير الجلسة؛ نظراً لأن الجلسة ملغية.'
+    }
+  }
+  const rawDate = String(session.date || '').split('T')[0]
+  if (!rawDate) return { notHeld: false }
+  const rawTime = String(session.time || '23:59').trim()
+  const timePart = rawTime.includes(':') ? rawTime : '23:59'
+  const sessionDateTime = new Date(`${rawDate}T${timePart.padStart(5, '0')}:00`)
+  if (!isNaN(sessionDateTime.getTime())) {
+    if (sessionDateTime.getTime() > Date.now()) {
+      return {
+        notHeld: true,
+        message: 'لا يمكن إعداد أو طباعة تقرير الجلسة؛ نظراً لأن موعد انعقاد الجلسة لم يحن بعد (الجلسة مجدولة ولم تُعقد بعد).'
+      }
+    }
+  }
+  return { notHeld: false }
+}
+
 const clientReportDialog = ref({ show: false, sessionId: '' })
 const openClientReportModal = (item: any) => {
   const sid = item?.id
-  if (sid) {
-    clientReportDialog.value = { show: true, sessionId: String(sid) }
-  } else {
+  if (!sid) {
     showSnackbar('تعذر تحديد معرف الجلسة', 'error')
+    return
   }
+  const check = isSessionNotHeldYet(item)
+  if (check.notHeld) {
+    showSnackbar(check.message || 'لا يمكن إعداد تقرير لجلسة لم تُعقد بعد', 'error')
+    return
+  }
+  clientReportDialog.value = { show: true, sessionId: String(sid) }
 }
 
 const syncingGoogle = ref(false)
