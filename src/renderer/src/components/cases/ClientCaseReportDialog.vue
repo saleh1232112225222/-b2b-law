@@ -639,21 +639,34 @@ const canSend = computed(() => {
 })
 
 watch(
-  [() => props.show, () => props.caseId],
-  ([show, cid]) => {
-    if (show && cid) {
+  () => props.show,
+  (val) => {
+    if (val) {
       loadReport()
     }
   },
   { immediate: true }
 )
 
+watch(
+  () => props.caseId,
+  (cid) => {
+    if (props.show && cid) {
+      loadReport()
+    }
+  }
+)
+
 async function loadReport() {
-  if (!props.caseId) return
+  const cid = String(props.caseId ?? '').trim()
+  if (!cid || cid === 'NaN' || cid === 'undefined' || cid === 'null') {
+    loadError.value = 'رقم تعريف القضية غير محدد أو غير صالح'
+    return
+  }
   loading.value = true
   loadError.value = ''
   try {
-    const res = await (api as any).clientCaseReport.get(props.caseId)
+    const res = await (api as any).clientCaseReport.get(cid)
     const data = (res?.data || res) as ClientCaseReportData
     if (!data || typeof data !== 'object') {
       throw new Error('لم يتم استرجاع بيانات التقرير لهذه القضية')
@@ -683,7 +696,8 @@ async function loadReport() {
 }
 
 async function saveEdits() {
-  if (!props.caseId) return
+  const cid = String(props.caseId ?? '').trim()
+  if (!cid) return
   saving.value = true
   try {
     const payload = {
@@ -706,7 +720,7 @@ async function saveEdits() {
       }
     }
 
-    const res = await (api as any).clientCaseReport.update(props.caseId, payload)
+    const res = await (api as any).clientCaseReport.update(cid, payload)
     const data = res?.data || res
     reportData.value = data
     emit('updated')
@@ -718,11 +732,12 @@ async function saveEdits() {
 }
 
 async function transitionTo(toStatus: 'draft' | 'reviewed' | 'approved' | 'sent', sentVia?: string) {
-  if (!props.caseId) return
+  const cid = String(props.caseId ?? '').trim()
+  if (!cid) return
   transitioning.value = true
   try {
     await saveEdits()
-    const res = await (api as any).clientCaseReport.transition(props.caseId, toStatus, sentVia)
+    const res = await (api as any).clientCaseReport.transition(cid, toStatus, sentVia)
     const data = res?.data || res
     reportData.value = data
     emit('updated')
@@ -734,10 +749,11 @@ async function transitionTo(toStatus: 'draft' | 'reviewed' | 'approved' | 'sent'
 }
 
 async function printReport() {
-  if (!props.caseId) return
+  const cid = String(props.caseId ?? '').trim()
+  if (!cid) return
   printing.value = true
   try {
-    const html = await (api as any).clientCaseReport.getHtml(props.caseId)
+    const html = await (api as any).clientCaseReport.getHtml(cid)
     if (typeof window !== 'undefined' && (window as any).electron?.ipcRenderer) {
       await (window as any).electron.ipcRenderer.invoke('pdf:print-html', html)
     } else {

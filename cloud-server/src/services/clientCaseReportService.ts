@@ -332,7 +332,7 @@ export async function buildClientCaseReport(
   const fullSubject = String(cRow.subject || 'دعوى ومطالبة قضائية')
   let shortSubject = meta.shortSubject || fullSubject
   if (!meta.shortSubject && fullSubject.length > 130) {
-    const firstSent = fullSubject.split(/[\n\.\؛]/)[0].trim()
+    const firstSent = fullSubject.split(/[\n.؛]/)[0].trim()
     shortSubject = firstSent.length >= 20 && firstSent.length <= 130 ? firstSent : fullSubject.slice(0, 120).trim() + '...'
   }
 

@@ -233,7 +233,7 @@ export async function buildClientSessionReport(
         postponementReason = match[1].trim()
       }
     } else if (sRow.notes && sRow.notes.includes('تأجيل')) {
-      const cleaned = sRow.notes.replace(/^تأجيل\s*[:\-\.]?\s*/, '').trim()
+      const cleaned = sRow.notes.replace(/^تأجيل\s*[:-.]?\s*/, '').trim()
       if (cleaned && cleaned !== 'غير مسجل') postponementReason = cleaned
     }
   }
@@ -307,7 +307,7 @@ export async function buildClientSessionReport(
   const fullSubject = String(sRow.subject || 'مطالبة قضائية')
   let shortSubject = meta.shortSubject || fullSubject
   if (!meta.shortSubject && fullSubject.length > 130) {
-    const firstSent = fullSubject.split(/[\n\.\؛]/)[0].trim()
+    const firstSent = fullSubject.split(/[\n.؛]/)[0].trim()
     shortSubject = firstSent.length >= 20 && firstSent.length <= 130 ? firstSent : fullSubject.slice(0, 120).trim() + '...'
   }
 
