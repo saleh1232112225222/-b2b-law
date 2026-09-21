@@ -49,13 +49,22 @@
           </div>
         </div>
       </v-card-item>
-
       <v-card-text class="dialog-body pa-4 pa-md-6">
         <div v-if="loading" class="text-center py-10">
           <v-progress-circular indeterminate color="gold" size="48" />
           <div class="text-caption text-gold mt-3 font-weight-bold">
             جاري تجهيز وتجميع بيانات تقرير الجلسة...
           </div>
+        </div>
+
+        <div v-else-if="loadError" class="text-center py-8">
+          <v-alert type="error" variant="tonal" class="rounded-xl mb-4 border border-error">
+            <div class="font-weight-black mb-1">تعذر جلب بيانات التقرير</div>
+            <div class="text-caption">{{ loadError }}</div>
+          </v-alert>
+          <v-btn color="gold" variant="outlined" class="rounded-lg font-weight-bold" @click="loadReport">
+            إعادة المحاولة
+          </v-btn>
         </div>
 
         <div v-else-if="reportData" class="d-flex flex-column gap-4">
@@ -368,6 +377,7 @@ const emit = defineEmits<{
 const isMobile = computed(() => typeof window !== 'undefined' && window.innerWidth <= 768)
 
 const loading = ref(false)
+const loadError = ref('')
 const saving = ref(false)
 const transitioning = ref(false)
 const printing = ref(false)
@@ -400,9 +410,9 @@ const canSend = computed(() => {
 })
 
 watch(
-  () => props.show,
-  (val) => {
-    if (val && props.sessionId) {
+  [() => props.show, () => props.sessionId],
+  ([show, sid]) => {
+    if (show && sid) {
       loadReport()
     }
   },
@@ -412,15 +422,20 @@ watch(
 async function loadReport() {
   if (!props.sessionId) return
   loading.value = true
+  loadError.value = ''
   try {
     const res = await (api as any).sessionOutcome.getClientReport(props.sessionId)
     const data = res?.data || res
+    if (!data || typeof data !== 'object') {
+      throw new Error('لم يتم استرجاع بيانات التقرير لهذه الجلسة')
+    }
     reportData.value = data
     editForm.value.clientSummary = data.lawyerEdits?.clientSummary || ''
     editForm.value.lawyerNoteAndNextStep = data.lawyerEdits?.lawyerNoteAndNextStep || ''
     editForm.value.internalNotes = data.internalOnlyData?.internalNotes || ''
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to load client session report:', err)
+    loadError.value = err?.message || 'تعذر تحميل بيانات تقرير الجلسة'
   } finally {
     loading.value = false
   }
