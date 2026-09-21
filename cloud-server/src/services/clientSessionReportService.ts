@@ -187,7 +187,6 @@ export async function buildClientSessionReport(
     `SELECT s.*, 
             c.case_number, c.court, c.circuit, c.subject, c.client_role, 
             c.opponent_name, c.responsible_user_id, c.registration_date,
-            c.claim_amount, c.phase,
             u.full_name as lawyer_name,
             cl.id as cl_id, cl.name as client_name, cl.phone as client_phone, cl.email as client_email
      FROM sessions s
@@ -336,8 +335,8 @@ export async function buildClientSessionReport(
   const attendance = meta.attendance || 'حضر وكيل موكلنا وحضر وكيل الخصم'
   const sessionType = meta.sessionType || (isPostponed ? 'مرافعة وتبادل مذكرات' : 'جلسة مرافعة')
   const judgeName = meta.judgeName || sRow.circuit || 'الدائرة المختصة'
-  const claimAmount = sRow.claim_amount || meta.claimAmount || 'محدد في ملف الدعوى'
-  const phase = sRow.phase || meta.phase || 'المرحلة الابتدائية'
+  const claimAmount = meta.claimAmount || (sRow.contract_amount ? `${sRow.contract_amount} ر.س` : 'محدد في ملف الدعوى')
+  const phase = meta.phase || sRow.phase || 'المرحلة الابتدائية'
 
   const proceedings = {
     ourSubmissions: meta.proceedings?.ourSubmissions || 'تقديم المذكرة ومتابعة الطلبات المعتمدة من الدائرة.',
@@ -582,7 +581,7 @@ export function renderClientSessionReportHtml(
 
   const stampClass = report.dispatch.status === 'sent' || report.dispatch.status === 'approved' ? 'stamp-approved' : 'stamp-draft'
   const stampText = report.dispatch.status === 'sent' 
-    ? 'نسخة رسمية معتمدة مرسلة للموكل' 
+    ? 'نسخة رسمية مرسلة للموكل' 
     : report.dispatch.status === 'approved' 
       ? 'معتمد للإرسال' 
       : 'مسودة قيد المراجعة'

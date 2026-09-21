@@ -352,7 +352,7 @@ export async function buildClientCaseReport(
   }
 
   const showSubject = meta.showSubjectInReport !== undefined ? Boolean(meta.showSubjectInReport) : true
-  const claimAmount = cRow.contract_amount || cRow.claim_amount || meta.claimAmount || 'محدد في ملف الدعوى'
+  const claimAmount = meta.claimAmount || (cRow.contract_amount ? `${cRow.contract_amount} ر.س` : 'محدد في ملف الدعوى')
   const phase = cRow.phase || meta.phase || 'المرحلة الابتدائية'
 
   const proceedings = {
