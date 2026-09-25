@@ -1,6 +1,6 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
-    <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
+  <div :class="naked ? '' : 'glass-card mb-4 border border-gold border-opacity-20 rounded-xl overflow-hidden'">
+    <div v-if="!naked" class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="laptop" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">إدارة الأجهزة وحالة النسخ الموثق</span>
       <v-spacer />
@@ -12,7 +12,15 @@
       </v-btn>
     </div>
 
-    <v-card-text class="pa-4">
+    <div :class="naked ? '' : 'pa-4'">
+      <div v-if="naked" class="d-flex align-center justify-end mb-4 gap-2 flex-wrap">
+        <v-btn size="small" variant="flat" color="primary" class="font-weight-black" :loading="pairingLoading" @click="openPairingDialog">
+          <LucideIcon name="link" :size="14" class="me-1" /> بيانات إقران سطح المكتب
+        </v-btn>
+        <v-btn size="small" variant="outlined" color="gold" class="font-weight-black" :loading="loading" @click="loadData">
+          <LucideIcon name="refresh-cw" :size="14" class="me-1" /> تحديث
+        </v-btn>
+      </div>
       <!-- Latest Verified Backup Status -->
       <div class="mb-4 pa-3 rounded-lg border border-gold border-opacity-20 glass-panel-light">
         <div class="d-flex align-center justify-space-between mb-2">
@@ -138,7 +146,6 @@
           </div>
         </v-expand-transition>
       </div>
-    </v-card-text>
 
     <!-- Desktop Pairing Dialog -->
     <v-dialog v-model="showPairingDialog" max-width="560">
@@ -215,13 +222,16 @@
         </v-btn>
       </v-card>
     </v-dialog>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
 import api from '../../api/ApiAdapter'
+
+withDefaults(defineProps<{ naked?: boolean }>(), { naked: false })
 
 interface DeviceItem {
   id: string

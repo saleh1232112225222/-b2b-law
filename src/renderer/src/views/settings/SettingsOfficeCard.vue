@@ -1,10 +1,10 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
-    <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
+  <div :class="naked ? '' : 'glass-card mb-4 border border-gold border-opacity-20 rounded-xl overflow-hidden'">
+    <div v-if="!naked" class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="building-2" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary">بيانات المكتب</span>
     </div>
-    <v-card-text class="pa-4">
+    <div :class="naked ? '' : 'pa-4'">
       <v-row dense>
         <v-col cols="12">
           <v-text-field
@@ -63,7 +63,7 @@
             @update:model-value="emitField('vatNumber', $event)"
           ></v-text-field>
         </v-col>
-        <v-col cols="12">
+        <v-col cols="12" sm="6">
           <v-select
             :model-value="modelValue.theme"
             :items="['light', 'dark']"
@@ -86,8 +86,8 @@
       >
         <LucideIcon name="save" :size="18" class="me-2" /> حفظ بيانات المكتب
       </v-btn>
-    </v-card-text>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -106,9 +106,15 @@ interface AppSettings {
   taskNotificationLeadDays: number
 }
 
-const props = defineProps<{
-  modelValue: AppSettings
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: AppSettings
+    naked?: boolean
+  }>(),
+  {
+    naked: false
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: AppSettings): void

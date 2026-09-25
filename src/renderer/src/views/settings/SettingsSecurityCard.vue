@@ -1,12 +1,12 @@
 <template>
-  <v-card elevation="0" class="glass-card mb-4 border border-gold border-opacity-20 glass-card">
-    <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
+  <div :class="naked ? '' : 'glass-card mb-4 border border-gold border-opacity-20 rounded-xl overflow-hidden'">
+    <div v-if="!naked" class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
       <LucideIcon name="shield-check" :size="20" class="text-primary me-3" />
       <span class="text-subtitle-1 font-weight-black text-primary"
         >الأمان والمصادقة الثنائية (MFA)</span
       >
     </div>
-    <v-card-text class="pa-4">
+    <div :class="naked ? '' : 'pa-4'">
       <div class="d-flex align-center justify-space-between mb-4">
         <div>
           <div class="text-body-1 font-weight-black">المصادقة الثنائية (MFA)</div>
@@ -164,13 +164,15 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
-    </v-card-text>
-  </v-card>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import LucideIcon from '../../components/common/LucideIcon.vue'
+
+withDefaults(defineProps<{ naked?: boolean }>(), { naked: false })
 
 const isEnabled = ref(false)
 const setupDialog = ref(false)

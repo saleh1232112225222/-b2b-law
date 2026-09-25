@@ -1,126 +1,371 @@
 <template>
   <v-container fluid class="pa-6 pb-12 rtl">
-    <!-- Header -->
+    <!-- Header with Quick Controls -->
     <v-row dense class="mb-4 align-center">
-      <v-col>
+      <v-col cols="12" sm="7">
         <div class="d-flex align-center">
-          <div class="glass-panel-light pa-2 rounded-lg me-4 border-gold border-opacity-20">
-            <LucideIcon name="settings" :size="24" class="text-accent" />
+          <div class="glass-panel-light pa-2 rounded-lg me-4 border-gold border-opacity-20 shadow-sm">
+            <LucideIcon name="settings" :size="26" class="text-accent" />
           </div>
           <div>
             <h1 class="text-h6 font-weight-black text-primary mb-0">الإعدادات وصيانة النظام</h1>
-            <p class="text-caption text-primary font-weight-black opacity-70">
+            <p class="text-caption text-primary font-weight-black opacity-70 mb-0">
               إدارة بيانات المكتب، المزامنة السحابية، وأدوات الصيانة
             </p>
           </div>
         </div>
       </v-col>
-    </v-row>
-
-    <!-- Top Row: OpenConnector Integrations (Google Calendar, etc.) -->
-    <v-row dense class="mb-2">
-      <v-col cols="12">
-        <SettingsIntegrationsCard />
+      <v-col cols="12" sm="5" class="d-flex justify-sm-end align-center ga-2 mt-2 mt-sm-0">
+        <v-btn
+          variant="tonal"
+          color="gold"
+          size="small"
+          class="font-weight-bold rounded-lg"
+          @click="expandAll"
+        >
+          <LucideIcon name="chevrons-down" :size="16" class="me-1" />
+          توسيع الكل
+        </v-btn>
+        <v-btn
+          variant="tonal"
+          color="grey"
+          size="small"
+          class="font-weight-bold rounded-lg"
+          @click="collapseAll"
+        >
+          <LucideIcon name="chevrons-up" :size="16" class="me-1" />
+          طي الكل
+        </v-btn>
       </v-col>
     </v-row>
 
-    <v-row dense>
-      <!-- Column 1: Office Identity & Licensing -->
-      <v-col cols="12" md="6">
-        <SettingsOfficeCard v-model="settings" @save="saveSettings" />
-
-        <v-card
-          elevation="0"
-          class="glass-card mb-4 border border-gold border-opacity-20 glass-card"
+    <!-- Collapsible Accordion Sections -->
+    <div class="settings-accordion mb-6">
+      <!-- 1. بيانات المكتب والمظهر -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('office') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('office')"
         >
-          <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
-            <LucideIcon name="crown" :size="20" class="text-gold me-3" />
-            <span class="text-subtitle-1 font-weight-black text-primary">الاشتراك والترخيص</span>
-            <v-spacer />
-            <v-chip
-              :color="trialInfo?.isActivated ? 'success' : trialInfo?.isValid ? 'gold' : 'error'"
-              size="small"
-              class="font-weight-black"
-            >
-              {{ trialInfo?.isActivated ? 'مفعل' : trialInfo?.isValid ? 'تجريبي' : 'منتهي' }}
-            </v-chip>
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="building-2" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                بيانات المكتب والمظهر
+                <v-chip v-if="settings.officeName" size="x-small" color="primary" variant="flat" class="font-weight-bold">
+                  {{ settings.officeName }}
+                </v-chip>
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                اسم المكتب، العنوان، بيانات التواصل، الرقم الضريبي ومظهر النظام
+              </div>
+            </div>
           </div>
-          <div class="pa-4">
-            <div class="d-flex align-center mb-3">
-              <LucideIcon name="shield-check" :size="18" class="text-gold me-3" />
-              <div>
-                <div class="text-body-2 font-weight-black">حالة الاشتراك</div>
-                <div class="text-caption text-grey">
-                  {{
-                    trialInfo?.isActivated
-                      ? 'اشتراك مدفوع'
-                      : trialInfo?.isValid
-                        ? 'تجربة مجانية'
-                        : 'منتهية'
-                  }}
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('office') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('office') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('office')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <SettingsOfficeCard v-model="settings" :naked="true" @save="saveSettings" />
+          </div>
+        </v-expand-transition>
+      </div>
+
+      <!-- 2. الاشتراك وتراخيص النظام -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('subscription') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('subscription')"
+        >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="crown" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                الاشتراك وتراخيص النظام
+                <v-chip
+                  :color="trialInfo?.isActivated ? 'success' : trialInfo?.isValid ? 'gold' : 'error'"
+                  size="x-small"
+                  class="font-weight-black"
+                >
+                  {{ trialInfo?.isActivated ? 'مفعل' : trialInfo?.isValid ? 'تجريبي' : 'منتهي' }}
+                </v-chip>
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                نوع الترخيص، الأيام المتبقية، وبوابة الدفع وإدارة الخطط
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('subscription') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('subscription') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('subscription')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <div class="pa-2">
+              <div class="d-flex align-center mb-3">
+                <LucideIcon name="shield-check" :size="18" class="text-gold me-3" />
+                <div>
+                  <div class="text-body-2 font-weight-black">حالة الاشتراك</div>
+                  <div class="text-caption text-grey">
+                    {{
+                      trialInfo?.isActivated
+                        ? 'اشتراك مدفوع'
+                        : trialInfo?.isValid
+                          ? 'تجربة مجانية'
+                          : 'منتهية'
+                    }}
+                  </div>
                 </div>
               </div>
-            </div>
-            <div
-              v-if="trialInfo?.daysLeft !== undefined && trialInfo?.daysLeft < 999"
-              class="d-flex align-center mb-3"
-            >
-              <LucideIcon name="clock" :size="18" class="text-gold me-3" />
-              <div>
-                <div class="text-body-2 font-weight-black">الأيام المتبقية</div>
-                <div class="text-caption text-grey">{{ trialInfo.daysLeft }} يوم</div>
+              <div
+                v-if="trialInfo?.daysLeft !== undefined && trialInfo?.daysLeft < 999"
+                class="d-flex align-center mb-3"
+              >
+                <LucideIcon name="clock" :size="18" class="text-gold me-3" />
+                <div>
+                  <div class="text-body-2 font-weight-black">الأيام المتبقية</div>
+                  <div class="text-caption text-grey">{{ trialInfo.daysLeft }} يوم</div>
+                </div>
               </div>
-            </div>
-            <div class="d-flex align-center mb-3">
-              <LucideIcon name="globe" :size="18" class="text-gold me-3" />
-              <div>
-                <div class="text-body-2 font-weight-black">نوع الترخيص</div>
-                <div class="text-caption text-grey">اشتراك سحابي - مرتبط بالحساب</div>
+              <div class="d-flex align-center mb-3">
+                <LucideIcon name="globe" :size="18" class="text-gold me-3" />
+                <div>
+                  <div class="text-body-2 font-weight-black">نوع الترخيص</div>
+                  <div class="text-caption text-grey">اشتراك سحابي - مرتبط بالحساب</div>
+                </div>
               </div>
-            </div>
-            <v-btn
-              block
-              color="accent"
-              class="font-weight-black rounded-xl mt-2 premium-btn-gold-gradient"
-              @click="showSuspensionDialog = true"
-            >
-              <LucideIcon name="crown" :size="18" class="me-2" />
-              {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
-            </v-btn>
+              <v-btn
+                block
+                color="accent"
+                class="font-weight-black rounded-xl mt-2 premium-btn-gold-gradient"
+                @click="showSuspensionDialog = true"
+              >
+                <LucideIcon name="crown" :size="18" class="me-2" />
+                {{ trialInfo?.isActivated ? 'إدارة الاشتراك' : 'اشترك الآن' }}
+              </v-btn>
 
-            <v-btn
-              v-if="isSuperAdmin"
-              block
-              color="primary"
-              variant="outlined"
-              class="font-weight-black rounded-xl mt-3 btn-gold-outline"
-              @click="$router.push('/admin/subscriptions')"
-            >
-              <LucideIcon name="crown" :size="18" class="me-2 text-gold" />
-              لوحة إدارة اشتراكات العملاء (Super Admin)
-            </v-btn>
+              <v-btn
+                v-if="isSuperAdmin"
+                block
+                color="primary"
+                variant="outlined"
+                class="font-weight-black rounded-xl mt-3 btn-gold-outline"
+                @click="$router.push('/admin/subscriptions')"
+              >
+                <LucideIcon name="crown" :size="18" class="me-2 text-gold" />
+                لوحة إدارة اشتراكات العملاء (Super Admin)
+              </v-btn>
+            </div>
           </div>
-        </v-card>
-      </v-col>
+        </v-expand-transition>
+      </div>
 
-      <!-- Column 2: Security & Local Data Backup -->
-      <v-col cols="12" md="6">
-        <SettingsSecurityCard class="mb-4" />
-        <SettingsDeviceManagementCard class="mb-4" />
-
-        <v-card
-          elevation="0"
-          class="glass-card mb-4 border border-gold border-opacity-20 glass-card"
+      <!-- 3. التكامل والربط الخارجي (OpenConnector) -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('integrations') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('integrations')"
         >
-          <div class="pa-4 d-flex align-center border-b border-gold border-opacity-10">
-            <LucideIcon name="database" :size="20" class="text-primary me-3" />
-            <span class="text-subtitle-1 font-weight-black text-primary"
-              >النسخ الاحتياطي والأمان</span
-            >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="cpu" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                التكامل والربط الخارجي (OpenConnector)
+                <v-chip size="x-small" color="primary" variant="flat" class="font-weight-bold">
+                  Open-Source Gateway
+                </v-chip>
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                ربط ومزامنة تقويم Google و Outlook، بوابة WhatsApp التلقائية، والتخزين السحابي
+              </div>
+            </div>
           </div>
-          <v-card-text class="pa-4">
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('integrations') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('integrations') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('integrations')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <SettingsIntegrationsCard :naked="true" />
+          </div>
+        </v-expand-transition>
+      </div>
+
+      <!-- 4. الأمان والمصادقة الثنائية (MFA) -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('security') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('security')"
+        >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="shield-check" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                الأمان والمصادقة الثنائية (MFA)
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                حماية حسابك برمز تحقق إضافي عبر تطبيق Google Authenticator
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('security') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('security') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('security')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <SettingsSecurityCard :naked="true" />
+          </div>
+        </v-expand-transition>
+      </div>
+
+      <!-- 5. إدارة الأجهزة وحالة النسخ الموثق -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('devices') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('devices')"
+        >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="laptop" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                إدارة الأجهزة وحالة النسخ الموثق
+                <v-chip size="x-small" color="success" variant="flat" class="font-weight-bold">
+                  Verified Catalog
+                </v-chip>
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                بيانات إقران سطح المكتب، الأجهزة المقترنة والمرخصة، وكتالوج التحقق المستقل
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('devices') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('devices') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('devices')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <SettingsDeviceManagementCard :naked="true" />
+          </div>
+        </v-expand-transition>
+      </div>
+
+      <!-- 6. النسخ الاحتياطي وحزمة الطوارئ -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('backup') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('backup')"
+        >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="database" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                النسخ الاحتياطي وحزمة الطوارئ
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                تصدير واستيراد قاعدة البيانات، إنشاء حزم الطوارئ المشفرة، ومجلد ملفات القضايا
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('backup') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('backup') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('backup')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
             <v-row dense class="mb-4">
-              <v-col cols="6">
+              <v-col cols="12" sm="6">
                 <v-btn
                   color="gold"
                   variant="outlined"
@@ -131,7 +376,7 @@
                   >تصدير قاعدة البيانات</v-btn
                 >
               </v-col>
-              <v-col cols="6">
+              <v-col cols="12" sm="6">
                 <v-btn
                   color="gold"
                   variant="outlined"
@@ -159,7 +404,7 @@
               </v-col>
             </v-row>
             <v-row dense class="mb-4">
-              <v-col cols="6">
+              <v-col cols="12" sm="6">
                 <v-btn
                   color="gold"
                   variant="outlined"
@@ -171,7 +416,7 @@
                   >حفظ البيانات</v-btn
                 >
               </v-col>
-              <v-col cols="6">
+              <v-col cols="12" sm="6">
                 <v-btn
                   color="gold"
                   variant="outlined"
@@ -217,92 +462,129 @@
                 </div>
               </template>
             </v-text-field>
-          </v-card-text>
-        </v-card>
-
-        <!-- System Wipe Alert -->
-        <v-alert
-          type="error"
-          variant="tonal"
-          density="compact"
-          class="border border-error border-opacity-50 rounded-xl"
-        >
-          <div class="d-flex align-center justify-space-between">
-            <div class="text-caption font-weight-black">مسح كافة البيانات (System Wipe)</div>
-            <v-btn
-              color="error"
-              variant="flat"
-              size="small"
-              class="font-weight-black premium-btn-gold-gradient"
-              @click="handleClear"
-              >تنفيذ</v-btn
-            >
           </div>
-        </v-alert>
-      </v-col>
+        </v-expand-transition>
+      </div>
 
-      <!-- Row 3: Preferences & PDPL -->
-      <v-col cols="12">
-        <v-card elevation="0" class="glass-card border border-gold border-opacity-20 glass-card">
-          <v-card-text class="pa-4 d-flex align-center flex-wrap ga-4">
-            <div class="d-flex align-center ga-3 border-l border-gold border-opacity-20 pe-4">
-              <LucideIcon name="timer" :size="20" class="text-primary" />
-              <span class="text-body-2 font-weight-black text-primary">سياسة الاحتفاظ:</span>
-              <v-text-field
-                v-model.number="settings.activityLogRetentionDays"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hide-details
-                style="width: 80px"
-                class="glass-input-compact glass-input"
-              ></v-text-field>
-              <span class="text-caption text-gold font-weight-bold">يوم</span>
+      <!-- 7. تفضيلات النظام وسياسة الاحتفاظ ومسح البيانات -->
+      <div
+        class="settings-collapse-card glass-card mb-3 border border-gold border-opacity-20 rounded-xl overflow-hidden transition-all"
+        :class="{ 'card-active': isPanelOpen('preferences') }"
+      >
+        <div
+          class="settings-collapse-header pa-4 d-flex align-center justify-space-between cursor-pointer user-select-none"
+          @click="togglePanel('preferences')"
+        >
+          <div class="d-flex align-center ga-3">
+            <div class="section-icon-box pa-2 rounded-lg bg-gold-subtle border border-gold border-opacity-20">
+              <LucideIcon name="sliders-horizontal" :size="22" class="text-gold" />
+            </div>
+            <div>
+              <div class="text-subtitle-1 font-weight-black text-primary d-flex align-center ga-2 flex-wrap">
+                تفضيلات النظام وسياسة الاحتفاظ
+              </div>
+              <div class="text-caption text-grey font-weight-medium">
+                مدة الاحتفاظ بالسجلات، تنبيهات المهام، تقرير الأداء، ومسح كافة البيانات
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex align-center ga-3">
+            <span class="text-caption text-gold font-weight-bold d-none d-sm-inline opacity-80">
+              {{ isPanelOpen('preferences') ? 'إخفاء' : 'عرض' }}
+            </span>
+            <div
+              class="arrow-icon-circle"
+              :class="{ 'rotate-arrow': isPanelOpen('preferences') }"
+            >
+              <LucideIcon name="chevron-left" :size="20" class="text-gold" />
+            </div>
+          </div>
+        </div>
+
+        <v-expand-transition>
+          <div v-show="isPanelOpen('preferences')" class="settings-collapse-content pa-5 border-t border-gold border-opacity-10">
+            <!-- Row: Preferences & PDPL -->
+            <div class="d-flex align-center flex-wrap ga-4 mb-4 pa-3 rounded-lg border border-gold border-opacity-10 glass-panel-light">
+              <div class="d-flex align-center ga-3 border-l border-gold border-opacity-20 pe-4">
+                <LucideIcon name="timer" :size="20" class="text-primary" />
+                <span class="text-body-2 font-weight-black text-primary">سياسة الاحتفاظ:</span>
+                <v-text-field
+                  v-model.number="settings.activityLogRetentionDays"
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  style="width: 80px"
+                  class="glass-input-compact glass-input"
+                ></v-text-field>
+                <span class="text-caption text-gold font-weight-bold">يوم</span>
+              </div>
+
+              <div class="d-flex align-center ga-3">
+                <LucideIcon name="bell" :size="20" class="text-primary" />
+                <span class="text-body-2 font-weight-black text-primary">تنبيه المهام:</span>
+                <v-switch
+                  v-model="settings.taskNotificationsEnabled"
+                  color="gold"
+                  hide-details
+                  density="compact"
+                  inset
+                />
+                <v-text-field
+                  v-if="settings.taskNotificationsEnabled"
+                  v-model.number="settings.taskNotificationLeadDays"
+                  type="number"
+                  variant="outlined"
+                  density="compact"
+                  hide-details
+                  style="width: 70px"
+                  class="glass-input-compact glass-input"
+                ></v-text-field>
+                <span
+                  v-if="settings.taskNotificationsEnabled"
+                  class="text-caption text-gold font-weight-bold"
+                  >يوم مسبق</span
+                >
+              </div>
+
+              <v-spacer />
+
+              <div class="d-flex ga-2">
+                <v-btn
+                  color="gold"
+                  variant="tonal"
+                  size="small"
+                  class="font-weight-black premium-btn-gold-gradient"
+                  @click="exportPerformanceReport"
+                  >تقرير أداء</v-btn
+                >
+              </div>
             </div>
 
-            <div class="d-flex align-center ga-3">
-              <LucideIcon name="bell" :size="20" class="text-primary" />
-              <span class="text-body-2 font-weight-black text-primary">تنبيه المهام:</span>
-              <v-switch
-                v-model="settings.taskNotificationsEnabled"
-                color="gold"
-                hide-details
-                density="compact"
-                inset
-              />
-              <v-text-field
-                v-if="settings.taskNotificationsEnabled"
-                v-model.number="settings.taskNotificationLeadDays"
-                type="number"
-                variant="outlined"
-                density="compact"
-                hide-details
-                style="width: 70px"
-                class="glass-input-compact glass-input"
-              ></v-text-field>
-              <span
-                v-if="settings.taskNotificationsEnabled"
-                class="text-caption text-gold font-weight-bold"
-                >يوم مسبق</span
-              >
-            </div>
-
-            <v-spacer />
-
-            <div class="d-flex ga-2">
-              <v-btn
-                color="gold"
-                variant="tonal"
-                size="small"
-                class="font-weight-black premium-btn-gold-gradient"
-                @click="exportPerformanceReport"
-                >تقرير أداء</v-btn
-              >
-            </div>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+            <!-- System Wipe Alert -->
+            <v-alert
+              type="error"
+              variant="tonal"
+              density="compact"
+              class="border border-error border-opacity-50 rounded-xl"
+            >
+              <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                <div class="text-caption font-weight-black">مسح كافة البيانات (System Wipe)</div>
+                <v-btn
+                  color="error"
+                  variant="flat"
+                  size="small"
+                  class="font-weight-black premium-btn-gold-gradient"
+                  @click="handleClear"
+                  >تنفيذ</v-btn
+                >
+              </div>
+            </v-alert>
+          </div>
+        </v-expand-transition>
+      </div>
+    </div>
 
     <SettingsWipeDialog v-model="showClearDialog" :clearing="clearing" @confirm="executeWipe" />
 
@@ -635,6 +917,38 @@ import { usePermissions } from '../composables/usePermissions'
 const isDesktop = computed(() => Boolean((window as any).ipcRenderer))
 const { session } = usePermissions()
 const isSuperAdmin = computed(() => (session.value as any)?.companyId === '00000000-0000-0000-0000-000000000000')
+
+// Accordion Collapsible Sections State (Collapsed by default per user request)
+const ALL_SETTINGS_PANELS = [
+  'office',
+  'subscription',
+  'integrations',
+  'security',
+  'devices',
+  'backup',
+  'preferences'
+]
+
+const openedPanels = ref<string[]>([])
+
+const isPanelOpen = (id: string): boolean => openedPanels.value.includes(id)
+
+const togglePanel = (id: string): void => {
+  const idx = openedPanels.value.indexOf(id)
+  if (idx > -1) {
+    openedPanels.value.splice(idx, 1)
+  } else {
+    openedPanels.value.push(id)
+  }
+}
+
+const expandAll = (): void => {
+  openedPanels.value = [...ALL_SETTINGS_PANELS]
+}
+
+const collapseAll = (): void => {
+  openedPanels.value = []
+}
 
 const showDisasterDialog = ref(false)
 const disasterMode = ref<'export' | 'import'>('export')
@@ -1377,6 +1691,65 @@ const showSnackbar = (text: string, color: string): void => {
 }
 .text-visible-medium {
   color: var(--text-secondary) !important;
+}
+
+/* Accordion Collapsible Sections Styling */
+.settings-collapse-card {
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.settings-collapse-card:hover {
+  border-color: rgba(212, 175, 55, 0.45) !important;
+}
+
+.card-active {
+  border-color: rgba(212, 175, 55, 0.6) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12) !important;
+}
+
+.settings-collapse-header {
+  transition: background-color 0.2s ease;
+}
+
+.settings-collapse-header:hover {
+  background: rgba(212, 175, 55, 0.05);
+}
+
+.card-active .settings-collapse-header {
+  background: rgba(212, 175, 55, 0.06);
+}
+
+.section-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.arrow-icon-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(212, 175, 55, 0.08);
+  border: 1px solid rgba(212, 175, 55, 0.25);
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+}
+
+.arrow-icon-circle:hover {
+  background: rgba(212, 175, 55, 0.2);
+  border-color: rgba(212, 175, 55, 0.6);
+}
+
+.rotate-arrow {
+  transform: rotate(-90deg);
+  background: rgba(212, 175, 55, 0.22);
+  border-color: rgba(212, 175, 55, 0.7);
 }
 </style>
 

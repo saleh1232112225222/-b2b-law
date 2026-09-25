@@ -1,7 +1,7 @@
 <template>
-  <v-card variant="outlined" class="rounded-xl pa-5 bg-surface border mb-6" dir="rtl">
-    <!-- Header -->
-    <div class="d-flex align-center justify-space-between flex-wrap gap-4 mb-5">
+  <div :class="naked ? '' : 'v-card rounded-xl pa-5 bg-surface border mb-6'" dir="rtl">
+    <!-- Header (When not naked) -->
+    <div v-if="!naked" class="d-flex align-center justify-space-between flex-wrap gap-4 mb-5">
       <div class="d-flex align-center gap-3">
         <div class="icon-header-bg">
           <LucideIcon name="cpu" :size="24" class="text-primary" />
@@ -32,6 +32,29 @@
           مزامنة الكل الآن
         </v-btn>
       </div>
+    </div>
+
+    <!-- Header Toolbar (When naked inside accordion) -->
+    <div v-else class="d-flex align-center justify-space-between flex-wrap gap-3 mb-4 pa-1">
+      <div class="d-flex align-center gap-2 flex-wrap">
+        <v-chip size="small" color="primary" variant="tonal" class="font-weight-bold">
+          Open-Source Gateway
+        </v-chip>
+        <span class="text-caption text-medium-emphasis">
+          ربط ومزامنة تقويم Google و Outlook، بوابة الواتساب والتخزين السحابي
+        </span>
+      </div>
+      <v-btn
+        color="primary"
+        variant="tonal"
+        size="small"
+        class="rounded-lg font-weight-bold"
+        :loading="integrationsStore.syncing"
+        @click="handleSyncAll"
+      >
+        <LucideIcon name="refresh-cw" :size="14" class="me-1" />
+        مزامنة الكل الآن
+      </v-btn>
     </div>
 
     <!-- Alert / Status message -->
@@ -370,13 +393,15 @@
         </div>
       </v-card>
     </v-dialog>
-  </v-card>
+  </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useIntegrationsStore, IntegrationService } from '../../stores/integrations'
 import LucideIcon from '../../components/common/LucideIcon.vue'
+
+withDefaults(defineProps<{ naked?: boolean }>(), { naked: false })
 
 const integrationsStore = useIntegrationsStore()
 const actionLoading = ref<string | null>(null)
