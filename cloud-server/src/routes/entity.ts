@@ -204,6 +204,25 @@ export function createEntityRouter(config: EntityConfig): Router {
   }
 
   if (!excluded.has('getById')) {
+    router.get('/by-case/:caseId', async (req: Request, res: Response) => {
+      try {
+        const companyId = getCompanyId(req)
+        const columns = await getTableColumns(table)
+        if (!columns.includes('case_id')) {
+          res.json([])
+          return
+        }
+        const result = await query(
+          `SELECT * FROM ${table} WHERE case_id = $1 AND company_id = $2 ORDER BY created_at DESC`,
+          [req.params.caseId, companyId]
+        )
+        res.json(result.rows)
+      } catch (err) {
+        console.error(`[${table}] GetByCaseId error:`, err)
+        res.status(500).json({ error: 'فشل في جلب السجلات' })
+      }
+    })
+
     router.get('/:id', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)

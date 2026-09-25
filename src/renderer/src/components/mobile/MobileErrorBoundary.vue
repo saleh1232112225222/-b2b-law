@@ -18,12 +18,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onErrorCaptured } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, watch, onErrorCaptured } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 
 const router = useRouter()
+const route = useRoute()
 const hasError = ref(false)
 const errorMessage = ref('')
+
+watch(
+  () => route.fullPath,
+  () => {
+    hasError.value = false
+    errorMessage.value = ''
+  }
+)
 
 onErrorCaptured((err: Error) => {
   hasError.value = true

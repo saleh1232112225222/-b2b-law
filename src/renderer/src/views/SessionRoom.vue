@@ -740,19 +740,43 @@ const splitDocs = (allDocs: any[]) => {
 }
 
 const loadCaseBundles = async (caseId: string) => {
-  caseItem.value = await (window as any).api.cases.getById(caseId)
-  caseSessions.value = safeArray(await (window as any).api.sessions.getByCaseId(caseId)).sort(
-    (a: any, b: any) => {
-      const da = String(a?.date || '').localeCompare(String(b?.date || ''))
-      if (da !== 0) return da
-      return String(a?.time || '').localeCompare(String(b?.time || ''))
-    }
-  )
-  judgments.value = safeArray(await (window as any).api.judgments.getByCaseId(caseId)).sort(
-    (a: any, b: any) => String(b?.judgment_date || '').localeCompare(String(a?.judgment_date || ''))
-  )
-  const allDocs = safeArray(await (window as any).api.documents.getByCaseId(caseId))
-  splitDocs(allDocs)
+  try {
+    caseItem.value = await (window as any).api.cases.getById(caseId)
+  } catch (err) {
+    console.error('[SessionRoom] Failed to load case item:', err)
+    caseItem.value = null
+  }
+
+  try {
+    caseSessions.value = safeArray(await (window as any).api.sessions.getByCaseId(caseId)).sort(
+      (a: any, b: any) => {
+        const da = String(a?.date || '').localeCompare(String(b?.date || ''))
+        if (da !== 0) return da
+        return String(a?.time || '').localeCompare(String(b?.time || ''))
+      }
+    )
+  } catch (err) {
+    console.error('[SessionRoom] Failed to load case sessions:', err)
+    caseSessions.value = []
+  }
+
+  try {
+    judgments.value = safeArray(await (window as any).api.judgments.getByCaseId(caseId)).sort(
+      (a: any, b: any) => String(b?.judgment_date || '').localeCompare(String(a?.judgment_date || ''))
+    )
+  } catch (err) {
+    console.error('[SessionRoom] Failed to load judgments:', err)
+    judgments.value = []
+  }
+
+  try {
+    const allDocs = safeArray(await (window as any).api.documents.getByCaseId(caseId))
+    splitDocs(allDocs)
+  } catch (err) {
+    console.error('[SessionRoom] Failed to load documents:', err)
+    splitDocs([])
+  }
+
   try {
     const clientId = String(caseItem.value?.client_id || '').trim()
     if (clientId) {
@@ -767,25 +791,30 @@ const loadCaseBundles = async (caseId: string) => {
 }
 
 const loadForSessionId = async (sessionId: string) => {
-  const all = pickOptions.value
-  const fromList = all.find((x: any) => String(x?.id || '') === sessionId)
-  if (fromList) activeSession.value = fromList
-  if (!activeSession.value) {
-    try {
-      const allSessions = safeArray(await (window as any).api.sessions.getAll())
-      activeSession.value = allSessions.find((x: any) => String(x?.id || '') === sessionId) || null
-    } catch {
-      activeSession.value = null
+  try {
+    const all = pickOptions.value
+    const fromList = all.find((x: any) => String(x?.id || '') === sessionId)
+    if (fromList) activeSession.value = fromList
+    if (!activeSession.value) {
+      try {
+        const allSessions = safeArray(await (window as any).api.sessions.getAll())
+        activeSession.value = allSessions.find((x: any) => String(x?.id || '') === sessionId) || null
+      } catch {
+        activeSession.value = null
+      }
     }
+    const caseId = String(activeSession.value?.case_id || '').trim()
+    if (!caseId) {
+      showToast('هذه الجلسة غير مرتبطة بقضية', 'error')
+      return
+    }
+    await loadCaseBundles(caseId)
+    if (caseSessions.value.length > 0) selectSessionText(caseSessions.value[0], 0)
+    else selectText('الموضوع', 'موضوع الدعوى', caseItem.value?.subject || '—')
+  } catch (err: any) {
+    console.error('[SessionRoom] Error loading session data:', err)
+    showToast('تعذر تحميل بعض تفاصيل الجلسة: ' + (err?.message || ''), 'error')
   }
-  const caseId = String(activeSession.value?.case_id || '').trim()
-  if (!caseId) {
-    showToast('هذه الجلسة غير مرتبطة بقضية', 'error')
-    return
-  }
-  await loadCaseBundles(caseId)
-  if (caseSessions.value.length > 0) selectSessionText(caseSessions.value[0], 0)
-  else selectText('الموضوع', 'موضوع الدعوى', caseItem.value?.subject || '—')
 }
 
 const saveNote = async () => {
@@ -1124,18 +1153,22 @@ watch(
 )
 
 onMounted(async () => {
-  await loadLookups()
-  const q = String(route.query.session_id || '').trim()
-  if (q) {
-    await loadForSessionId(q)
-    return
+  try {
+    await loadLookups()
+    const q = String(route.query.session_id || '').trim()
+    if (q) {
+      await loadForSessionId(q)
+      return
+    }
+    const first = pickOptions.value[0]
+    if (first?.id) {
+      await loadForSessionId(String(first.id))
+      return
+    }
+    pickerDialog.value = true
+  } catch (err) {
+    console.error('[SessionRoom] Error during onMounted:', err)
   }
-  const first = pickOptions.value[0]
-  if (first?.id) {
-    await loadForSessionId(String(first.id))
-    return
-  }
-  pickerDialog.value = true
 })
 </script>
 

@@ -1,48 +1,48 @@
 <template>
-  <MobileErrorBoundary>
-    <v-layout full-height class="mobile-layout">
-      <MobileHeader
-        :title="currentRouteName"
-        :is-dark="isDark"
-        @toggle-drawer="drawerOpen = !drawerOpen"
-        @toggle-theme="emit('toggle-theme')"
-        @open-settings="router.push('/settings')"
-      />
+  <v-layout full-height class="mobile-layout">
+    <MobileHeader
+      :title="currentRouteName"
+      :is-dark="isDark"
+      @toggle-drawer="drawerOpen = !drawerOpen"
+      @toggle-theme="emit('toggle-theme')"
+      @open-settings="router.push('/settings')"
+    />
 
-      <MobileDrawer
-        v-model="drawerOpen"
-        :username="currentUser?.username || ''"
-        :role="currentUser?.roleKey || ''"
-        :is-dark="isDark"
-        @logout="emit('logout')"
-        @toggle-theme="emit('toggle-theme')"
-      />
+    <MobileDrawer
+      v-model="drawerOpen"
+      :username="currentUser?.username || ''"
+      :role="currentUser?.roleKey || ''"
+      :is-dark="isDark"
+      @logout="emit('logout')"
+      @toggle-theme="emit('toggle-theme')"
+    />
 
-      <v-main class="mobile-app-shell">
-        <div class="main-body-wrapper pa-3">
+    <v-main class="mobile-app-shell">
+      <div class="main-body-wrapper pa-3">
+        <MobileErrorBoundary>
           <router-view v-slot="{ Component }">
             <transition name="slide-x-reverse" mode="out-in">
               <component :is="Component" :key="$route.path" />
             </transition>
           </router-view>
-        </div>
-      </v-main>
-
-      <MobileBottomNav :hidden="bottomNavHidden" @more-click="drawerOpen = !drawerOpen" />
-
-      <div v-if="showFab" class="mobile-fab" :class="{ 'mobile-fab--hidden': fabHidden }">
-        <v-btn
-          v-if="currentFabAction"
-          color="primary"
-          :icon="currentFabAction.icon"
-          :size="56"
-          elevation="8"
-          class="elevation-8"
-          @click="currentFabAction?.handler()"
-        />
+        </MobileErrorBoundary>
       </div>
-    </v-layout>
-  </MobileErrorBoundary>
+    </v-main>
+
+    <MobileBottomNav :hidden="bottomNavHidden" @more-click="drawerOpen = !drawerOpen" />
+
+    <div v-if="showFab" class="mobile-fab" :class="{ 'mobile-fab--hidden': fabHidden }">
+      <v-btn
+        v-if="currentFabAction"
+        color="primary"
+        :icon="currentFabAction.icon"
+        :size="56"
+        elevation="8"
+        class="elevation-8"
+        @click="currentFabAction?.handler()"
+      />
+    </div>
+  </v-layout>
 </template>
 
 <script setup lang="ts">

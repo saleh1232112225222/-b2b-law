@@ -1476,10 +1476,29 @@ const api = {
   evidence: buildCrudApi('evidence'),
   judgments: {
     ...buildCrudApi('judgments'),
-    getByCaseId: (caseId: string) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('judgments:getByCaseId', caseId)
-        : cloudRequest({ method: 'GET', url: `/judgments/by-case/${caseId}` }),
+    getByCaseId: async (caseId: string) => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('judgments:getByCaseId', caseId)
+      }
+      try {
+        const res = await cloudRequest<any>({
+          method: 'GET',
+          url: '/judgments',
+          params: { case_id: caseId, pageSize: 200 }
+        })
+        return unwrapArrayResponse(res)
+      } catch {
+        try {
+          const res = await cloudRequest<any>({
+            method: 'GET',
+            url: `/judgments/by-case/${caseId}`
+          })
+          return unwrapArrayResponse(res)
+        } catch {
+          return []
+        }
+      }
+    },
     amendments: {
       list: (judgmentId: string) =>
         mode === 'desktop'
@@ -1497,10 +1516,29 @@ const api = {
   },
   memoranda: {
     ...buildCrudApi('memoranda'),
-    getByCaseId: (caseId: string) =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('memoranda:getByCaseId', caseId)
-        : cloudRequest({ method: 'GET', url: `/memoranda/by-case/${caseId}` }),
+    getByCaseId: async (caseId: string) => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('memoranda:getByCaseId', caseId)
+      }
+      try {
+        const res = await cloudRequest<any>({
+          method: 'GET',
+          url: '/memoranda',
+          params: { case_id: caseId, pageSize: 200 }
+        })
+        return unwrapArrayResponse(res)
+      } catch {
+        try {
+          const res = await cloudRequest<any>({
+            method: 'GET',
+            url: `/memoranda/by-case/${caseId}`
+          })
+          return unwrapArrayResponse(res)
+        } catch {
+          return []
+        }
+      }
+    },
     toggleArchive: (id: string, isArchived: boolean) =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('memoranda:toggleArchive', id, isArchived)
