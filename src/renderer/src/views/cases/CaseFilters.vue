@@ -102,33 +102,42 @@
     </v-row>
 
     <!-- Pipeline Stages Quick Filter Pills -->
-    <div class="mt-3 pt-3 border-t border-white-10 d-flex align-center gap-2 overflow-x-auto pb-1">
-      <span class="text-caption text-gold font-weight-black me-2 flex-shrink-0 d-flex align-center">
-        <LucideIcon name="git-commit" :size="14" class="me-1" />
-        مسار القضايا:
-      </span>
-      <v-chip
-        v-for="s in PIPELINE_STAGES"
-        :key="s.key"
-        size="small"
-        :color="(stage || 'الكل') === s.key ? 'accent' : 'grey'"
-        :variant="(stage || 'الكل') === s.key ? 'flat' : 'tonal'"
-        class="font-weight-black cursor-pointer px-3"
-        @click="$emit('update:stage', s.key)"
-      >
-        {{ s.label }}
-      </v-chip>
-      <v-btn
-        v-if="stage && stage !== 'الكل'"
-        size="x-small"
-        variant="text"
-        color="error"
-        class="font-weight-bold ms-auto"
-        @click="$emit('update:stage', 'الكل')"
-      >
-        <LucideIcon name="x" :size="14" class="me-1" />
-        إلغاء التصفية
-      </v-btn>
+    <div class="mt-3 pt-3 border-t border-white-10 pipeline-stages-container">
+      <div class="d-flex align-center justify-space-between mb-2">
+        <span class="text-caption text-gold font-weight-black d-flex align-center">
+          <LucideIcon name="git-commit" :size="15" class="me-1 text-accent" />
+          مسار القضايا:
+        </span>
+        <v-btn
+          v-if="stage && stage !== 'الكل'"
+          size="x-small"
+          variant="text"
+          color="error"
+          class="font-weight-bold px-1"
+          @click="$emit('update:stage', 'الكل')"
+        >
+          <LucideIcon name="x" :size="13" class="me-1" />
+          إلغاء التصفية
+        </v-btn>
+      </div>
+
+      <div class="d-flex align-center gap-2 overflow-x-auto pb-1 px-0.5 pipeline-chips-scroll">
+        <v-chip
+          v-for="s in PIPELINE_STAGES"
+          :key="s.key"
+          size="small"
+          :color="(stage || 'الكل') === s.key ? 'accent' : undefined"
+          :variant="(stage || 'الكل') === s.key ? 'flat' : 'outlined'"
+          class="pipeline-chip font-weight-black cursor-pointer px-3 flex-shrink-0"
+          :class="{
+            'active-stage-chip': (stage || 'الكل') === s.key,
+            'inactive-stage-chip': (stage || 'الكل') !== s.key
+          }"
+          @click="$emit('update:stage', s.key)"
+        >
+          {{ s.label }}
+        </v-chip>
+      </div>
     </div>
   </v-card>
 </template>
@@ -174,3 +183,68 @@ watch(localSearch, (v) => {
 
 const getUserDisplayName = (u: any): string => String(u?.full_name || u?.username || '')
 </script>
+
+<style scoped>
+.pipeline-stages-container {
+  width: 100%;
+  max-width: 100%;
+}
+
+.pipeline-chips-scroll {
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  display: flex;
+  flex-wrap: nowrap;
+}
+
+.pipeline-chips-scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.pipeline-chips-scroll::-webkit-scrollbar-thumb {
+  background: rgba(233, 195, 73, 0.2);
+  border-radius: 4px;
+}
+
+.pipeline-chip {
+  flex-shrink: 0 !important;
+  white-space: nowrap !important;
+  font-size: 0.8rem !important;
+  height: 28px !important;
+  transition: all 0.2s ease !important;
+}
+
+.active-stage-chip {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
+  color: #e9c349 !important;
+  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+}
+
+:global([data-theme='dark']) .active-stage-chip {
+  background: linear-gradient(135deg, #e9c349 0%, #d4a928 100%) !important;
+  color: #0f172a !important;
+  border: 1px solid #e9c349 !important;
+}
+
+.inactive-stage-chip {
+  background: rgba(0, 0, 0, 0.04) !important;
+  color: #1e293b !important;
+  border: 1px solid rgba(0, 0, 0, 0.15) !important;
+  opacity: 0.9 !important;
+}
+
+:global([data-theme='dark']) .inactive-stage-chip {
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #e2e8f0 !important;
+  border: 1px solid rgba(233, 195, 73, 0.2) !important;
+  opacity: 0.9 !important;
+}
+
+.inactive-stage-chip:hover {
+  background: rgba(233, 195, 73, 0.1) !important;
+  border-color: rgba(233, 195, 73, 0.4) !important;
+  opacity: 1 !important;
+}
+</style>

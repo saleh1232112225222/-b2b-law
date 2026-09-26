@@ -538,25 +538,29 @@
               <div
                 v-for="s in selectedDaySessions"
                 :key="s.id"
-                class="pa-2 rounded-lg bg-surface border d-flex align-center justify-space-between cursor-pointer"
+                class="session-agenda-item pa-2.5 rounded-lg bg-surface border cursor-pointer mb-1.5"
                 @click="router.push(`/sessions?id=${s.id}`)"
               >
-                <div class="min-w-0">
-                  <div class="text-caption font-weight-black text-truncate">
+                <div class="mb-2">
+                  <div class="text-caption font-weight-black text-visible-high mb-1 leading-snug break-words">
                     قضية: {{ s.case_number || 'بدون رقم' }} - {{ s.client_name || 'بدون موكل' }}
                   </div>
-                  <div class="text-caption text-medium-emphasis">
-                    {{ s.time || '10:00' }} {{ s.court_room ? `· ${s.court_room}` : '' }}
+                  <div class="text-caption text-medium-emphasis d-flex align-center flex-wrap gap-2">
+                    <span class="d-inline-flex align-center gap-1 font-weight-bold">
+                      <LucideIcon name="clock" :size="12" class="text-accent" />
+                      {{ s.time || '10:00' }}
+                    </span>
+                    <span v-if="s.court_room" class="font-weight-bold">· {{ s.court_room }}</span>
                   </div>
                 </div>
-                <div class="d-flex align-center gap-1 shrink-0 ms-2">
+                <div class="d-flex align-center justify-end flex-wrap gap-1.5 pt-1.5 border-t border-opacity-10">
                   <v-btn
                     size="x-small"
                     variant="flat"
                     color="success"
-                    class="font-weight-bold rounded-pill px-2 d-flex align-center shadow-sm"
+                    class="font-weight-bold rounded-lg px-2.5 d-flex align-center shadow-sm"
                     style="
-                      height: 24px;
+                      height: 26px;
                       background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
                       color: #ffffff !important;
                     "
@@ -566,7 +570,13 @@
                     <LucideIcon name="external-link" :size="11" class="me-1" />
                     <span>رابط ناجز</span>
                   </v-btn>
-                  <v-btn size="x-small" variant="tonal" color="accent" class="font-weight-bold">
+                  <v-btn
+                    size="x-small"
+                    variant="tonal"
+                    color="accent"
+                    class="font-weight-bold rounded-lg px-3"
+                    style="height: 26px;"
+                  >
                     عرض
                   </v-btn>
                 </div>
@@ -1707,5 +1717,20 @@ onMounted(async () => {
   .date-num {
     font-size: 0.75rem !important;
   }
+}
+
+.session-agenda-item {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  transition: all 0.2s ease;
+}
+.session-agenda-item:active {
+  transform: scale(0.99);
+}
+.break-words {
+  word-break: break-word !important;
+  overflow-wrap: break-word !important;
 }
 </style>

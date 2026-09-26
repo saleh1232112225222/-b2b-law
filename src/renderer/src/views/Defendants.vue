@@ -1,15 +1,15 @@
-﻿<template>
+<template>
   <v-container fluid class="pa-6 rtl">
     <!-- Header -->
     <v-row dense class="mb-8 align-center">
-      <v-col>
+      <v-col cols="12" md="auto" class="flex-grow-1">
         <div class="d-flex align-center">
-          <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
-            <LucideIcon name="user-x" :size="36" class="text-error" />
+          <div class="glass-panel-light pa-3 pa-sm-4 rounded-xl me-3 me-sm-5 border-gold opacity-20 flex-shrink-0">
+            <LucideIcon name="user-x" :size="32" class="text-error" />
           </div>
-          <div>
-            <h1 class="text-h5 font-weight-black text-primary mb-1">إدارة ملفات الخصوم</h1>
-            <p class="text-subtitle-1 text-primary font-weight-black">
+          <div class="min-w-0 flex-grow-1">
+            <h1 class="text-h6 text-sm-h5 font-weight-black text-primary mb-1 text-wrap">إدارة ملفات الخصوم</h1>
+            <p class="text-caption text-sm-subtitle-1 text-primary font-weight-black mb-0 text-wrap leading-snug">
               القاعدة المركزية لبيانات الخصوم وربطهم بالقضايا المتداولة
             </p>
           </div>
@@ -19,7 +19,7 @@
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-xl px-8 premium-lift h-56 premium-btn-gold-gradient"
+          class="font-weight-black rounded-xl px-8 premium-lift h-56 premium-btn-gold-gradient w-100 w-md-auto"
           @click="openAddDialog"
         >
           <LucideIcon name="user-plus" :size="20" class="me-2" /> إضافة خصم جديد
@@ -126,25 +126,152 @@
       </v-row>
     </v-card>
 
-    <!-- Mobile Card View -->
-    <MobileCardList
-      v-if="isMobile"
-      :items="safeArray(filteredDefendants)"
-      :loading="store.loading"
-      title-field="name"
-      subtitle-field="phone"
-      :info-fields="[
-        { key: 'type', label: 'النوع' },
-        { key: 'id_number', label: 'الهوية' },
-        { key: 'city', label: 'المدينة' }
-      ]"
-      default-icon="mdi-account-alert"
-      empty-text="لا يوجد خصوم مسجلين"
-      can-add
-      add-label="تسجيل أول خصم"
-      @item-click="openPreviewDialog"
-      @add="openAddDialog"
-    />
+    <!-- Defendants Mobile Cards View (matching Clients.vue style) -->
+    <div v-if="isMobile" class="mobile-view-container">
+      <div v-if="store.loading" class="d-flex flex-column gap-4">
+        <v-skeleton-loader
+          v-for="n in 4"
+          :key="n"
+          type="card"
+          class="glass-card mb-4 rounded-xl bg-transparent"
+        />
+      </div>
+
+      <div
+        v-else-if="filteredDefendants.length === 0"
+        class="text-center py-12 glass-card rounded-xl border-gold-alpha"
+      >
+        <LucideIcon name="user-x" :size="48" class="text-gold opacity-20 mb-4" />
+        <div class="text-h6 text-gold opacity-40 font-weight-black mb-3">
+          لا يوجد خصوم مسجلين مطابقين للبحث
+        </div>
+        <v-btn
+          color="accent"
+          variant="outlined"
+          class="px-6 font-weight-black rounded-lg premium-btn-gold-gradient"
+          @click="openAddDialog"
+        >
+          <LucideIcon name="user-plus" :size="16" class="me-2" /> تسجيل أول خصم
+        </v-btn>
+      </div>
+
+      <div v-else class="mobile-cards-container d-flex flex-column gap-4">
+        <v-card
+          v-for="item in filteredDefendants"
+          :key="item.id"
+          class="glass-card mb-4 rounded-xl border-gold-alpha overflow-hidden premium-hover"
+          elevation="0"
+          @click="openPreviewDialog(item)"
+        >
+          <!-- Card Header -->
+          <div
+            class="d-flex align-center justify-space-between pa-4 border-b border-gold border-opacity-10"
+          >
+            <div class="d-flex align-center min-w-0 me-2">
+              <v-avatar color="accent" size="36" class="me-3 font-weight-black text-black flex-shrink-0">
+                {{ item.name ? item.name.charAt(0) : '؟' }}
+              </v-avatar>
+              <div class="min-w-0">
+                <div class="font-weight-black text-body-1 text-visible-high text-truncate">
+                  {{ item.name }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Type Chip -->
+            <v-chip
+              :color="getTypeColor(item.type)"
+              variant="flat"
+              size="small"
+              class="font-weight-black rounded-lg px-3 flex-shrink-0 text-black"
+            >
+              {{ item.type || 'فرد' }}
+            </v-chip>
+          </div>
+
+          <!-- Card Body -->
+          <v-card-text class="pa-4 text-visible-high">
+            <v-row dense class="mb-2">
+              <v-col cols="6">
+                <span class="text-caption text-visible-low d-block mb-1 font-weight-bold">رقم الجوال</span>
+                <span class="text-caption font-weight-black text-visible-high ltr-text">
+                  {{ item.phone || '-' }}
+                </span>
+              </v-col>
+              <v-col cols="6">
+                <span class="text-caption text-visible-low d-block mb-1 font-weight-bold">المدينة</span>
+                <span class="text-caption font-weight-black text-visible-high">
+                  {{ item.city || '-' }}
+                </span>
+              </v-col>
+            </v-row>
+
+            <v-row dense>
+              <v-col cols="6">
+                <span class="text-caption text-visible-low d-block mb-1 font-weight-bold">الهوية / السجل</span>
+                <span class="text-caption font-weight-black text-visible-high ltr-text">
+                  {{ item.id_number || '-' }}
+                </span>
+              </v-col>
+              <v-col cols="6">
+                <span class="text-caption text-visible-low d-block mb-1 font-weight-bold">الجنسية</span>
+                <span class="text-caption font-weight-black text-visible-high">
+                  {{ item.nationality || '-' }}
+                </span>
+              </v-col>
+            </v-row>
+
+            <!-- Card Actions -->
+            <div class="d-flex align-center pt-3 border-t border-gold border-opacity-10 mt-3" @click.stop>
+              <v-btn
+                variant="text"
+                color="accent"
+                size="small"
+                class="font-weight-black rounded-lg px-2"
+                @click.stop="openPreviewDialog(item)"
+              >
+                <LucideIcon name="eye" :size="16" class="me-1" /> معاينة الخصم
+              </v-btn>
+              <v-spacer />
+              <div class="d-flex ga-2">
+                <v-btn
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="gold"
+                  class="rounded-lg"
+                  @click.stop="openEditDialog(item)"
+                >
+                  <LucideIcon name="pencil" :size="15" />
+                </v-btn>
+                <v-btn
+                  v-if="item.is_deleted"
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="success"
+                  class="rounded-lg"
+                  @click.stop="confirmRestore(item)"
+                >
+                  <LucideIcon name="rotate-ccw" :size="15" />
+                </v-btn>
+                <v-btn
+                  v-else
+                  icon
+                  size="small"
+                  variant="tonal"
+                  color="error"
+                  class="rounded-lg"
+                  @click.stop="confirmDelete(item)"
+                >
+                  <LucideIcon name="trash-2" :size="15" />
+                </v-btn>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </div>
+    </div>
 
     <!-- Data Table -->
     <v-card v-else elevation="0" class="glass-card border-gold-alpha overflow-hidden glass-card">
@@ -484,7 +611,6 @@ import ConfirmDialog from '../components/common/ConfirmDialog.vue'
 import { useConfirmDialog } from '../composables/useConfirmDialog'
 import DefendantForm from '../components/DefendantForm.vue'
 import { useMobileLayout } from '../composables/useMobileLayout'
-import MobileCardList from '../components/mobile/MobileCardList.vue'
 
 const store = useDefendantsStore()
 const route = useRoute()
@@ -546,8 +672,13 @@ const { search: searchQuery } = useSearch((val) => {
 }, store.q)
 
 const filteredDefendants = computed(() => {
-  if (filterType.value === 'الكل') return store.defendants
-  return store.defendants.filter((d) => d.type === filterType.value)
+  let list = safeArray(store.defendants)
+  if (filterType.value && filterType.value !== 'الكل') {
+    list = list.filter((d: Defendant) => d.type === filterType.value)
+  }
+  return list.slice().sort((a: Defendant, b: Defendant) => {
+    return (a.name || '').trim().localeCompare((b.name || '').trim(), 'ar')
+  })
 })
 
 onMounted(() => {

@@ -2,24 +2,25 @@
   <v-container fluid class="pa-6 rtl">
     <!-- Header -->
     <v-row dense class="mb-8 align-center">
-      <v-col>
+      <v-col cols="12" md="auto" class="flex-grow-1">
         <div class="d-flex align-center">
-          <div class="glass-panel-light pa-4 rounded-xl me-5 border-gold opacity-20">
-            <LucideIcon name="book-user" :size="36" class="text-accent" />
+          <div class="glass-panel-light pa-3 pa-sm-4 rounded-xl me-3 me-sm-5 border-gold opacity-20 flex-shrink-0">
+            <LucideIcon name="book-user" :size="32" class="text-accent" />
           </div>
-          <div>
-            <h1 class="text-h5 font-weight-black text-gold mb-1">إدارة الوكالات الشرعية</h1>
-            <p class="text-subtitle-1 text-gold opacity-60 font-weight-black">
+          <div class="min-w-0 flex-grow-1">
+            <h1 class="text-h6 text-sm-h5 font-weight-black text-gold mb-1 text-wrap">إدارة الوكالات الشرعية</h1>
+            <p class="text-caption text-sm-subtitle-1 text-gold opacity-70 font-weight-black mb-0 text-wrap leading-snug">
               التوثيق الرقمي للوكالات الصادرة من كتابة العدل والمنصات المعتمدة
             </p>
           </div>
         </div>
       </v-col>
-      <v-col cols="auto">
+      <v-col cols="12" md="auto" class="mt-2 mt-md-0">
         <v-btn
           color="accent"
           size="large"
-          class="font-weight-black rounded-lg px-8 premium-btn-gold-gradient h-100"
+          class="font-weight-black rounded-lg px-6 premium-btn-gold-gradient w-100 w-md-auto"
+          style="min-height: 48px;"
           @click="openAddDialog"
         >
           <LucideIcon name="plus" :size="20" class="me-3" /> تسجيل وكالة جديدة
