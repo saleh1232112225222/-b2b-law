@@ -887,17 +887,29 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
 
 .premium-button-highlight {
   background: #ffffff !important;
-  color: #000000 !important;
-  border: 1px solid rgba(233, 195, 73, 0.6) !important;
+  color: #735c00 !important;
+  border: 1.5px solid rgba(233, 195, 73, 0.7) !important;
   border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
   transition: all 0.3s ease !important;
+}
+
+.premium-button-highlight :deep(.v-btn__content),
+.premium-button-highlight :deep(span) {
+  color: #735c00 !important;
+  font-weight: 800 !important;
 }
 
 .premium-button-highlight:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
-  border-color: rgba(233, 195, 73, 0.8) !important;
+  box-shadow: 0 6px 16px rgba(233, 195, 73, 0.3) !important;
+  border-color: rgba(233, 195, 73, 1) !important;
+  background: #fdfbf7 !important;
+}
+
+.premium-button-highlight:hover :deep(.v-btn__content),
+.premium-button-highlight:hover :deep(span) {
+  color: #735c00 !important;
 }
 
 .premium-button-highlight.v-btn--disabled {
@@ -905,6 +917,11 @@ const showSnackbar = (text: string, color: string = 'success'): void => {
   color: #9e9e9e !important;
   border-color: #e0e0e0 !important;
   opacity: 1 !important;
+}
+
+.premium-button-highlight.v-btn--disabled :deep(.v-btn__content),
+.premium-button-highlight.v-btn--disabled :deep(span) {
+  color: #9e9e9e !important;
 }
 
 .modal-footer-solid {
