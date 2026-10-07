@@ -23,6 +23,27 @@ export async function runExtraMigrations() {
     console.log('[MIGRATE_EXTRA] firm_data deduplication and unique index ensured')
   }
 
+  const sessionReportsMigration = path.join(__dirname, 'migrations', '0012_session_client_reports.sql')
+  if (fs.existsSync(sessionReportsMigration)) {
+    await query(fs.readFileSync(sessionReportsMigration, 'utf8'))
+    console.log('[MIGRATE_EXTRA] session_client_reports table ensured')
+  }
+
+  try {
+    await query(`
+      CREATE TABLE IF NOT EXISTS expense_categories (
+        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+        key TEXT UNIQUE,
+        name TEXT NOT NULL,
+        description TEXT,
+        is_active INTEGER DEFAULT 1
+      )
+    `)
+    console.log('[MIGRATE_EXTRA] expense_categories table ensured')
+  } catch (err: any) {
+    console.warn('[MIGRATE_EXTRA] expense_categories table warning:', err.message)
+  }
+
   // Backfill cases.final_outcome based on existing judgments and closed statuses
   try {
     // 1. Lost cases (check against / adverse first)

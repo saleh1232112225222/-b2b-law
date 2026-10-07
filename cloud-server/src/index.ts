@@ -255,8 +255,10 @@ import { dashboardRouter } from './routes/dashboard'
 import { integrationsRouter } from './routes/integrations'
 import { documentsRouter } from './routes/documents'
 import { financialOperationsRouter } from './routes/financial_operations'
+import { firmRouter } from './routes/firm'
 
 app.use('/api/auth', authRouter)
+app.use('/api/firm', firmRouter)
 app.use('/api/dashboard', dashboardRouter)
 app.use('/api/integrations', integrationsRouter)
 app.use('/api/reports', reportsRouter)
@@ -568,13 +570,17 @@ app.get(
         [companyId, today]
       )
 
-      // Action required: past sessions that are not closed (overdue)
+      // Action required: past sessions that are overdue and have NO recorded outcome and NO result
       const actionRequiredRes = await dbQuery(
         `SELECT s.*, c.case_number, c.client_role, c.id as case_id, cl.name as client_name
        FROM sessions s
        LEFT JOIN cases c ON c.id = s.case_id
        LEFT JOIN clients cl ON cl.id = c.client_id
-       WHERE s.company_id = $1 AND s.date < $2 AND s.status NOT IN ('منتهية', 'ملغية', 'مؤجلة')
+       WHERE s.company_id = $1 
+         AND s.date < $2 
+         AND s.status NOT IN ('منتهية', 'ملغية', 'مؤجلة', 'مغلقة', 'مغلقة إدارياً')
+         AND (s.result IS NULL OR TRIM(s.result) = '')
+         AND NOT EXISTS (SELECT 1 FROM session_outcomes so WHERE so.session_id = s.id)
        ORDER BY s.date DESC LIMIT 30`,
         [companyId, today]
       )
@@ -600,15 +606,26 @@ app.get(
         [companyId, today]
       )
 
-      // Awaiting enforcement: enforcement files with pending status
+      // Awaiting enforcement: enforcement files or cases awaiting enforcement
       const enforcementRes = await dbQuery(
-        `SELECT ef.*, c.case_number
+        `SELECT ef.id, ef.instrument_no as judgment_number, c.id as case_id, c.case_number, c.subject, cl.name as client_name
        FROM enforcement_files ef
-       LEFT JOIN cases c ON c.id = ef.case_id
+       LEFT JOIN judgments j ON j.id = ef.linked_judgment_id
+       LEFT JOIN cases c ON c.id = j.case_id
+       LEFT JOIN clients cl ON cl.id = c.client_id
        WHERE ef.company_id = $1 AND ef.status NOT IN ('completed', 'closed', 'cancelled')
-       ORDER BY ef.created_at DESC LIMIT 20`,
+       UNION ALL
+       SELECT j.id, j.judgment_number, c.id as case_id, c.case_number, c.subject, cl.name as client_name
+       FROM cases c
+       JOIN judgments j ON c.id = j.case_id
+       JOIN clients cl ON c.client_id = cl.id
+       WHERE c.company_id = $1 AND j.judgment_type = 'قطعي' AND (j.is_executable IS TRUE OR (j.is_executable)::text IN ('1', 'true', 't')) AND c.status = 'بانتظار التنفيذ'
+       LIMIT 20`,
         [companyId]
-      ).catch(() => ({ rows: [] }))
+      ).catch((err: any) => {
+        console.warn('[BRIEFING] Enforcement query fallback:', err.message)
+        return { rows: [] }
+      })
 
       res.json({
         todaySessions: todaySessionsRes.rows,

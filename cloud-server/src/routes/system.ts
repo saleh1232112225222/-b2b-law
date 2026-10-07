@@ -368,14 +368,32 @@ systemRouter.post(
         'users',
         'clients',
         'defendants',
+        'legal_service_categories',
+        'legal_service_types',
+        'legal_service_statuses',
+        'legal_service_priorities',
+        'legal_engagements',
         'cases',
         'case_parties',
+        'case_assignments',
         'sessions',
         'session_outcomes',
+        'case_actions',
         'tasks_v2',
         'tasks',
+        'task_notifications',
+        'task_audit_log',
+        'assignment_logs',
         'evidence',
         'judgments',
+        'judgment_amendments',
+        'enforcement_files',
+        'enforcement_requests',
+        'enf_financial_details',
+        'enf_decisions',
+        'enf_request_parties',
+        'enforcement_actions',
+        'enforcement_parties',
         'memoranda',
         'documents_v2',
         'documents',
@@ -384,8 +402,20 @@ systemRouter.post(
         'invoice_items',
         'receivables',
         'vouchers',
+        'firm_data',
+        'contract_party_types',
+        'contract_templates',
         'contracts',
-        'agencies'
+        'contract_parties',
+        'contract_participants',
+        'contract_signatures',
+        'contract_schedules',
+        'contract_links',
+        'contract_amendments',
+        'contract_party_audits',
+        'agencies',
+        'expense_categories',
+        'session_client_reports'
       ]
 
       const excludedSnapshotTables = new Set([
@@ -397,7 +427,8 @@ systemRouter.post(
         'sync_state',
         'restore_runs',
         'backup_catalog',
-        'sync_runtime_context'
+        'sync_runtime_context',
+        '_license_meta'
       ])
 
       const allSnapshotTables = Object.keys(tables)
@@ -421,6 +452,29 @@ systemRouter.post(
           continue
         }
         counts[table] = { received: rows.length, imported: 0 }
+
+        // Special handling for firm_data: upsert by (company_id, key)
+        if (table === 'firm_data') {
+          for (const row of rows) {
+            const val = typeof row.value === 'string' ? row.value : JSON.stringify(row.value)
+            await client.query('SAVEPOINT firm_row')
+            try {
+              await client.query(
+                `INSERT INTO firm_data (id, company_id, key, value, created_at, updated_at)
+                 VALUES (gen_random_uuid(), $1, $2, $3, NOW(), NOW())
+                 ON CONFLICT (company_id, key)
+                 DO UPDATE SET value = EXCLUDED.value, updated_at = NOW()`,
+                [companyId, row.key, val]
+              )
+              await client.query('RELEASE firm_row')
+              counts[table].imported++
+            } catch (err: any) {
+              await client.query('ROLLBACK TO firm_row')
+              importErrors.push(`[ImportSnapshot] firm_data key ${row.key} failed: ${err.message}`)
+            }
+          }
+          continue
+        }
 
         const colResult = await client.query(
           "SELECT column_name, data_type, is_nullable FROM information_schema.columns WHERE table_schema = 'public' AND table_name = $1",
@@ -536,8 +590,16 @@ systemRouter.post(
           // Use Postgres Savepoints to prevent single-row insertion failures from aborting the entire transaction
           await client.query('SAVEPOINT row_insert')
 
-          const idField = 'id'
-          const idIndex = keys.indexOf(idField)
+          const idField = keys.includes('id')
+            ? 'id'
+            : keys.includes('party_type_key')
+              ? 'party_type_key'
+              : keys.includes('key')
+                ? 'key'
+                : keys.includes('code')
+                  ? 'code'
+                  : ''
+          const idIndex = idField ? keys.indexOf(idField) : -1
 
           try {
             if (importMode === 'merge' && idIndex >= 0 && sanitized[idIndex]) {
@@ -545,25 +607,25 @@ systemRouter.post(
               const exists = tableCache.has(String(sanitized[idIndex]))
 
               if (exists) {
-                const nonIdKeys = keys.filter((k) => k !== 'id')
+                const nonIdKeys = keys.filter((k) => k !== idField)
                 if (nonIdKeys.length > 0) {
-                  const setClauses = nonIdKeys.map((k, i) => `${k} = $${i + 1}`).join(', ')
+                  const setClauses = nonIdKeys.map((k, i) => `"${k}" = $${i + 1}`).join(', ')
                   const setValues = nonIdKeys.map((k) => sanitized[keys.indexOf(k)])
                   await client.query(
-                    `UPDATE ${table} SET ${setClauses} WHERE id = $${nonIdKeys.length + 1}`,
+                    `UPDATE "${table}" SET ${setClauses} WHERE "${idField}" = $${nonIdKeys.length + 1}`,
                     [...setValues, sanitized[idIndex]]
                   )
                 }
               } else {
                 await client.query(
-                  `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
+                  `INSERT INTO "${table}" (${columns}) VALUES (${placeholders})`,
                   sanitized
                 )
                 tableCache.add(String(sanitized[idIndex]))
               }
             } else {
               await client.query(
-                `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
+                `INSERT INTO "${table}" (${columns}) VALUES (${placeholders})`,
                 sanitized
               )
               if (idIndex >= 0 && sanitized[idIndex]) {
@@ -589,13 +651,13 @@ systemRouter.post(
               sanitized[idIndex]
             ) {
               try {
-                const nonIdKeys = keys.filter((k) => k !== 'id')
+                const nonIdKeys = keys.filter((k) => k !== idField)
                 if (nonIdKeys.length > 0) {
                   await client.query('SAVEPOINT row_update')
-                  const setClauses = nonIdKeys.map((k, i) => `${k} = $${i + 1}`).join(', ')
+                  const setClauses = nonIdKeys.map((k, i) => `"${k}" = $${i + 1}`).join(', ')
                   const setValues = nonIdKeys.map((k) => sanitized[keys.indexOf(k)])
                   await client.query(
-                    `UPDATE ${table} SET ${setClauses} WHERE id = $${nonIdKeys.length + 1}`,
+                    `UPDATE "${table}" SET ${setClauses} WHERE "${idField}" = $${nonIdKeys.length + 1}`,
                     [...setValues, sanitized[idIndex]]
                   )
                   await client.query('RELEASE SAVEPOINT row_update')
@@ -617,6 +679,38 @@ systemRouter.post(
           }
         }
       }
+
+      // Auto-heal sessions that already have recorded outcomes
+      try {
+        await client.query(
+          `UPDATE sessions s
+           SET status = 'منتهية',
+               result = COALESCE(NULLIF(s.result, ''), so.result, 'منتهية'),
+               updated_at = NOW()
+           FROM session_outcomes so
+           WHERE so.session_id = s.id
+             AND s.company_id = $1
+             AND s.status NOT IN ('منتهية', 'ملغية')`,
+          [companyId]
+        )
+      } catch (healErr: any) {
+        console.warn('[ImportSnapshot] Post-import session healing warning:', healErr.message)
+      }
+
+      // Sync company name from firm_data if present
+      try {
+        await client.query(
+          `UPDATE companies c
+           SET name = fd.value,
+               updated_at = NOW()
+           FROM firm_data fd
+           WHERE fd.company_id = c.id
+             AND c.id = $1
+             AND fd.key = 'name'
+             AND NULLIF(TRIM(fd.value), '') IS NOT NULL`,
+          [companyId]
+        )
+      } catch {}
 
       await client.query('COMMIT')
       res.json({ success: true, counts, errors: importErrors })
