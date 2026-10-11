@@ -173,10 +173,73 @@ systemRouter.post(
   async (req: Request, res: Response) => {
     try {
       const companyId = getCompanyId(req)
-      const tablesResult = await query(
-        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' ORDER BY table_name",
+      if (!companyId) {
+        return res.status(401).json({ error: 'المصادقة مطلوبة' })
+      }
+
+      // Canonical business tables in preferred order (matches import-snapshot schema)
+      const allowedTables = [
+        'companies',
+        'employees',
+        'accounts',
+        'users',
+        'clients',
+        'defendants',
+        'legal_service_categories',
+        'legal_service_types',
+        'legal_service_statuses',
+        'legal_service_priorities',
+        'legal_engagements',
+        'cases',
+        'case_parties',
+        'case_assignments',
+        'sessions',
+        'session_outcomes',
+        'case_actions',
+        'tasks_v2',
+        'tasks',
+        'task_notifications',
+        'task_audit_log',
+        'assignment_logs',
+        'evidence',
+        'judgments',
+        'judgment_amendments',
+        'enforcement_files',
+        'enforcement_requests',
+        'enf_financial_details',
+        'enf_decisions',
+        'enf_request_parties',
+        'enforcement_actions',
+        'enforcement_parties',
+        'memoranda',
+        'documents_v2',
+        'documents',
+        'finances',
+        'invoices',
+        'invoice_items',
+        'receivables',
+        'vouchers',
+        'firm_data',
+        'contract_party_types',
+        'contract_templates',
+        'contracts',
+        'contract_parties',
+        'contract_participants',
+        'contract_signatures',
+        'contract_schedules',
+        'contract_links',
+        'contract_amendments',
+        'contract_party_audits',
+        'agencies',
+        'expense_categories',
+        'session_client_reports'
+      ]
+
+      const existingTablesResult = await query(
+        "SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'",
         []
       )
+      const existingTables = new Set(existingTablesResult.rows.map((r: any) => r.table_name))
 
       // Query column metadata to find which tables have company_id
       const columnsResult = await query(
@@ -193,39 +256,61 @@ systemRouter.post(
         tableColumns[t].add(c)
       }
 
-      const snapshot: Record<string, any[]> = {}
-      for (const row of tablesResult.rows) {
-        const table = row.table_name as string
+      // Stream JSON directly chunk-by-chunk to guarantee low memory footprint (~10-20MB)
+      // and prevent memory exhaustion (OOM) on memory-constrained hosting (Render 512MB)
+      res.setHeader('Content-Type', 'application/json; charset=utf-8')
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="manual-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.json"`
+      )
+
+      res.write('{\n')
+      res.write('  "meta": {\n')
+      res.write('    "schemaVersion": "1.0",\n')
+      res.write(`    "createdAt": "${new Date().toISOString()}",\n`)
+      res.write('    "appVersion": "1.0.0"\n')
+      res.write('  },\n')
+      res.write(`  "companyId": ${JSON.stringify(companyId)},\n`)
+      res.write('  "tables": {\n')
+
+      let firstTable = true
+      for (const table of allowedTables) {
+        if (!existingTables.has(table)) continue
+
         const hasCompanyId = tableColumns[table]?.has('company_id') ?? false
+        let rows: any[] = []
 
         try {
-          let result
           if (table === 'companies') {
-            result = await query('SELECT * FROM companies WHERE id = $1', [companyId])
+            const result = await query('SELECT * FROM companies WHERE id = $1', [companyId])
+            rows = result.rows
           } else if (hasCompanyId) {
-            result = await query(`SELECT * FROM ${table} WHERE company_id = $1`, [companyId])
+            const result = await query(`SELECT * FROM "${table}" WHERE company_id = $1`, [companyId])
+            rows = result.rows
           } else {
-            result = await query(`SELECT * FROM ${table}`)
+            // Reference/lookup tables without tenant column
+            const result = await query(`SELECT * FROM "${table}"`)
+            rows = result.rows
           }
-          snapshot[table] = result.rows
         } catch (err: any) {
           console.warn(`[ExportSnapshot] Failed to export table ${table}:`, err.message)
-          snapshot[table] = []
+          rows = []
         }
+
+        const prefix = firstTable ? '    ' : ',\n    '
+        res.write(`${prefix}${JSON.stringify(table)}: ${JSON.stringify(rows)}`)
+        firstTable = false
       }
 
-      res.json({
-        meta: {
-          schemaVersion: '1.0',
-          createdAt: new Date().toISOString(),
-          appVersion: '1.0.0'
-        },
-        companyId,
-        tables: snapshot
-      })
+      res.write('\n  }\n}\n')
+      res.end()
     } catch (err) {
       console.error('[ExportSnapshot] Error:', err)
-      res.status(500).json({ error: 'فشل في تصدير النسخة الاحتياطية' })
+      if (!res.headersSent) {
+        res.status(500).json({ error: 'فشل في تصدير النسخة الاحتياطية' })
+      } else {
+        res.end()
+      }
     }
   }
 )

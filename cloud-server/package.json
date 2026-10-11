@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc && node -e \"const fs=require('fs'),p=require('path');const d=p.join('dist','db');fs.mkdirSync(d,{recursive:true});const m=p.join(d,'migrations');fs.mkdirSync(m,{recursive:true});fs.cpSync(p.join('src','db','migrations'),m,{recursive:true});const src=p.join('src','db','schema.sql');if(fs.existsSync(src))fs.copyFileSync(src,p.join(d,'schema.sql'));console.log('Build complete with migrations')\"",
-    "start": "node dist/index.js",
+    "start": "node --max-old-space-size=384 dist/index.js",
     "lint": "eslint --config ../eslint.config.mjs src/",
     "test": "vitest run --config vitest.config.ts",
     "migrate": "tsx src/db/migrate.ts"

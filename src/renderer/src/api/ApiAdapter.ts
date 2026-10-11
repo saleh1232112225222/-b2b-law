@@ -2522,48 +2522,68 @@ const api = {
       throw new Error('Not available in cloud mode')
     },
     getDeveloperInfo: () => Promise.resolve({}),
-    exportManualSnapshot: () =>
-      mode === 'desktop'
-        ? window.ipcRenderer?.invoke('system:exportManualSnapshot')
-        : cloudRequest({ method: 'POST', url: '/system/export-snapshot' }).then(async (r) => {
-            const fileName = `manual-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+    exportManualSnapshot: async () => {
+      if (mode === 'desktop') {
+        return window.ipcRenderer?.invoke('system:exportManualSnapshot')
+      }
 
-            // Check if modern browser File System Access API is supported
-            if ('showSaveFilePicker' in window) {
-              try {
-                const handle = await (window as any).showSaveFilePicker({
-                  suggestedName: fileName,
-                  types: [
-                    {
-                      description: 'JSON Backup Files',
-                      accept: { 'application/json': ['.json'] }
-                    }
-                  ]
-                })
-                const writable = await handle.createWritable()
-                await writable.write(JSON.stringify(r, null, 2))
-                await writable.close()
-                return { success: true }
-              } catch (err: any) {
-                if (err.name === 'AbortError') {
-                  return { success: false, message: 'تم الإلغاء' }
-                }
-                console.warn(
-                  '[ExportSnapshot] showSaveFilePicker failed, falling back to standard download:',
-                  err
-                )
+      const fileName = `manual-snapshot-${new Date().toISOString().replace(/[:.]/g, '-')}.json`
+
+      // 1. Immediately request the native save file picker while the user click gesture is active
+      let fileHandle: any = null
+      if ('showSaveFilePicker' in window) {
+        try {
+          fileHandle = await (window as any).showSaveFilePicker({
+            suggestedName: fileName,
+            types: [
+              {
+                description: 'JSON Backup Files (*.json)',
+                accept: { 'application/json': ['.json'] }
               }
-            }
+            ]
+          })
+        } catch (err: any) {
+          if (err.name === 'AbortError') {
+            return { success: false, message: 'تم الإلغاء' }
+          }
+          console.warn(
+            '[ExportSnapshot] showSaveFilePicker failed, will fall back to standard download:',
+            err
+          )
+        }
+      }
 
-            const blob = new Blob([JSON.stringify(r, null, 2)], { type: 'application/json' })
-            const url = URL.createObjectURL(blob)
-            const a = document.createElement('a')
-            a.href = url
-            a.download = fileName
-            a.click()
-            URL.revokeObjectURL(url)
-            return { success: true }
-          }),
+      // 2. Fetch the snapshot from the cloud server
+      const r = await cloudRequest({
+        method: 'POST',
+        url: '/system/export-snapshot',
+        timeout: 120000
+      })
+
+      const dataStr = typeof r === 'string' ? r : JSON.stringify(r, null, 2)
+
+      // 3. If fileHandle was chosen by the user, write directly to that location
+      if (fileHandle) {
+        try {
+          const writable = await fileHandle.createWritable()
+          await writable.write(dataStr)
+          await writable.close()
+          return { success: true }
+        } catch (writeErr: any) {
+          console.warn('[ExportSnapshot] Failed writing to file handle, falling back to download:', writeErr)
+        }
+      }
+
+      // 4. Fallback download via blob if showSaveFilePicker is not available
+      const blob = new Blob([dataStr], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = fileName
+      a.click()
+      URL.revokeObjectURL(url)
+      return { success: true }
+    },
     injectManualSnapshot: () =>
       mode === 'desktop'
         ? window.ipcRenderer?.invoke('system:injectManualSnapshot')

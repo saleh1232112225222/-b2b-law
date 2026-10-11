@@ -19,4 +19,5 @@ USER app
 EXPOSE 8080
 ENV PORT=8080
 ENV NODE_ENV=production
-CMD ["node", "dist/index.js"]
+ENV NODE_OPTIONS="--max-old-space-size=384"
+CMD ["node", "--max-old-space-size=384", "dist/index.js"]
