@@ -85,9 +85,27 @@ defineEmits<{ 'more-click': [] }>()
 
 <style scoped>
 .mobile-bottom-nav {
-  transition: transform 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-top: 1px solid rgba(212, 175, 55, 0.2) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 .mobile-bottom-nav--hidden {
   transform: translateY(100%);
+}
+.nav-label {
+  font-weight: 700;
+  font-size: 0.72rem;
+  letter-spacing: -0.2px;
+}
+.nav-icon-wrapper {
+  margin-bottom: 2px;
+}
+:deep(.v-btn--active) {
+  color: #d4af37 !important;
+}
+:deep(.v-btn--active .nav-icon-wrapper) {
+  transform: scale(1.12);
+  transition: transform 0.2s ease;
 }
 </style>
