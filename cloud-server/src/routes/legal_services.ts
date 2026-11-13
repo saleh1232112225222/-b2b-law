@@ -562,6 +562,9 @@ router.get('/engagements/:id/finance', requirePermission('view_finances'), async
   try {
     const { companyId } = req.auth
     const { id } = req.params
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''))) {
+      return res.status(400).json({ error: 'معرف الارتباط غير صالح' })
+    }
     const result = await query(
       `
       SELECT *

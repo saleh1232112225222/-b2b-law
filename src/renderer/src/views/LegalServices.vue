@@ -1,4 +1,5 @@
 <template>
+  <div class="legal-services-page">
   <v-container v-if="!isEnabled" fluid class="pa-6 pb-12 rtl text-center">
     <v-row justify="center" class="mt-12">
       <v-col cols="12" md="6">
@@ -16,7 +17,7 @@
     </v-row>
   </v-container>
 
-  <template v-else>
+  <div v-else>
     <!-- Mobile View -->
     <MobileLegalServices
       v-if="isMobile"
@@ -1009,7 +1010,8 @@
         <span class="font-weight-black">{{ snackbarText }}</span>
       </div>
     </v-snackbar>
-  </template>
+  </div>
+  </div>
 </template>
 
 <script setup lang="ts">

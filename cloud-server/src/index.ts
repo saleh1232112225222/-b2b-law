@@ -370,6 +370,39 @@ const entityTables = [
   { name: 'analytics', table: '' }
 ]
 
+app.get(
+  '/api/collections/summary',
+  require('./middleware/auth').authMiddleware,
+  require('./middleware/permission').requirePermission('view_finances'),
+  async (req: any, res: any) => {
+    try {
+      const { getCompanyId } = require('./middleware/tenant')
+      const companyId = getCompanyId(req)
+      const status = typeof req.query.status === 'string' ? req.query.status.trim() : ''
+      let whereClause = 'WHERE company_id = $1'
+      const params: any[] = [companyId]
+      if (status && status !== 'الكل' && status !== 'all') {
+        params.push(status)
+        whereClause += ' AND status = $2'
+      }
+      const result = await query(
+        `SELECT
+           COUNT(*)::int AS count,
+           COALESCE(SUM(COALESCE(amount, 0)), 0)::float8 AS total_amount,
+           COALESCE(SUM(COALESCE(paid_amount, 0)), 0)::float8 AS total_paid,
+           COALESCE(SUM(GREATEST(COALESCE(amount, 0) - COALESCE(paid_amount, 0), 0)), 0)::float8 AS total_remaining
+         FROM collections_claims
+         ${whereClause}`,
+        params
+      )
+      res.json(result.rows[0] || { count: 0, total_amount: 0, total_paid: 0, total_remaining: 0 })
+    } catch (err: any) {
+      console.error('[COLLECTIONS] summary error:', err?.message || err)
+      res.status(500).json({ error: 'فشل في جلب ملخص التحصيل' })
+    }
+  }
+)
+
 for (const entity of entityTables) {
   if (entity.name === 'analytics') continue
   if (entity.name === 'permissions') continue

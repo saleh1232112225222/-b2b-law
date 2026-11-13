@@ -201,7 +201,7 @@
 
             <!-- Phone Field -->
             <div class="input-group mb-4">
-              <label class="input-label">رقم الجوال (لالتفعيل عبر رسالة نصية)</label>
+              <label class="input-label">رقم الجوال (للتفعيل عبر رسالة نصية)</label>
               <v-text-field
                 v-model="phone"
                 placeholder="05xxxxxxxx"

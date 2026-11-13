@@ -287,8 +287,14 @@ const isLoginPage = computed(
   () =>
     route.path === '/login' ||
     route.path === '/register' ||
+    route.path === '/lock' ||
+    route.path === '/force-password-change' ||
+    route.path === '/maintenance' ||
     route.name === 'Login' ||
-    route.name === 'Register'
+    route.name === 'Register' ||
+    route.name === 'Lock' ||
+    route.name === 'ForcePasswordChange' ||
+    route.name === 'Maintenance'
 )
 const hideLayout = computed(() => isLoginPage.value || route.query.window === 'new')
 

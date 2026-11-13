@@ -104,10 +104,15 @@ export function createEntityRouter(config: EntityConfig): Router {
           }
         })
 
+        const orderCol = columns.includes('created_at')
+          ? 'created_at'
+          : columns.includes('timestamp')
+            ? 'timestamp'
+            : idField
         const [countResult, dataResult] = await Promise.all([
           query(`SELECT COUNT(*) FROM ${table} ${whereClause}`, params),
           query(
-            `SELECT * FROM ${table} ${whereClause} ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
+            `SELECT * FROM ${table} ${whereClause} ORDER BY "${orderCol}" DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`,
             [...params, limit, offset]
           )
         ])
@@ -129,8 +134,14 @@ export function createEntityRouter(config: EntityConfig): Router {
     router.get('/all', async (req: Request, res: Response) => {
       try {
         const companyId = getCompanyId(req)
+        const columns = await getTableColumns(table)
+        const orderCol = columns.includes('created_at')
+          ? 'created_at'
+          : columns.includes('timestamp')
+            ? 'timestamp'
+            : idField
         const result = await query(
-          `SELECT * FROM ${table} WHERE company_id = $1 ORDER BY created_at DESC`,
+          `SELECT * FROM ${table} WHERE company_id = $1 ORDER BY "${orderCol}" DESC`,
           [companyId]
         )
         res.json(result.rows)

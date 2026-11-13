@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div class="pa-4 office-budget-dashboard">
     <!-- Header / Filters -->
     <div class="d-flex justify-space-between align-center mb-6 flex-wrap gap-4 no-print">
@@ -340,9 +340,11 @@ const editBudgets = ref<any[]>([])
 const loadData = async () => {
   loading.value = true
   try {
+    const monthPadded = String(selectedMonth.value).padStart(2, '0')
+    const lastDay = String(new Date(selectedYear.value, selectedMonth.value, 0).getDate()).padStart(2, '0')
     const filters = {
-      from_date: `${selectedYear.value}-${String(selectedMonth.value).padStart(2, '0')}-01`,
-      to_date: `${selectedYear.value}-${String(selectedMonth.value).padStart(2, '0')}-31`
+      from_date: `${selectedYear.value}-${monthPadded}-01`,
+      to_date: `${selectedYear.value}-${monthPadded}-${lastDay}`
     }
     await Promise.all([
       financeStore.fetchBudgetStats(selectedMonth.value, selectedYear.value),

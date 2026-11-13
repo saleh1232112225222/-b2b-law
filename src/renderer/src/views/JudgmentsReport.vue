@@ -49,7 +49,7 @@
         </v-btn>
         <v-btn
           variant="tonal"
-          color="white"
+          color="primary"
           height="40"
           class="rounded-xl px-5 font-weight-black"
           @click="printPage"
@@ -67,7 +67,7 @@
         </v-btn>
         <v-btn
           variant="tonal"
-          color="white"
+          color="primary"
           height="40"
           class="rounded-xl px-5 font-weight-black"
           @click="exportCsv"

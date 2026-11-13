@@ -212,16 +212,40 @@ documentsRouter.get(
   }
 )
 
+// 5b. GET /api/documents/all (Compat endpoint for buildCrudApi('documents').getAll)
+documentsRouter.get(
+  '/all',
+  requirePermission('view_documents'),
+  async (req: Request, res: Response) => {
+    try {
+      const companyId = getCompanyId(req)
+      const result = await query(
+        `SELECT * FROM documents_v2 WHERE company_id = $1 AND (is_archived IS NULL OR is_archived = false) ORDER BY created_at DESC`,
+        [companyId]
+      )
+      res.json(result.rows)
+    } catch (err) {
+      console.error('[DOCUMENTS] getAll error:', err)
+      res.status(500).json({ error: 'فشل جلب قائمة المستندات' })
+    }
+  }
+)
+
 // 6. GET /api/documents/:id
 documentsRouter.get(
   '/:id',
   requirePermission('view_documents'),
   async (req: Request, res: Response) => {
     try {
+      const id = String(req.params.id || '')
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        res.status(400).json({ error: 'معرف المستند غير صالح' })
+        return
+      }
       const companyId = getCompanyId(req)
       const result = await query(
         'SELECT * FROM documents_v2 WHERE id = $1 AND company_id = $2',
-        [req.params.id, companyId]
+        [id, companyId]
       )
       if (result.rows.length === 0) {
         res.status(404).json({ error: 'المستند غير موجود' })

@@ -21,7 +21,7 @@
       <div class="main-body-wrapper pa-3">
         <MobileErrorBoundary>
           <router-view v-slot="{ Component }">
-            <transition name="slide-x-reverse" mode="out-in">
+            <transition name="slide-x-reverse">
               <component :is="Component" :key="$route.path" />
             </transition>
           </router-view>

@@ -126,6 +126,7 @@ import LucideIcon from '../components/common/LucideIcon.vue'
   inset: 0;
   background: radial-gradient(circle at 50% 30%, rgba(200, 169, 81, 0.12) 0%, rgba(12, 27, 42, 1) 75%);
   z-index: 1;
+  pointer-events: none;
 }
 
 .premium-glass-card {

@@ -239,6 +239,9 @@ router.get(
     try {
       const { companyId } = req.auth
       const { id } = req.params
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''))) {
+        return res.status(400).json({ error: 'معرف الارتباط غير صالح' })
+      }
       const result = await query(
         `
         SELECT ph.*, v.voucher_number
@@ -368,6 +371,9 @@ router.get(
     try {
       const { companyId } = req.auth
       const { id } = req.params
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(id || ''))) {
+        return res.status(400).json({ error: 'معرف الارتباط غير صالح' })
+      }
       const result = await query(
         `
         SELECT ps.*, v.voucher_number
@@ -667,10 +673,22 @@ router.get('/report', requirePermission('view_finances'), async (req: any, res) 
       params.push(category_id)
     }
     if (from_date) {
+      const parsedFrom = new Date(String(from_date))
+      if (Number.isNaN(parsedFrom.getTime())) {
+        return res.status(400).json({ error: 'تاريخ البداية غير صالح' })
+      }
       whereClause += ` AND e.start_date >= $${paramIndex++}`
       params.push(from_date)
     }
     if (to_date) {
+      const [y, m, d] = String(to_date).split('-').map(Number)
+      const parsedTo = y && m && d ? new Date(Date.UTC(y, m - 1, d)) : new Date(String(to_date))
+      if (
+        Number.isNaN(parsedTo.getTime()) ||
+        (y && m && d && (parsedTo.getUTCFullYear() !== y || parsedTo.getUTCMonth() + 1 !== m || parsedTo.getUTCDate() !== d))
+      ) {
+        return res.status(400).json({ error: 'تاريخ النهاية غير صالح' })
+      }
       whereClause += ` AND e.start_date <= $${paramIndex++}`
       params.push(to_date)
     }

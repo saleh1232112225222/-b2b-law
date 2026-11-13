@@ -605,7 +605,7 @@
     </v-dialog>
 
     <!-- Activate Subscription Dialog -->
-    <div class="modal" :class="{ show: showActivateDialog }" @click="closeActivateDialog">
+    <div v-if="showActivateDialog" class="modal show" @click="closeActivateDialog">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>تفعيل الاشتراك</h3>
@@ -657,7 +657,7 @@
     </div>
 
     <!-- Extend Subscription Dialog -->
-    <div class="modal" :class="{ show: showExtendDialog }" @click="closeExtendDialog">
+    <div v-if="showExtendDialog" class="modal show" @click="closeExtendDialog">
       <div class="modal-content" @click.stop>
         <div class="modal-header">
           <h3>تمديد الاشتراك</h3>
