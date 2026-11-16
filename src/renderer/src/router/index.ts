@@ -256,6 +256,12 @@ const routes = [
     meta: { requiresAuth: true, permissions: ['export_reports'] }
   },
   {
+    path: '/reports/case-sessions',
+    name: 'CaseSessionsReport',
+    component: () => import('../views/CaseSessionsReport.vue'),
+    meta: { requiresAuth: true, permissions: ['export_reports'], title: 'تقرير جلسات القضية' }
+  },
+  {
     path: '/reports/court-cases',
     name: 'CourtCasesReport',
     component: () => import('../views/CourtCasesReport.vue'),

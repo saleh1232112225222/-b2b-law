@@ -95,6 +95,12 @@ const error = ref('')
 
 const reportCards = [
   {
+    title: 'تقرير جلسات القضية',
+    subtitle: 'بيان ملخص وتفصيلي لجلسات القضية وتواريخها بالميلادي والهجري',
+    icon: 'calendar-check-2',
+    path: '/reports/case-sessions'
+  },
+  {
     title: 'نسب نجاح القضايا ومؤشرات الإنجاز',
     subtitle: 'تحليل الأحكام القضائية ومعدلات كسب الدعاوى وتشريح الإخفاق',
     icon: 'award',
