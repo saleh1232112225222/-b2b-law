@@ -59,6 +59,341 @@ const receivableSelect = `
   LEFT JOIN invoices i ON i.id = r.invoice_id AND i.company_id = r.company_id
 `
 
+async function validateAndResolveFinanceLinks(
+  client: PoolClient,
+  companyId: string,
+  input: {
+    type: string
+    expense_owner_type?: string | null
+    case_id?: string | null
+    client_id?: string | null
+  }
+): Promise<{ caseId: string | null; clientId: string | null; ownerType: string }> {
+  const type = String(input.type || '').trim().toLowerCase()
+  if (type !== 'income' && type !== 'expense') {
+    throw Object.assign(new Error('نوع الحركة المالية غير صحيح'), { status: 400 })
+  }
+
+  const caseId =
+    input.case_id && String(input.case_id).trim() !== '' ? String(input.case_id).trim() : null
+  let clientId =
+    input.client_id && String(input.client_id).trim() !== '' ? String(input.client_id).trim() : null
+
+  const ownerType =
+    type === 'income'
+      ? 'case'
+      : input.expense_owner_type || (caseId ? 'case' : clientId ? 'client' : 'office')
+
+  if (type === 'expense' && ownerType === 'office') {
+    return { caseId: null, clientId: null, ownerType: 'office' }
+  }
+
+  if (type === 'expense' && ownerType === 'client') {
+    if (!clientId) {
+      throw Object.assign(
+        new Error('خطأ في النزاهة المحاسبية: يجب ربط مصروفات/ذمم الموكل بعميل مسجل (Client ID).'),
+        { status: 400 }
+      )
+    }
+    const cli = await client.query('SELECT id FROM clients WHERE id = $1 AND company_id = $2', [
+      clientId,
+      companyId
+    ])
+    if (!cli.rows.length) {
+      throw Object.assign(new Error('معرف الموكل المحدد غير موجود في قاعدة البيانات.'), { status: 400 })
+    }
+    return { caseId: null, clientId, ownerType: 'client' }
+  }
+
+  if (!caseId) {
+    throw Object.assign(
+      new Error('خطأ في النزاهة المحاسبية: يجب ربط الإيرادات والمصروفات القضائية برقم قضية صالح (Case ID).'),
+      { status: 400 }
+    )
+  }
+
+  const caseRes = await client.query(
+    'SELECT id, client_id FROM cases WHERE id = $1 AND company_id = $2',
+    [caseId, companyId]
+  )
+  if (!caseRes.rows.length) {
+    throw Object.assign(new Error('القضية المحددة غير موجودة في قاعدة البيانات (Case ID غير صالح).'), {
+      status: 400
+    })
+  }
+
+  if (!clientId && caseRes.rows[0].client_id) {
+    clientId = String(caseRes.rows[0].client_id)
+  }
+
+  if (!clientId) {
+    throw Object.assign(
+      new Error('خطأ في النزاهة المحاسبية: يجب ربط العملية بموكل صالح مسجل في النظام (Client ID).'),
+      { status: 400 }
+    )
+  }
+
+  const cli = await client.query('SELECT id FROM clients WHERE id = $1 AND company_id = $2', [
+    clientId,
+    companyId
+  ])
+  if (!cli.rows.length) {
+    throw Object.assign(new Error('معرف الموكل المحدد غير موجود في قاعدة البيانات (Client ID غير صالح).'), {
+      status: 400
+    })
+  }
+
+  return { caseId, clientId, ownerType: 'case' }
+}
+
+function buildFinanceWhere(companyId: string, qParams: Record<string, any>): { whereSql: string; values: any[] } {
+  let whereSql = ' WHERE f.company_id = $1'
+  const values: any[] = [companyId]
+  let idx = 2
+
+  if (qParams.caseId) {
+    whereSql += ` AND f.case_id = $${idx++}`
+    values.push(qParams.caseId)
+  }
+  if (qParams.clientId) {
+    whereSql += ` AND COALESCE(f.client_id, c.client_id) = $${idx++}`
+    values.push(qParams.clientId)
+  }
+  if (qParams.type && qParams.type !== 'all') {
+    whereSql += ` AND f.type = $${idx++}`
+    values.push(qParams.type)
+  }
+  if (qParams.category && qParams.category !== 'all') {
+    whereSql += ` AND f.category = $${idx++}`
+    values.push(qParams.category)
+  }
+  if (qParams.from) {
+    whereSql += ` AND f.date >= $${idx++}`
+    values.push(qParams.from)
+  }
+  if (qParams.to) {
+    whereSql += ` AND f.date <= $${idx++}`
+    values.push(qParams.to)
+  }
+  if (qParams.q && String(qParams.q).trim() !== '') {
+    const like = `%${String(qParams.q).trim()}%`
+    whereSql += ` AND (c.case_number ILIKE $${idx} OR COALESCE(cl.name, ccl.name) ILIKE $${idx} OR f.description ILIKE $${idx} OR f.category ILIKE $${idx})`
+    values.push(like)
+    idx++
+  }
+
+  return { whereSql, values }
+}
+
+financialOperationsRouter.get(
+  '/finances/list',
+  requirePermission('view_finances'),
+  async (req: any, res) => {
+    try {
+      const companyId = req.auth.companyId
+      const page = Math.max(1, Number(req.query.page) || 1)
+      const pageSize = Math.max(1, Math.min(500, Number(req.query.pageSize) || 100))
+      const offset = (page - 1) * pageSize
+      const sortDir = req.query.sortDir === 'asc' ? 'ASC' : 'DESC'
+      const { whereSql, values } = buildFinanceWhere(companyId, req.query)
+
+      const limitIdx = values.length + 1
+      const offsetIdx = values.length + 2
+
+      const result = await query(
+        `
+        SELECT
+          f.*,
+          COALESCE(f.client_id, c.client_id) AS client_id,
+          COALESCE(cl.name, ccl.name) AS client_name,
+          c.case_number,
+          c.subject AS case_subject,
+          acc.name AS account_name,
+          inv.id AS linked_invoice_id,
+          inv.invoice_number AS linked_invoice_number
+        FROM finances f
+        LEFT JOIN cases c ON f.case_id = c.id AND c.company_id = f.company_id
+        LEFT JOIN clients cl ON f.client_id = cl.id AND cl.company_id = f.company_id
+        LEFT JOIN clients ccl ON c.client_id = ccl.id AND ccl.company_id = f.company_id
+        LEFT JOIN accounts acc ON f.account_id = acc.id AND acc.company_id = f.company_id
+        LEFT JOIN invoices inv ON f.reference_id = inv.id AND inv.company_id = f.company_id
+        ${whereSql}
+        ORDER BY f.date ${sortDir}, f.created_at ${sortDir}
+        LIMIT $${limitIdx} OFFSET $${offsetIdx}
+        `,
+        [...values, pageSize, offset]
+      )
+      res.json(result.rows)
+    } catch (error) {
+      sendError(res, error, 'فشل جلب سجل العمليات المالية')
+    }
+  }
+)
+
+financialOperationsRouter.get(
+  '/finances/count',
+  requirePermission('view_finances'),
+  async (req: any, res) => {
+    try {
+      const { whereSql, values } = buildFinanceWhere(req.auth.companyId, req.query)
+      const result = await query(
+        `
+        SELECT COUNT(*) AS count
+        FROM finances f
+        LEFT JOIN cases c ON f.case_id = c.id AND c.company_id = f.company_id
+        LEFT JOIN clients cl ON f.client_id = cl.id AND cl.company_id = f.company_id
+        LEFT JOIN clients ccl ON c.client_id = ccl.id AND ccl.company_id = f.company_id
+        ${whereSql}
+        `,
+        values
+      )
+      res.json({ count: Number(result.rows[0]?.count || 0) })
+    } catch (error) {
+      sendError(res, error, 'فشل عد العمليات المالية')
+    }
+  }
+)
+
+financialOperationsRouter.get(
+  '/finances/stats',
+  requirePermission('view_finances'),
+  async (req: any, res) => {
+    try {
+      const companyId = req.auth.companyId
+      const [finRes, officeExpRes, casesContractedRes, servicesRes, standaloneRes, pendingInvRes, openRecRes] =
+        await Promise.all([
+          query(
+            `SELECT
+               COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+               COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
+             FROM finances WHERE company_id = $1`,
+            [companyId]
+          ),
+          query(
+            `SELECT COALESCE(SUM(oe.amount), 0) AS total
+             FROM office_expenses oe
+             WHERE oe.company_id = $1
+               AND NOT EXISTS (
+                 SELECT 1 FROM finances f WHERE f.company_id = $1 AND (f.reference_id = oe.id OR f.id = oe.id)
+               )`,
+            [companyId]
+          ).catch(() => ({ rows: [{ total: 0 }] })),
+          query(
+            `SELECT COALESCE(SUM(
+               COALESCE(
+                 NULLIF(c.contract_amount, 0),
+                 (SELECT SUM(ct.total_amount) FROM contracts ct WHERE ct.case_id = c.id AND ct.company_id = $1 AND COALESCE(ct.is_archived, false) = false),
+                 0
+               )
+             ), 0) AS total
+             FROM cases c
+             WHERE c.company_id = $1 AND COALESCE(c.is_archived, false) = false`,
+            [companyId]
+          ).catch(() => ({ rows: [{ total: 0 }] })),
+          query(
+            `SELECT COALESCE(SUM(COALESCE(financial_compensation, 0) + COALESCE(tax, 0)), 0) AS total
+             FROM legal_engagements WHERE company_id = $1 AND deleted_at IS NULL`,
+            [companyId]
+          ).catch(() => ({ rows: [{ total: 0 }] })),
+          query(
+            `SELECT COALESCE(SUM(total_amount), 0) AS total
+             FROM contracts WHERE company_id = $1 AND case_id IS NULL AND COALESCE(is_archived, false) = false`,
+            [companyId]
+          ).catch(() => ({ rows: [{ total: 0 }] })),
+          query(
+            `SELECT COUNT(*) AS count, COALESCE(SUM(COALESCE(total, subtotal, 0)), 0) AS total
+             FROM invoices
+             WHERE company_id = $1
+               AND LOWER(COALESCE(status, '')) NOT IN ('paid', 'cancelled', 'canceled', 'void', 'draft')`,
+            [companyId]
+          ).catch(() => ({ rows: [{ count: 0, total: 0 }] })),
+          query(
+            `SELECT COALESCE(SUM(GREATEST(0, COALESCE(amount_due, 0) - COALESCE(amount_paid, 0))), 0) AS total
+             FROM receivables
+             WHERE company_id = $1 AND LOWER(COALESCE(status, '')) != 'paid'`,
+            [companyId]
+          ).catch(() => ({ rows: [{ total: 0 }] }))
+        ])
+
+      const totalIncome = Number(finRes.rows[0]?.income || 0)
+      const totalExpense =
+        Number(finRes.rows[0]?.expense || 0) + Number(officeExpRes.rows[0]?.total || 0)
+      const totalContracted =
+        Number(casesContractedRes.rows[0]?.total || 0) +
+        Number(servicesRes.rows[0]?.total || 0) +
+        Number(standaloneRes.rows[0]?.total || 0)
+      const totalRemaining = Math.max(0, totalContracted - totalIncome)
+
+      res.json({
+        income: totalIncome,
+        expense: totalExpense,
+        balance: totalIncome - totalExpense,
+        total_contracted: totalContracted,
+        total_remaining: totalRemaining,
+        pending_invoices_count: Number(pendingInvRes.rows[0]?.count || 0),
+        pending_invoices_total: Number(pendingInvRes.rows[0]?.total || 0),
+        open_receivables_total: Number(openRecRes.rows[0]?.total || 0)
+      })
+    } catch (error) {
+      sendError(res, error, 'فشل في جلب إحصائيات المالية')
+    }
+  }
+)
+
+financialOperationsRouter.get(
+  '/finances/cashflow',
+  requirePermission('view_finances'),
+  async (req: any, res) => {
+    try {
+      const companyId = req.auth.companyId
+      const months = Math.max(1, Math.min(24, Number(req.query.months) || 6))
+      const monthKeys: string[] = []
+      const now = new Date()
+      for (let i = months - 1; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+        monthKeys.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`)
+      }
+      const startMonth = monthKeys[0]
+
+      const finRows = await query(
+        `SELECT
+           TO_CHAR(date::date, 'YYYY-MM') AS month,
+           COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS income,
+           COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS expense
+         FROM finances
+         WHERE company_id = $1 AND date IS NOT NULL AND TO_CHAR(date::date, 'YYYY-MM') >= $2
+         GROUP BY TO_CHAR(date::date, 'YYYY-MM')
+         ORDER BY month ASC`,
+        [companyId, startMonth]
+      )
+
+      const map = new Map<string, { income: number; expense: number }>()
+      for (const m of monthKeys) map.set(m, { income: 0, expense: 0 })
+      for (const r of finRows.rows) {
+        if (r.month && map.has(r.month)) {
+          const cur = map.get(r.month)!
+          cur.income += Number(r.income || 0)
+          cur.expense += Number(r.expense || 0)
+        }
+      }
+
+      res.json(
+        monthKeys.map((month) => {
+          const entry = map.get(month) || { income: 0, expense: 0 }
+          return {
+            month,
+            income: Math.round(entry.income * 100) / 100,
+            expense: Math.round(entry.expense * 100) / 100,
+            net: Math.round((entry.income - entry.expense) * 100) / 100
+          }
+        })
+      )
+    } catch (error) {
+      sendError(res, error, 'فشل في جلب بيانات التدفق النقدي')
+    }
+  }
+)
+
 financialOperationsRouter.post(
   '/finances',
   requirePermission('create_finances'),
@@ -66,20 +401,29 @@ financialOperationsRouter.post(
     try {
       const result = await inTransaction(async (client) => {
         const data = req.body || {}
-        if (!['income', 'expense'].includes(data.type)) {
-          throw Object.assign(new Error('نوع الحركة المالية غير صحيح'), { status: 400 })
-        }
+        const { caseId, clientId, ownerType } = await validateAndResolveFinanceLinks(
+          client,
+          req.auth.companyId,
+          {
+            type: data.type,
+            expense_owner_type: data.expense_owner_type,
+            case_id: data.case_id,
+            client_id: data.client_id
+          }
+        )
         const amount = asPositiveMoney(data.amount)
         const vatRate = normalizeVatRate(data.vat_rate ?? 0)
         const vatAmount = Math.round(amount * vatRate * 100) / 100
         const total = Math.round((amount + vatAmount) * 100) / 100
-        await applyAccountMovement(
-          client,
-          req.auth.companyId,
-          data.account_id,
-          data.type === 'income' ? 'receipt' : 'payment',
-          total
-        )
+        if (data.account_id) {
+          await applyAccountMovement(
+            client,
+            req.auth.companyId,
+            data.account_id,
+            data.type === 'income' ? 'receipt' : 'payment',
+            total
+          )
+        }
         const inserted = await client.query(
           `INSERT INTO finances (
             id, company_id, case_id, client_id, type, amount, category, description, date,
@@ -89,11 +433,21 @@ financialOperationsRouter.post(
             $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$16,'posted'
           ) RETURNING *`,
           [
-            data.id || uuidv4(), req.auth.companyId, data.case_id || null, data.client_id || null,
-            data.type, amount, data.category || null, data.description || null,
-            data.date || new Date().toISOString().slice(0, 10), vatRate, vatAmount, total,
+            data.id || uuidv4(),
+            req.auth.companyId,
+            caseId,
+            clientId,
+            data.type,
+            amount,
+            data.category || null,
+            data.description || null,
+            data.date || new Date().toISOString().slice(0, 10),
+            vatRate,
+            vatAmount,
+            total,
             data.is_refundable === true || data.is_refundable === 1 || data.is_refundable === '1',
-            data.expense_owner_type || 'office', data.account_id,
+            ownerType,
+            data.account_id || null,
             req.auth.userId
           ]
         )
@@ -102,6 +456,127 @@ financialOperationsRouter.post(
       res.status(201).json(result)
     } catch (error) {
       sendError(res, error, 'فشل حفظ الحركة المالية')
+    }
+  }
+)
+
+financialOperationsRouter.put(
+  '/finances/:id',
+  requirePermission('create_finances'),
+  async (req: any, res) => {
+    try {
+      const updated = await inTransaction(async (client) => {
+        const existingRes = await client.query(
+          'SELECT * FROM finances WHERE id = $1 AND company_id = $2 FOR UPDATE',
+          [req.params.id, req.auth.companyId]
+        )
+        if (!existingRes.rows.length) {
+          throw Object.assign(new Error('الحركة المالية غير موجودة'), { status: 404 })
+        }
+        const existing = existingRes.rows[0]
+        const data = req.body || {}
+        const type = data.type || existing.type
+        const { caseId, clientId, ownerType } = await validateAndResolveFinanceLinks(
+          client,
+          req.auth.companyId,
+          {
+            type,
+            expense_owner_type:
+              data.expense_owner_type !== undefined
+                ? data.expense_owner_type
+                : existing.expense_owner_type,
+            case_id: data.case_id !== undefined ? data.case_id : existing.case_id,
+            client_id: data.client_id !== undefined ? data.client_id : existing.client_id
+          }
+        )
+        const amount = asPositiveMoney(data.amount !== undefined ? data.amount : existing.amount)
+        const vatRate = normalizeVatRate(
+          data.vat_rate !== undefined ? data.vat_rate : existing.vat_rate ?? 0
+        )
+        const vatAmount = Math.round(amount * vatRate * 100) / 100
+        const total = Math.round((amount + vatAmount) * 100) / 100
+        const accountId =
+          data.account_id !== undefined ? data.account_id || null : existing.account_id
+
+        if (existing.account_id) {
+          await applyAccountMovement(
+            client,
+            req.auth.companyId,
+            existing.account_id,
+            existing.type === 'income' ? 'payment' : 'receipt',
+            Number(existing.total ?? existing.amount ?? 0)
+          )
+        }
+        if (accountId) {
+          await applyAccountMovement(
+            client,
+            req.auth.companyId,
+            accountId,
+            type === 'income' ? 'receipt' : 'payment',
+            total
+          )
+        }
+
+        const resRow = await client.query(
+          `UPDATE finances
+           SET case_id = $1, client_id = $2, type = $3, amount = $4, category = $5,
+               description = $6, date = $7, vat_rate = $8, vat_amount = $9, total = $10,
+               expense_owner_type = $11, account_id = $12, updated_by = $13, updated_at = NOW()
+           WHERE id = $14 AND company_id = $15
+           RETURNING *`,
+          [
+            caseId,
+            clientId,
+            type,
+            amount,
+            data.category !== undefined ? data.category : existing.category,
+            data.description !== undefined ? data.description : existing.description,
+            data.date || existing.date,
+            vatRate,
+            vatAmount,
+            total,
+            ownerType,
+            accountId,
+            req.auth.userId,
+            req.params.id,
+            req.auth.companyId
+          ]
+        )
+        return resRow.rows[0]
+      })
+      res.json(updated)
+    } catch (error) {
+      sendError(res, error, 'فشل تعديل الحركة المالية')
+    }
+  }
+)
+
+financialOperationsRouter.patch(
+  '/invoices/:id/status',
+  requirePermission('create_finances'),
+  async (req: any, res) => {
+    try {
+      const status = String(req.body?.status || '').trim()
+      if (!status) throw Object.assign(new Error('الحالة مطلوبة'), { status: 400 })
+      await inTransaction(async (client) => {
+        const inv = await client.query(
+          'UPDATE invoices SET status = $1, updated_at = NOW() WHERE id = $2 AND company_id = $3 RETURNING *',
+          [status, req.params.id, req.auth.companyId]
+        )
+        if (!inv.rows.length) {
+          throw Object.assign(new Error('الفاتورة غير موجودة'), { status: 404 })
+        }
+        if (status === 'paid') {
+          await client.query(
+            `UPDATE receivables SET status = 'paid', amount_paid = amount_due, updated_at = NOW()
+             WHERE invoice_id = $1 AND company_id = $2`,
+            [req.params.id, req.auth.companyId]
+          )
+        }
+      })
+      res.json({ success: true })
+    } catch (error) {
+      sendError(res, error, 'فشل تحديث حالة الفاتورة')
     }
   }
 )

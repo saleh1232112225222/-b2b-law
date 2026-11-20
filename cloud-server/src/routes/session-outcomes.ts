@@ -409,14 +409,36 @@ sessionOutcomesRouter.put(
     try {
       const companyId = getCompanyId(req)
       const { sessionId } = req.params
-      const { clientSummary, lawyerNoteAndNextStep, internalNotes, caseId, clientId } = req.body
+      const {
+        clientSummary,
+        lawyerNoteAndNextStep,
+        internalNotes,
+        caseId,
+        clientId,
+        showSubjectInReport,
+        shortSubject,
+        attendance,
+        sessionType,
+        proceedings,
+        casePosition,
+        actionItems,
+        metadataJson
+      } = req.body
 
       await saveClientSessionReportEdits(sessionId, companyId, {
         clientSummary,
         lawyerNoteAndNextStep,
         internalNotes,
         caseId,
-        clientId
+        clientId,
+        showSubjectInReport,
+        shortSubject,
+        attendance,
+        sessionType,
+        proceedings,
+        casePosition,
+        actionItems,
+        metadataJson
       })
 
       const report = await buildClientSessionReport(sessionId, companyId)

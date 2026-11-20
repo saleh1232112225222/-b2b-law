@@ -1731,6 +1731,34 @@ const api = {
   },
   finances: {
     ...buildCrudApi('finances'),
+    list: (params?: {
+      page?: number
+      pageSize?: number
+      sortDir?: 'asc' | 'desc'
+      filters?: Record<string, any>
+    }) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:list', params)
+        : cloudRequest({
+            method: 'GET',
+            url: '/finances/list',
+            params: {
+              page: params?.page || 1,
+              pageSize: params?.pageSize || 200,
+              sortDir: params?.sortDir || 'desc',
+              ...(params?.filters || {})
+            }
+          }),
+    count: (filters?: Record<string, any>) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:count', filters)
+        : cloudRequest({ method: 'GET', url: '/finances/count', params: filters || {} }).then(
+            (r: any) => Number(r?.count ?? r ?? 0)
+          ),
+    getCashFlow: (months?: number) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('finances:cashflow', months || 6)
+        : cloudRequest({ method: 'GET', url: '/finances/cashflow', params: { months: months || 6 } }),
     getStats: () =>
       mode === 'desktop'
         ? window.ipcRenderer
@@ -1898,7 +1926,11 @@ const api = {
             )
             return { invoice, receivable }
           })
-        : cloudRequest({ method: 'POST', url: '/financial-operations/invoices', data })
+        : cloudRequest({ method: 'POST', url: '/financial-operations/invoices', data }),
+    updateStatus: (id: string, status: string) =>
+      mode === 'desktop'
+        ? window.ipcRenderer?.invoke('invoices:updateStatus', id, status)
+        : cloudRequest({ method: 'PATCH', url: `/invoices/${id}/status`, data: { status } })
   },
   vouchers: {
     ...buildCrudApi('vouchers'),

@@ -3,10 +3,9 @@
     <MobileFinance
       v-if="isMobile"
       @add-transaction="openAddDialog"
-      @add-invoice="openMobileInvoice"
-      @add-receivable="openMobileInvoice"
+      @add-invoice="openAddDialog"
+      @add-receivable="openAddDialog"
     />
-    <InvoicesList v-if="isMobile" ref="mobileInvoicesRef" class="d-none" />
     <template v-else>
       <!-- Header -->
       <v-row dense class="mb-8 align-center">
@@ -44,12 +43,14 @@
         </v-col>
       </v-row>
 
-      <!-- Stats Summary Cards -->
-      <v-row class="mb-8" dense>
-        <v-col v-for="(stat, key) in statCards" :key="key" cols="12" md="4">
+      <!-- Stats Summary Cards (Interactive / Clickable) -->
+      <v-row class="mb-6" dense>
+        <v-col v-for="(stat, key) in statCards" :key="key" cols="12" sm="6" md="3">
           <v-card
             elevation="0"
-            class="glass-card premium-hover pa-6 position-relative overflow-hidden glass-card"
+            class="glass-card premium-hover pa-5 position-relative overflow-hidden h-100 kpi-clickable-card"
+            :class="{ 'kpi-card-active': activeKpiKey === stat.key }"
+            @click="onKpiCardClick(stat.key)"
           >
             <v-skeleton-loader
               v-if="loading || !stats"
@@ -57,25 +58,44 @@
               class="bg-transparent"
             ></v-skeleton-loader>
             <div v-else class="position-relative z-index-1">
-              <div
-                class="text-tiny font-weight-black text-gold opacity-60 mb-2 uppercase tracking-widest"
-              >
-                {{ stat.title }}
+              <div class="d-flex align-center justify-space-between mb-2">
+                <div
+                  class="text-tiny font-weight-black text-gold opacity-80 uppercase tracking-widest"
+                >
+                  {{ stat.title }}
+                </div>
+                <v-chip
+                  size="x-small"
+                  :color="activeKpiKey === stat.key ? 'primary' : 'default'"
+                  variant="tonal"
+                  class="font-weight-bold"
+                >
+                  {{ stat.actionHint }}
+                </v-chip>
               </div>
-              <div class="text-h5 font-weight-black d-flex align-baseline" :class="stat.textColor">
+              <div
+                class="text-h5 font-weight-black d-flex align-baseline finance-num"
+                :class="stat.textColor"
+              >
                 {{ formatCurrency(stat.value) }}
                 <span class="text-subtitle-2 ms-2 font-weight-bold opacity-60">SAR</span>
+              </div>
+              <div v-if="stat.subtitle" class="text-caption opacity-75 mt-1 font-weight-bold">
+                {{ stat.subtitle }}
               </div>
             </div>
             <LucideIcon
               :name="stat.icon"
-              :size="80"
+              :size="72"
               class="position-absolute opacity-5"
               style="bottom: -10px; left: -10px"
             />
           </v-card>
         </v-col>
       </v-row>
+
+      <!-- Cash Flow Chart (Last 6 Months — SQLite Driven) -->
+      <CashFlowChart :items="cashFlow" :loading="loading" />
 
       <!-- Main Content Tabs -->
       <v-card elevation="0" class="glass-card overflow-hidden glass-card">
@@ -125,20 +145,46 @@
             <v-window-item value="transactions">
               <div class="glass-panel-light pa-6 border-b">
                 <v-row dense align="center">
-                  <v-col cols="12" md="6">
+                  <v-col cols="12" md="4">
                     <v-text-field
                       v-model="localSearch"
                       placeholder="بحث في السجل العام (الموكل، رقم القضية، البيان)..."
                       variant="outlined"
                       density="comfortable"
                       hide-details
-                      class="glass-input glass-input"
+                      class="glass-input"
                       clearable
                     >
                       <template #prepend-inner>
                         <LucideIcon name="search" :size="20" class="text-gold opacity-50" />
                       </template>
                     </v-text-field>
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-select
+                      v-model="filterType"
+                      :items="[
+                        { title: 'جميع الحركات (إيراد ومصروف)', value: 'all' },
+                        { title: 'الإيرادات والأتعاب فقط', value: 'income' },
+                        { title: 'المصروفات فقط', value: 'expense' }
+                      ]"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details
+                      class="glass-input"
+                    />
+                  </v-col>
+                  <v-col cols="6" md="3">
+                    <v-select
+                      v-model="filterCategory"
+                      :items="allCategoriesFilterList"
+                      label="تصفية حسب نوع المصروف / التصنيف"
+                      variant="outlined"
+                      density="comfortable"
+                      hide-details
+                      clearable
+                      class="glass-input"
+                    />
                   </v-col>
                   <v-spacer></v-spacer>
                   <v-col cols="auto">
@@ -159,43 +205,15 @@
               <v-data-table
                 :headers="headers"
                 :items="safeArray(transactions)"
-                :search="localSearch"
-                :loading="loading"
-                class="bg-transparent premium-table"
+                :loading="loading || transactionsLoading"
+                class="bg-transparent premium-table finance-accountant-table"
                 hover
                 :items-per-page="15"
+                items-per-page-text="عدد العمليات في الصفحة:"
               >
-                <template #[`column.date`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.type`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.display_entity`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.account_name`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.amount`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.category`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-                <template #[`column.actions`]="{ column }">
-                  <span class="text-gold opacity-70 font-weight-black">{{ column.title }}</span>
-                </template>
-
                 <template #[`item.type`]="{ item }">
                   <v-chip
-                    :color="
-                      (item as Transaction).type === 'income'
-                        ? 'green-darken-3'
-                        : (item as Transaction).type === 'receivable'
-                          ? 'warning'
-                          : 'error'
-                    "
+                    :color="(item as Transaction).type === 'income' ? 'green-darken-3' : 'error'"
                     size="x-small"
                     variant="flat"
                     class="font-weight-black rounded-md px-3"
@@ -204,31 +222,23 @@
                       :name="
                         (item as Transaction).type === 'income'
                           ? 'arrow-down-left'
-                          : (item as Transaction).type === 'receivable'
-                            ? 'clock-3'
-                            : 'arrow-up-right'
+                          : 'arrow-up-right'
                       "
                       :size="12"
                       class="me-1"
                     />
-                    {{
-                      (item as Transaction).type === 'income'
-                        ? 'إيراد'
-                        : (item as Transaction).type === 'receivable'
-                          ? 'ذمة مستحقة'
-                          : 'مصروف'
-                    }}
+                    {{ (item as Transaction).type === 'income' ? 'إيراد' : 'مصروف' }}
                   </v-chip>
                 </template>
 
                 <template #[`item.display_entity`]="{ item }">
                   <div class="d-flex flex-column text-right py-2">
-                    <span class="font-weight-black text-white">
+                    <span class="font-weight-black text-high-emphasis">
                       {{ (item as Transaction).client_name || 'تشغيلي - للمكتب' }}
                     </span>
                     <div
                       v-if="(item as Transaction).case_number"
-                      class="text-tiny font-weight-black text-accent d-flex align-center mt-1"
+                      class="text-tiny font-weight-black text-primary d-flex align-center mt-1"
                     >
                       <LucideIcon name="gavel" :size="12" class="me-1" />
                       رقم القضية: {{ (item as Transaction).case_number }}
@@ -236,15 +246,17 @@
                   </div>
                 </template>
 
+                <template #[`item.description`]="{ item }">
+                  <span class="text-high-emphasis opacity-90 text-body-2 font-weight-medium">
+                    {{ (item as Transaction).description || '---' }}
+                  </span>
+                </template>
+
                 <template #[`item.amount`]="{ item }">
                   <div
-                    class="font-weight-black text-left"
+                    class="font-weight-black text-left finance-num"
                     :class="
-                      (item as Transaction).type === 'income'
-                        ? 'text-green-darken-2'
-                        : (item as Transaction).type === 'receivable'
-                          ? 'text-warning'
-                          : 'text-error'
+                      (item as Transaction).type === 'income' ? 'text-green-darken-2' : 'text-error'
                     "
                   >
                     <span class="me-1">{{ formatCurrency((item as Transaction).amount) }}</span>
@@ -253,35 +265,71 @@
                 </template>
 
                 <template #[`item.date`]="{ item }">
-                  <div class="text-tiny font-weight-black text-gold opacity-70 font-mono">
+                  <div class="text-tiny font-weight-black text-medium-emphasis font-mono">
                     {{ formatDateOnly((item as Transaction).date) }}
                   </div>
                 </template>
 
                 <template #[`item.account_name`]="{ item }">
-                  <span class="text-white opacity-80 font-weight-black">{{
-                    (item as Transaction).account_name
+                  <span class="text-high-emphasis opacity-85 font-weight-bold">{{
+                    (item as Transaction).account_name || 'الصندوق / البنك'
                   }}</span>
                 </template>
 
                 <template #[`item.category`]="{ item }">
-                  <v-chip size="x-small" variant="tonal" color="gold" class="font-weight-black">
-                    {{ (item as Transaction).category }}
+                  <v-chip size="x-small" variant="tonal" color="primary" class="font-weight-black">
+                    {{ (item as Transaction).category || 'عام' }}
                   </v-chip>
                 </template>
 
                 <template #[`item.actions`]="{ item }">
-                  <v-btn
-                    v-if="!(item as Transaction).legal_engagement_id"
-                    icon
-                    variant="text"
-                    color="error"
-                    size="small"
-                    class="premium-hover opacity-70 premium-btn-gold-gradient"
-                    @click="confirmDelete(item as Transaction)"
-                  >
-                    <LucideIcon name="trash-2" :size="18" />
-                  </v-btn>
+                  <div class="d-flex align-center justify-end gap-1">
+                    <v-btn
+                      v-if="(item as any).linked_invoice_id"
+                      size="x-small"
+                      color="success"
+                      variant="tonal"
+                      class="font-weight-black"
+                      title="طباعة وتصدير الفاتورة المرتبطة"
+                      @click="printLinkedInvoice((item as any).linked_invoice_id)"
+                    >
+                      <LucideIcon name="printer" :size="14" class="me-1" />
+                      فاتورة
+                    </v-btn>
+                    <v-btn
+                      v-else
+                      size="x-small"
+                      color="primary"
+                      variant="tonal"
+                      class="font-weight-black"
+                      title="إصدار فاتورة للعميل عن هذه العملية"
+                      @click="openIssueInvoiceForTx(item as any)"
+                    >
+                      <LucideIcon name="file-text" :size="14" class="me-1" />
+                      إصدار فاتورة
+                    </v-btn>
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="primary"
+                      size="small"
+                      title="تعديل العملية"
+                      @click="openEditDialog(item as Transaction)"
+                    >
+                      <LucideIcon name="edit-2" :size="16" />
+                    </v-btn>
+                    <v-btn
+                      icon
+                      variant="text"
+                      color="error"
+                      size="small"
+                      class="premium-hover opacity-70"
+                      title="حذف العملية"
+                      @click="confirmDelete(item as Transaction)"
+                    >
+                      <LucideIcon name="trash-2" :size="18" />
+                    </v-btn>
+                  </div>
                 </template>
 
                 <template #no-data>
@@ -295,7 +343,9 @@
               </v-data-table>
             </v-window-item>
 
-            <v-window-item value="invoices"><InvoicesList /></v-window-item>
+            <v-window-item value="invoices">
+              <InvoicesList :status-filter="invoicesStatusFilter" />
+            </v-window-item>
             <v-window-item value="vouchers"><VouchersList /></v-window-item>
             <v-window-item value="receivables"><ReceivablesList /></v-window-item>
             <v-window-item value="accounts"><AccountsChart /></v-window-item>
@@ -434,11 +484,11 @@
       >
         <v-toolbar color="rgba(15, 23, 42, 0.95)" class="px-8 border-b text-white" height="72">
           <div class="bg-gold-alpha pa-2 rounded-lg me-4">
-            <LucideIcon name="plus-circle" :size="24" class="text-gold" />
+            <LucideIcon :name="isEditingTx ? 'edit-3' : 'plus-circle'" :size="24" class="text-gold" />
           </div>
-          <v-toolbar-title class="text-h5 font-weight-black text-white"
-            >إدراج عملية مالية جديدة</v-toolbar-title
-          >
+          <v-toolbar-title class="text-h5 font-weight-black text-white">
+            {{ isEditingTx ? 'تعديل القيد المالي' : 'إدراج عملية مالية جديدة' }}
+          </v-toolbar-title>
           <v-spacer></v-spacer>
           <v-btn
             icon
@@ -456,7 +506,7 @@
           <v-form ref="formRef" v-model="formValid">
             <v-row>
               <!-- Transaction Type Switch -->
-              <v-col cols="12" class="mb-6">
+              <v-col cols="12" class="mb-4">
                 <div class="glass-panel-light pa-1 rounded-xl border overflow-hidden">
                   <v-btn-toggle
                     v-model="editItem.type"
@@ -478,19 +528,19 @@
                       class="flex-grow-1 h-48 font-weight-black text-gold premium-btn-gold-gradient"
                       :active="editItem.type === 'expense'"
                     >
-                      <LucideIcon name="trending-down" :size="18" class="me-2" /> مصروفات تشغيلية
+                      <LucideIcon name="trending-down" :size="18" class="me-2" /> مصروفات تشغيلية / قضائية
                     </v-btn>
                   </v-btn-toggle>
                 </div>
               </v-col>
 
-              <v-col v-if="editItem.type === 'expense'" cols="12">
+              <v-col v-if="editItem.type === 'expense'" cols="12" md="6">
                 <label class="mb-2 font-weight-black text-gold">وجهة صرف المبلغ*</label>
                 <v-select
                   v-model="editItem.expense_owner_type"
                   :items="expenseOwnerTypes"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :rules="[(v) => !!v || 'وجهة الصرف مطلوبة']"
                 >
                   <template #prepend-inner>
@@ -499,8 +549,28 @@
                 </v-select>
               </v-col>
 
+              <v-col :cols="12" :md="editItem.type === 'expense' ? 6 : 12">
+                <label class="mb-2 font-weight-black text-gold">
+                  {{ editItem.type === 'expense' ? 'نوع المصروف (مرتبط بالميزانية)*' : 'تصنيف الإيراد*' }}
+                </label>
+                <v-combobox
+                  v-model="editItem.category"
+                  :items="currentCategoryOptions"
+                  variant="outlined"
+                  class="glass-input"
+                  placeholder="اختر أو اكتب التصنيف..."
+                  :rules="[(v) => !!v || 'التصنيف مطلوب']"
+                >
+                  <template #prepend-inner>
+                    <LucideIcon name="tag" :size="20" class="text-gold opacity-50" />
+                  </template>
+                </v-combobox>
+              </v-col>
+
               <v-col v-if="shouldShowClientSelector" cols="12" md="6">
-                <label class="mb-2 font-weight-black text-gold">الموكل المعني*</label>
+                <label class="mb-2 font-weight-black text-gold">
+                  الموكل المعني{{ editItem.expense_owner_type === 'client' ? '*' : ' (اختياري أو مرتبط بالقضية)' }}
+                </label>
                 <v-autocomplete
                   v-model="editItem.client_id"
                   :items="safeArray(lookupClients)"
@@ -508,10 +578,14 @@
                   item-value="id"
                   placeholder="اختر الموكل..."
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :loading="loadingLookups"
                   clearable
-                  :rules="[(v) => !!v || 'اختيار الموكل إلزامي لهذا النوع']"
+                  :rules="
+                    editItem.expense_owner_type === 'client'
+                      ? [(v) => !!v || 'اختيار الموكل إلزامي لهذا النوع']
+                      : []
+                  "
                 >
                   <template #prepend-inner>
                     <LucideIcon name="user" :size="20" class="text-gold opacity-50" />
@@ -526,17 +600,68 @@
                   :items="safeArray(filteredCasesForLink)"
                   item-value="id"
                   item-title="displayLabel"
-                  placeholder="رقم القضية..."
+                  placeholder="رقم القضية (إلزامي للإيرادات والمصروفات القضائية)..."
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :loading="loadingLookups"
                   no-data-text="لا يوجد قضايا للموكل المحدد"
                   clearable
+                  :rules="[(v) => !!v || 'رقم القضية إلزامي لضمان النزاهة المحاسبية']"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="gavel" :size="20" class="text-gold opacity-50" />
                   </template>
                 </v-autocomplete>
+              </v-col>
+
+              <!-- Live Case Financial Summary Banner -->
+              <v-col v-if="selectedCaseFinancials" cols="12">
+                <v-card variant="tonal" color="primary" class="pa-4 rounded-xl border">
+                  <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                    <div class="d-flex align-center">
+                      <LucideIcon name="briefcase" :size="18" class="me-2 text-primary" />
+                      <span class="font-weight-black text-body-2">
+                        الموقف المالي للقضية رقم ({{ selectedCaseFinancials.caseNumber }}):
+                      </span>
+                    </div>
+                    <v-btn
+                      v-if="editItem.type === 'income' && selectedCaseFinancials.remainingFee > 0"
+                      size="x-small"
+                      color="primary"
+                      variant="flat"
+                      class="font-weight-bold"
+                      @click="editItem.amount = selectedCaseFinancials.remainingFee"
+                    >
+                      تعبئة المتبقي ({{ formatCurrency(selectedCaseFinancials.remainingFee) }} ر.س)
+                    </v-btn>
+                  </div>
+                  <v-row dense class="mt-2 text-caption font-weight-bold">
+                    <v-col cols="6" sm="3">
+                      <div class="opacity-70">إجمالي أتعاب القضية:</div>
+                      <div class="text-body-2 font-weight-black">
+                        {{ formatCurrency(selectedCaseFinancials.totalFee) }} ر.س
+                      </div>
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <div class="opacity-70">المدفوع سابقاً:</div>
+                      <div class="text-body-2 font-weight-black text-success">
+                        {{ formatCurrency(selectedCaseFinancials.paidAmount) }} ر.س
+                      </div>
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <div class="opacity-70">المتبقي من الأتعاب:</div>
+                      <div class="text-body-2 font-weight-black text-warning">
+                        {{ formatCurrency(selectedCaseFinancials.remainingFee) }} ر.س
+                      </div>
+                    </v-col>
+                    <v-col cols="6" sm="3">
+                      <div class="opacity-70">مصروفات القضية:</div>
+                      <div class="text-body-2 font-weight-black text-error">
+                        {{ formatCurrency(selectedCaseFinancials.expensesAmount) }} ر.س
+                      </div>
+                    </v-col>
+                  </v-row>
+                </v-card>
               </v-col>
 
               <v-col cols="12" md="6">
@@ -545,7 +670,7 @@
                   v-model.number="editItem.amount"
                   type="number"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   prefix="SAR"
                   :rules="[(v) => !!v || 'المبلغ مطلوب', (v) => v > 0 || 'يجب إدخال مبلغ صحيح']"
                 >
@@ -561,7 +686,7 @@
                   v-model.number="editItem.vat_rate"
                   :items="vatRates"
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="percent" :size="20" class="text-gold opacity-50" />
@@ -578,7 +703,7 @@
                   item-value="id"
                   placeholder="اختر الحساب..."
                   variant="outlined"
-                  class="glass-input glass-input"
+                  class="glass-input"
                   :rules="[(v) => !!v || 'يجب اختيار الحساب المالي']"
                 >
                   <template #prepend-inner>
@@ -593,20 +718,29 @@
               </v-col>
 
               <v-col cols="12">
-                <label class="mb-2 font-weight-black text-gold"
-                  >وصف العملية / البيان المحاسبي</label
-                >
+                <label class="mb-2 font-weight-black text-gold">وصف العملية / البيان المحاسبي</label>
                 <v-textarea
                   v-model="editItem.description"
                   placeholder="اكتب تفاصيل إضافية لهذا القيد..."
                   variant="outlined"
                   class="glass-input"
-                  rows="3"
+                  rows="2"
                 >
                   <template #prepend-inner>
                     <LucideIcon name="edit-3" :size="20" class="text-gold opacity-50 mt-1" />
                   </template>
                 </v-textarea>
+              </v-col>
+
+              <!-- Option to immediately issue a client invoice -->
+              <v-col v-if="!isEditingTx && (editItem.client_id || editItem.case_id)" cols="12">
+                <v-checkbox
+                  v-model="autoIssueInvoice"
+                  color="primary"
+                  hide-details
+                  label="إصدار فاتورة ضريبية للعميل عن هذه العملية تلقائياً"
+                  class="font-weight-bold"
+                />
               </v-col>
             </v-row>
           </v-form>
@@ -629,7 +763,155 @@
             :loading="saving"
             @click="handleSave"
           >
-            تثبيت القيد المالي
+            {{ isEditingTx ? 'حفظ التعديلات' : 'تثبيت القيد المالي' }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Quick Issue Invoice Dialog for any Transaction -->
+    <v-dialog v-model="showTxInvoiceDialog" max-width="640" persistent>
+      <v-card class="rounded-xl overflow-hidden">
+        <v-toolbar color="rgba(15, 23, 42, 0.95)" class="px-6 text-white" height="64">
+          <LucideIcon name="file-text" :size="22" class="text-gold me-3" />
+          <v-toolbar-title class="text-h6 font-weight-black text-white">
+            إصدار فاتورة للعميل عن العملية
+          </v-toolbar-title>
+          <v-spacer />
+          <v-btn icon variant="text" color="white" @click="showTxInvoiceDialog = false">
+            <LucideIcon name="x" :size="20" />
+          </v-btn>
+        </v-toolbar>
+
+        <v-card-text class="pa-6">
+          <v-row dense>
+            <v-col cols="12" md="6">
+              <v-autocomplete
+                v-model="txInvoiceForm.client_id"
+                :items="safeArray(lookupClients)"
+                item-title="name"
+                item-value="id"
+                label="الموكل / العميل *"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-autocomplete
+                v-model="txInvoiceForm.case_id"
+                :items="safeArray(lookupCases)"
+                item-title="displayLabel"
+                item-value="id"
+                label="القضية المرتبطة (اختياري)"
+                variant="outlined"
+                density="comfortable"
+                clearable
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model.number="txInvoiceForm.amount"
+                type="number"
+                label="المبلغ الأساسي (SAR) *"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                v-model="txInvoiceForm.status"
+                :items="[
+                  { title: 'مدفوعة (تم التحصيل)', value: 'paid' },
+                  { title: 'مرسلة / غير مدفوعة (ذمة على العميل)', value: 'sent' }
+                ]"
+                label="حالة الفاتورة *"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-text-field
+                v-model="txInvoiceForm.issue_date"
+                type="date"
+                label="تاريخ الإصدار"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12" md="6">
+              <v-select
+                v-model.number="txInvoiceForm.vat_rate"
+                :items="vatRates"
+                label="الضريبة (VAT)"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-textarea
+                v-model="txInvoiceForm.description"
+                label="بيان الفاتورة *"
+                rows="2"
+                variant="outlined"
+                density="comfortable"
+              />
+            </v-col>
+            <v-col cols="12">
+              <v-card variant="tonal" color="primary" class="pa-3 rounded-lg">
+                <div class="d-flex justify-space-between text-body-2 mb-1">
+                  <span>المبلغ قبل الضريبة:</span>
+                  <strong>{{ formatCurrency(txInvoiceForm.amount) }} ر.س</strong>
+                </div>
+                <div class="d-flex justify-space-between text-body-2 mb-1">
+                  <span>ضريبة القيمة المضافة:</span>
+                  <strong>
+                    {{
+                      formatCurrency(
+                        (Number(txInvoiceForm.amount) || 0) * Number(txInvoiceForm.vat_rate || 0)
+                      )
+                    }}
+                    ر.س
+                  </strong>
+                </div>
+                <v-divider class="my-1" />
+                <div class="d-flex justify-space-between text-subtitle-1 font-weight-black">
+                  <span>الإجمالي شامل الضريبة:</span>
+                  <span>
+                    {{
+                      formatCurrency(
+                        (Number(txInvoiceForm.amount) || 0) *
+                          (1 + Number(txInvoiceForm.vat_rate || 0))
+                      )
+                    }}
+                    ر.س
+                  </span>
+                </div>
+              </v-card>
+            </v-col>
+            <v-col cols="12">
+              <v-checkbox
+                v-model="txInvoiceForm.exportPdfImmediately"
+                color="primary"
+                hide-details
+                label="تصدير وحفظ الفاتورة كملف PDF فور الإصدار"
+                class="font-weight-bold"
+              />
+            </v-col>
+          </v-row>
+        </v-card-text>
+
+        <v-card-actions class="pa-4 bg-grey-lighten-4">
+          <v-btn variant="text" @click="showTxInvoiceDialog = false">إلغاء</v-btn>
+          <v-spacer />
+          <v-btn
+            color="primary"
+            variant="flat"
+            class="px-6 font-weight-black"
+            :loading="savingTxInvoice"
+            :disabled="!txInvoiceForm.client_id || !txInvoiceForm.amount"
+            @click="saveTxInvoice"
+          >
+            إصدار الفاتورة
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -731,6 +1013,7 @@ import ClientFinancialStatement from '../components/finance/ClientFinancialState
 import ClientFullProfile from '../components/finance/ClientFullProfile.vue'
 import OfficeManagementDashboard from '../components/finance/OfficeManagementDashboard.vue'
 import CreateCreditNoteModal from '../components/finance/CreateCreditNoteModal.vue'
+import CashFlowChart from '../components/finance/CashFlowChart.vue'
 import DualDatePicker from '../components/DualDatePicker.vue'
 import LucideIcon from '../components/common/LucideIcon.vue'
 import { safeArray, safeLength, valWithDefault as safeDefaults, formatDateOnly } from '../utils/safe'
@@ -738,11 +1021,16 @@ import { useMobileLayout } from '../composables/useMobileLayout'
 import MobileFinance from '../components/mobile/MobileFinance.vue'
 
 const financeStore = useFinanceStore()
-const { transactions, accounts, stats, loading } = storeToRefs(financeStore)
+const { transactions, accounts, stats, loading, transactionsLoading, cashFlow } =
+  storeToRefs(financeStore)
 const { isMobile } = useMobileLayout()
 
 const tab = ref('transactions')
+const invoicesStatusFilter = ref<'all' | 'pending' | 'paid'>('all')
+const activeKpiKey = ref<string>('balance')
 const showDialog = ref(false)
+const isEditingTx = ref(false)
+const autoIssueInvoice = ref(false)
 const formValid = ref(false)
 const saving = ref(false)
 const formRef = ref<any>(null)
@@ -750,6 +1038,107 @@ const snackbar = ref(false)
 const snackbarText = ref('')
 const snackbarColor = ref('success')
 const showCreditNoteDialog = ref(false)
+
+// Filters on main ledger (SQL-level queries via financeStore.fetchFilteredTransactions)
+const filterType = ref<string>('all')
+const filterCategory = ref<string | null>(null)
+
+const incomeCategories = [
+  'أتعاب محاماة',
+  'دفعة مقدمة',
+  'دفعة أتعاب قضية',
+  'استشارة قانونية',
+  'صياغة ومراجعة عقود',
+  'خدمات قانونية',
+  'تحصيل ذمم',
+  'إيرادات أخرى'
+]
+
+const expenseCategories = [
+  'رسوم قضائية',
+  'رواتب',
+  'إيجار',
+  'مرافق',
+  'تسويق',
+  'مستلزمات قانونية',
+  'مستلزمات مكتبية',
+  'أتعاب خبراء ومحكمين',
+  'سفريات وانتقالات',
+  'ضيافة ونثريات',
+  'صيانة وتقنية',
+  'أخرى'
+]
+
+const currentCategoryOptions = computed(() =>
+  editItem.type === 'income' ? incomeCategories : expenseCategories
+)
+
+const allCategoriesFilterList = computed(() => {
+  const dynamic = new Set<string>([...incomeCategories, ...expenseCategories])
+  for (const t of safeArray(transactions.value) as any[]) {
+    if (t?.category) dynamic.add(String(t.category))
+  }
+  return Array.from(dynamic)
+})
+
+const applySqlFilters = async () => {
+  const typeVal = filterType.value && filterType.value !== 'all' ? filterType.value : undefined
+  const catVal =
+    filterCategory.value && filterCategory.value !== 'all' ? filterCategory.value : undefined
+  const qVal = localSearch.value && localSearch.value.trim() !== '' ? localSearch.value.trim() : undefined
+
+  await financeStore.fetchFilteredTransactions({
+    page: 1,
+    pageSize: 200,
+    filters: {
+      type: typeVal,
+      category: catVal,
+      q: qVal
+    }
+  })
+}
+
+watch([filterType, filterCategory], () => {
+  if (filterType.value === 'income') activeKpiKey.value = 'income'
+  else if (filterType.value === 'expense') activeKpiKey.value = 'expense'
+  else activeKpiKey.value = 'balance'
+  applySqlFilters()
+})
+
+const onKpiCardClick = (key: string) => {
+  activeKpiKey.value = key
+  if (key === 'income') {
+    tab.value = 'transactions'
+    filterType.value = 'income'
+  } else if (key === 'expense') {
+    tab.value = 'transactions'
+    filterType.value = 'expense'
+  } else if (key === 'pending') {
+    invoicesStatusFilter.value = 'pending'
+    tab.value = 'invoices'
+  } else {
+    tab.value = 'transactions'
+    filterType.value = 'all'
+    filterCategory.value = null
+    localSearch.value = ''
+    applySqlFilters()
+  }
+}
+
+// Quick Issue Invoice for Transaction
+const showTxInvoiceDialog = ref(false)
+const savingTxInvoice = ref(false)
+const txInvoiceForm = reactive({
+  linked_transaction_id: '' as string,
+  client_id: '' as string,
+  case_id: null as string | null,
+  amount: 0,
+  vat_rate: 0.15,
+  status: 'paid' as string,
+  issue_date: new Date().toISOString().split('T')[0],
+  description: '',
+  exportPdfImmediately: true
+})
 
 // Legal Services Finance Data
 const legalFinanceLoading = ref(false)
@@ -782,6 +1171,7 @@ const loadingLookups = ref(false)
 
 const { search: localSearch } = useSearch((val) => {
   financeStore.searchQuery = val
+  applySqlFilters()
 })
 
 onUnmounted(() => {
@@ -789,15 +1179,34 @@ onUnmounted(() => {
 })
 
 const openAddDialog = (): void => {
+  isEditingTx.value = false
+  autoIssueInvoice.value = false
   resetEditItem()
   showDialog.value = true
 }
 
-const mobileInvoicesRef = ref<InstanceType<typeof InvoicesList> | null>(null)
-const openMobileInvoice = (): void => mobileInvoicesRef.value?.openAddDialog()
+const openEditDialog = (item: any): void => {
+  isEditingTx.value = true
+  autoIssueInvoice.value = false
+  Object.assign(editItem, {
+    id: item.id,
+    type: item.type || 'income',
+    amount: Number(item.amount) || 0,
+    vat_rate: item.vat_rate !== undefined ? Number(item.vat_rate) : 0.15,
+    date: item.date || new Date().toISOString().split('T')[0],
+    category: item.category || (item.type === 'income' ? 'أتعاب محاماة' : 'رسوم قضائية'),
+    client_id: item.client_id || undefined,
+    case_id: item.case_id || undefined,
+    account_id: item.account_id || undefined,
+    description: item.description || '',
+    expense_owner_type: item.expense_owner_type || (item.case_id ? 'case' : 'office')
+  })
+  showDialog.value = true
+}
 
 const closeDialog = (): void => {
   showDialog.value = false
+  isEditingTx.value = false
 }
 
 const editItem = reactive<Partial<Transaction> & { expense_owner_type: string }>({
@@ -829,27 +1238,94 @@ const resetEditItem = (): void => {
   })
 }
 
+const selectedCaseFinancials = computed(() => {
+  if (!editItem.case_id) return null
+  const c = (safeArray(lookupCases.value) as any[]).find(
+    (item) => String(item.id) === String(editItem.case_id)
+  )
+  if (!c) return null
+  const totalFee = Number(c.contract_amount) || 0
+  const allTx = safeArray(transactions.value) as any[]
+  const caseIncome = allTx
+    .filter(
+      (t) =>
+        String(t.case_id) === String(editItem.case_id) &&
+        t.type === 'income' &&
+        (!isEditingTx.value || String(t.id) !== String(editItem.id))
+    )
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+  const caseExpenses = allTx
+    .filter(
+      (t) =>
+        String(t.case_id) === String(editItem.case_id) &&
+        t.type === 'expense' &&
+        (!isEditingTx.value || String(t.id) !== String(editItem.id))
+    )
+    .reduce((sum, t) => sum + (Number(t.amount) || 0), 0)
+
+  return {
+    caseNumber: c.case_number,
+    totalFee,
+    paidAmount: caseIncome,
+    remainingFee: Math.max(0, totalFee - caseIncome),
+    expensesAmount: caseExpenses
+  }
+})
+
+// Auto-fill client_id when a case is selected
+watch(
+  () => editItem.case_id,
+  (newCaseId) => {
+    if (!newCaseId) return
+    const found = (safeArray(lookupCases.value) as any[]).find(
+      (c) => String(c.id) === String(newCaseId)
+    )
+    if (found?.client_id && !editItem.client_id) {
+      editItem.client_id = found.client_id
+    }
+  }
+)
+
 const statCards = computed(() => [
   {
+    key: 'income',
     title: 'إجمالي الأتعاب المحصلة',
     value: stats.value?.income,
     textColor: 'text-green-darken-2',
     iconColor: 'success',
-    icon: 'trending-up'
+    icon: 'trending-up',
+    actionHint: 'عرض الإيرادات',
+    subtitle: 'انقر لتصفية السجل على الإيرادات'
   },
   {
+    key: 'pending',
+    title: 'الأتعاب المتبقية قيد التحصيل',
+    value: (stats.value as any)?.total_remaining ?? 0,
+    textColor: 'text-amber-darken-3',
+    iconColor: 'warning',
+    icon: 'clock',
+    actionHint: `${(stats.value as any)?.pending_invoices_count ?? 0} فاتورة معلقة`,
+    subtitle: `فواتير معلقة: ${formatCurrency((stats.value as any)?.pending_invoices_total ?? 0)} SAR | عقود: ${formatCurrency((stats.value as any)?.total_contracted ?? 0)} SAR`
+  },
+  {
+    key: 'expense',
     title: 'إجمالي المصاريف والمدفوعات',
     value: stats.value?.expense,
     textColor: 'text-error',
     iconColor: 'error',
-    icon: 'trending-down'
+    icon: 'trending-down',
+    actionHint: 'عرض المصروفات',
+    subtitle: 'انقر لتصفية السجل على المصروفات'
   },
   {
+    key: 'balance',
     title: 'صافي التوازن المالي',
     value: stats.value?.balance,
-    textColor: 'text-accent',
-    iconColor: 'accent',
-    icon: 'scale'
+    textColor: 'text-primary',
+    iconColor: 'primary',
+    icon: 'scale',
+    actionHint: 'عرض الكل',
+    subtitle: 'الإيرادات المحصلة − إجمالي المصروفات'
   }
 ])
 
@@ -908,7 +1384,7 @@ const handleSave = async (): Promise<void> => {
       return s === '' ? null : s
     }
 
-    const payload = {
+    const payload: any = {
       ...editItem,
       client_id: sanitizeId(editItem.client_id),
       case_id: sanitizeId(editItem.case_id),
@@ -916,7 +1392,7 @@ const handleSave = async (): Promise<void> => {
     }
 
     if (payload.type === 'income') {
-      payload.expense_owner_type = 'case'
+      payload.expense_owner_type = payload.case_id ? 'case' : 'client'
     } else {
       if (payload.expense_owner_type === 'office') {
         payload.client_id = null
@@ -926,14 +1402,105 @@ const handleSave = async (): Promise<void> => {
       }
     }
 
-    await financeStore.addTransaction(payload as Transaction)
-    showSnackbar('تم تثبيت الحركة المالية في السجل العام بنجاح', 'success')
+    if (isEditingTx.value && payload.id) {
+      await financeStore.updateTransaction(payload.id, payload)
+      showSnackbar('تم تحديث القيد المالي بنجاح', 'success')
+    } else {
+      const createdTx: any = await financeStore.addTransaction(payload as Transaction)
+      const txId = createdTx?.id || createdTx || payload.id
+      if (autoIssueInvoice.value && (payload.client_id || payload.case_id)) {
+        const amt = Number(payload.amount) || 0
+        const vatRate = Number(payload.vat_rate ?? 0.15)
+        const vatAmt = Number((amt * vatRate).toFixed(2))
+        await financeStore.addInvoice({
+          client_id: payload.client_id,
+          case_id: payload.case_id,
+          amount: amt,
+          vat_amount: vatAmt,
+          total_amount: Number((amt + vatAmt).toFixed(2)),
+          issue_date: payload.date,
+          due_date: payload.date,
+          status: payload.type === 'income' ? 'paid' : 'sent',
+          description: payload.description || `${payload.category || 'عملية مالية'}`,
+          linked_transaction_id: txId
+        } as any)
+        showSnackbar('تم تثبيت العملية وإصدار الفاتورة الضريبية للعميل بنجاح', 'success')
+      } else {
+        showSnackbar('تم تثبيت الحركة المالية في السجل العام بنجاح', 'success')
+      }
+    }
     closeDialog()
     resetEditItem()
   } catch (e: unknown) {
     showSnackbar('فشل في حفظ العملية: ' + (e as Error).message, 'error')
   } finally {
     saving.value = false
+  }
+}
+
+const openIssueInvoiceForTx = (tx: any) => {
+  txInvoiceForm.linked_transaction_id = tx.id
+  txInvoiceForm.client_id = tx.client_id || ''
+  txInvoiceForm.case_id = tx.case_id || null
+  txInvoiceForm.amount = Number(tx.amount) || 0
+  txInvoiceForm.vat_rate = tx.vat_rate !== undefined ? Number(tx.vat_rate) : 0.15
+  txInvoiceForm.status = tx.type === 'income' ? 'paid' : 'sent'
+  txInvoiceForm.issue_date = tx.date || new Date().toISOString().split('T')[0]
+  txInvoiceForm.description =
+    tx.description ||
+    `${tx.category || (tx.type === 'income' ? 'دفعة أتعاب' : 'مصروفات قضائية')}${
+      tx.case_number ? ' - قضية رقم ' + tx.case_number : ''
+    }`
+  txInvoiceForm.exportPdfImmediately = true
+  showTxInvoiceDialog.value = true
+}
+
+const saveTxInvoice = async () => {
+  if (!txInvoiceForm.client_id || !txInvoiceForm.amount) return
+  savingTxInvoice.value = true
+  try {
+    const amt = Number(txInvoiceForm.amount) || 0
+    const vat = Number((amt * Number(txInvoiceForm.vat_rate || 0)).toFixed(2))
+    const total = Number((amt + vat).toFixed(2))
+    const createdId: any = await financeStore.addInvoice({
+      client_id: txInvoiceForm.client_id,
+      case_id: txInvoiceForm.case_id || null,
+      amount: amt,
+      vat_amount: vat,
+      total_amount: total,
+      issue_date: txInvoiceForm.issue_date,
+      due_date: txInvoiceForm.issue_date,
+      status: txInvoiceForm.status as any,
+      description: txInvoiceForm.description,
+      linked_transaction_id: txInvoiceForm.linked_transaction_id
+    } as any)
+
+    showTxInvoiceDialog.value = false
+    showSnackbar('تم إصدار الفاتورة للعميل وربطها بالعملية بنجاح', 'success')
+
+    const invoiceId = typeof createdId === 'string' ? createdId : createdId?.id
+    if (txInvoiceForm.exportPdfImmediately && invoiceId) {
+      await printLinkedInvoice(invoiceId)
+    }
+  } catch (e: unknown) {
+    showSnackbar('فشل في إصدار الفاتورة: ' + (e as Error).message, 'error')
+  } finally {
+    savingTxInvoice.value = false
+  }
+}
+
+const printLinkedInvoice = async (invoiceId: string) => {
+  try {
+    const res = await (window as any).api.reports.exportPDF({
+      reportType: 'invoice',
+      id: invoiceId,
+      promptSave: true
+    })
+    if (res?.filePath) {
+      showSnackbar('تم حفظ وتصدير الفاتورة بصيغة PDF بنجاح', 'success')
+    }
+  } catch (e: unknown) {
+    showSnackbar('فشل تصدير الفاتورة: ' + (e as Error).message, 'error')
   }
 }
 
@@ -1002,6 +1569,7 @@ const formatCurrency = (val: number | undefined): string => {
 watch(
   () => editItem.type,
   (newType) => {
+    if (isEditingTx.value) return
     if (newType === 'income') {
       editItem.category = 'أتعاب محاماة'
       editItem.expense_owner_type = 'office'
@@ -1020,13 +1588,38 @@ watch([filteredAccounts, showDialog], ([newAccs, isShown]) => {
 })
 
 const headers = [
-  { title: 'التاريخ', key: 'date', width: '120px' },
-  { title: 'النوع', key: 'type', width: '100px' },
-  { title: 'الكيان / الموكل', key: 'display_entity' },
-  { title: 'الحساب المالي', key: 'account_name' },
-  { title: 'المبلغ (SAR)', key: 'amount', align: 'end' as const },
-  { title: 'التصنيف', key: 'category' },
-  { title: 'إجراءات', key: 'actions', sortable: false, align: 'end' as const }
+  {
+    title: 'بيانات العملية',
+    align: 'center' as const,
+    children: [
+      { title: 'التاريخ', key: 'date', width: '110px' },
+      { title: 'النوع', key: 'type', width: '90px' },
+      { title: 'الموكل والقضية', key: 'display_entity' },
+      { title: 'البيان / الوصف', key: 'description' }
+    ]
+  },
+  {
+    title: 'البيانات المالية',
+    align: 'center' as const,
+    children: [
+      { title: 'الحساب المالي', key: 'account_name' },
+      { title: 'المبلغ (SAR)', key: 'amount', align: 'end' as const },
+      { title: 'التصنيف / نوع المصروف', key: 'category' }
+    ]
+  },
+  {
+    title: 'الإجراءات',
+    align: 'center' as const,
+    children: [
+      {
+        title: 'إجراءات وفواتير',
+        key: 'actions',
+        sortable: false,
+        align: 'end' as const,
+        width: '165px'
+      }
+    ]
+  }
 ]
 
 const showDeleteDialog = ref(false)
@@ -1054,6 +1647,33 @@ const handleDelete = async (): Promise<void> => {
 </script>
 
 <style scoped>
+.kpi-clickable-card {
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  border: 1.5px solid rgba(212, 175, 55, 0.22);
+}
+
+.kpi-clickable-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 175, 55, 0.7);
+}
+
+.kpi-card-active {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.18) !important;
+}
+
+.finance-num {
+  font-variant-numeric: tabular-nums;
+}
+
+.finance-accountant-table :deep(thead tr:first-child th) {
+  background: rgba(15, 23, 42, 0.06);
+  font-weight: 900;
+  font-size: 0.78rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+}
+
 .text-pure-black {
   color: #000000 !important;
 }

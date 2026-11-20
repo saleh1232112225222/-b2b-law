@@ -1,8 +1,20 @@
 <template>
   <div class="pa-4">
     <div class="d-flex justify-space-between align-center mb-4 flex-wrap gap-2">
-      <div class="d-flex align-center flex-grow-1 me-4">
-        <h3 class="text-h6 font-weight-black text-gold me-4">قائمة الفواتير</h3>
+      <div class="d-flex align-center flex-grow-1 me-4 flex-wrap gap-2">
+        <h3 class="text-h6 font-weight-black text-gold me-2">قائمة الفواتير</h3>
+        <v-btn-toggle
+          v-model="localStatusFilter"
+          mandatory
+          density="compact"
+          color="primary"
+          variant="outlined"
+          class="rounded-lg me-2"
+        >
+          <v-btn value="all" size="small" class="font-weight-bold">الكل</v-btn>
+          <v-btn value="pending" size="small" class="font-weight-bold">معلقة (غير مدفوعة)</v-btn>
+          <v-btn value="paid" size="small" class="font-weight-bold">مدفوعة</v-btn>
+        </v-btn-toggle>
         <v-text-field
           v-model="search"
           label="بحث سريع..."
@@ -12,7 +24,7 @@
           hide-details
           clearable
           class="glass-input"
-          style="max-width: 300px"
+          style="max-width: 260px"
         ></v-text-field>
       </div>
       <v-btn
@@ -26,7 +38,7 @@
 
     <v-data-table
       :headers="headers"
-      :items="safeArray(store.invoices)"
+      :items="filteredInvoices"
       :loading="store.loading"
       :search="search"
       items-per-page-text="عدد الفواتير لكل صفحة:"
@@ -69,7 +81,24 @@
         </v-chip>
       </template>
       <template #[`item.actions`]="{ item }">
-        <v-btn :icon="ICONS.SYSTEM.PRINTER" variant="text" color="primary" size="small"></v-btn>
+        <v-btn
+          v-if="(item as Invoice).status !== 'paid' && (item as Invoice).status !== 'cancelled'"
+          size="x-small"
+          color="success"
+          variant="tonal"
+          class="font-weight-black me-1"
+          @click="markAsPaid(item as Invoice)"
+        >
+          تسديد
+        </v-btn>
+        <v-btn
+          :icon="ICONS.SYSTEM.PRINTER"
+          variant="text"
+          color="primary"
+          size="small"
+          title="تصدير وطباعة الفاتورة PDF"
+          @click="printInvoice(item as Invoice)"
+        ></v-btn>
         <v-btn
           :icon="ICONS.ACTION.DELETE"
           variant="text"
@@ -97,9 +126,6 @@
           ></v-btn>
         </v-toolbar>
         <v-card-text class="pa-6 modal-scrollable">
-          <v-alert v-if="saveError" type="error" variant="tonal" class="mb-4" closable @click:close="saveError = ''">
-            {{ saveError }}
-          </v-alert>
           <v-form ref="formRef" v-model="formValid">
             <v-row>
               <v-col cols="12" md="4">
@@ -109,20 +135,43 @@
                   label="رقم الفاتورة*"
                   variant="outlined"
                   required
-                  :rules="[(v) => !!String(v || '').trim() || 'رقم الفاتورة مطلوب']"
                 ></v-text-field>
               </v-col>
               <v-col cols="12" md="4">
-                <v-select
+                <v-autocomplete
                   v-model="editItem.client_id"
                   class="glass-input"
-                  :items="safeArray(clientsStore.clients)"
+                  :items="safeArray(clientsList)"
                   item-title="name"
                   item-value="id"
                   label="الموكل*"
                   variant="outlined"
                   required
-                  :rules="[(v) => !!v || 'الموكل مطلوب']"
+                ></v-autocomplete>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-autocomplete
+                  v-model="editItem.case_id"
+                  class="glass-input"
+                  :items="safeArray(filteredClientCases)"
+                  item-title="case_number"
+                  item-value="id"
+                  label="القضية المرتبطة (اختياري)"
+                  variant="outlined"
+                  clearable
+                ></v-autocomplete>
+              </v-col>
+              <v-col cols="12" md="4">
+                <v-select
+                  v-model="editItem.status"
+                  class="glass-input"
+                  :items="[
+                    { title: 'مرسلة / مستحقة السداد', value: 'sent' },
+                    { title: 'مدفوعة بالكامل', value: 'paid' },
+                    { title: 'مسودة', value: 'draft' }
+                  ]"
+                  label="حالة الفاتورة"
+                  variant="outlined"
                 ></v-select>
               </v-col>
               <v-col cols="12" md="4">
@@ -138,7 +187,7 @@
                   @update:model-value="calculateTotals"
                 ></v-select>
               </v-col>
-              <v-col cols="12">
+              <v-col cols="12" md="4">
                 <DualDatePicker
                   v-model="editItem.date"
                   label="تاريخ الفاتورة (هجري/ميلادي)*"
@@ -173,7 +222,6 @@
                       density="compact"
                       hide-details
                       @update:model-value="calculateTotals"
-                      :rules="[(v) => Number(v) > 0 || 'المبلغ يجب أن يكون أكبر من صفر']"
                     ></v-text-field>
                   </v-col>
                   <v-col cols="1">
@@ -298,6 +346,14 @@
           </v-row>
         </v-card-text>
         <v-card-actions class="pa-6 modal-footer-sticky">
+          <v-btn
+            color="primary"
+            variant="tonal"
+            class="font-weight-black"
+            @click="invoiceToView && printInvoice(invoiceToView)"
+          >
+            <LucideIcon name="printer" :size="16" class="me-2" /> تصدير / حفظ الفاتورة PDF
+          </v-btn>
           <v-spacer></v-spacer>
           <v-btn variant="text" @click="showInvoiceViewDialog = false">إغلاق</v-btn>
         </v-card-actions>
@@ -320,7 +376,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useFinanceStore } from '../../stores/finance'
 import { useClientsStore } from '../../stores/clients'
 import { useSearch } from '../../composables/useSearch'
@@ -333,8 +389,43 @@ import { useConfirmDialog } from '../../composables/useConfirmDialog'
 import LucideIcon from '../common/LucideIcon.vue'
 import { ICONS } from '../../config/icons'
 
+const props = withDefaults(
+  defineProps<{
+    statusFilter?: 'all' | 'pending' | 'paid'
+  }>(),
+  { statusFilter: 'all' }
+)
+
 const store = useFinanceStore()
 const clientsStore = useClientsStore()
+const localClients = ref<any[]>([])
+const localCases = ref<any[]>([])
+const localStatusFilter = ref<'all' | 'pending' | 'paid'>(props.statusFilter)
+
+watch(
+  () => props.statusFilter,
+  (val) => {
+    if (val) localStatusFilter.value = val
+  }
+)
+
+const filteredInvoices = computed(() => {
+  const list = safeArray(store.invoices) as Invoice[]
+  if (localStatusFilter.value === 'paid') {
+    return list.filter((i) => String(i.status || '').toLowerCase() === 'paid')
+  }
+  if (localStatusFilter.value === 'pending') {
+    return list.filter((i) => {
+      const s = String(i.status || '').toLowerCase()
+      return !['paid', 'cancelled', 'canceled', 'void', 'draft'].includes(s)
+    })
+  }
+  return list
+})
+
+const clientsList = computed(() =>
+  clientsStore.clients?.length ? clientsStore.clients : localClients.value
+)
 
 const { confirmDialog, openConfirm, closeConfirm } = useConfirmDialog()
 
@@ -352,11 +443,17 @@ const vatNumber = ref('300000000000003')
 onMounted(async () => {
   await store.fetchFinanceData()
   try {
-    const settings = await (window as any).api.settings.get()
+    const [settings, cls, css] = await Promise.all([
+      (window as any).api.settings?.get?.(),
+      (window as any).api.clients?.getAll?.(),
+      (window as any).api.cases?.getAll?.()
+    ])
     if (settings) {
       if (settings.officeName) officeName.value = settings.officeName
       if (settings.vatNumber) vatNumber.value = settings.vatNumber
     }
+    if (Array.isArray(cls)) localClients.value = cls
+    if (Array.isArray(css)) localCases.value = css
   } catch (e) {
     console.error('Failed to load settings in InvoicesList:', e)
   }
@@ -367,12 +464,12 @@ const showInvoiceViewDialog = ref(false)
 const invoiceToView = ref<Invoice | null>(null)
 const formValid = ref(false)
 const saving = ref(false)
-const saveError = ref('')
 const formRef = ref<{ validate: () => Promise<{ valid: boolean }> } | null>(null)
 
 const headers = [
   { title: 'رقم الفاتورة', key: 'invoice_number' },
   { title: 'الموكل', key: 'client_name' },
+  { title: 'رقم القضية', key: 'case_number' },
   { title: 'التاريخ', key: 'date' },
   { title: 'الإجمالي (مع الضريبة)', key: 'total_amount' },
   { title: 'الحالة', key: 'status' },
@@ -386,36 +483,59 @@ const editItem = reactive({
   id: undefined as string | undefined,
   invoice_number: '',
   client_id: '' as string,
+  case_id: '' as string,
   date: new Date().toISOString().split('T')[0],
   amount: 0,
   vat_amount: 0,
   total_amount: 0,
-  status: 'draft' as 'draft' | 'sent' | 'paid' | 'cancelled',
+  status: 'sent' as 'draft' | 'sent' | 'paid' | 'cancelled',
   description: ''
+})
+
+const filteredClientCases = computed(() => {
+  if (!editItem.client_id) return localCases.value
+  return localCases.value.filter((c: any) => String(c.client_id) === String(editItem.client_id))
 })
 
 const openAddDialog = (): void => {
   Object.assign(editItem, {
     invoice_number: 'INV-' + Date.now().toString().slice(-6),
     client_id: '',
+    case_id: '',
     date: new Date().toISOString().split('T')[0],
     amount: 0,
     vat_amount: 0,
     total_amount: 0,
-    status: 'draft',
+    status: 'sent',
     description: ''
   })
   invoiceLineItems.value = [{ description: 'أتعاب محاماة', amount: 0 }]
   vat_rate.value = 0.15
-  saveError.value = ''
   showDialog.value = true
 }
-
-defineExpose({ openAddDialog })
 
 const openInvoiceView = (item: Invoice): void => {
   invoiceToView.value = item
   showInvoiceViewDialog.value = true
+}
+
+const printInvoice = async (item: Invoice): Promise<void> => {
+  try {
+    await (window as any).api.reports.exportPdf({
+      type: 'invoice',
+      params: { id: item.id, promptSave: true }
+    })
+  } catch (e) {
+    console.error('Error printing invoice:', e)
+  }
+}
+
+const markAsPaid = async (item: Invoice): Promise<void> => {
+  try {
+    await store.updateInvoiceStatus(item.id, 'paid')
+  } catch (e) {
+    console.error('Error marking invoice as paid:', e)
+  }
 }
 
 const addItem = (): void => {
@@ -432,7 +552,7 @@ const calculateTotals = (): void => {
     (acc, item) => acc + (Number(item.amount) || 0),
     0
   )
-  editItem.vat_amount = editItem.amount * (vat_rate.value || 0)
+  editItem.vat_amount = Math.round(editItem.amount * (vat_rate.value || 0) * 100) / 100
   editItem.total_amount = editItem.amount + editItem.vat_amount
   editItem.description = invoiceLineItems.value.map((i) => i.description).join(', ')
 }
@@ -442,16 +562,21 @@ const executeSave = async (): Promise<void> => {
   const { valid } = await formRef.value.validate()
   if (!valid) return
 
+  calculateTotals()
   saving.value = true
   try {
     await store.addInvoice({
       ...editItem,
+      case_id: editItem.case_id || undefined,
+      subtotal: editItem.amount,
+      tax_amount: editItem.vat_amount,
+      total: editItem.total_amount,
       vat_rate: vat_rate.value,
-      items: invoiceLineItems.value.map((item) => ({ ...item }))
+      notes: editItem.description,
+      items: invoiceLineItems.value
     })
     showDialog.value = false
   } catch (e: unknown) {
-    saveError.value = (e as Error).message || 'تعذر إصدار الفاتورة'
     console.error('Error saving invoice:', e)
   } finally {
     saving.value = false
@@ -482,8 +607,6 @@ const handleSave = async (): Promise<void> => {
 const getStatusColor = (s: string): string => {
   const map: Record<string, string> = {
     paid: 'success',
-    unpaid: 'warning',
-    partially_paid: 'info',
     draft: 'grey',
     sent: 'info',
     cancelled: 'error'
@@ -494,8 +617,6 @@ const getStatusColor = (s: string): string => {
 const getStatusLabel = (s: string): string => {
   const map: Record<string, string> = {
     paid: 'مدفوعة',
-    unpaid: 'غير مدفوعة',
-    partially_paid: 'مدفوعة جزئياً',
     draft: 'مسودة',
     sent: 'مرسلة',
     cancelled: 'ملغاة'

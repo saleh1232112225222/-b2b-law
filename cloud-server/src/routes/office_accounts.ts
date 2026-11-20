@@ -551,7 +551,7 @@ router.post(
 )
 
 // ═══════════════════════════════════════════════════
-// 7. GET /clients/:clientId/financial-summary — ملخص مالي للعميل
+// 7. GET /clients/:clientId/financial-summary — كشف حساب العميل الشامل (قضايا + خدمات + عقود + عمليات + فواتير + سندات)
 // ═══════════════════════════════════════════════════
 router.get(
   '/clients/:clientId/financial-summary',
@@ -561,87 +561,256 @@ router.get(
       const { companyId } = req.auth
       const { clientId } = req.params
 
-      // 1. الملخص الإجمالي
-      const summaryResult = await query(
+      // 1. Client Cases (direct client_id OR case_parties)
+      const casesResult = await query(
         `
-        SELECT
-          COUNT(*) as total_services,
-          COALESCE(SUM(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)), 0) as total_due,
-          COALESCE(SUM(e.paid_amount), 0) as total_paid,
-          COALESCE(SUM(GREATEST(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0) - e.paid_amount, 0)), 0) as balance,
-          COALESCE(SUM(CASE WHEN e.finance_status = 'overdue' THEN GREATEST(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0) - e.paid_amount, 0) ELSE 0 END), 0) as overdue_amount
-        FROM legal_engagements e
-        WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
-      `,
+        SELECT DISTINCT c.id, c.case_number, c.subject, c.case_type, c.main_classification, c.court, c.status,
+          c.registration_date, c.created_at,
+          COALESCE(
+            NULLIF(c.contract_amount, 0),
+            (SELECT SUM(ct.total_amount) FROM contracts ct WHERE ct.case_id = c.id AND ct.company_id = $2 AND COALESCE(ct.is_archived, false) = false),
+            0
+          ) AS total_fee,
+          COALESCE((SELECT SUM(f.amount) FROM finances f WHERE f.case_id = c.id AND f.company_id = $2 AND f.type = 'income'), 0) AS paid_amount,
+          COALESCE((SELECT SUM(f.amount) FROM finances f WHERE f.case_id = c.id AND f.company_id = $2 AND f.type = 'expense'), 0) AS expenses_amount
+        FROM cases c
+        LEFT JOIN case_parties cp ON cp.case_id = c.id AND cp.party_type = 'client'
+        WHERE c.company_id = $2
+          AND (c.client_id = $1 OR cp.client_id = $1)
+          AND COALESCE(c.is_archived, false) = false
+        ORDER BY c.created_at DESC
+        `,
         [clientId, companyId]
-      )
+      ).catch(() => ({ rows: [] }))
 
-      // 2. كل الخدمات القانونية (من البداية)
+      const cases = casesResult.rows.map((c: any) => {
+        const totalFee = Number(c.total_fee || 0)
+        const paidAmount = Number(c.paid_amount || 0)
+        const expensesAmount = Number(c.expenses_amount || 0)
+        const remaining = Math.max(0, totalFee - paidAmount)
+        return {
+          ...c,
+          case_type_name: c.case_type || c.main_classification || 'قضية',
+          total_fee: totalFee,
+          paid_amount: paidAmount,
+          expenses_amount: expensesAmount,
+          remaining
+        }
+      })
+
+      // 2. Legal Engagements
       const servicesResult = await query(
         `
         SELECT e.id, e.engagement_number, e.financial_compensation, e.tax,
-          (e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0)) as total_amount,
-          e.paid_amount,
-          GREATEST(e.financial_compensation + e.tax + COALESCE(e.late_fee_amount, 0) - e.paid_amount, 0) AS remaining_amount,
-          e.finance_status, e.start_date,
+          (COALESCE(e.financial_compensation, 0) + COALESCE(e.tax, 0) + COALESCE(e.late_fee_amount, 0)) AS total_amount,
+          COALESCE(e.paid_amount, 0) AS paid_amount,
+          GREATEST(COALESCE(e.financial_compensation, 0) + COALESCE(e.tax, 0) + COALESCE(e.late_fee_amount, 0) - COALESCE(e.paid_amount, 0), 0) AS remaining_amount,
+          COALESCE(e.finance_status, 'pending') AS finance_status, e.start_date,
           e.payment_method, e.description,
-          c.name_ar as category_name, t.name_ar as service_type_name
+          c.name_ar AS category_name, t.name_ar AS service_type_name
         FROM legal_engagements e
         LEFT JOIN legal_service_categories c ON e.category_id = c.id
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
         WHERE e.client_id = $1 AND e.company_id = $2 AND e.deleted_at IS NULL
         ORDER BY e.created_at DESC
-      `,
+        `,
         [clientId, companyId]
-      )
+      ).catch(() => ({ rows: [] }))
 
-      // 3. سجل الدفعات الكامل
-      const paymentsResult = await query(
+      // 3. Standalone Contracts
+      const standaloneContractsResult = await query(
         `
-        SELECT ph.id, ph.amount, ph.payment_method, ph.received_at,
-          ph.voucher_id, ph.notes,
-          e.engagement_number, e.id as engagement_id,
-          t.name_ar as service_type_name,
-          v.voucher_number
+        SELECT con.*
+        FROM contracts con
+        WHERE con.client_id = $1 AND con.company_id = $2
+          AND con.case_id IS NULL
+          AND COALESCE(con.is_archived, false) = false
+        ORDER BY con.created_at DESC
+        `,
+        [clientId, companyId]
+      ).catch(() => ({ rows: [] }))
+
+      // 4. All Financial Transactions (finances) for this client or their cases
+      const financeTxResult = await query(
+        `
+        SELECT DISTINCT
+          f.id, f.type, f.amount, f.date, f.date AS payment_date, f.category,
+          f.description, f.description AS notes, f.case_id, f.client_id, f.account_id, f.reference_id,
+          c.case_number,
+          COALESCE(c.case_number, 'عام') AS engagement_number,
+          COALESCE(f.category, CASE WHEN f.type = 'income' THEN 'أتعاب محاماة' ELSE 'مصروفات قضية' END) AS service_type_name,
+          acc.name AS account_name,
+          inv.id AS linked_invoice_id,
+          inv.invoice_number AS linked_invoice_number,
+          CASE WHEN f.type = 'income' THEN 'سجل العمليات (إيراد)' ELSE 'سجل العمليات (مصروف)' END AS source
+        FROM finances f
+        LEFT JOIN cases c ON f.case_id = c.id AND c.company_id = f.company_id
+        LEFT JOIN case_parties cp ON cp.case_id = c.id AND cp.party_type = 'client'
+        LEFT JOIN accounts acc ON f.account_id = acc.id AND acc.company_id = f.company_id
+        LEFT JOIN invoices inv ON f.reference_id = inv.id AND inv.company_id = f.company_id
+        WHERE f.company_id = $2
+          AND (f.client_id = $1 OR c.client_id = $1 OR cp.client_id = $1)
+        ORDER BY f.date DESC
+        `,
+        [clientId, companyId]
+      ).catch(() => ({ rows: [] }))
+
+      // 5. Payment history from legal services
+      const paymentHistoryResult = await query(
+        `
+        SELECT ph.id, 'income' AS type, ph.amount, ph.payment_method, ph.received_at AS date,
+          ph.received_at AS payment_date, ph.voucher_id, ph.notes, ph.notes AS description,
+          e.engagement_number, e.id AS engagement_id,
+          COALESCE(t.name_ar, 'دفعة خدمة قانونية') AS service_type_name,
+          COALESCE(t.name_ar, 'خدمات قانونية') AS category,
+          v.voucher_number, 'دفعة خدمة قانونية' AS source
         FROM payment_history ph
         JOIN legal_engagements e ON ph.legal_engagement_id = e.id
         LEFT JOIN legal_service_types t ON e.engagement_type_id = t.id
         LEFT JOIN vouchers v ON ph.voucher_id = v.id
         WHERE e.client_id = $1 AND e.company_id = $2
         ORDER BY ph.received_at DESC
-      `,
+        `,
         [clientId, companyId]
-      )
+      ).catch(() => ({ rows: [] }))
 
-      // 4. الأقساط المتأخرة
-      const overdueItems = await query(
-        `
-        SELECT ps.*, e.engagement_number
-        FROM payment_schedules ps
-        JOIN legal_engagements e ON ps.legal_engagement_id = e.id
-        WHERE e.client_id = $1 AND ps.company_id = $2 AND ps.status = 'overdue'
-        ORDER BY ps.due_date
-      `,
-        [clientId, companyId]
-      )
+      // 6. Invoices & Vouchers
+      const [invoicesResult, vouchersResult, overdueItems, upcomingItems] = await Promise.all([
+        query(
+          `
+          SELECT DISTINCT i.*,
+            COALESCE(i.subtotal, 0) AS amount,
+            COALESCE(i.tax_amount, 0) AS vat_amount,
+            COALESCE(i.total, 0) AS total_amount,
+            COALESCE(i.notes, '') AS description,
+            c.case_number
+          FROM invoices i
+          LEFT JOIN cases c ON i.case_id = c.id AND c.company_id = i.company_id
+          LEFT JOIN case_parties cp ON cp.case_id = c.id AND cp.party_type = 'client'
+          WHERE i.company_id = $2 AND (i.client_id = $1 OR c.client_id = $1 OR cp.client_id = $1)
+          ORDER BY i.date DESC
+          `,
+          [clientId, companyId]
+        ).catch(() => ({ rows: [] })),
+        query(
+          `
+          SELECT DISTINCT v.*,
+            COALESCE(v.notes, '') AS description,
+            c.case_number,
+            acc.name AS account_name
+          FROM vouchers v
+          LEFT JOIN cases c ON v.case_id = c.id AND c.company_id = v.company_id
+          LEFT JOIN case_parties cp ON cp.case_id = c.id AND cp.party_type = 'client'
+          LEFT JOIN accounts acc ON v.account_id = acc.id AND acc.company_id = v.company_id
+          WHERE v.company_id = $2 AND (v.client_id = $1 OR c.client_id = $1 OR cp.client_id = $1)
+          ORDER BY v.date DESC
+          `,
+          [clientId, companyId]
+        ).catch(() => ({ rows: [] })),
+        query(
+          `
+          SELECT ps.*, e.engagement_number
+          FROM payment_schedules ps
+          JOIN legal_engagements e ON ps.legal_engagement_id = e.id
+          WHERE e.client_id = $1 AND ps.company_id = $2 AND ps.status = 'overdue'
+          ORDER BY ps.due_date
+          `,
+          [clientId, companyId]
+        ).catch(() => ({ rows: [] })),
+        query(
+          `
+          SELECT ps.*, e.engagement_number
+          FROM payment_schedules ps
+          JOIN legal_engagements e ON ps.legal_engagement_id = e.id
+          WHERE e.client_id = $1 AND ps.company_id = $2 AND ps.status = 'pending'
+            AND ps.due_date >= CURRENT_DATE
+          ORDER BY ps.due_date LIMIT 10
+          `,
+          [clientId, companyId]
+        ).catch(() => ({ rows: [] }))
+      ])
 
-      // 5. الأقساط القادمة
-      const upcomingItems = await query(
-        `
-        SELECT ps.*, e.engagement_number
-        FROM payment_schedules ps
-        JOIN legal_engagements e ON ps.legal_engagement_id = e.id
-        WHERE e.client_id = $1 AND ps.company_id = $2 AND ps.status = 'pending'
-          AND ps.due_date >= CURRENT_DATE
-        ORDER BY ps.due_date LIMIT 10
-      `,
-        [clientId, companyId]
+      // Merge & deduplicate transactions
+      const txMap = new Map<string, any>()
+      for (const tx of [...financeTxResult.rows, ...paymentHistoryResult.rows]) {
+        if (!txMap.has(tx.id)) txMap.set(tx.id, tx)
+      }
+      const transactions = Array.from(txMap.values()).sort(
+        (a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+      )
+      const payments = transactions.filter((t) => t.type === 'income')
+      const expenses = transactions.filter((t) => t.type === 'expense')
+
+      // Unified services list (Cases + Legal Services + Standalone Contracts)
+      const caseItems = cases.map((c: any) => ({
+        id: c.id,
+        item_kind: 'case',
+        case_id: c.id,
+        engagement_number: c.case_number,
+        service_type_name: c.subject || c.case_type_name || 'قضية',
+        category_name: c.court ? `قضية - ${c.court}` : 'تقاضي وقضايا',
+        total_amount: c.total_fee,
+        paid_amount: c.paid_amount,
+        expenses_amount: c.expenses_amount,
+        remaining_amount: c.remaining,
+        finance_status:
+          c.remaining <= 0 && c.total_fee > 0
+            ? 'paid'
+            : c.paid_amount > 0
+              ? 'partial'
+              : 'pending',
+        start_date: c.registration_date || c.created_at
+      }))
+
+      const serviceItems = servicesResult.rows.map((s: any) => ({
+        ...s,
+        item_kind: 'legal_service',
+        total_amount: Number(s.total_amount || 0),
+        paid_amount: Number(s.paid_amount || 0),
+        remaining_amount: Number(s.remaining_amount || 0)
+      }))
+
+      const contractItems = standaloneContractsResult.rows.map((ct: any) => ({
+        id: ct.id,
+        item_kind: 'contract',
+        engagement_number: ct.contract_no || ct.contract_number || 'عقد',
+        service_type_name: ct.title || 'عقد مستقل',
+        category_name: 'عقود واتفاقيات',
+        total_amount: Number(ct.total_amount || ct.value || 0),
+        paid_amount: 0,
+        remaining_amount: Number(ct.total_amount || ct.value || 0),
+        finance_status: 'pending',
+        start_date: ct.start_date || ct.created_at
+      }))
+
+      const unifiedServices = [...caseItems, ...serviceItems, ...contractItems]
+      const totalDue = unifiedServices.reduce((s, i) => s + Number(i.total_amount || 0), 0)
+      const totalPaid = payments.reduce((s, p) => s + Number(p.amount || 0), 0)
+      const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount || 0), 0)
+      const balance = Math.max(0, totalDue - totalPaid)
+      const overdueAmount = overdueItems.rows.reduce(
+        (s: number, o: any) => s + Math.max(0, Number(o.amount || 0) - Number(o.paid_amount || 0)),
+        0
       )
 
       res.json({
-        summary: summaryResult.rows[0],
-        services: servicesResult.rows,
-        payments: paymentsResult.rows,
+        summary: {
+          total_services: unifiedServices.length,
+          total_cases: cases.length,
+          total_legal_services: serviceItems.length,
+          total_due: totalDue,
+          total_paid: totalPaid,
+          total_expenses: totalExpenses,
+          balance,
+          overdue_amount: overdueAmount
+        },
+        cases,
+        services: unifiedServices,
+        payments,
+        transactions,
+        expenses,
+        invoices: invoicesResult.rows,
+        vouchers: vouchersResult.rows,
         overdue_items: overdueItems.rows,
         upcoming_items: upcomingItems.rows
       })

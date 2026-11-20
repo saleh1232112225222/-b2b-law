@@ -174,13 +174,12 @@ export function validateEntityBody(req: Request, res: Response, next: NextFuncti
   }
 
   if (req.body && typeof req.body === 'object') {
-    const invalidFields = Object.keys(req.body).filter((key) => !allowedFields.includes(key))
-    if (invalidFields.length > 0) {
-      res.status(400).json({
-        error: 'حقول غير مسموح بها',
-        invalidFields
-      })
-      return
+    // Strip unknown/joined/read-only fields (e.g. cases_count, sync_version, client_name)
+    // instead of rejecting legitimate edit payloads with 400.
+    for (const key of Object.keys(req.body)) {
+      if (!allowedFields.includes(key)) {
+        delete req.body[key]
+      }
     }
 
     // Validate string lengths

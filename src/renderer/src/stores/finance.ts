@@ -11,31 +11,113 @@ import {
   PaymentRecord
 } from '../types'
 
+export interface CashFlowItem {
+  month: string
+  income: number
+  expense: number
+  net: number
+}
+
+export interface FinanceQueryFilters {
+  from?: string
+  to?: string
+  type?: string
+  category?: string
+  caseId?: string
+  clientId?: string
+  q?: string
+}
+
 export const useFinanceStore = defineStore('finance', () => {
   const transactions = ref<Transaction[]>([])
+  const totalTransactionsCount = ref(0)
+  const cashFlow = ref<CashFlowItem[]>([])
+  const activeFilters = ref<FinanceQueryFilters>({})
   const invoices = ref<Invoice[]>([])
   const vouchers = ref<Voucher[]>([])
   const accounts = ref<Account[]>([])
   const receivables = ref<Receivable[]>([])
-  const stats = ref<FinanceStats>({ income: 0, expense: 0, balance: 0 })
+  const stats = ref<FinanceStats & Record<string, any>>({ income: 0, expense: 0, balance: 0 })
   const loading = ref(false)
+  const transactionsLoading = ref(false)
   const error = ref<string | null>(null)
   const searchQuery = ref('')
+
+  const fetchFilteredTransactions = async (params?: {
+    page?: number
+    pageSize?: number
+    sortDir?: 'asc' | 'desc'
+    filters?: FinanceQueryFilters
+  }) => {
+    transactionsLoading.value = true
+    try {
+      const api = window.api as any
+      const mergedFilters: FinanceQueryFilters = {
+        ...activeFilters.value,
+        ...(params?.filters || {})
+      }
+      const cleanFilters: FinanceQueryFilters = {}
+      if (mergedFilters.type && mergedFilters.type !== 'all') cleanFilters.type = mergedFilters.type
+      if (mergedFilters.category && mergedFilters.category !== 'all')
+        cleanFilters.category = mergedFilters.category
+      if (mergedFilters.caseId) cleanFilters.caseId = mergedFilters.caseId
+      if (mergedFilters.clientId) cleanFilters.clientId = mergedFilters.clientId
+      if (mergedFilters.from) cleanFilters.from = mergedFilters.from
+      if (mergedFilters.to) cleanFilters.to = mergedFilters.to
+      if (mergedFilters.q && mergedFilters.q.trim() !== '') cleanFilters.q = mergedFilters.q.trim()
+
+      activeFilters.value = cleanFilters
+
+      if (api.finances?.list && api.finances?.count) {
+        const [rows, total] = await Promise.all([
+          api.finances.list({
+            page: params?.page || 1,
+            pageSize: params?.pageSize || 200,
+            sortDir: params?.sortDir || 'desc',
+            filters: cleanFilters
+          }),
+          api.finances.count(cleanFilters)
+        ])
+        transactions.value = Array.isArray(rows) ? rows : []
+        totalTransactionsCount.value = Number(total || 0)
+      } else {
+        const all = await api.finances.getAll()
+        transactions.value = Array.isArray(all) ? all : []
+        totalTransactionsCount.value = transactions.value.length
+      }
+    } catch (e: unknown) {
+      error.value = (e as Error).message
+    } finally {
+      transactionsLoading.value = false
+    }
+  }
+
+  const fetchCashFlow = async (months = 6) => {
+    try {
+      const api = window.api as any
+      if (api.finances?.getCashFlow) {
+        const data = await api.finances.getCashFlow(months)
+        cashFlow.value = Array.isArray(data) ? data : []
+      }
+    } catch (e) {
+      console.warn('Failed to fetch cash flow:', e)
+    }
+  }
 
   const fetchFinanceData = async () => {
     loading.value = true
     error.value = null
     try {
-      const api = window.api
-      const [trans, inv, vch, accs, recs, statistics] = await Promise.all([
-        api.finances.getAll(),
+      const api = window.api as any
+      const [inv, vch, accs, recs, statistics] = await Promise.all([
         api.invoices.getAll(),
         api.vouchers.getAll(),
         api.accounts.getAll(),
         api.receivables.getAll(),
-        api.finances.getStats()
+        api.finances.getStats(),
+        fetchFilteredTransactions({ filters: activeFilters.value }),
+        fetchCashFlow(6)
       ])
-      transactions.value = trans
       invoices.value = inv
       vouchers.value = vch
       accounts.value = accs
@@ -51,7 +133,19 @@ export const useFinanceStore = defineStore('finance', () => {
   const addTransaction = async (record: Partial<Transaction>) => {
     try {
       const dataToSave = JSON.parse(JSON.stringify(record))
-      await window.api.finances.create(dataToSave)
+      const created = await window.api.finances.create(dataToSave)
+      await fetchFinanceData()
+      return created
+    } catch (e: unknown) {
+      error.value = (e as Error).message
+      throw e
+    }
+  }
+
+  const updateTransaction = async (id: string, record: Partial<Transaction>) => {
+    try {
+      const dataToSave = JSON.parse(JSON.stringify(record))
+      await (window.api.finances as any).update(id, dataToSave)
       await fetchFinanceData()
     } catch (e: unknown) {
       error.value = (e as Error).message
@@ -59,11 +153,21 @@ export const useFinanceStore = defineStore('finance', () => {
     }
   }
 
-  const addInvoice = async (record: Partial<Invoice>) => {
+  const addInvoice = async (record: Partial<Invoice> & Record<string, any>) => {
     try {
       const dataToSave = JSON.parse(JSON.stringify(record))
-      await window.api.invoices.createWithReceivable(dataToSave)
+      const res: any = await window.api.invoices.createWithReceivable(dataToSave)
+      await fetchFinanceData()
+      return res?.invoice?.id || res?.id || res
+    } catch (e: unknown) {
+      error.value = (e as Error).message
+      throw e
+    }
+  }
 
+  const updateInvoiceStatus = async (id: string, status: string) => {
+    try {
+      await (window.api.invoices as any).updateStatus(id, status)
       await fetchFinanceData()
     } catch (e: unknown) {
       error.value = (e as Error).message
@@ -256,17 +360,25 @@ export const useFinanceStore = defineStore('finance', () => {
 
   return {
     transactions,
+    totalTransactionsCount,
+    cashFlow,
+    activeFilters,
     invoices,
     vouchers,
     accounts,
     receivables,
     stats,
     loading,
+    transactionsLoading,
     error,
     searchQuery,
     fetchFinanceData,
+    fetchFilteredTransactions,
+    fetchCashFlow,
     addTransaction,
+    updateTransaction,
     addInvoice,
+    updateInvoiceStatus,
     addVoucher,
     applyReceivablePayment,
     deleteTransaction,

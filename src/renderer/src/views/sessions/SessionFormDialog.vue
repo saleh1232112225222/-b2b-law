@@ -243,7 +243,7 @@
           variant="flat"
           size="large"
           class="pill-btn-gold-filled px-8"
-          :disabled="!formValid || caseBlockStatus.is_blocked"
+          :disabled="caseBlockStatus.is_blocked"
           :loading="saving"
           @click="handleSave"
           >{{ isEditing ? 'تحديث الموعد' : 'تأكيد الجدولة' }}</v-btn
@@ -304,7 +304,14 @@ watch(
   (val) => {
     if (val) {
       if (props.isEditing && props.editingItem) {
-        editItem.value = { ...props.editingItem }
+        const cloned = { ...props.editingItem }
+        if (typeof cloned.date === 'string' && cloned.date.includes('T')) {
+          cloned.date = cloned.date.slice(0, 10)
+        }
+        if (typeof cloned.time === 'string' && cloned.time.length >= 5) {
+          cloned.time = cloned.time.slice(0, 5)
+        }
+        editItem.value = cloned
       } else {
         editItem.value = { ...defaultItem }
         if (!editItem.value.responsible_user_id && session.value?.userId) {
@@ -337,21 +344,6 @@ const loadAssignableUsers = async () => {
     assignableUsersLoading.value = false
   }
 }
-
-watch(
-  () => props.show,
-  (val) => {
-    if (val) {
-      if (props.isEditing && props.editingItem) {
-        editItem.value = { ...props.editingItem }
-      } else {
-        editItem.value = { ...defaultItem }
-      }
-      caseBlockStatus.value = { is_blocked: false, reason: '' }
-      loadAssignableUsers()
-    }
-  }
-)
 
 watch(
   () => editItem.value.case_id,

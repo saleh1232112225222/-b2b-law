@@ -361,12 +361,14 @@ sessionsRouter.post(
       const id = uuidv4()
       body.id = id
 
-      // Convert empty strings to null for PostgreSQL compatibility
+      // Convert empty strings to null and normalize date/time for PostgreSQL compatibility
       for (const key of Object.keys(body)) {
         if (body[key] === '') {
           body[key] = null
         } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
           body[key] = parseTimeTo24h(body[key])
+        } else if (key.toLowerCase() === 'date' && typeof body[key] === 'string' && body[key].includes('T')) {
+          body[key] = body[key].slice(0, 10)
         }
       }
 
@@ -521,12 +523,14 @@ sessionsRouter.put(
       body.updated_at = new Date().toISOString()
       if (!body.updated_by) body.updated_by = req.auth!.userId
 
-      // Convert empty strings to null for PostgreSQL compatibility
+      // Convert empty strings to null and normalize date/time for PostgreSQL compatibility
       for (const key of Object.keys(body)) {
         if (body[key] === '') {
           body[key] = null
         } else if (key.toLowerCase() === 'time' && typeof body[key] === 'string') {
           body[key] = parseTimeTo24h(body[key])
+        } else if (key.toLowerCase() === 'date' && typeof body[key] === 'string' && body[key].includes('T')) {
+          body[key] = body[key].slice(0, 10)
         }
       }
 

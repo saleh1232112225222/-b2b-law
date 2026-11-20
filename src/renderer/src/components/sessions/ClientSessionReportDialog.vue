@@ -666,6 +666,10 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
+
+  <v-snackbar v-model="saveFeedback.show" :color="saveFeedback.color" timeout="3500" location="top">
+    <span class="font-weight-black">{{ saveFeedback.text }}</span>
+  </v-snackbar>
 </template>
 
 <script setup lang="ts">
@@ -689,6 +693,7 @@ const isMobile = computed(() => typeof window !== 'undefined' && window.innerWid
 const loading = ref(false)
 const loadError = ref('')
 const saving = ref(false)
+const saveFeedback = ref({ show: false, text: '', color: 'success' })
 const transitioning = ref(false)
 const printing = ref(false)
 const reportData = ref<ClientSessionReportData | null>(null)
@@ -842,9 +847,16 @@ async function saveEdits() {
     const res = await (api as any).sessionOutcome.updateClientReport(props.sessionId, payload)
     const data = res?.data || res
     reportData.value = data
+    loadError.value = ''
+    saveFeedback.value = { show: true, text: 'تم حفظ تعديلات التقرير بنجاح', color: 'success' }
     emit('updated')
-  } catch (err) {
+  } catch (err: any) {
     console.error('Failed to save report edits:', err)
+    saveFeedback.value = {
+      show: true,
+      text: 'فشل حفظ تعديلات التقرير: ' + (err?.message || 'خطأ غير متوقع'),
+      color: 'error'
+    }
   } finally {
     saving.value = false
   }
