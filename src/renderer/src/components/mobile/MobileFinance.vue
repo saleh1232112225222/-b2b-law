@@ -1,27 +1,63 @@
 <template>
   <div class="pa-3">
-    <v-card class="rounded-xl pa-4 mb-3" variant="outlined">
-      <v-row dense>
-        <v-col cols="4" class="text-center">
-          <div class="text-caption text-medium-emphasis">الإيرادات</div>
+    <!-- 4 Interactive Mobile KPI Cards (2x2 Grid) -->
+    <v-row dense class="mb-3">
+      <v-col cols="6">
+        <v-card
+          class="rounded-xl pa-3 text-center kpi-mobile-card"
+          :class="{ 'kpi-mobile-active': activeKpi === 'income' }"
+          variant="outlined"
+          @click="onKpiTap('income')"
+        >
+          <div class="text-caption text-medium-emphasis font-weight-bold">الأتعاب المحصلة</div>
           <div class="text-subtitle-1 font-weight-black text-success">
             {{ formatMoney(stats.income) }}
           </div>
-        </v-col>
-        <v-col cols="4" class="text-center">
-          <div class="text-caption text-medium-emphasis">المصروفات</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card
+          class="rounded-xl pa-3 text-center kpi-mobile-card"
+          :class="{ 'kpi-mobile-active': activeKpi === 'pending' }"
+          variant="outlined"
+          @click="onKpiTap('pending')"
+        >
+          <div class="text-caption text-medium-emphasis font-weight-bold">الأتعاب المتبقية</div>
+          <div class="text-subtitle-1 font-weight-black text-warning">
+            {{ formatMoney((stats as any).total_remaining || 0) }}
+          </div>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card
+          class="rounded-xl pa-3 text-center kpi-mobile-card"
+          :class="{ 'kpi-mobile-active': activeKpi === 'expense' }"
+          variant="outlined"
+          @click="onKpiTap('expense')"
+        >
+          <div class="text-caption text-medium-emphasis font-weight-bold">المصروفات</div>
           <div class="text-subtitle-1 font-weight-black text-error">
             {{ formatMoney(stats.expense) }}
           </div>
-        </v-col>
-        <v-col cols="4" class="text-center">
-          <div class="text-caption text-medium-emphasis">الرصيد</div>
+        </v-card>
+      </v-col>
+      <v-col cols="6">
+        <v-card
+          class="rounded-xl pa-3 text-center kpi-mobile-card"
+          :class="{ 'kpi-mobile-active': activeKpi === 'balance' }"
+          variant="outlined"
+          @click="onKpiTap('balance')"
+        >
+          <div class="text-caption text-medium-emphasis font-weight-bold">صافي التوازن</div>
           <div class="text-subtitle-1 font-weight-black text-primary">
             {{ formatMoney(stats.balance) }}
           </div>
-        </v-col>
-      </v-row>
-    </v-card>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <!-- Mobile Cash Flow Chart (6 Months) -->
+    <CashFlowChart :items="cashFlow" :loading="loading" />
 
     <v-tabs
       v-model="activeTab"
@@ -42,9 +78,38 @@
 
     <v-window v-model="activeTab">
       <v-window-item value="transactions">
+        <div class="d-flex ga-1 mb-3">
+          <v-chip
+            size="small"
+            :color="mobileTypeFilter === 'all' ? 'primary' : 'default'"
+            :variant="mobileTypeFilter === 'all' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="applyMobileTypeFilter('all')"
+          >
+            الكل
+          </v-chip>
+          <v-chip
+            size="small"
+            :color="mobileTypeFilter === 'income' ? 'success' : 'default'"
+            :variant="mobileTypeFilter === 'income' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="applyMobileTypeFilter('income')"
+          >
+            إيرادات
+          </v-chip>
+          <v-chip
+            size="small"
+            :color="mobileTypeFilter === 'expense' ? 'error' : 'default'"
+            :variant="mobileTypeFilter === 'expense' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="applyMobileTypeFilter('expense')"
+          >
+            مصروفات
+          </v-chip>
+        </div>
         <MobileCardList
           :items="transactions"
-          :loading="loading"
+          :loading="loading || transactionsLoading"
           title-field="description"
           subtitle-field="client_name"
           :info-fields="[
@@ -62,8 +127,37 @@
       </v-window-item>
 
       <v-window-item value="invoices">
+        <div class="d-flex ga-1 mb-3">
+          <v-chip
+            size="small"
+            :color="mobileInvoiceFilter === 'all' ? 'primary' : 'default'"
+            :variant="mobileInvoiceFilter === 'all' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="mobileInvoiceFilter = 'all'"
+          >
+            الكل
+          </v-chip>
+          <v-chip
+            size="small"
+            :color="mobileInvoiceFilter === 'pending' ? 'warning' : 'default'"
+            :variant="mobileInvoiceFilter === 'pending' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="mobileInvoiceFilter = 'pending'"
+          >
+            معلقة (غير مدفوعة)
+          </v-chip>
+          <v-chip
+            size="small"
+            :color="mobileInvoiceFilter === 'paid' ? 'success' : 'default'"
+            :variant="mobileInvoiceFilter === 'paid' ? 'flat' : 'outlined'"
+            class="font-weight-bold"
+            @click="mobileInvoiceFilter = 'paid'"
+          >
+            مدفوعة
+          </v-chip>
+        </div>
         <MobileCardList
-          :items="invoices"
+          :items="filteredMobileInvoices"
           :loading="loading"
           title-field="invoice_number"
           subtitle-field="client_name"
@@ -252,120 +346,7 @@
       </v-window-item>
 
       <v-window-item value="client-statement">
-        <div class="pa-2">
-          <div class="d-flex justify-space-between align-center mb-3">
-            <div class="text-subtitle-2 font-weight-black">كشف حساب العميل</div>
-            <v-btn
-              size="x-small"
-              variant="tonal"
-              color="accent"
-              :loading="statementLoading"
-              @click="loadStatement"
-            >
-              <v-icon size="14">mdi-refresh</v-icon>
-            </v-btn>
-          </div>
-          <v-autocomplete
-            v-model="statementClientId"
-            :items="allClients"
-            item-title="name"
-            item-value="id"
-            label="اختر العميل..."
-            variant="outlined"
-            density="compact"
-            hide-details
-            clearable
-            class="mb-3"
-          />
-          <div v-if="statementLoading" class="text-center py-6">
-            <v-progress-circular indeterminate color="accent" size="32" />
-          </div>
-          <template v-else-if="statementData">
-            <v-row dense class="mb-3">
-              <v-col cols="3" class="text-center">
-                <div class="text-caption text-medium-emphasis">الخدمات</div>
-                <div class="text-subtitle-2 font-weight-black">
-                  {{ statementData.summary?.total_services || 0 }}
-                </div>
-              </v-col>
-              <v-col cols="3" class="text-center">
-                <div class="text-caption text-medium-emphasis">الإجمالي</div>
-                <div class="text-subtitle-2 font-weight-black text-primary">
-                  {{ formatMoney(statementData.summary?.total_due || 0) }}
-                </div>
-              </v-col>
-              <v-col cols="3" class="text-center">
-                <div class="text-caption text-medium-emphasis">المدفوع</div>
-                <div class="text-subtitle-2 font-weight-black text-success">
-                  {{ formatMoney(statementData.summary?.total_paid || 0) }}
-                </div>
-              </v-col>
-              <v-col cols="3" class="text-center">
-                <div class="text-caption text-medium-emphasis">المتبقي</div>
-                <div class="text-subtitle-2 font-weight-black text-error">
-                  {{ formatMoney(statementData.summary?.balance || 0) }}
-                </div>
-              </v-col>
-            </v-row>
-            <div class="text-subtitle-2 font-weight-black mb-2">الخدمات</div>
-            <v-card
-              v-for="svc in statementData.services || []"
-              :key="svc.id"
-              variant="outlined"
-              class="mb-2 pa-3 rounded-lg"
-            >
-              <div class="d-flex justify-space-between align-start">
-                <div>
-                  <div class="font-weight-bold text-body-2">{{ svc.service_type_name }}</div>
-                  <div class="text-caption text-medium-emphasis">
-                    {{ svc.engagement_number }} - {{ svc.category_name }}
-                  </div>
-                </div>
-                <div class="text-end">
-                  <div class="text-caption text-success font-weight-bold">
-                    {{ formatMoney(svc.paid_amount || 0) }}
-                  </div>
-                  <div
-                    v-if="(svc.remaining_amount || 0) > 0"
-                    class="text-caption text-error font-weight-bold"
-                  >
-                    متبقي: {{ formatMoney(svc.remaining_amount || 0) }}
-                  </div>
-                </div>
-              </div>
-            </v-card>
-            <template v-if="(statementData.payments || []).length > 0">
-              <div class="text-subtitle-2 font-weight-black mb-2 mt-4">سجل الدفعات</div>
-              <v-card
-                v-for="p in statementData.payments"
-                :key="p.id"
-                variant="outlined"
-                class="mb-2 pa-3 rounded-lg"
-              >
-                <div class="d-flex justify-space-between align-center">
-                  <div>
-                    <div class="font-weight-bold text-body-2 text-success">
-                      {{ formatMoney(p.amount) }} ريال
-                    </div>
-                    <div class="text-caption text-medium-emphasis">
-                      {{ p.service_type_name }} - {{ p.engagement_number }}
-                    </div>
-                  </div>
-                  <div class="text-end">
-                    <div class="text-caption text-medium-emphasis">{{ p.payment_date }}</div>
-                    <div class="text-caption text-medium-emphasis">{{ p.payment_method }}</div>
-                  </div>
-                </div>
-              </v-card>
-            </template>
-          </template>
-          <div
-            v-else-if="statementClientId && !statementLoading"
-            class="text-center py-6 text-medium-emphasis"
-          >
-            لا توجد بيانات
-          </div>
-        </div>
+        <ClientFinancialStatement />
       </v-window-item>
 
       <v-window-item value="office-mgmt">
@@ -381,6 +362,8 @@ import { useFinanceStore } from '../../stores/finance'
 import { storeToRefs } from 'pinia'
 import MobileCardList from './MobileCardList.vue'
 import MobileOfficeManagement from './MobileOfficeManagement.vue'
+import CashFlowChart from '../finance/CashFlowChart.vue'
+import ClientFinancialStatement from '../finance/ClientFinancialStatement.vue'
 
 const emit = defineEmits<{
   'add-transaction': []
@@ -389,16 +372,60 @@ const emit = defineEmits<{
 }>()
 
 const financeStore = useFinanceStore()
-const { transactions, invoices, receivables, stats, loading } = storeToRefs(financeStore)
+const { transactions, invoices, receivables, stats, loading, transactionsLoading, cashFlow } =
+  storeToRefs(financeStore)
 
 const activeTab = ref('transactions')
+const activeKpi = ref('balance')
+const mobileTypeFilter = ref<'all' | 'income' | 'expense'>('all')
+const mobileInvoiceFilter = ref<'all' | 'pending' | 'paid'>('all')
+
+const applyMobileTypeFilter = async (type: 'all' | 'income' | 'expense') => {
+  mobileTypeFilter.value = type
+  activeKpi.value = type === 'all' ? 'balance' : type
+  await financeStore.fetchFilteredTransactions({
+    page: 1,
+    pageSize: 200,
+    filters: { type: type === 'all' ? undefined : type }
+  })
+}
+
+const onKpiTap = (key: 'income' | 'pending' | 'expense' | 'balance') => {
+  activeKpi.value = key
+  if (key === 'income') {
+    activeTab.value = 'transactions'
+    void applyMobileTypeFilter('income')
+  } else if (key === 'expense') {
+    activeTab.value = 'transactions'
+    void applyMobileTypeFilter('expense')
+  } else if (key === 'pending') {
+    mobileInvoiceFilter.value = 'pending'
+    activeTab.value = 'invoices'
+  } else {
+    activeTab.value = 'transactions'
+    void applyMobileTypeFilter('all')
+  }
+}
+
+const filteredMobileInvoices = computed(() => {
+  const list = Array.isArray(invoices.value) ? invoices.value : []
+  if (mobileInvoiceFilter.value === 'paid') {
+    return list.filter((i: any) => String(i.status || '').toLowerCase() === 'paid')
+  }
+  if (mobileInvoiceFilter.value === 'pending') {
+    return list.filter((i: any) => {
+      const s = String(i.status || '').toLowerCase()
+      return !['paid', 'cancelled', 'canceled', 'void', 'draft'].includes(s)
+    })
+  }
+  return list
+})
 
 watch(activeTab, (tab) => {
   if (tab === 'legal') void loadLegalData()
   if (tab === 'client-accounts') void loadOfficeData()
 })
 
-// Legal services finance data
 const legalLoading = ref(false)
 const legalStats = ref<any>({
   total_services: 0,
@@ -408,7 +435,6 @@ const legalStats = ref<any>({
 })
 const legalList = ref<any[]>([])
 
-// Office accounts data
 const officeLoading = ref(false)
 const officeExporting = ref(false)
 const officeReport = ref<any>({
@@ -418,13 +444,7 @@ const officeReport = ref<any>({
   clients: []
 })
 
-// Client statement data
-const statementClientId = ref('')
-const statementLoading = ref(false)
-const statementData = ref<any>(null)
-const allClients = ref<any[]>([])
-
-const formatMoney = (val: number) => (val || 0).toLocaleString()
+const formatMoney = (val: number) => (val || 0).toLocaleString('ar-SA')
 
 const loadLegalData = async () => {
   legalLoading.value = true
@@ -446,7 +466,7 @@ const loadLegalData = async () => {
   }
 }
 
-const openItem = (item: any) => {
+const openItem = (_item: any) => {
   // handled by parent if needed
 }
 
@@ -484,35 +504,18 @@ const exportOfficeReport = async () => {
 
 const printOfficeReport = () => window.print()
 
-const loadStatement = async () => {
-  if (!statementClientId.value) {
-    statementData.value = null
-    return
-  }
-  statementLoading.value = true
-  try {
-    const { useOfficeAccountsStore } = await import('../../stores/officeAccounts')
-    const officeStore = useOfficeAccountsStore()
-    await officeStore.fetchClientSummary(statementClientId.value)
-    statementData.value = officeStore.clientSummary
-  } catch (e) {
-    console.warn('Failed to load client statement:', e)
-    statementData.value = null
-  } finally {
-    statementLoading.value = false
-  }
-}
-
-onMounted(async () => {
+onMounted(() => {
   financeStore.fetchFinanceData()
-  // Load clients for statement selector
-  try {
-    const { useClientsStore } = await import('../../stores/clients')
-    const clientsStore = useClientsStore()
-    await clientsStore.fetchClients()
-    allClients.value = clientsStore.clients
-  } catch (e) {
-    console.warn('Failed to load clients:', e)
-  }
 })
 </script>
+
+<style scoped>
+.kpi-mobile-card {
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.kpi-mobile-active {
+  border-color: rgb(var(--v-theme-primary)) !important;
+  box-shadow: 0 0 0 2px rgba(var(--v-theme-primary), 0.16);
+}
+</style>
